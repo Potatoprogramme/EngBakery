@@ -59,7 +59,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <form class="space-y-4" action="<?= base_url('Login') ?>" method="post" novalidate>
+                        <form class="space-y-4" action="<?= base_url('Login/Manual') ?>" method="post" novalidate>
                             <div>
                                 <label for="username" class="block mb-2 text-sm font-medium text-gray-700">Username</label>
                                 <input id="username" name="username" type="text" required class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007B4C] focus:border-transparent" placeholder="Enter your username">

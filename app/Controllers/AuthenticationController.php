@@ -24,7 +24,13 @@ class AuthenticationController extends BaseController
     public function logout(): ResponseInterface
     {
         session()->destroy();
-        return redirect()->to(base_url('Login'))->with('success_message', 'You have been logged out successfully.');
+        return redirect()->to(base_url('login'))->with('success_message', 'You have been logged out successfully.');
+    }
+
+    public function manualLogin(): ResponseInterface
+    {
+        // Placeholder for manual login logic
+        return redirect()->to(base_url('login'))->with('error_message', 'Manual login is not implemented yet.');
     }
 
     /**
@@ -63,7 +69,7 @@ class AuthenticationController extends BaseController
 
         if (!$state || !$sessionState || $state !== $sessionState) {
             log_message('error', 'Invalid state parameter during Google OAuth callback.');
-            return redirect()->to(base_url('Login'))->with('error_message', 'Invalid state parameter. Authentication failed.');
+            return redirect()->to(base_url('login'))->with('error_message', 'Invalid state parameter. Authentication failed.');
         }
 
         $code = $this->request->getVar('code');
@@ -71,12 +77,12 @@ class AuthenticationController extends BaseController
 
         if ($error) {
             log_message('error', 'Authentication cancelled by user: ' . $error);
-            return redirect()->to(base_url('Login'))->with('error_message', 'Authentication cancelled: ' . $error);
+            return redirect()->to(base_url('login'))->with('error_message', 'Authentication cancelled: ' . $error);
         }
 
         if (!$code) {
             log_message('error', 'No authorization code received during Google OAuth callback.');
-            return redirect()->to(base_url('Login'))->with('error_message', 'No authorization code received.');
+            return redirect()->to(base_url('login'))->with('error_message', 'No authorization code received.');
         }
 
         try {
@@ -85,7 +91,7 @@ class AuthenticationController extends BaseController
 
             if (!$tokenData || !isset($tokenData['access_token'])) {
                 log_message('error', 'Failed to obtain access token from Google.');
-                return redirect()->to(base_url('Login'))->with('error_message', 'Failed to obtain access token.');
+                return redirect()->to(base_url('login'))->with('error_message', 'Failed to obtain access token.');
             }
 
             // Get user info from Google
@@ -93,14 +99,14 @@ class AuthenticationController extends BaseController
 
             if (!$userInfo) {
                 log_message('error', 'Failed to retrieve user information from Google.');
-                return redirect()->to(base_url('Login'))->with('error_message', 'Failed to retrieve user information.');
+                return redirect()->to(base_url('login'))->with('error_message', 'Failed to retrieve user information.');
 
             }
 
             // Check if user is authorized
             if (!$this->isUserAuthorized($userInfo['email'])) {
                 log_message('error', 'Unauthorized access attempt by email: ' . $userInfo['email']);
-                return redirect()->to(base_url('Login'))->with('error_message', 'Your email address is not authorized to access this application.');
+                return redirect()->to(base_url('login'))->with('error_message', 'Your email address is not authorized to access this application.');
             }
 
             // Set user session
@@ -122,7 +128,7 @@ class AuthenticationController extends BaseController
             return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in with Google.');
         } catch (\Exception $e) {
             log_message('error', 'Google OAuth Error: ' . $e->getMessage());
-            return redirect()->to(base_url('Login'))->with('error_message', 'An error occurred during authentication. Please try again.');
+            return redirect()->to(base_url('login'))->with('error_message', 'An error occurred during authentication. Please try again.');
         }
     }
 
