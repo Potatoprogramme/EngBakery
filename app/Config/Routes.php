@@ -7,10 +7,11 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
-$routes->group('RawMaterials', function (RouteCollection $routes) {
+$routes->group('RawMaterials', function ($routes) {
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
 });
 
-$routes->group('MaterialCategory', function (RouteCollection $routes) {
+$routes->group('MaterialCategory', function ($routes) {
+    $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');
 });

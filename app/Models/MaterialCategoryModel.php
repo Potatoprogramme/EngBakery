@@ -18,6 +18,8 @@ class MaterialCategoryModel extends Model
     ];
 
     // Dates
-    protected $useTimestamps = true;
+    protected $useTimestamps = false;
     protected $createdField = 'date_created';
+    // protected $updatedField = 'date_updated';
+    // protected $deletedField = 'date_deleted';
 }
