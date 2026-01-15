@@ -10,10 +10,7 @@ class MaterialCategoryController extends BaseController
     }
     public function addCategory()
     {
-        $data = $this->request->getPost([
-            'category_name',
-            'description',
-        ]);
+        $data = $this->request->getJSON(true);
 
         if (empty($data['category_name']) || empty($data['description'])) {
             return $this->response->setStatusCode(400)->setJSON([
