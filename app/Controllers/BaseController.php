@@ -7,6 +7,10 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
+// Models
+use App\Models\MaterialCategoryModel;
+use App\Models\RawMaterialsModel;
+
 /**
  * BaseController provides a convenient place for loading components
  * and performing functions that are needed by all your controllers.
@@ -27,6 +31,11 @@ abstract class BaseController extends Controller
 
     // protected $session;
 
+    // Preload Models Here
+    protected $materialCategoryModel;
+    protected $rawMaterialsModel;
+
+
     /**
      * @return void
      */
@@ -40,6 +49,10 @@ abstract class BaseController extends Controller
         parent::initController($request, $response, $logger);
 
         // Preload any models, libraries, etc, here.
+        $this->materialCategoryModel = new MaterialCategoryModel();
+        $this->rawMaterialsModel = new RawMaterialsModel();
+
+
         // $this->session = service('session');
     }
 }

@@ -8,4 +8,9 @@ class RawMaterialsController extends BaseController
     {
         return view('welcome_message');
     }
+    public function addRawMaterial()
+    {
+        $data = $this->request->getPost();
+
+    }
 }
