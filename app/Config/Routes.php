@@ -6,9 +6,9 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 // $routes->get('/', 'Home::index');
-$routes->get('/login', 'LoginPageController::LoginPage');
-$routes->get('/dashboard', 'DashboardController::Dashboard');
-$routes->get('/raw_material', 'RawMaterialsController::RawMaterial');
+$routes->get('/Login', 'AuthenticationController::loginPage');
+$routes->get('/Dashboard', 'DashboardController::dashboard');
+$routes->get('/RawMaterial', 'RawMaterialsController::rawMaterial');
 $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
 });

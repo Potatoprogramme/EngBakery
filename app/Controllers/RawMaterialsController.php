@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 class RawMaterialsController extends BaseController
 {
-    public function RawMaterial(): string
+    public function rawMaterial(): string
     {
         return  view('Template/Header').
                 view('Template/SideNav') . 

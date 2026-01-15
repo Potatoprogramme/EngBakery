@@ -51,7 +51,7 @@
         <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
             <ul class="space-y-2 font-medium">
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('dashboard') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('Dashboard') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -59,7 +59,7 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('raw_material') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('RawMaterial') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
@@ -67,7 +67,7 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('product') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('Product') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
@@ -75,7 +75,7 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('inventory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('Inventory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
@@ -83,7 +83,7 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('order') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('Order') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -91,7 +91,7 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('sales') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('Sales') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
@@ -99,7 +99,7 @@
                     </a>
                 </li>
                 <li class="py-2 my-2 border-y border-gray-100">
-                    <a href="<?= base_url('delivery-log') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
+                    <a href="<?= base_url('DeliveryLog') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-200">
                         <svg class="w-6 h-6 text-gray-500 transition duration-200 group-hover:text-primary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>

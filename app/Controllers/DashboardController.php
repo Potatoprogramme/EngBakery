@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 class DashboardController extends BaseController
 {
-    public function Dashboard(): string
+    public function dashboard(): string
     {
        return  view('Template/Header').
                 view('Template/SideNav') . 
