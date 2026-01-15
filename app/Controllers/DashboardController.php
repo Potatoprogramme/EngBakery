@@ -6,7 +6,10 @@ class DashboardController extends BaseController
 {
     public function Dashboard(): string
     {
-        return view('Template/Header') . view('Dashboard');
+       return  view('Template/Header').
+                view('Template/SideNav') . 
+                view('Dashboard') .
+                view('Template/Footer');
     }
     
 }

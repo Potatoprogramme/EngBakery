@@ -4,9 +4,12 @@ namespace App\Controllers;
 
 class RawMaterialsController extends BaseController
 {
-    public function index(): string
+    public function RawMaterial(): string
     {
-        return view('welcome_message');
+        return  view('Template/Header').
+                view('Template/SideNav') . 
+                view('RawMaterial') .
+                view('Template/Footer');
     }
     public function addRawMaterial()
     {

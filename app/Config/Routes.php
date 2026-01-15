@@ -8,7 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 $routes->get('/login', 'LoginPageController::LoginPage');
 $routes->get('/dashboard', 'DashboardController::Dashboard');
-$routes->get('/raw_material', 'RawMaterialController::RawMaterial');
+$routes->get('/raw_material', 'RawMaterialsController::RawMaterial');
 $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
 });
