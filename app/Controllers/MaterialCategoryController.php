@@ -4,6 +4,10 @@ namespace App\Controllers;
 
 class MaterialCategoryController extends BaseController
 {
+    public function testView(): string
+    {
+        return view('TestViews/MaterialTestView');
+    }
     public function addCategory()
     {
         $data = $this->request->getPost([

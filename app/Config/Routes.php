@@ -24,7 +24,7 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
 });
 
-$routes->group('MaterialCategory', function ($routes) {
+$routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)
     $routes->post('Delete', 'MaterialCategoryController::deleteCategory');
