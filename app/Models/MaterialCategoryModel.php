@@ -9,7 +9,6 @@ class MaterialCategoryModel extends Model
     protected $primaryKey = 'category_id';
 
     protected $returnType = 'array';
-    protected $useSoftDeletes = true;
 
     protected $allowedFields = [
         'category_name',
@@ -18,6 +17,8 @@ class MaterialCategoryModel extends Model
     ];
 
     // Dates
-    protected $useTimestamps = true;
-    protected $createdField = 'date_created';
+    protected $useTimestamps = false;
+    // protected $createdField = 'date_created';
+    // protected $updatedField = 'date_updated';
+    // protected $deletedField = 'date_deleted';
 }
