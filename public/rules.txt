@@ -1,0 +1,35 @@
+[==============================================================]
+Naming conventions:
+GUIDE__
+[
+"camelCase", 
+"PascalCase", 
+"snake_case",
+"kebab-case",
+"SCREAMING_SNAKE_CASE"
+] 
+a. database, columns - snake_case
+b. Files - PascalCase, except for index
+c. Functions - camelCase
+d. Variables - camelCase or snake_case
+e. Routers - PascalCase
+[==============================================================]
+
+[==============================================================]
+Reminders:
+Use base_url or site_url for links and forms
+
+NEW DATABASE CONFIG
+1. Under php.ini change upload_max_filesize and post_max_size to 40M (Reason: 2MB above were getting blocked by post)
+
+[==============================================================]
+Tools
+Color Preset - 
+Font Awesome - <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
+Guzzle - composer require guzzlehttp/guzzle
+jQuery CDN - <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+phpsocket.io - composer require workerman/phpsocket.io
+
+[==============================================================]
+
+[==============================================================]
