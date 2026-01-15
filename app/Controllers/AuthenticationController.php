@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 class AuthenticationController extends BaseController
 {
-    public function loginPage(): string
+    public function loginPage()
     {
         return view('LoginPage');
     }
