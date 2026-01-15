@@ -1,25 +1,68 @@
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
-        <div class="p-4 mt-14 bg-white rounded-lg shadow-md">
-            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 class="text-xl font-semibold text-gray-800">Raw Materials</h2>
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                        Add Material
-                    </button>
-                    <button type="button" class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                        Export
-                    </button>
+        <div class="mt-16">
+            <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
+                <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
+                    <li>
+                        <a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a>
+                    </li>
+                    <li>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                    <li class="text-gray-700">Raw Material</li>
+                </ol>
+            </nav>
+            <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
+                <div class="flex flex-wrap items-center justify-between w-full gap-2">
+                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Raw Material Lists</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            Add Material
+                        </button>
+                        <button type="button" class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            Export
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Divider line -->
+                <div class="border-t border-gray-200 my-4"></div>
+                
+                <!-- Filters section -->
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
+                        <div class="flex items-center gap-2 w-full">
+                            <label for="filter-category" class="sr-only">Category</label>
+                            <select id="filter-category" class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                                <option value="">All Categories</option>
+                                <option>Flour</option>
+                                <option>Yeast</option>
+                                <option>Sugar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-center sm:justify-end">
+                        <button id="apply-filters" type="button" class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
+                        <button id="reset-filters" type="button" class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
+                    </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <!-- Floating Add Material button for mobile -->
+            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
+                <button type="button" class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Raw Material
+                </button>
+            </div>
+
+            <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
                 <table id="selection-table" class="min-w-full text-sm text-left text-gray-500">
                 <thead>
                     <tr>
                         <th scope="col" class="px-6 py-3">
                             <span class="flex items-center">
-                                Name
+                                Item Name
                                 <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
                                 </svg>
@@ -27,7 +70,7 @@
                         </th>
                         <th scope="col" class="px-6 py-3" data-type="date" data-format="YYYY/DD/MM">
                             <span class="flex items-center">
-                                Release Date
+                                Quantity
                                 <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
                                 </svg>
@@ -35,7 +78,7 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             <span class="flex items-center">
-                                NPM Downloads
+                                Unit of Measure
                                 <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
                                 </svg>
@@ -43,7 +86,15 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             <span class="flex items-center">
-                                Growth
+                                Cost per Quantity
+                                <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
+                                </svg>
+                            </span>
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            <span class="flex items-center">
+                                Cost per Grams
                                 <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
                                 </svg>
@@ -57,126 +108,14 @@
                         <td class="px-6 py-4">2021/25/09</td>
                         <td class="px-6 py-4">269000</td>
                         <td class="px-6 py-4">49%</td>
+                        <td class="px-6 py-4">49%</td>
                     </tr>
                     <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">React</td>
-                        <td class="px-6 py-4">2013/24/05</td>
-                        <td class="px-6 py-4">4500000</td>
-                        <td class="px-6 py-4">24%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Angular</td>
-                        <td class="px-6 py-4">2010/20/09</td>
-                        <td class="px-6 py-4">2800000</td>
-                        <td class="px-6 py-4">17%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Vue</td>
-                        <td class="px-6 py-4">2014/12/02</td>
-                        <td class="px-6 py-4">3600000</td>
-                        <td class="px-6 py-4">30%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Svelte</td>
-                        <td class="px-6 py-4">2016/26/11</td>
-                        <td class="px-6 py-4">1200000</td>
-                        <td class="px-6 py-4">57%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Ember</td>
-                        <td class="px-6 py-4">2011/08/12</td>
-                        <td class="px-6 py-4">500000</td>
-                        <td class="px-6 py-4">44%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Backbone</td>
-                        <td class="px-6 py-4">2010/13/10</td>
-                        <td class="px-6 py-4">300000</td>
-                        <td class="px-6 py-4">9%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">jQuery</td>
-                        <td class="px-6 py-4">2006/28/01</td>
-                        <td class="px-6 py-4">6000000</td>
-                        <td class="px-6 py-4">5%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Bootstrap</td>
-                        <td class="px-6 py-4">2011/19/08</td>
-                        <td class="px-6 py-4">1800000</td>
-                        <td class="px-6 py-4">12%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Foundation</td>
-                        <td class="px-6 py-4">2011/23/09</td>
-                        <td class="px-6 py-4">700000</td>
-                        <td class="px-6 py-4">8%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Bulma</td>
-                        <td class="px-6 py-4">2016/24/10</td>
-                        <td class="px-6 py-4">500000</td>
-                        <td class="px-6 py-4">7%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Next.js</td>
-                        <td class="px-6 py-4">2016/25/10</td>
-                        <td class="px-6 py-4">2300000</td>
-                        <td class="px-6 py-4">45%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Nuxt.js</td>
-                        <td class="px-6 py-4">2016/16/10</td>
-                        <td class="px-6 py-4">900000</td>
-                        <td class="px-6 py-4">50%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Meteor</td>
-                        <td class="px-6 py-4">2012/17/01</td>
-                        <td class="px-6 py-4">1000000</td>
-                        <td class="px-6 py-4">10%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Aurelia</td>
-                        <td class="px-6 py-4">2015/08/07</td>
-                        <td class="px-6 py-4">200000</td>
-                        <td class="px-6 py-4">20%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Inferno</td>
-                        <td class="px-6 py-4">2016/27/09</td>
-                        <td class="px-6 py-4">100000</td>
-                        <td class="px-6 py-4">35%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Preact</td>
-                        <td class="px-6 py-4">2015/16/08</td>
-                        <td class="px-6 py-4">600000</td>
-                        <td class="px-6 py-4">28%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Lit</td>
-                        <td class="px-6 py-4">2018/28/05</td>
-                        <td class="px-6 py-4">400000</td>
-                        <td class="px-6 py-4">60%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Alpine.js</td>
-                        <td class="px-6 py-4">2019/02/11</td>
-                        <td class="px-6 py-4">300000</td>
-                        <td class="px-6 py-4">70%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Stimulus</td>
-                        <td class="px-6 py-4">2018/06/03</td>
-                        <td class="px-6 py-4">150000</td>
-                        <td class="px-6 py-4">25%</td>
-                    </tr>
-                    <tr class="hover:bg-neutral-secondary-soft cursor-pointer">
-                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Solid</td>
-                        <td class="px-6 py-4">2021/05/07</td>
-                        <td class="px-6 py-4">250000</td>
-                        <td class="px-6 py-4">80%</td>
+                        <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">Tailwind CSS</td>
+                        <td class="px-6 py-4">2021/25/09</td>
+                        <td class="px-6 py-4">149000</td>
+                        <td class="px-6 py-4">23%</td>
+                        <td class="px-6 py-4">23%</td>
                     </tr>
                 </tbody>
                 </table>
@@ -184,6 +123,31 @@
         </div>
     </div>
 
+    <style>
+        @media (max-width: 640px) {
+            .datatable-top, .datatable-bottom {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.3rem !important;
+                padding: 0.3rem 0;
+            }
+            .datatable-dropdown, .datatable-search, .datatable-info, .datatable-pagination {
+                float: none !important;
+                width: 100% !important;
+                text-align: center !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin: 0 !important;
+            }
+            .datatable-search {
+                margin-top: 0.5rem !important;
+            }
+            .datatable-pagination ul {
+                justify-content: center !important;
+            }
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
     <script>
