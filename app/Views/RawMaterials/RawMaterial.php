@@ -53,48 +53,33 @@
                 </button>
             </div>
 
-            <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
+            <div class="p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <table id="selection-table" class="min-w-full text-sm text-left text-gray-500">
-                    <thead>
+                    <thead class="bg-gray-50">
                         <tr>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Material Name
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Category
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Quantity
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Unit
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Cost per Unit
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4"/>
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
@@ -114,15 +99,17 @@
     <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white" style="max-width: 32rem;">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-primary">Add Raw Material</h3>
+                <h3 class="text-lg font-semibold text-primary" id="modalTitle">Add Raw Material</h3>
                 <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <form id="addMaterialForm">
+                <input type="hidden" id="edit_material_id" value="">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Material Name <span class="text-red-500">*</span></label>
                     <input type="text" name="material_name" id="material_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., Flour - All Purpose" required>
+                    <p id="material_name_error" class="text-red-500 text-xs mt-1 hidden">This material name already exists.</p>
                 </div>
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700">Category <span class="text-red-500">*</span></label>
@@ -241,22 +228,58 @@
         }
     </style>
 
-    <!-- jQuery CDN -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <!-- Simple DataTables -->
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-
     <script>
     $(document).ready(function() {
-        const baseUrl = '<?= site_url() ?>';
+        const baseUrl = '<?= rtrim(site_url(), '/') ?>/';
         let dataTable = null;
+        let materialNameExists = false;
+        let checkNameTimeout = null;
 
         // Load data on page load
         loadMaterials();
         loadFilterCategories();
+
+        // Real-time material name validation
+        $('#material_name').on('input', function() {
+            const materialName = $(this).val().trim();
+            const materialId = $('#edit_material_id').val();
+            
+            // Clear previous timeout
+            if (checkNameTimeout) clearTimeout(checkNameTimeout);
+            
+            if (materialName.length < 2) {
+                $('#material_name_error').addClass('hidden');
+                $('#material_name').removeClass('border-red-500').addClass('border-gray-300');
+                materialNameExists = false;
+                return;
+            }
+            
+            // Debounce the check
+            checkNameTimeout = setTimeout(function() {
+                $.ajax({
+                    url: baseUrl + 'RawMaterials/CheckMaterialName',
+                    type: 'POST',
+                    data: JSON.stringify({ material_name: materialName, material_id: materialId }),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.exists) {
+                            $('#material_name_error').removeClass('hidden');
+                            $('#material_name').removeClass('border-gray-300').addClass('border-red-500');
+                            materialNameExists = true;
+                        } else {
+                            $('#material_name_error').addClass('hidden');
+                            $('#material_name').removeClass('border-red-500').addClass('border-gray-300');
+                            materialNameExists = false;
+                        }
+                    }
+                });
+            }, 300);
+        });
 
         // Open Add Material Modal (Desktop & Mobile)
         $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function() {
@@ -279,6 +302,12 @@
         function closeModal() {
             $('#addMaterialModal').addClass('hidden');
             $('#addMaterialForm')[0].reset();
+            $('#edit_material_id').val('');
+            $('#modalTitle').text('Add Raw Material');
+            $('#material_name_error').addClass('hidden');
+            $('#material_name').removeClass('border-red-500').addClass('border-gray-300');
+            materialNameExists = false;
+            $('#btnSaveMaterial').text('Save');
             $('#cost_per_unit_display').text('0.000');
         }
 
@@ -310,7 +339,7 @@
         // Load Categories List for Management
         function loadCategoriesList() {
             $.ajax({
-                url: baseUrl + 'RawMaterials/GetCategories',
+                url: baseUrl + 'MaterialCategory/FetchAll',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -320,18 +349,21 @@
                             html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50">';
                             html += '<div class="flex-1">';
                             html += '<div class="font-medium text-gray-800">' + cat.category_name + '</div>';
-                            if (cat.category_description) {
-                                html += '<div class="text-xs text-gray-500">' + cat.category_description + '</div>';
+                            if (cat.description) {
+                                html += '<div class="text-xs text-gray-500">' + cat.description + '</div>';
                             }
                             html += '</div>';
                             html += '<div class="flex gap-2">';
-                            html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.category_description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                            html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
                             html += '<button class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.category_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                             html += '</div>';
                             html += '</div>';
                         });
                         $('#categoriesList').html(html || '<p class="text-sm text-gray-500 text-center py-4">No categories yet</p>');
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error loading categories list:', error);
                 }
             });
         }
@@ -343,15 +375,18 @@
             const categoryId = $('#edit_category_id').val();
             const formData = {
                 category_name: $('#category_name').val(),
-                category_description: $('#category_description').val()
+                description: $('#category_description').val()
             };
 
             if (categoryId) {
                 formData.category_id = categoryId;
             }
 
+            // Use Update endpoint if editing, Add endpoint if creating new
+            const endpoint = categoryId ? 'MaterialCategory/Update' : 'MaterialCategory/Add';
+
             $.ajax({
-                url: baseUrl + 'MaterialCategory/Add',
+                url: baseUrl + endpoint,
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
@@ -370,7 +405,10 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error saving category: ' + error);
+                    console.log('XHR:', xhr);
+                    console.log('Status:', status);
+                    console.log('Error:', error);
+                    alert('Error saving category: ' + (xhr.responseJSON?.message || error));
                 }
             });
         });
@@ -425,7 +463,7 @@
         // Load Categories for Filter dropdown
         function loadFilterCategories() {
             $.ajax({
-                url: baseUrl + 'RawMaterials/GetCategories',
+                url: baseUrl + 'MaterialCategory/FetchAll',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -443,7 +481,7 @@
         // Load Categories for Modal dropdown
         function loadCategories() {
             $.ajax({
-                url: baseUrl + 'RawMaterials/GetCategories',
+                url: baseUrl + 'MaterialCategory/FetchAll',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -468,8 +506,8 @@
                     if (response.success) {
                         let rows = '';
                         response.data.forEach(function(mat) {
-                            rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-category="' + (mat.category_id || '') + '">';
-                            rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + mat.material_name + '</td>';
+                            rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
+                            rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
                             rows += '<td class="px-6 py-4">' + (mat.category_name || '-') + '</td>';
                             rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
                             rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
@@ -480,15 +518,44 @@
                             rows += '</td>';
                             rows += '</tr>';
                         });
-                        $('#materialsTableBody').html(rows);
 
-                        // Initialize DataTable
+                        // Destroy existing DataTable before updating content
                         if (dataTable) {
                             dataTable.destroy();
+                            dataTable = null;
                         }
+
+                        // Update table body
+                        $('#materialsTableBody').html(rows);
+
+                        // Re-initialize DataTable with simple config
                         const tableElement = document.getElementById('selection-table');
                         if (tableElement && typeof simpleDatatables !== 'undefined') {
-                            dataTable = new simpleDatatables.DataTable('#selection-table');
+                            dataTable = new simpleDatatables.DataTable('#selection-table', {
+                                searchable: true,
+                                sortable: true,
+                                perPage: 10
+                            });
+
+                            // Add Tailwind classes for scrolling (only table content scrolls)
+                            const container = document.querySelector('.datatable-container');
+                            if (container) {
+                                container.classList.add('max-h-96', 'overflow-y-auto', 'overflow-x-auto');
+                            }
+                            
+                            // Add sticky header classes
+                            const thead = document.querySelector('.datatable-table thead');
+                            if (thead) {
+                                thead.classList.add('sticky', 'top-0', 'bg-white', 'z-10');
+                            }
+
+                            // Add sticky first column classes
+                            document.querySelectorAll('.datatable-table thead th:first-child').forEach(th => {
+                                th.classList.add('sticky', 'left-0', 'bg-white', 'z-20');
+                            });
+                            document.querySelectorAll('.datatable-table tbody td:first-child').forEach(td => {
+                                td.classList.add('sticky', 'left-0', 'bg-white', 'z-5');
+                            });
                         }
                     }
                 },
@@ -498,10 +565,17 @@
             });
         }
 
-        // Submit Add Material Form via AJAX
+        // Submit Add/Edit Material Form via AJAX
         $('#addMaterialForm').on('submit', function(e) {
             e.preventDefault();
 
+            // Check if material name already exists
+            if (materialNameExists) {
+                alert('Material name already exists. Please use a different name.');
+                return;
+            }
+
+            const materialId = $('#edit_material_id').val();
             const formData = {
                 material_name: $('#material_name').val(),
                 category_id: $('#category_id').val(),
@@ -510,15 +584,22 @@
                 total_cost: $('#total_cost').val()
             };
 
+            // Use Update endpoint if editing, Add endpoint if creating new
+            let endpoint = 'RawMaterials/AddRawMaterial';
+            if (materialId) {
+                formData.material_id = materialId;
+                endpoint = 'RawMaterials/UpdateRawMaterial';
+            }
+
             $.ajax({
-                url: baseUrl + 'RawMaterials/AddRawMaterial',
+                url: baseUrl + endpoint,
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert('Material added successfully!');
+                        alert(materialId ? 'Material updated successfully!' : 'Material added successfully!');
                         closeModal();
                         loadMaterials();
                     } else {
@@ -526,7 +607,46 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error adding material: ' + error);
+                    alert('Error saving material: ' + error);
+                }
+            });
+        });
+
+        // Edit Material
+        $(document).on('click', '.btn-edit', function() {
+            const id = $(this).data('id');
+            
+            $.ajax({
+                url: baseUrl + 'RawMaterials/GetMaterial/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const mat = response.data;
+                        $('#edit_material_id').val(mat.material_id);
+                        $('#material_name').val(mat.material_name);
+                        $('#category_id').val(mat.category_id);
+                        $('#unit').val(mat.unit);
+                        $('#material_quantity').val(mat.material_quantity);
+                        $('#total_cost').val(parseFloat(mat.total_cost).toFixed(2));
+                        $('#cost_per_unit_display').text(parseFloat(mat.cost_per_unit).toFixed(3));
+                        $('#modalTitle').text('Edit Raw Material');
+                        $('#btnSaveMaterial').text('Update');
+                        
+                        // Open modal and load categories
+                        loadCategories();
+                        $('#addMaterialModal').removeClass('hidden');
+                        
+                        // Set category after dropdown is loaded
+                        setTimeout(function() {
+                            $('#category_id').val(mat.category_id);
+                        }, 300);
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error loading material: ' + error);
                 }
             });
         });
@@ -536,7 +656,7 @@
             const id = $(this).data('id');
             if (confirm('Are you sure you want to delete this material?')) {
                 $.ajax({
-                    url: baseUrl + 'RawMaterials/delete/' + id,
+                    url: baseUrl + 'RawMaterials/Delete/' + id,
                     type: 'POST',
                     dataType: 'json',
                     success: function(response) {

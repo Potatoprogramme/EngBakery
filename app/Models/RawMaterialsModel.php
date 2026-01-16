@@ -9,7 +9,7 @@ class RawMaterialsModel extends Model
     protected $primaryKey = 'material_id';
 
     protected $returnType = 'array';
-    protected $useSoftDeletes = true;
+    protected $useSoftDeletes = false;
 
     protected $allowedFields = [
         'cost_id',
@@ -22,7 +22,7 @@ class RawMaterialsModel extends Model
     ];
 
     // Dates
-    protected $useTimestamps = true;
-    protected $createdField = 'date_created';
+    protected $useTimestamps = false;
+    // protected $createdField = 'date_created';
     // protected $updatedField = 'updated_at';
 }
