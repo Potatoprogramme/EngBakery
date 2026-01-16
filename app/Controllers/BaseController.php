@@ -35,6 +35,9 @@ abstract class BaseController extends Controller
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
 
+    // Database connection
+    protected $db;
+
 
     /**
      * @return void
@@ -51,6 +54,9 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+
+        // Initialize database connection once
+        $this->db = \Config\Database::connect();
 
 
         // $this->session = service('session');
