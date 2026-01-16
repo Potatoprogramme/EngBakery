@@ -24,6 +24,16 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
 });
 
+$routes->group('Products', function (RouteCollection $routes) {
+    $routes->get('/', 'ProductsController::products');
+    $routes->post('AddProduct', 'ProductsController::addProduct');
+});
+
+$routes->group('Inventory', function (RouteCollection $routes) {
+    $routes->get('/', 'InventoryController::inventory');
+    $routes->get('AddInventory', 'InventoryController::addInventory');
+});
+
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)
