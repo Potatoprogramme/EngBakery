@@ -28,4 +28,6 @@ $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)
     $routes->post('Delete', 'MaterialCategoryController::deleteCategory');
+    $routes->post('Update', 'MaterialCategoryController::updateCategory');
+    $routes->get('FetchAll', 'MaterialCategoryController::fetchAllCategories');
 });
