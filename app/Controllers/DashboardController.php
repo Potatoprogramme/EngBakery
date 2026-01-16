@@ -11,5 +11,12 @@ class DashboardController extends BaseController
                 view('Dashboard') .
                 view('Template/Footer');
     }
+
+    public function notification(): string
+    {
+       return  view('Template/Header'). 
+                view('Template/Notification') .
+                view('Template/Footer');
+    }
     
 }
