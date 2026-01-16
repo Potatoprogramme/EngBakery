@@ -21,13 +21,21 @@ $routes->group('Dashboard', function (RouteCollection $routes) {
 
 $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->get('/', 'RawMaterialsController::rawMaterial');
+    $routes->get('GetCategories', 'RawMaterialsController::getCategories');
+    $routes->get('GetAll', 'RawMaterialsController::getAll');
+    $routes->get('GetMaterial/(:num)', 'RawMaterialsController::getMaterial/$1');
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
+    $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
+    $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');
+    $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
 });
 
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)
     $routes->post('Delete', 'MaterialCategoryController::deleteCategory');
+    $routes->post('Update', 'MaterialCategoryController::updateCategory');
+    $routes->get('FetchAll', 'MaterialCategoryController::fetchAllCategories');
 });
 
 $routes->group('Products', function (RouteCollection $routes) {

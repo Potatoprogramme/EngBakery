@@ -8,30 +8,51 @@ class MaterialCategoryController extends BaseController
     {
         return view('TestViews/MaterialTestView');
     }
+
+    /**
+     * Add or Update category (AJAX)
+     */
     public function addCategory()
     {
         $data = $this->request->getJSON(true);
 
-        if (empty($data['category_name']) || empty($data['description'])) {
+        if (empty($data['category_name'])) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'status' => 'error',
-                'message' => 'Category name or description cannot be empty.',
+                'message' => 'Category name is required.',
             ]);
         }
 
-        $this->materialCategoryModel->insert([
-            'category_name' => $data['category_name'],
-            'description' => $data['description'],
-        ]);
+        // Check if this is an update or insert
+        $categoryId = $data['category_id'] ?? null;
+        $description = $data['category_description'] ?? $data['description'] ?? '';
 
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Category added successfully.',
-            'data' => $data,
-        ]);
+        $categoryData = [
+            'category_name' => $data['category_name'],
+            'description' => $description,
+        ];
+
+        if ($categoryId) {
+            // Update existing category
+            $this->materialCategoryModel->update($categoryId, $categoryData);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Category updated successfully.',
+            ]);
+        } else {
+            // Insert new category
+            $this->materialCategoryModel->insert($categoryData);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Category added successfully.',
+                'category_id' => $this->materialCategoryModel->getInsertID(),
+            ]);
+        }
     }
 
+    /**
+     * Delete category (AJAX)
+     */
     public function deleteCategory()
     {
         $data = $this->request->getJSON(true);
@@ -55,5 +76,51 @@ class MaterialCategoryController extends BaseController
                 'message' => 'Category not found.',
             ]);
         }
+    }
+
+    /**
+     * Update category (AJAX) - from main
+     */
+    public function updateCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        if (empty($data['category_id'])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required.',
+            ]);
+        }
+
+        $updateData = [
+            'category_name' => $data['category_name'] ?? null,
+            'description' => $data['description'] ?? $data['category_description'] ?? null,
+        ];
+
+        if ($this->materialCategoryModel->find($data['category_id'])) {
+            $this->materialCategoryModel->update($data['category_id'], $updateData);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Category updated successfully.',
+            ]);
+        } else {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Category not found.',
+            ]);
+        }
+    }
+
+    /**
+     * Fetch all categories (AJAX) - from main
+     */
+    public function fetchAllCategories()
+    {
+        $categories = $this->materialCategoryModel->findAll();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $categories,
+        ]);
     }
 }
