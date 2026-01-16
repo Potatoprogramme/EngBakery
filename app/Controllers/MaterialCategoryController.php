@@ -56,4 +56,42 @@ class MaterialCategoryController extends BaseController
             ]);
         }
     }
+    public function updateCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        if (empty($data['category_id'])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required.',
+            ]);
+        }
+
+        $updateData = [
+            'category_id' => $data['category_id'],
+            'category_name' => $data['category_name'] ?? null,
+            'description' => $data['description'] ?? null,
+        ];
+        if ($this->materialCategoryModel->find($data['category_id'])) {
+            $this->materialCategoryModel->update($updateData['category_id'], $updateData);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Category updated successfully.',
+            ]);
+        } else {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Category not found.',
+            ]);
+        }
+    }
+    public function fetchAllCategories()
+    {
+        $categories = $this->materialCategoryModel->findAll();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $categories,
+        ]);
+    }
 }
