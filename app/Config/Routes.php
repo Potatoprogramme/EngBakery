@@ -20,17 +20,17 @@ $routes->group('Dashboard', function (RouteCollection $routes) {
 });
 
 $routes->group('RawMaterials', function (RouteCollection $routes) {
-    // Main view with Add Material modal
     $routes->get('/', 'RawMaterialsController::rawMaterial');
-    // API routes for AJAX
-    $routes->get('GetCategories', 'RawMaterialsController::getCategories');
-    $routes->get('GetAll', 'RawMaterialsController::getAll');
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
-    $routes->post('delete/(:num)', 'RawMaterialsController::delete/$1');
 });
 
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)
     $routes->post('Delete', 'MaterialCategoryController::deleteCategory');
+});
+
+$routes->group('Products', function (RouteCollection $routes) {
+    $routes->get('/', 'ProductsController::products');
+    $routes->post('AddProduct', 'ProductsController::addProduct');
 });

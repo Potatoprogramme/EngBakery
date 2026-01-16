@@ -2,16 +2,16 @@
 
 namespace App\Controllers;
 
-class RawMaterialsController extends BaseController
+class ProductsController extends BaseController
 {
-    public function rawMaterial(): string
+    public function products(): string
     {
         return  view('Template/Header').
                 view('Template/SideNav') . 
-                view('RawMaterials/RawMaterial') .
+                view('Products/Product') .
                 view('Template/Footer');
     }
-    public function addRawMaterial()
+    public function addProduct()
     {
         $data = $this->request->getPost();
 
