@@ -503,8 +503,14 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success) {
-                        let rows = '';
+                    // Destroy existing DataTable first
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+
+                    let rows = '';
+                    if (response.success && response.data && response.data.length > 0) {
                         response.data.forEach(function(mat) {
                             rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
                             rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
@@ -561,6 +567,26 @@
                 },
                 error: function(xhr, status, error) {
                     console.log('Error loading materials: ' + error);
+                    // Still initialize DataTable on error to show controls
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+                    $('#materialsTableBody').html('');
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search materials...",
+                                perPage: "entries per page",
+                                noRows: "No raw material data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
+                    }
                 }
             });
         }
