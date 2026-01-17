@@ -8,14 +8,8 @@ class DashboardController extends BaseController
     {
        return  view('Template/Header').
                 view('Template/SideNav') . 
+                
                 view('Dashboard') .
-                view('Template/Footer');
-    }
-
-    public function notification(): string
-    {
-       return  view('Template/Header'). 
-                view('Template/Notification') .
                 view('Template/Footer');
     }
     

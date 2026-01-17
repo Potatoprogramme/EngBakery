@@ -112,8 +112,8 @@
     <!-- Add Material Modal -->
     <div id="addMaterialModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white"
-            style="max-width: 32rem;">
+        <div class="relative w-full max-w-md max-h-42 mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white"
+            style="max-width: 42rem;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-primary" id="modalTitle">Add Raw Material</h3>
                 <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-gray-600">
@@ -149,32 +149,45 @@
                 </div>
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
-                                class="text-red-500">*</span></label>
-                        <input type="number" name="material_quantity" id="material_quantity"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="25000" min="0.01" step="0.01" required>
-                        <!-- Converted quantity display -->
-                        <div id="converted_quantity_display" class="text-xs text-gray-500 mt-1 hidden"></div>
+                        <div class="flex">
+                            <label for="material_quantity" class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                            <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of Measure</label>
+                        </div>
+                        <div class="flex">
+                            <input type="number" name="material_quantity" id="material_quantity" 
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0" 
+                                placeholder="25000" min="0.01" step="0.01" required>
+                            <select name="unit" id="unit"
+                                class="w-32 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                required>
+                                <option value="grams">grams</option>
+                                <option value="ml">ml</option>
+                                <option value="pcs">pcs</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit <span
-                                class="text-red-500">*</span></label>
-                        <select name="unit" id="unit"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            required>
-                            <option value="grams">grams</option>
-                            <option value="ml">ml</option>
-                            <option value="pcs">pcs</option>
-                        </select>
+                    
+                    <div id="converted_qty_wrapper">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Converted Quantity</label>
+                        <div class="flex">
+                            <input type="text" id="converted_quantity" readonly
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                value="0">
+                            <span id="converted_unit_label" 
+                                class="inline-flex items-center justify-center w-20 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-sm">
+                                kg
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-2 mb-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Total Cost <span
                                 class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2 text-gray-700 font-medium">₱</span>
+                        <div class="relative flex items-center">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">₱</span>
+                            </div>
                             <input type="number" name="total_cost" id="total_cost"
                                 class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                 placeholder="1350.00" step="0.01" min="0.01" required>
@@ -182,11 +195,37 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cost per Unit</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2 text-gray-700 font-medium">₱</span>
-                            <div id="cost_per_unit_display"
-                                class="w-full pl-7 pr-3 py-2 border-gray-200 rounded-md bg-gray-50 text-gray-600">0.000
+                        
+                        <!-- Base Unit Cost -->
+                        <div class="flex mb-2">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">₱</span>
+                                </div>
+                                <input type="text" id="cost_per_unit" readonly
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    value="0.000">
                             </div>
+                            <span id="cost_unit_label" 
+                                class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
+                                per unit
+                            </span>
+                        </div>
+
+                        <!-- Converted Unit Cost -->
+                        <div id="converted_cost_wrapper" class="hidden flex">
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">₱</span>
+                                </div>
+                                <input type="text" id="converted_cost" readonly
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    value="0.00">
+                            </div>
+                            <span id="converted_cost_unit_label" 
+                                class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
+                                per kg
+                            </span>
                         </div>
                         <!-- Converted cost display (per kg/liter) -->
                         <div id="converted_cost_display" class="text-xs text-gray-500 mt-1 hidden"></div>
