@@ -341,32 +341,7 @@
         }
 
         // Ingredients test data
-        let ingredientsList = [
-            {
-                id: 'sample1',
-                name: 'All Purpose Flour',
-                quantity: 500,
-                unit: 'grams',
-                costPerUnit: 0.054,
-                totalCost: 27.00
-            },
-            {
-                id: 'sample2',
-                name: 'White Sugar',
-                quantity: 100,
-                unit: 'grams',
-                costPerUnit: 0.065,
-                totalCost: 6.50
-            },
-            {
-                id: 'sample3',
-                name: 'Fresh Milk',
-                quantity: 250,
-                unit: 'ml',
-                costPerUnit: 0.12,
-                totalCost: 30.00
-            }
-        ];
+        let ingredientsList = [];
 
         // Load Ingredients (Raw Materials) for dropdown
         function loadIngredients() {
