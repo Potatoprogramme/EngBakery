@@ -11,8 +11,7 @@ class DailyStockController extends BaseController
     public function checkIfInventoryExists()
     {
         $dateToday = date('Y-m-d');
-        $existingRecord = $this->dailyStockModel->where('inventory_date', $dateToday)->first();
-
+        $existingRecord = $this->dailyStockModel->checkInventoryExistsToday($dateToday);
         if ($existingRecord) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,

@@ -19,4 +19,9 @@ class DailyStockModel extends Model
     // protected $createdField = 'date_created';
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
+
+    public function checkInventoryExistsToday($date)
+    {
+        return $this->where('inventory_date', $date)->first();
+    }
 }
