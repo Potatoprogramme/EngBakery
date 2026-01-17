@@ -32,16 +32,12 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
 
 $routes->group('Products', function (RouteCollection $routes) {
     $routes->get('/', 'ProductsController::products');
-    $routes->get('GetCategories', 'ProductsController::fetchAllCategories');
-    $routes->post('AddProduct', 'ProductsController::addProduct');
-    
     $routes->get('Test', 'ProductsController::test');
-
-    $routes->group('Category', function (RouteCollection $routes) {
-        $routes->post('Add', 'ProductsController::addCategory');
-        $routes->get('FetchAll', 'ProductsController::fetchAllCategories');
-        $routes->post('Delete', 'ProductsController::deleteCategory');
-    });
+    $routes->get('GetAll', 'ProductsController::getAllProducts');
+    $routes->get('GetProduct/(:num)', 'ProductsController::getProduct/$1');
+    $routes->post('AddProduct', 'ProductsController::addProduct');
+    $routes->post('UpdateProduct', 'ProductsController::updateProduct');
+    $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {
@@ -57,13 +53,9 @@ $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('FetchAll', 'MaterialCategoryController::fetchAllCategories');
 });
 
-$routes->group('Products', function (RouteCollection $routes) {
-    $routes->get('/', 'ProductsController::products');
-    $routes->post('AddProduct', 'ProductsController::addProduct');
-});
-
 $routes->group('DailyStock', function (RouteCollection $routes) {
     $routes->get('TestView', 'DailyStockController::testView');
     $routes->get('CheckIfInventoryExists', 'DailyStockController::checkIfInventoryExists');
     $routes->post('CreateParticular', 'DailyStockController::createParticular');
 });
+
