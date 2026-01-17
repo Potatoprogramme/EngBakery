@@ -37,6 +37,7 @@ class RawMaterialsModel extends Model
                 rm.unit,
                 rm.category_id,
                 mc.category_name,
+                mc.label,
                 rmc.cost_per_unit
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
