@@ -26,6 +26,19 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Optional description"></textarea>
             </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Label <span
+                        class="text-red-500">*</span></label>
+                <select name="category_label" id="category_label"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    required>
+                    <option value="">Select Label</option>
+                    <option value="general">General (All Products)</option>
+                    <option value="bread">Bread Only</option>
+                    <option value="drinks">Drinks Only</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Used to filter materials per product type</p>
+            </div>
             <div class="flex gap-2 justify-end mb-4">
                 <button type="button" id="btnCancelCategory"
                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
