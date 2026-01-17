@@ -42,3 +42,8 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->get('/', 'ProductsController::products');
     $routes->post('AddProduct', 'ProductsController::addProduct');
 });
+
+$routes->group('DailyStock', function (RouteCollection $routes) {
+    $routes->get('TestView', 'DailyStockController::testView');
+    $routes->post('CreateParticular', 'DailyStockController::createParticular');
+});
