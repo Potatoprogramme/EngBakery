@@ -24,13 +24,6 @@ const CategoryModal = (function() {
             close();
         });
 
-        // Close category modal on outside click
-        $('#manageCategoriesModal').on('click', function(e) {
-            if (e.target === this) {
-                close();
-            }
-        });
-
         // Submit Category Form (Add/Edit)
         $('#categoryForm').on('submit', function(e) {
             e.preventDefault();
@@ -54,9 +47,9 @@ const CategoryModal = (function() {
         // Delete Category
         $(document).on('click', '.btn-delete-category', function() {
             const id = $(this).data('id');
-            if (confirm('Are you sure you want to delete this category?')) {
+             Confirm.delete('Are you sure you want to delete this category?', function() {
                 deleteCategory(id);
-            }
+            });
         });
     }
 
@@ -84,13 +77,13 @@ const CategoryModal = (function() {
                     response.data.forEach(function(cat) {
                         // Label badge colors
                         const labelColors = {
-                            'drinks': 'bg-blue-100 text-blue-800',
-                            'bread': 'bg-amber-100 text-amber-800',
-                            'general': 'bg-gray-100 text-gray-800'
+                            'drinks': 'bg-blue-100 text-blue-800 border border-blue-300',
+                            'bread': 'bg-amber-100 text-amber-800 border border-amber-300',
+                            'general': 'bg-gray-100 text-gray-800 border border-gray-300'
                         };
                         const labelColor = labelColors[cat.label] || 'bg-gray-100 text-gray-800';
 
-                        html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50">';
+                        html += '<div class="flex items-center justify-between p-2 rounded-md bg-gray-50">';
                         html += '<div class="flex-1">';
                         html += '<div class="flex items-center gap-2">';
                         html += '<span class="font-medium text-gray-800">' + cat.category_name + '</span>';
@@ -139,7 +132,7 @@ const CategoryModal = (function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    alert(categoryId ? 'Category updated successfully!' : 'Category added successfully!');
+                    Toast.success(categoryId ? 'Category updated successfully!' : 'Category added successfully!');
                     $('#categoryForm')[0].reset();
                     $('#edit_category_id').val('');
                     $('#btnSaveCategory').text('Save');
@@ -147,11 +140,11 @@ const CategoryModal = (function() {
                     
                     if (onCategoryChange) onCategoryChange();
                 } else {
-                    alert('Error: ' + response.message);
+                    Toast.error('Error: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error saving category: ' + (xhr.responseJSON?.message || error));
+                Toast.error('Error saving category: ' + (xhr.responseJSON?.message || error));
             }
         });
     }
@@ -165,16 +158,16 @@ const CategoryModal = (function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    alert('Category deleted successfully!');
+                    Toast.success('Category deleted successfully!');
                     loadCategoriesList();
                     
                     if (onCategoryChange) onCategoryChange();
                 } else {
-                    alert('Error: ' + response.message);
+                    Toast.error('Error: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error deleting category: ' + error);
+                Toast.error('Error deleting category: ' + error);
             }
         });
     }

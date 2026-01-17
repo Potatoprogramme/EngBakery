@@ -80,13 +80,6 @@ $(document).ready(function() {
         closeModal();
     });
 
-    // Close modal on outside click
-    $('#addMaterialModal').on('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
-
     function closeModal() {
         $('#addMaterialModal').addClass('hidden');
         $('#addMaterialForm')[0].reset();
@@ -96,9 +89,16 @@ $(document).ready(function() {
         $('#material_name').removeClass('border-red-500').addClass('border-gray-300');
         materialNameExists = false;
         $('#btnSaveMaterial').text('Save');
-        $('#cost_per_unit_display').text('0.000');
-        $('#converted_quantity_display').addClass('hidden').text('');
-        $('#converted_cost_display').addClass('hidden').text('');
+        
+        // Reset calculated displays
+        $('#cost_per_unit').val('0.000');
+        $('#cost_unit_label').text('per unit');
+        $('#converted_cost').val('0.00');
+        $('#converted_cost_wrapper').addClass('hidden');
+        
+        // Reset converted Quantity display
+        $('#converted_quantity').val('0');
+        $('#converted_qty_wrapper').removeClass('hidden');
     }
 
     // Calculate cost per unit with conversions
@@ -108,28 +108,39 @@ $(document).ready(function() {
         const unit = $('#unit').val();
         const conversion = unitConversions[unit];
 
+        // Set base unit label
+        $('#cost_unit_label').text(unit === 'pcs' ? 'per pc' : 'per ' + (unit === 'grams' ? 'gram' : unit));
+
         // Calculate cost per base unit (grams, ml, pcs)
         const perUnit = qty > 0 ? (cost / qty) : 0;
-        $('#cost_per_unit_display').text(perUnit.toFixed(3));
+        $('#cost_per_unit').val(perUnit.toFixed(3));
 
-        // Show converted quantity (e.g., 25000 grams = 25 kg)
-        if (conversion && qty > 0) {
-            const convertedQty = (qty / conversion.factor).toFixed(2);
-            $('#converted_quantity_display')
-                .html('= <strong>' + convertedQty + ' ' + conversion.largeUnit + '</strong>')
-                .removeClass('hidden');
+        // Update converted quantity display
+        if (unit === 'pcs') {
+            $('#converted_qty_wrapper').addClass('hidden');
+            $('#converted_cost_wrapper').addClass('hidden');
         } else {
-            $('#converted_quantity_display').addClass('hidden');
-        }
+            $('#converted_qty_wrapper').removeClass('hidden');
+            
+            if (conversion) {
+                // Determine converted quantity
+                const convertedQty = qty >= 0 ? (qty / conversion.factor).toFixed(2) : '0.00';
+                $('#converted_quantity').val(convertedQty);
+                $('#converted_unit_label').text(conversion.largeUnit);
 
-        // Show converted cost (e.g., ₱0.054/gram = ₱54/kg)
-        if (conversion && perUnit > 0) {
-            const costPerLarge = (perUnit * conversion.factor).toFixed(2);
-            $('#converted_cost_display')
-                .html('= <strong>₱' + costPerLarge + '</strong> per ' + conversion.largeUnit)
-                .removeClass('hidden');
-        } else {
-            $('#converted_cost_display').addClass('hidden');
+                // Determine converted cost
+                if (perUnit > 0) {
+                    const costPerLarge = (perUnit * conversion.factor).toFixed(2);
+                    $('#converted_cost').val(costPerLarge);
+                    $('#converted_cost_unit_label').text('per ' + conversion.largeUnit);
+                    $('#converted_cost_wrapper').removeClass('hidden');
+                } else {
+                     $('#converted_cost_wrapper').addClass('hidden');
+                }
+            } else {
+                // Fail-safe if conversion not found but not pcs (shouldn't happen with current logic)
+                 $('#converted_cost_wrapper').addClass('hidden');
+            }
         }
     }
 
@@ -190,12 +201,22 @@ $(document).ready(function() {
                 let rows = '';
                 if (response.success && response.data && response.data.length > 0) {
                     response.data.forEach(function(mat) {
+                        // Label badge colors
+                        const labelColors = {
+                            'drinks': 'bg-blue-100 text-blue-800',
+                            'bread': 'bg-amber-100 text-amber-800',
+                            'general': 'bg-gray-100 text-gray-800'
+                        };
+                        const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
+                        const labelBadge = mat.label ? '<span class="text-xs px-2 py-1 rounded-full ' + labelColor + '">' + mat.label + '</span>' : '-';
+
                         rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
                         rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
                         rows += '<td class="px-6 py-4">' + (mat.category_name || '-') + '</td>';
+                        rows += '<td class="px-6 py-4">' + labelBadge + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
-                        rows += '<td class="px-6 py-4">' + parseFloat(mat.cost_per_unit || 0).toFixed(3) + '</td>';
+                        rows += '<td class="px-6 py-4">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
                         rows += '<td class="px-6 py-4">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
                         rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
@@ -310,7 +331,7 @@ $(document).ready(function() {
 
         // Check if material name already exists
         if (materialNameExists) {
-            alert('Material name already exists. Please use a different name.');
+            Toast.warning('Material name already exists. Please use a different name.');
             return;
         }
 
@@ -338,15 +359,15 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    alert(materialId ? 'Material updated successfully!' : 'Material added successfully!');
+                    Toast.success(materialId ? 'Material updated successfully!' : 'Material added successfully!');
                     closeModal();
                     loadMaterials();
                 } else {
-                    alert('Error: ' + response.message);
+                    Toast.error('Error: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error saving material: ' + error);
+                Toast.error('Error saving material: ' + error);
             }
         });
     });
@@ -382,11 +403,11 @@ $(document).ready(function() {
                         updateCostCalculations();
                     }, 300);
                 } else {
-                    alert('Error: ' + response.message);
+                    Toast.error('Error: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error loading material: ' + error);
+                Toast.error('Error loading material: ' + error);
             }
         });
     });
@@ -394,24 +415,24 @@ $(document).ready(function() {
     // Delete Material
     $(document).on('click', '.btn-delete', function() {
         const id = $(this).data('id');
-        if (confirm('Are you sure you want to delete this material?')) {
+        Confirm.delete('Are you sure you want to delete this material?', function() {
             $.ajax({
                 url: baseUrl + 'RawMaterials/Delete/' + id,
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert('Material deleted successfully!');
+                        Toast.success('Material deleted successfully!');
                         loadMaterials();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error('Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error deleting material: ' + error);
+                    Toast.error('Error deleting material: ' + error);
                 }
             });
-        }
+        });
     });
 
     // Apply Filter

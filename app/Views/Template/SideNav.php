@@ -1,6 +1,6 @@
 <?php $current = strtolower(service('uri')->getSegment(1) ?? ''); ?>
 <!-- Navbar -->
-    <nav class="fixed top-0 z-40 w-full bg-white border-b border-gray-200">
+    <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center justify-start rtl:justify-end">
@@ -48,7 +48,7 @@
     </nav>
 
     <!-- Sidebar -->
-    <aside id="logo-sidebar" class="fixed top-0 left-0 z-30 w-60 h-screen pt-[70px] sm:pt-[60px] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
+    <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-60 h-screen pt-[70px] sm:pt-[60px] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
         <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
             <ul class="space-y-2 font-medium">
                 <li class="pt-2 mt-2 border-t border-gray-100">
