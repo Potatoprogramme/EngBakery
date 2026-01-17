@@ -111,7 +111,7 @@
     </div>
 
     <!-- Add Product Modal -->
-    <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+    <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" style="max-width: 32rem;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-primary">Add Product</h3>
@@ -397,14 +397,14 @@
             const unit = $('#ingredient_unit').val();
 
             if (!ingredientId || quantity <= 0) {
-                alert('Please select an ingredient and enter a valid quantity.');
+                Toast.warning('Please select an ingredient and enter a valid quantity.');
                 return;
             }
 
             // Check if ingredient already exists
             const existingIndex = ingredientsList.findIndex(item => item.id === ingredientId);
             if (existingIndex >= 0) {
-                alert('This ingredient is already added. Remove it first to add again.');
+                Toast.warning('This ingredient is already added. Remove it first to add again.');
                 return;
             }
 
@@ -431,12 +431,11 @@
         $(document).on('click', '.btn-remove-ingredient', function() {
             const index = $(this).data('index');
             const ingredientName = ingredientsList[index].name;
-            
-            if (confirm('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?')) {
-                ingredientsList.splice(index, 1);
+            Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function() {
+                           ingredientsList.splice(index, 1);
                 updateIngredientsListDisplay();
                 updateCostingDisplay();
-            }
+            });
         });
 
         // Update Ingredients List Display
@@ -555,7 +554,7 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert(categoryId ? 'Product Category updated successfully!' : 'Product Category added successfully!');
+                        Toast.success(categoryId ? 'Product Category updated successfully!' : 'Product Category added successfully!');
                         $('#categoryForm')[0].reset();
                         $('#edit_category_id').val('');
                         $('#btnSaveCategory').text('Save');
@@ -563,11 +562,11 @@
                         loadCategories();
                         loadFilterCategories();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error('Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error saving category: ' + error);
+                    Toast.error('Error saving category: ' + error);
                 }
             });
         });
@@ -596,16 +595,16 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Product Category deleted successfully!');
+                            Toast.success('Product Category deleted successfully!');
                             loadCategoriesList();
                             loadCategories();
                             loadFilterCategories();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error('Error: ' + response.message);
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting category: ' + error);
+                        Toast.error('Error deleting category: ' + error);
                     }
                 });
             }
@@ -748,15 +747,15 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert('Product added successfully!');
+                        Toast.success('Product added successfully!');
                         closeModal();
                         loadMaterials();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error('Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error adding product: ' + error);
+                    Toast.error('Error adding product: ' + error);
                 }
             });
         });
@@ -771,14 +770,14 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Product deleted successfully!');
+                            Toast.success('Product deleted successfully!');
                             loadMaterials();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error('Error: ' + response.message);
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting product: ' + error);
+                        Toast.error('Error deleting product: ' + error);
                     }
                 });
             }

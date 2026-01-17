@@ -8,6 +8,7 @@ class ProductsController extends BaseController
     {
         return  view('Template/Header').
                 view('Template/SideNav') . 
+                view('Template/notification') .
                 view('Products/Product') .
                 view('Template/Footer');
     }
