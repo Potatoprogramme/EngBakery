@@ -78,6 +78,11 @@
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">
+                                    Label
+                                </span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                                <span class="flex items-center">
                                     Quantity
                                 </span>
                             </th>
