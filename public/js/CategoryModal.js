@@ -42,10 +42,12 @@ const CategoryModal = (function() {
             const id = $(this).data('id');
             const name = $(this).data('name');
             const desc = $(this).data('desc');
+            const label = $(this).data('label');
 
             $('#edit_category_id').val(id);
             $('#category_name').val(name);
             $('#category_description').val(desc);
+            $('#category_label').val(label);
             $('#btnSaveCategory').text('Update');
         });
 
@@ -67,6 +69,7 @@ const CategoryModal = (function() {
         $('#manageCategoriesModal').addClass('hidden');
         $('#categoryForm')[0].reset();
         $('#edit_category_id').val('');
+        $('#category_label').val('');
         $('#btnSaveCategory').text('Save');
     }
 
@@ -79,15 +82,28 @@ const CategoryModal = (function() {
                 if (response.success) {
                     let html = '';
                     response.data.forEach(function(cat) {
+                        // Label badge colors
+                        const labelColors = {
+                            'drinks': 'bg-blue-100 text-blue-800',
+                            'bread': 'bg-amber-100 text-amber-800',
+                            'general': 'bg-gray-100 text-gray-800'
+                        };
+                        const labelColor = labelColors[cat.label] || 'bg-gray-100 text-gray-800';
+
                         html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50">';
                         html += '<div class="flex-1">';
-                        html += '<div class="font-medium text-gray-800">' + cat.category_name + '</div>';
+                        html += '<div class="flex items-center gap-2">';
+                        html += '<span class="font-medium text-gray-800">' + cat.category_name + '</span>';
+                        if (cat.label) {
+                            html += '<span class="text-xs px-2 py-0.5 rounded-full ' + labelColor + '">' + cat.label + '</span>';
+                        }
+                        html += '</div>';
                         if (cat.description) {
                             html += '<div class="text-xs text-gray-500">' + cat.description + '</div>';
                         }
                         html += '</div>';
                         html += '<div class="flex gap-2">';
-                        html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                        html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.description || '') + '" data-label="' + (cat.label || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
                         html += '<button class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.category_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                         html += '</div>';
                         html += '</div>';
@@ -105,7 +121,8 @@ const CategoryModal = (function() {
         const categoryId = $('#edit_category_id').val();
         const formData = {
             category_name: $('#category_name').val(),
-            description: $('#category_description').val()
+            description: $('#category_description').val(),
+            label: $('#category_label').val()
         };
 
         if (categoryId) {
