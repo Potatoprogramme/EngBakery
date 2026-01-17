@@ -8,6 +8,7 @@ class RawMaterialsController extends BaseController
     {
         return  view('Template/Header').
                 view('Template/SideNav') . 
+                view('Template/notification') .
                 view('RawMaterials/RawMaterial') .
                 view('Template/Footer');
     }
