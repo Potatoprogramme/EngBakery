@@ -23,31 +23,21 @@ class MaterialCategoryController extends BaseController
             ]);
         }
 
-        // Check if this is an update or insert
-        $categoryId = $data['category_id'] ?? null;
-        $description = $data['category_description'] ?? $data['description'] ?? '';
+        // Delegate insert/update to model
+        $result = $this->materialCategoryModel->saveCategory($data);
 
-        $categoryData = [
-            'category_name' => $data['category_name'],
-            'description' => $description,
-        ];
-
-        if ($categoryId) {
-            // Update existing category
-            $this->materialCategoryModel->update($categoryId, $categoryData);
+        if ($result['action'] === 'update') {
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Category updated successfully.',
             ]);
-        } else {
-            // Insert new category
-            $this->materialCategoryModel->insert($categoryData);
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Category added successfully.',
-                'category_id' => $this->materialCategoryModel->getInsertID(),
-            ]);
         }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Category added successfully.',
+            'category_id' => $result['category_id'],
+        ]);
     }
 
     /**
@@ -65,7 +55,7 @@ class MaterialCategoryController extends BaseController
         }
 
         if ($this->materialCategoryModel->find($data['category_id'])) {
-            $this->materialCategoryModel->delete($data['category_id']);
+            $this->materialCategoryModel->deleteCategoryById($data['category_id']);
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Category deleted successfully.',
@@ -98,7 +88,7 @@ class MaterialCategoryController extends BaseController
         ];
 
         if ($this->materialCategoryModel->find($data['category_id'])) {
-            $this->materialCategoryModel->update($data['category_id'], $updateData);
+            $this->materialCategoryModel->updateCategoryById($data['category_id'], $updateData);
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Category updated successfully.',
@@ -116,7 +106,7 @@ class MaterialCategoryController extends BaseController
      */
     public function fetchAllCategories()
     {
-        $categories = $this->materialCategoryModel->findAll();
+        $categories = $this->materialCategoryModel->getAllCategories();
 
         return $this->response->setJSON([
             'success' => true,

@@ -64,5 +64,6 @@ $routes->group('Products', function (RouteCollection $routes) {
 
 $routes->group('DailyStock', function (RouteCollection $routes) {
     $routes->get('TestView', 'DailyStockController::testView');
+    $routes->get('CheckIfInventoryExists', 'DailyStockController::checkIfInventoryExists');
     $routes->post('CreateParticular', 'DailyStockController::createParticular');
 });
