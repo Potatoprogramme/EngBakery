@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 // Models
 use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
+use App\Models\ProductCategoryModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -34,6 +35,7 @@ abstract class BaseController extends Controller
     // Preload Models Here
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
+    protected $productCategoryModel;
 
     // Database connection
     protected $db;
@@ -54,6 +56,7 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+        $this->productCategoryModel = new ProductCategoryModel();
 
         // Initialize database connection once
         $this->db = \Config\Database::connect();

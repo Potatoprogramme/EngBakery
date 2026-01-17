@@ -303,7 +303,7 @@
 
     <script>
     $(document).ready(function() {
-        const baseUrl = '<?= site_url() ?>';
+        const baseUrl = '<?= base_url() ?>';
         let dataTable = null;
 
         // Load data on page load
@@ -507,7 +507,7 @@
         // Load Product Categories List for Management
         function loadCategoriesList() {
             $.ajax({
-                url: baseUrl + 'Products/GetCategories',
+                url: baseUrl + 'Products/Category/FetchAll',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -517,13 +517,13 @@
                             html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50">';
                             html += '<div class="flex-1">';
                             html += '<div class="font-medium text-gray-800">' + cat.category_name + '</div>';
-                            if (cat.category_description) {
-                                html += '<div class="text-xs text-gray-500">' + cat.category_description + '</div>';
+                            if (cat.description) {
+                                html += '<div class="text-xs text-gray-500">' + cat.description + '</div>';
                             }
                             html += '</div>';
                             html += '<div class="flex gap-2">';
-                            html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.category_description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                            html += '<button class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.category_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                            html += '<button type="button" class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.prod_cat_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                            html += '<button type="button" class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.prod_cat_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                             html += '</div>';
                             html += '</div>';
                         });
@@ -547,8 +547,12 @@
                 formData.category_id = categoryId;
             }
 
+            const requestUrl = baseUrl + 'Products/Category/Add';
+            console.log('Sending request to:', requestUrl);
+            console.log('Data:', formData);
+
             $.ajax({
-                url: baseUrl + 'MaterialCategory/Add',
+                url: requestUrl,
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
@@ -567,6 +571,7 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('AJAX Error:', {status: xhr.status, statusText: xhr.statusText, response: xhr.responseText});
                     alert('Error saving category: ' + error);
                 }
             });
@@ -589,7 +594,7 @@
             const id = $(this).data('id');
             if (confirm('Are you sure you want to delete this category?')) {
                 $.ajax({
-                    url: baseUrl + 'MaterialCategory/Delete',
+                    url: baseUrl + 'Products/Category/Delete',
                     type: 'POST',
                     data: JSON.stringify({ category_id: id }),
                     contentType: 'application/json',
@@ -629,7 +634,7 @@
                     if (response.success) {
                         let options = '<option value="">All Product Categories</option>';
                         response.data.forEach(function(cat) {
-                            options += '<option value="' + cat.category_id + '">' + cat.category_name + '</option>';
+                            options += '<option value="' + cat.prod_cat_id + '">' + cat.category_name + '</option>';
                         });
                         $('#filter-category').html(options);
                     }
@@ -647,7 +652,7 @@
                     if (response.success) {
                         let options = '<option value="">Select</option>';
                         response.data.forEach(function(cat) {
-                            options += '<option value="' + cat.category_id + '">' + cat.category_name + '</option>';
+                            options += '<option value="' + cat.prod_cat_id + '">' + cat.category_name + '</option>';
                         });
                         $('#category_id').html(options);
                     }
