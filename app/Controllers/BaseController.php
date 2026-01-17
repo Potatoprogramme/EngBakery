@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 // Models
 use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
+use App\Models\DailyStockModel;
 use App\Models\ProductCategoryModel;
 
 /**
@@ -35,6 +36,7 @@ abstract class BaseController extends Controller
     // Preload Models Here
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
+    protected $dailyStockModel;
     protected $productCategoryModel;
 
     // Database connection
@@ -56,6 +58,7 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+        $this->dailyStockModel = new DailyStockModel();
         $this->productCategoryModel = new ProductCategoryModel();
 
         // Initialize database connection once

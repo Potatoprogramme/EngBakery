@@ -56,3 +56,14 @@ $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->post('Update', 'MaterialCategoryController::updateCategory');
     $routes->get('FetchAll', 'MaterialCategoryController::fetchAllCategories');
 });
+
+$routes->group('Products', function (RouteCollection $routes) {
+    $routes->get('/', 'ProductsController::products');
+    $routes->post('AddProduct', 'ProductsController::addProduct');
+});
+
+$routes->group('DailyStock', function (RouteCollection $routes) {
+    $routes->get('TestView', 'DailyStockController::testView');
+    $routes->get('CheckIfInventoryExists', 'DailyStockController::checkIfInventoryExists');
+    $routes->post('CreateParticular', 'DailyStockController::createParticular');
+});
