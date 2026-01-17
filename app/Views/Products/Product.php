@@ -54,7 +54,7 @@
             </div>
 
             <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
-                <table id="selection-table" class="min-w-full text-sm text-left text-gray-500">
+                <table id="selection-table" class="min-w-full text-sm text-left">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-3">
@@ -662,8 +662,14 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success) {
-                        let rows = '';
+                    // Destroy existing DataTable first
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+
+                    let rows = '';
+                    if (response.success && response.data && response.data.length > 0) {
                         response.data.forEach(function(mat) {
                             rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-category="' + (mat.category_id || '') + '">';
                             rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + mat.material_name + '</td>';
@@ -677,20 +683,47 @@
                             rows += '</td>';
                             rows += '</tr>';
                         });
-                        $('#materialsTableBody').html(rows);
+                    }
+                    $('#materialsTableBody').html(rows);
 
-                        // Initialize DataTable
-                        if (dataTable) {
-                            dataTable.destroy();
-                        }
-                        const tableElement = document.getElementById('selection-table');
-                        if (tableElement && typeof simpleDatatables !== 'undefined') {
-                            dataTable = new simpleDatatables.DataTable('#selection-table');
-                        }
+                    // Initialize DataTable with custom labels
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search products...",
+                                perPage: "entries per page",
+                                noRows: "No product data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
                     }
                 },
                 error: function(xhr, status, error) {
                     console.log('Error loading products: ' + error);
+                    // Still initialize DataTable on error to show controls
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+                    $('#materialsTableBody').html('');
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search products...",
+                                perPage: "entries per page",
+                                noRows: "No product data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
+                    }
                 }
             });
         }

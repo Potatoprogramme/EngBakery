@@ -8,6 +8,8 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 
 // Authentication Routes
+$routes->get('/notification', 'DashboardController::notification');
+
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');
@@ -28,6 +30,16 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
     $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
+});
+
+$routes->group('Products', function (RouteCollection $routes) {
+    $routes->get('/', 'ProductsController::products');
+    $routes->post('AddProduct', 'ProductsController::addProduct');
+});
+
+$routes->group('Inventory', function (RouteCollection $routes) {
+    $routes->get('/', 'InventoryController::inventory');
+    $routes->get('AddInventory', 'InventoryController::addInventory');
 });
 
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
