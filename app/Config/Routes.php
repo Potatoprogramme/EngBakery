@@ -36,6 +36,8 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->get('/', 'ProductsController::products');
     $routes->get('GetCategories', 'ProductsController::fetchAllCategories');
     $routes->post('AddProduct', 'ProductsController::addProduct');
+    
+    $routes->get('Test', 'ProductsController::test');
 
     $routes->group('Category', function (RouteCollection $routes) {
         $routes->post('Add', 'ProductsController::addCategory');
