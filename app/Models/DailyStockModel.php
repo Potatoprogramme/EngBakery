@@ -12,6 +12,8 @@ class DailyStockModel extends Model
 
     protected $allowedFields = [
         'inventory_date',
+        'time_start',
+        'time_end',
     ];
 
     // Dates
