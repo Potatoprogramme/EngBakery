@@ -393,7 +393,7 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert(categoryId ? 'Category updated successfully!' : 'Category added successfully!');
+                        Toast.success(categoryId ? 'Category updated successfully!' : 'Category added successfully!');
                         $('#categoryForm')[0].reset();
                         $('#edit_category_id').val('');
                         $('#btnSaveCategory').text('Save');
@@ -401,14 +401,14 @@
                         loadCategories();
                         loadFilterCategories();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error(response.message || 'Failed to save category.');
                     }
                 },
                 error: function(xhr, status, error) {
                     console.log('XHR:', xhr);
                     console.log('Status:', status);
                     console.log('Error:', error);
-                    alert('Error saving category: ' + (xhr.responseJSON?.message || error));
+                    Toast.error('Error saving category: ' + (xhr.responseJSON?.message || error));
                 }
             });
         });
@@ -428,7 +428,7 @@
         // Delete Category
         $(document).on('click', '.btn-delete-category', function() {
             const id = $(this).data('id');
-            if (confirm('Are you sure you want to delete this category?')) {
+            Confirm.delete('Are you sure you want to delete this category?', function() {
                 $.ajax({
                     url: baseUrl + 'MaterialCategory/Delete',
                     type: 'POST',
@@ -437,19 +437,19 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Category deleted successfully!');
+                            Toast.success('Category deleted successfully!');
                             loadCategoriesList();
                             loadCategories();
                             loadFilterCategories();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error(response.message || 'Failed to delete category.');
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting category: ' + error);
+                        Toast.error('Error deleting category: ' + error);
                     }
                 });
-            }
+            });
         });
 
         // Calculate cost per unit
@@ -503,8 +503,14 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success) {
-                        let rows = '';
+                    // Destroy existing DataTable first
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+
+                    let rows = '';
+                    if (response.success && response.data && response.data.length > 0) {
                         response.data.forEach(function(mat) {
                             rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
                             rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
@@ -561,6 +567,26 @@
                 },
                 error: function(xhr, status, error) {
                     console.log('Error loading materials: ' + error);
+                    // Still initialize DataTable on error to show controls
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+                    $('#materialsTableBody').html('');
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search materials...",
+                                perPage: "entries per page",
+                                noRows: "No raw material data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
+                    }
                 }
             });
         }
@@ -571,7 +597,7 @@
 
             // Check if material name already exists
             if (materialNameExists) {
-                alert('Material name already exists. Please use a different name.');
+                Toast.warning('Material name already exists. Please use a different name.');
                 return;
             }
 
@@ -599,15 +625,15 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert(materialId ? 'Material updated successfully!' : 'Material added successfully!');
+                        Toast.success(response.message || (materialId ? 'Material updated successfully!' : 'Material added successfully!'));
                         closeModal();
                         loadMaterials();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error(response.message || 'Failed to save material.');
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error saving material: ' + error);
+                    Toast.error('Error saving material: ' + error);
                 }
             });
         });
@@ -642,11 +668,11 @@
                             $('#category_id').val(mat.category_id);
                         }, 300);
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error(response.message || 'Failed to load material.');
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error loading material: ' + error);
+                    Toast.error('Error loading material: ' + error);
                 }
             });
         });
@@ -654,24 +680,24 @@
         // Delete Material
         $(document).on('click', '.btn-delete', function() {
             const id = $(this).data('id');
-            if (confirm('Are you sure you want to delete this material?')) {
+            Confirm.delete('Are you sure you want to delete this material?', function() {
                 $.ajax({
                     url: baseUrl + 'RawMaterials/Delete/' + id,
                     type: 'POST',
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Material deleted successfully!');
+                            Toast.success(response.message || 'Material deleted successfully!');
                             loadMaterials();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error(response.message || 'Failed to delete material.');
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting material: ' + error);
+                        Toast.error('Error deleting material: ' + error);
                     }
                 });
-            }
+            });
         });
 
         // Apply Filter

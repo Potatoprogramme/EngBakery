@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
 use App\Models\DailyStockModel;
+use App\Models\ProductCategoryModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -36,6 +37,11 @@ abstract class BaseController extends Controller
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
     protected $dailyStockModel;
+    protected $productCategoryModel;
+
+    // Database connection
+    protected $db;
+
 
     /**
      * @return void
@@ -53,6 +59,11 @@ abstract class BaseController extends Controller
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
         $this->dailyStockModel = new DailyStockModel();
+        $this->productCategoryModel = new ProductCategoryModel();
+
+        // Initialize database connection once
+        $this->db = \Config\Database::connect();
+
 
         // $this->session = service('session');
     }

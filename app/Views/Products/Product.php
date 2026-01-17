@@ -54,7 +54,7 @@
             </div>
 
             <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
-                <table id="selection-table" class="min-w-full text-sm text-left text-gray-500">
+                <table id="selection-table" class="min-w-full text-sm text-left">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-3">
@@ -111,7 +111,7 @@
     </div>
 
     <!-- Add Product Modal -->
-    <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+    <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" style="max-width: 32rem;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-primary">Add Product</h3>
@@ -303,7 +303,7 @@
 
     <script>
     $(document).ready(function() {
-        const baseUrl = '<?= site_url() ?>';
+        const baseUrl = '<?= base_url() ?>';
         let dataTable = null;
 
         // Load data on page load
@@ -397,14 +397,14 @@
             const unit = $('#ingredient_unit').val();
 
             if (!ingredientId || quantity <= 0) {
-                alert('Please select an ingredient and enter a valid quantity.');
+                Toast.warning('Please select an ingredient and enter a valid quantity.');
                 return;
             }
 
             // Check if ingredient already exists
             const existingIndex = ingredientsList.findIndex(item => item.id === ingredientId);
             if (existingIndex >= 0) {
-                alert('This ingredient is already added. Remove it first to add again.');
+                Toast.warning('This ingredient is already added. Remove it first to add again.');
                 return;
             }
 
@@ -431,12 +431,11 @@
         $(document).on('click', '.btn-remove-ingredient', function() {
             const index = $(this).data('index');
             const ingredientName = ingredientsList[index].name;
-            
-            if (confirm('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?')) {
-                ingredientsList.splice(index, 1);
+            Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function() {
+                           ingredientsList.splice(index, 1);
                 updateIngredientsListDisplay();
                 updateCostingDisplay();
-            }
+            });
         });
 
         // Update Ingredients List Display
@@ -507,7 +506,7 @@
         // Load Product Categories List for Management
         function loadCategoriesList() {
             $.ajax({
-                url: baseUrl + 'Products/GetCategories',
+                url: baseUrl + 'Products/Category/FetchAll',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -517,13 +516,13 @@
                             html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-gray-50">';
                             html += '<div class="flex-1">';
                             html += '<div class="font-medium text-gray-800">' + cat.category_name + '</div>';
-                            if (cat.category_description) {
-                                html += '<div class="text-xs text-gray-500">' + cat.category_description + '</div>';
+                            if (cat.description) {
+                                html += '<div class="text-xs text-gray-500">' + cat.description + '</div>';
                             }
                             html += '</div>';
                             html += '<div class="flex gap-2">';
-                            html += '<button class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.category_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.category_description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                            html += '<button class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.category_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                            html += '<button type="button" class="text-blue-600 hover:text-blue-800 btn-edit-category" data-id="' + cat.prod_cat_id + '" data-name="' + cat.category_name + '" data-desc="' + (cat.description || '') + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                            html += '<button type="button" class="text-red-600 hover:text-red-800 btn-delete-category" data-id="' + cat.prod_cat_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                             html += '</div>';
                             html += '</div>';
                         });
@@ -547,15 +546,19 @@
                 formData.category_id = categoryId;
             }
 
+            const requestUrl = baseUrl + 'Products/Category/Add';
+            console.log('Sending request to:', requestUrl);
+            console.log('Data:', formData);
+
             $.ajax({
-                url: baseUrl + 'MaterialCategory/Add',
+                url: requestUrl,
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert(categoryId ? 'Product Category updated successfully!' : 'Product Category added successfully!');
+                        Toast.success(categoryId ? 'Product Category updated successfully!' : 'Product Category added successfully!');
                         $('#categoryForm')[0].reset();
                         $('#edit_category_id').val('');
                         $('#btnSaveCategory').text('Save');
@@ -563,11 +566,11 @@
                         loadCategories();
                         loadFilterCategories();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error('Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error saving category: ' + error);
+                    Toast.error('Error saving category: ' + error);
                 }
             });
         });
@@ -589,23 +592,23 @@
             const id = $(this).data('id');
             if (confirm('Are you sure you want to delete this category?')) {
                 $.ajax({
-                    url: baseUrl + 'MaterialCategory/Delete',
+                    url: baseUrl + 'Products/Category/Delete',
                     type: 'POST',
                     data: JSON.stringify({ category_id: id }),
                     contentType: 'application/json',
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Product Category deleted successfully!');
+                            Toast.success('Product Category deleted successfully!');
                             loadCategoriesList();
                             loadCategories();
                             loadFilterCategories();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error('Error: ' + response.message);
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting category: ' + error);
+                        Toast.error('Error deleting category: ' + error);
                     }
                 });
             }
@@ -629,7 +632,7 @@
                     if (response.success) {
                         let options = '<option value="">All Product Categories</option>';
                         response.data.forEach(function(cat) {
-                            options += '<option value="' + cat.category_id + '">' + cat.category_name + '</option>';
+                            options += '<option value="' + cat.prod_cat_id + '">' + cat.category_name + '</option>';
                         });
                         $('#filter-category').html(options);
                     }
@@ -647,7 +650,7 @@
                     if (response.success) {
                         let options = '<option value="">Select</option>';
                         response.data.forEach(function(cat) {
-                            options += '<option value="' + cat.category_id + '">' + cat.category_name + '</option>';
+                            options += '<option value="' + cat.prod_cat_id + '">' + cat.category_name + '</option>';
                         });
                         $('#category_id').html(options);
                     }
@@ -662,8 +665,14 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success) {
-                        let rows = '';
+                    // Destroy existing DataTable first
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+
+                    let rows = '';
+                    if (response.success && response.data && response.data.length > 0) {
                         response.data.forEach(function(mat) {
                             rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-category="' + (mat.category_id || '') + '">';
                             rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + mat.material_name + '</td>';
@@ -677,20 +686,47 @@
                             rows += '</td>';
                             rows += '</tr>';
                         });
-                        $('#materialsTableBody').html(rows);
+                    }
+                    $('#materialsTableBody').html(rows);
 
-                        // Initialize DataTable
-                        if (dataTable) {
-                            dataTable.destroy();
-                        }
-                        const tableElement = document.getElementById('selection-table');
-                        if (tableElement && typeof simpleDatatables !== 'undefined') {
-                            dataTable = new simpleDatatables.DataTable('#selection-table');
-                        }
+                    // Initialize DataTable with custom labels
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search products...",
+                                perPage: "entries per page",
+                                noRows: "No product data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
                     }
                 },
                 error: function(xhr, status, error) {
                     console.log('Error loading products: ' + error);
+                    // Still initialize DataTable on error to show controls
+                    if (dataTable) {
+                        dataTable.destroy();
+                        dataTable = null;
+                    }
+                    $('#materialsTableBody').html('');
+                    const tableElement = document.getElementById('selection-table');
+                    if (tableElement && typeof simpleDatatables !== 'undefined') {
+                        dataTable = new simpleDatatables.DataTable('#selection-table', {
+                            labels: {
+                                placeholder: "Search products...",
+                                perPage: "entries per page",
+                                noRows: "No product data available",
+                                noResults: "No results match your search",
+                                info: "Showing {start} to {end} of {rows} entries"
+                            },
+                            perPage: 10,
+                            perPageSelect: [5, 10, 25, 50]
+                        });
+                    }
                 }
             });
         }
@@ -715,15 +751,15 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert('Product added successfully!');
+                        Toast.success('Product added successfully!');
                         closeModal();
                         loadMaterials();
                     } else {
-                        alert('Error: ' + response.message);
+                        Toast.error('Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('Error adding product: ' + error);
+                    Toast.error('Error adding product: ' + error);
                 }
             });
         });
@@ -738,14 +774,14 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            alert('Product deleted successfully!');
+                            Toast.success('Product deleted successfully!');
                             loadMaterials();
                         } else {
-                            alert('Error: ' + response.message);
+                            Toast.error('Error: ' + response.message);
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error deleting product: ' + error);
+                        Toast.error('Error deleting product: ' + error);
                     }
                 });
             }

@@ -8,6 +8,7 @@ class RawMaterialsController extends BaseController
     {
         return  view('Template/Header').
                 view('Template/SideNav') . 
+                view('Template/notification') .
                 view('RawMaterials/RawMaterial') .
                 view('Template/Footer');
     }
@@ -30,9 +31,7 @@ class RawMaterialsController extends BaseController
      */
     public function getAll()
     {
-        $db = \Config\Database::connect();
-        
-        $query = $db->query("
+        $query = $this->db->query("
             SELECT 
                 rm.material_id,
                 rm.material_name,
@@ -71,26 +70,25 @@ class RawMaterialsController extends BaseController
             ]);
         }
 
-        $db = \Config\Database::connect();
-        $db->transStart();
+        $this->db->transStart();
 
         try {
             // Calculate cost per unit
             $costPerUnit = floatval($data['total_cost']) / floatval($data['material_quantity']);
 
             // Disable foreign key checks temporarily
-            $db->query('SET FOREIGN_KEY_CHECKS = 0');
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
 
             // 1. First insert into raw_material_cost
-            $db->query("INSERT INTO raw_material_cost (material_id, cost_per_unit) VALUES (0, ?)", [$costPerUnit]);
-            $costId = $db->insertID();
+            $this->db->query("INSERT INTO raw_material_cost (material_id, cost_per_unit) VALUES (0, ?)", [$costPerUnit]);
+            $costId = $this->db->insertID();
 
             // 2. Insert into raw_material_stock
-            $db->query("INSERT INTO raw_material_stock (material_id, current_quantity) VALUES (0, ?)", [floatval($data['material_quantity'])]);
-            $stockId = $db->insertID();
+            $this->db->query("INSERT INTO raw_material_stock (material_id, current_quantity) VALUES (0, ?)", [floatval($data['material_quantity'])]);
+            $stockId = $this->db->insertID();
 
             // 3. Insert into raw_materials
-            $db->query("INSERT INTO raw_materials (cost_id, stock_id, category_id, material_name, material_quantity, unit) VALUES (?, ?, ?, ?, ?, ?)", [
+            $this->db->query("INSERT INTO raw_materials (cost_id, stock_id, category_id, material_name, material_quantity, unit) VALUES (?, ?, ?, ?, ?, ?)", [
                 $costId,
                 $stockId,
                 intval($data['category_id']),
@@ -98,18 +96,18 @@ class RawMaterialsController extends BaseController
                 floatval($data['material_quantity']),
                 $data['unit']
             ]);
-            $materialId = $db->insertID();
+            $materialId = $this->db->insertID();
 
             // 4. Update cost and stock tables with the correct material_id
-            $db->query("UPDATE raw_material_cost SET material_id = ? WHERE cost_id = ?", [$materialId, $costId]);
-            $db->query("UPDATE raw_material_stock SET material_id = ? WHERE stock_id = ?", [$materialId, $stockId]);
+            $this->db->query("UPDATE raw_material_cost SET material_id = ? WHERE cost_id = ?", [$materialId, $costId]);
+            $this->db->query("UPDATE raw_material_stock SET material_id = ? WHERE stock_id = ?", [$materialId, $stockId]);
 
             // Re-enable foreign key checks
-            $db->query('SET FOREIGN_KEY_CHECKS = 1');
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
 
-            $db->transComplete();
+            $this->db->transComplete();
 
-            if ($db->transStatus() === false) {
+            if ($this->db->transStatus() === false) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Failed to add material. Transaction error.'
@@ -123,8 +121,8 @@ class RawMaterialsController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $db->query('SET FOREIGN_KEY_CHECKS = 1');
-            $db->transRollback();
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+            $this->db->transRollback();
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
@@ -145,8 +143,7 @@ class RawMaterialsController extends BaseController
             ]);
         }
 
-        $db = \Config\Database::connect();
-        $builder = $db->table('raw_materials');
+        $builder = $this->db->table('raw_materials');
         $builder->where('LOWER(material_name)', strtolower(trim($data['material_name'])));
         
         // If editing, exclude current material from check
@@ -173,9 +170,7 @@ class RawMaterialsController extends BaseController
             ]);
         }
 
-        $db = \Config\Database::connect();
-        
-        $query = $db->query("
+        $query = $this->db->query("
             SELECT 
                 rm.material_id,
                 rm.material_name,
@@ -224,8 +219,7 @@ class RawMaterialsController extends BaseController
             ]);
         }
 
-        $db = \Config\Database::connect();
-        $db->transStart();
+        $this->db->transStart();
 
         try {
             // Calculate cost per unit
@@ -233,7 +227,7 @@ class RawMaterialsController extends BaseController
             $materialId = intval($data['material_id']);
 
             // Update raw_materials
-            $db->query("UPDATE raw_materials SET category_id = ?, material_name = ?, material_quantity = ?, unit = ? WHERE material_id = ?", [
+            $this->db->query("UPDATE raw_materials SET category_id = ?, material_name = ?, material_quantity = ?, unit = ? WHERE material_id = ?", [
                 intval($data['category_id']),
                 $data['material_name'],
                 floatval($data['material_quantity']),
@@ -242,14 +236,14 @@ class RawMaterialsController extends BaseController
             ]);
 
             // Update raw_material_cost
-            $db->query("UPDATE raw_material_cost SET cost_per_unit = ? WHERE material_id = ?", [$costPerUnit, $materialId]);
+            $this->db->query("UPDATE raw_material_cost SET cost_per_unit = ? WHERE material_id = ?", [$costPerUnit, $materialId]);
 
             // Update raw_material_stock
-            $db->query("UPDATE raw_material_stock SET current_quantity = ? WHERE material_id = ?", [floatval($data['material_quantity']), $materialId]);
+            $this->db->query("UPDATE raw_material_stock SET current_quantity = ? WHERE material_id = ?", [floatval($data['material_quantity']), $materialId]);
 
-            $db->transComplete();
+            $this->db->transComplete();
 
-            if ($db->transStatus() === false) {
+            if ($this->db->transStatus() === false) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Failed to update material. Transaction error.'
@@ -262,7 +256,7 @@ class RawMaterialsController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $db->transRollback();
+            $this->db->transRollback();
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
@@ -291,14 +285,12 @@ class RawMaterialsController extends BaseController
             ]);
         }
 
-        $db = \Config\Database::connect();
-        $db->transStart();
+        $this->db->transStart();
 
         try {
-            // Delete from raw_materials (cascades to cost and stock due to FK)
-            $this->rawMaterialsModel->delete($id);
+             $this->rawMaterialsModel->delete($id);
 
-            $db->transComplete();
+            $this->db->transComplete();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -306,7 +298,7 @@ class RawMaterialsController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $db->transRollback();
+            $this->db->transRollback();
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
