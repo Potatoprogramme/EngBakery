@@ -112,7 +112,7 @@
 
     <!-- Add Product Modal -->
     <div id="addMaterialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" style="max-width: 32rem;">
+        <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" style="max-width: 64rem;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-primary">Add Product</h3>
                 <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-gray-600">
@@ -174,11 +174,20 @@
                     </div>
                 </div>
 
+                <!-- Combined Recipe Toggle -->
+                <div class="mb-3 px-1 combined-recipe-toggle-wrapper">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="enableCombinedRecipes" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-700">Include Combined Recipes? <span class="text-xs font-normal text-gray-500">(Optional)</span></span>
+                    </label>
+                </div>
+
                 <!-- Combined Recipe Container -->
-                <div class="mb-4 p-3 border border-gray-200 rounded-md bg-amber-50 combined-recipe-container">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3"><i class="fas fa-layer-group me-1"></i>Combined Recipes (Optional)</h4>
-                    <p class="text-xs text-gray-500 mb-2">Add other recipes like Soft Dough, Fillings, etc. to combine with this product.</p>
-                    <div class="mb-2">
+                <div id="combinedRecipeSection" class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 combined-recipe-container">
+                    <h4 class="text-sm font-semibold text-amber-800 mb-3"><i class="fas fa-layer-group me-1"></i>Combined Recipes</h4>
+                    <p class="text-xs text-amber-600 mb-3">Add other recipes like Soft Dough, Fillings, etc. to combine with this product.</p>
+                    <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Combine</label>
                         <div class="flex gap-2">
                             <select id="combinedRecipeSelect" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
@@ -189,14 +198,14 @@
                             </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div class="grid grid-cols-2 gap-3 mb-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">Qty per Unit</label>
-                            <input type="number" id="combinedRecipeQty" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="e.g., 30" min="0" step="0.01">
+                            <input type="number" id="combinedRecipeQty" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="e.g., 30" min="0" step="0.01">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">Unit Type</label>
-                            <select id="combinedRecipeUnit" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary">
+                            <select id="combinedRecipeUnit" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary">
                                 <option value="grams">grams</option>
                                 <option value="pcs">pcs</option>
                                 <option value="ml">ml</option>
@@ -205,140 +214,166 @@
                     </div>
                     <!-- Combined Recipes List -->
                     <div id="combinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
-                        <p class="text-xs text-gray-500 text-center py-2">No combined recipes added</p>
+                        <p class="text-xs text-amber-500 text-center py-2">No combined recipes added</p>
                     </div>
                 </div>
 
                 <!-- Costing Container -->
-                <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Costing Breakdown</h4>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Direct Cost:</span>
-                            <span id="directCostDisplay" class="text-sm font-medium text-gray-800">₱ 0.00</span>
+                <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown</h4>
+                            <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to see totals instantly.</p>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Combined Recipes Cost:</span>
-                            <span id="combinedCostDisplay" class="text-sm font-medium text-amber-600">₱ 0.00</span>
+                        <div class="text-left sm:text-right">
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
+                            <div id="totalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <label for="overheadCost" class="text-sm text-gray-600">Overhead Cost:</label>
-                            <div class="relative w-28">
-                                <input type="number" id="overheadCost" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0">
-                                <span class="absolute right-2 top-1.5 text-gray-700 text-sm">%</span>
+                    </div>
+
+                    <div class="mt-4 grid gap-3">
+                        <div id="costsGrid" class="grid gap-3 sm:grid-cols-2">
+                            <div id="directCostCard" class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Direct Cost</span>
+                                <span id="directCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
+                            </div>
+                            <div id="combinedCostCard" class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                                <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                             </div>
                         </div>
-                        <hr class="border-t border-gray-300">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-gray-700">Total Cost:</span>
-                            <span id="totalCostDisplay" class="text-sm font-semibold text-gray-800">₱ 0.00</span>
-                        </div>
-                        
-                        <!-- Yield Section (only visible when all ingredients are in grams) -->
-                        <div id="yieldComputationSection" class="hidden">
-                            <hr class="border-t border-gray-300">
-                            <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Yield Computation</h5>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Total Yield (grams):</span>
-                                <span id="totalYieldGramsDisplay" class="text-sm font-medium text-gray-800">0 g</span>
+
+                        <div class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <span class="text-sm text-gray-600">Overhead Cost</span>
+                                <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Unit Price per Gram:</span>
-                                <span id="unitPricePerGramDisplay" class="text-sm font-medium text-gray-800">₱ 0.00</span>
+                            <div class="flex w-full sm:w-32">
+                                <input type="number" id="overheadCost" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0">
+                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                    %
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="yieldComputationSection" class="mt-4 hidden">
+                        <div class="border-t border-dashed border-gray-300 pt-4">
+                            <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Yield Computation</h5>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Total Yield (grams)</span>
+                                    <span id="totalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0 g</span>
+                                </div>
+                                <div class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Unit Price per Gram</span>
+                                    <span id="unitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
+                                </div>
                             </div>
 
-                            
-                            
-                            <!-- Per Tray/Box -->
-                            <hr class="border-t border-dashed border-gray-300">
-                            <div class="flex justify-between items-center">
-                                <label for="traysPerYield" class="text-sm text-gray-600">Trays/Boxes:</label>
-                                <div class="relative w-28">
-                                    <input type="number" id="traysPerYield" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
-                                    <span class="absolute right-2 top-1.5 text-gray-500 text-xs">tray</span>
+                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per Tray / Box</h6>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="traysPerYield" class="text-sm text-gray-600">Trays/Boxes</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="traysPerYield" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
+                                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Grams per Tray</span>
+                                            <span id="gramsPerTrayDisplay" class="text-sm font-medium text-gray-900">0 g</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Unit Price per Tray</span>
+                                            <span id="unitPricePerTrayDisplay" class="text-sm font-medium text-purple-600">₱ 0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per Piece / Slice / Plate</h6>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="piecesPerYield" id="piecesLabel" class="text-sm text-gray-600">Pieces/Slices/Plates</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="piecesPerYield" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
+                                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Grams per Piece</span>
+                                            <span id="gramsPerPieceDisplay" class="text-sm font-medium text-gray-900">0 g</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Unit Price per Piece</span>
+                                            <span id="unitPricePerPieceDisplay" class="text-sm font-medium text-blue-600">₱ 0.00</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Grams per Tray:</span>
-                                <span id="gramsPerTrayDisplay" class="text-sm font-medium text-gray-800">0 g</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
+                                <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Unit Price per Tray:</span>
-                                <span id="unitPricePerTrayDisplay" class="text-sm font-medium text-purple-600">₱ 0.00</span>
-                            </div>
-                        
-                            <!-- Per Piece/Slice/Plate -->
-                            <hr class="border-t border-dashed border-gray-300">
-                            <div class="flex justify-between items-center">
-                                <label for="piecesPerYield" id="piecesLabel" class="text-sm text-gray-600">Pieces/Slices/Plates:</label>
-                                <div class="relative w-28">
-                                    <input type="number" id="piecesPerYield" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
-                                    <span class="absolute right-2 top-1.5 text-gray-500 text-xs">pcs</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Grams per Piece:</span>
-                                <span id="gramsPerPieceDisplay" class="text-sm font-medium text-gray-800">0 g</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Unit Price per Piece:</span>
-                                <span id="unitPricePerPieceDisplay" class="text-sm font-medium text-blue-600">₱ 0.00</span>
+                            <div class="flex w-full sm:w-28">
+                                <input type="number" id="profitMargin" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="30" min="0" value="30">
+                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                    %
+                                </span>
                             </div>
                         </div>
-                        
-                        <hr class="border-t border-gray-300">
-                        <div class="flex justify-between items-center">
-                            <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%):</label>
-                            <div class="relative w-20">
-                                <input type="number" id="profitMargin" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="30" min="0" value="30">
-                                <span class="absolute right-2 top-1.5 text-gray-700 text-sm">%</span>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Profit Amount:</span>
-                            <span id="profitAmountDisplay" class="text-sm font-medium text-green-600">₱ 0.00</span>
+                        <div class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Profit Amount</span>
+                            <span id="profitAmountDisplay" class="text-sm font-semibold text-green-700">₱ 0.00</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Selling Price Container -->
-                <div class="mb-4 p-3 border-2 border-primary rounded-md bg-primary/5">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Selling Price</h4>
+                <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
+                    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price</h4>
                     
                     <!-- Overall Selling Price -->
-                    <div class="mb-3">
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="sellingPriceOverall" class="text-sm font-medium text-gray-700">Selling Price (Overall):</label>
-                            <div class="relative w-32">
-                                <span class="absolute left-2 top-1.5 text-gray-700 text-sm">₱</span>
-                                <input type="number" id="sellingPriceOverall" class="w-full pl-6 pr-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary" placeholder="0.00" step="0.01" min="0" value="0">
+                    <div class="mb-4">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPriceOverall" class="text-sm font-medium text-gray-700">Overall Price</label>
+                            <div class="flex w-full sm:w-40">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPriceOverall" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary" placeholder="0.00" step="0.01" min="0" value="0">
                             </div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right">Recommended: <span id="recommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span id="recommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
                     </div>
                     
                     <!-- Per Tray Selling Price -->
-                    <div id="sellingPricePerTrayRow" class="mb-3 hidden">
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="sellingPricePerTray" class="text-sm font-medium text-gray-700">Selling Price per Tray:</label>
-                            <div class="relative w-32">
-                                <span class="absolute left-2 top-1.5 text-gray-700 text-sm">₱</span>
-                                <input type="number" id="sellingPricePerTray" class="w-full pl-6 pr-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600" placeholder="0.00" step="0.01" min="0" value="0">
+                    <div id="sellingPricePerTrayRow" class="mb-4 hidden">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPricePerTray" class="text-sm font-medium text-gray-700">Price per Tray</label>
+                            <div class="flex w-full sm:w-40">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPricePerTray" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600" placeholder="0.00" step="0.01" min="0" value="0">
                             </div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right">Recommended: <span id="recommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span id="recommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
                     </div>
                     
                     <!-- Per Piece Selling Price -->
                     <div id="sellingPricePerPieceRow" class="hidden">
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="sellingPricePerPiece" class="text-sm font-medium text-gray-700">Selling Price per Piece:</label>
-                            <div class="relative w-32">
-                                <span class="absolute left-2 top-1.5 text-gray-700 text-sm">₱</span>
-                                <input type="number" id="sellingPricePerPiece" class="w-full pl-6 pr-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600" placeholder="0.00" step="0.01" min="0" value="0">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per Piece</label>
+                            <div class="flex w-full sm:w-40">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPricePerPiece" class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600" placeholder="0.00" step="0.01" min="0" value="0">
                             </div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right">Recommended: <span id="recommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span id="recommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
                     </div>
                 </div>
 
@@ -382,7 +417,6 @@
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
     <!-- Simple DataTables -->
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
     <script>
     $(document).ready(function() {
@@ -427,14 +461,18 @@
             
             if (category === 'drinks') {
                 // Hide combined recipes and yield computation for drinks
-                $('.combined-recipe-container').addClass('hidden');
+                $('.combined-recipe-toggle-wrapper').addClass('hidden');
+                $('#enableCombinedRecipes').prop('checked', false);
+                $('#combinedRecipeSection').addClass('hidden');
+                $('#combinedCostCard').addClass('hidden');
+                $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
                 $('#yieldComputationSection').addClass('hidden');
                 
                 // Show all unit options for drinks
                 $('#ingredient_unit option').show();
             } else if (category === 'bread') {
                 // Show combined recipes and yield computation for bread
-                $('.combined-recipe-container').removeClass('hidden');
+                $('.combined-recipe-toggle-wrapper').removeClass('hidden');
                 
                 // Hide all units except grams for bread
                 $('#ingredient_unit option').hide();
@@ -442,22 +480,37 @@
                 $('#ingredient_unit').val('grams');
             } else {
                 // Default state when no category selected
-                $('.combined-recipe-container').removeClass('hidden');
+                $('.combined-recipe-toggle-wrapper').removeClass('hidden');
                 $('#ingredient_unit option').show();
             }
         }
+
+        // Toggle Combined Recipes
+        $('#enableCombinedRecipes').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#combinedRecipeSection').removeClass('hidden');
+                $('#combinedCostCard').removeClass('hidden');
+                $('#directCostCard').removeClass('col-span-2').addClass('col-span-1');
+            } else {
+                $('#combinedRecipeSection').addClass('hidden');
+                $('#combinedCostCard').addClass('hidden');
+                $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+            }
+            updateCostingDisplay();
+        });
 
         // Close Product Modal
         $('#btnCloseModal, #btnCancelAdd').on('click', function() {
             closeModal();
         });
 
-        // Close modal on outside click
-        $('#addMaterialModal').on('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
+        // // Close modal on outside click
+        // $('#addMaterialModal').on('click', function(e) {
+        //     if (e.target === this) {
+        //         closeModal();
+        //     }
+        // });
 
         function closeModal() {
             $('#addMaterialModal').addClass('hidden');
@@ -465,6 +518,13 @@
             ingredientsList = [];
             combinedRecipesList = [];
             currentLabelRestriction = null;
+            
+            // Reset combined recipes UI
+            $('#enableCombinedRecipes').prop('checked', false);
+            $('#combinedRecipeSection').addClass('hidden');
+            $('#combinedCostCard').addClass('hidden');
+            $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+            
             updateIngredientsListDisplay();
             updateCombinedRecipesListDisplay();
             updateCostingDisplay();
@@ -647,7 +707,8 @@
         // Update Costing Display
         function updateCostingDisplay() {
             const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
-            const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
+            const isCombinedEnabled = $('#enableCombinedRecipes').is(':checked');
+            const combinedCost = isCombinedEnabled ? combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0) : 0;
             const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
             const totalCost = directCost + combinedCost + overheadCost;
             const profitMargin = parseFloat($('#profitMargin').val()) || 0;

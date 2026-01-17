@@ -216,7 +216,7 @@ $(document).ready(function() {
                         rows += '<td class="px-6 py-4">' + labelBadge + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
-                        rows += '<td class="px-6 py-4">' + parseFloat(mat.cost_per_unit || 0).toFixed(3) + '</td>';
+                        rows += '<td class="px-6 py-4">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
                         rows += '<td class="px-6 py-4">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
                         rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
