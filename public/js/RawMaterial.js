@@ -190,9 +190,19 @@ $(document).ready(function() {
                 let rows = '';
                 if (response.success && response.data && response.data.length > 0) {
                     response.data.forEach(function(mat) {
+                        // Label badge colors
+                        const labelColors = {
+                            'drinks': 'bg-blue-100 text-blue-800',
+                            'bread': 'bg-amber-100 text-amber-800',
+                            'general': 'bg-gray-100 text-gray-800'
+                        };
+                        const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
+                        const labelBadge = mat.label ? '<span class="text-xs px-2 py-1 rounded-full ' + labelColor + '">' + mat.label + '</span>' : '-';
+
                         rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
                         rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
                         rows += '<td class="px-6 py-4">' + (mat.category_name || '-') + '</td>';
+                        rows += '<td class="px-6 py-4">' + labelBadge + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
                         rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
                         rows += '<td class="px-6 py-4">' + parseFloat(mat.cost_per_unit || 0).toFixed(3) + '</td>';
