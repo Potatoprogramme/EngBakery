@@ -13,6 +13,7 @@ class MaterialCategoryModel extends Model
     protected $allowedFields = [
         'category_name',
         'description',
+        'label',
         'date_created',
     ];
 
@@ -29,6 +30,7 @@ class MaterialCategoryModel extends Model
         $categoryData = [
             'category_name' => $data['category_name'],
             'description' => $data['category_description'] ?? $data['description'] ?? '',
+            'label' => $data['label'] ?? '',
         ];
 
         if ($categoryId) {

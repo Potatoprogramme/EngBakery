@@ -85,6 +85,7 @@ class MaterialCategoryController extends BaseController
         $updateData = [
             'category_name' => $data['category_name'] ?? null,
             'description' => $data['description'] ?? $data['category_description'] ?? null,
+            'label' => $data['label'] ?? null,
         ];
 
         if ($this->materialCategoryModel->find($data['category_id'])) {
