@@ -4,6 +4,15 @@ namespace App\Controllers;
 
 class ProductsController extends BaseController
 {
+    public function test(): string
+    {
+        return  view('Template/Header').
+                view('Template/SideNav') . 
+                view('Template/notification') .
+                view('Products/ProductTest') .
+                view('Template/Footer');
+    }
+
     public function products(): string
     {
         return  view('Template/Header').
@@ -12,6 +21,7 @@ class ProductsController extends BaseController
                 view('Products/Product') .
                 view('Template/Footer');
     }
+
     public function addProduct()
     {
         $data = $this->request->getPost();

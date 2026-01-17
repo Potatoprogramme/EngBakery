@@ -177,6 +177,41 @@
                     </div>
                 </div>
 
+                <!-- Combined Recipe Container -->
+                <div class="mb-4 p-3 border border-gray-200 rounded-md bg-amber-50">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3"><i class="fas fa-layer-group me-1"></i>Combined Recipes (Optional)</h4>
+                    <p class="text-xs text-gray-500 mb-2">Add other recipes like Soft Dough, Fillings, etc. to combine with this product.</p>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Combine</label>
+                        <div class="flex gap-2">
+                            <select id="combinedRecipeSelect" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                <option value="">Select a recipe...</option>
+                            </select>
+                            <button type="button" id="btnAddCombinedRecipe" class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Qty per Unit</label>
+                            <input type="number" id="combinedRecipeQty" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="e.g., 30" min="0" step="0.01">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Unit Type</label>
+                            <select id="combinedRecipeUnit" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary">
+                                <option value="grams">grams</option>
+                                <option value="pcs">pcs</option>
+                                <option value="ml">ml</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Combined Recipes List -->
+                    <div id="combinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
+                        <p class="text-xs text-gray-500 text-center py-2">No combined recipes added</p>
+                    </div>
+                </div>
+
                 <!-- Costing Container -->
                 <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
                     <h4 class="text-sm font-semibold text-gray-700 mb-3">Costing Breakdown</h4>
@@ -184,6 +219,10 @@
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-600">Direct Cost:</span>
                             <span id="directCostDisplay" class="text-sm font-medium text-gray-800">₱ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Combined Recipes Cost:</span>
+                            <span id="combinedCostDisplay" class="text-sm font-medium text-amber-600">₱ 0.00</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <label for="overheadCost" class="text-sm text-gray-600">Overhead Cost:</label>
@@ -197,6 +236,62 @@
                             <span class="text-sm font-medium text-gray-700">Total Cost:</span>
                             <span id="totalCostDisplay" class="text-sm font-semibold text-gray-800">₱ 0.00</span>
                         </div>
+                        
+                        <!-- Yield Section (only visible when all ingredients are in grams) -->
+                        <div id="yieldComputationSection" class="hidden">
+                            <hr class="border-t border-gray-300">
+                            <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Yield Computation</h5>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Yield (grams):</span>
+                                <span id="totalYieldGramsDisplay" class="text-sm font-medium text-gray-800">0 g</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Unit Price per Gram:</span>
+                                <span id="unitPricePerGramDisplay" class="text-sm font-medium text-gray-800">₱ 0.00</span>
+                            </div>
+                        
+                            <!-- Per Piece/Slice/Plate -->
+                            <hr class="border-t border-dashed border-gray-300">
+                            <div class="flex justify-between items-center">
+                                <label for="piecesPerYield" class="text-sm text-gray-600">Pieces/Slices/Plates:</label>
+                                <div class="relative w-28">
+                                    <input type="number" id="piecesPerYield" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
+                                    <span class="absolute right-2 top-1.5 text-gray-500 text-xs">pcs</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Grams per Piece:</span>
+                                <span id="gramsPerPieceDisplay" class="text-sm font-medium text-gray-800">0 g</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Unit Price per Piece:</span>
+                                <span id="unitPricePerPieceDisplay" class="text-sm font-medium text-blue-600">₱ 0.00</span>
+                            </div>
+                            
+                            <!-- Per Tray/Box -->
+                            <hr class="border-t border-dashed border-gray-300">
+                            <div class="flex justify-between items-center">
+                                <label for="traysPerYield" class="text-sm text-gray-600">Trays/Boxes:</label>
+                                <div class="relative w-28">
+                                    <input type="number" id="traysPerYield" class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary" placeholder="0" min="0" step="1" value="0">
+                                    <span class="absolute right-2 top-1.5 text-gray-500 text-xs">tray</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Grams per Tray:</span>
+                                <span id="gramsPerTrayDisplay" class="text-sm font-medium text-gray-800">0 g</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Unit Price per Tray:</span>
+                                <span id="unitPricePerTrayDisplay" class="text-sm font-medium text-purple-600">₱ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Pieces per Tray:</span>
+                                <span id="piecesPerTrayDisplay" class="text-sm font-medium text-gray-800">0 pcs</span>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-t border-gray-300">
                         <div class="flex justify-between items-center">
                             <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%):</label>
                             <div class="relative w-20">
@@ -315,8 +410,10 @@
             $('#addMaterialModal').removeClass('hidden');
             loadCategories();
             loadIngredients();
+            loadCombinedRecipesDropdown();
             // test ingredients
             updateIngredientsListDisplay();
+            updateCombinedRecipesListDisplay();
             updateCostingDisplay();
         });
 
@@ -336,12 +433,17 @@
             $('#addMaterialModal').addClass('hidden');
             $('#addMaterialForm')[0].reset();
             ingredientsList = [];
+            combinedRecipesList = [];
             updateIngredientsListDisplay();
+            updateCombinedRecipesListDisplay();
             updateCostingDisplay();
         }
 
         // Ingredients test data
         let ingredientsList = [];
+        
+        // Combined recipes list
+        let combinedRecipesList = [];
 
         // Load Ingredients (Raw Materials) for dropdown
         function loadIngredients() {
@@ -436,22 +538,161 @@
         // Update Costing Display
         function updateCostingDisplay() {
             const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+            const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
             const overheadCost = parseFloat($('#overheadCost').val()) || 0;
-            const totalCost = directCost + overheadCost;
+            const totalCost = directCost + combinedCost + overheadCost;
             const profitMargin = parseFloat($('#profitMargin').val()) || 0;
             const profitAmount = totalCost * (profitMargin / 100);
             const sellingPrice = totalCost + profitAmount;
+            
+            // Check if all ingredients are in grams
+            const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => item.unit === 'grams');
+            
+            // Show/hide yield computation section based on whether all ingredients are in grams
+            if (allIngredientsInGrams) {
+                $('#yieldComputationSection').removeClass('hidden');
+                
+                // Auto-calculate total yield from ingredients (all in grams)
+                const totalYieldGrams = ingredientsList.reduce((sum, item) => sum + item.quantity, 0);
+                
+                const piecesPerYield = parseFloat($('#piecesPerYield').val()) || 0;
+                const traysPerYield = parseFloat($('#traysPerYield').val()) || 0;
+                
+                // Unit price per gram
+                const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
+                
+                // Grams per piece and unit price per piece
+                const gramsPerPiece = (totalYieldGrams > 0 && piecesPerYield > 0) ? totalYieldGrams / piecesPerYield : 0;
+                const unitPricePerPiece = piecesPerYield > 0 ? totalCost / piecesPerYield : 0;
+                
+                // Grams per tray and unit price per tray
+                const gramsPerTray = (totalYieldGrams > 0 && traysPerYield > 0) ? totalYieldGrams / traysPerYield : 0;
+                const unitPricePerTray = traysPerYield > 0 ? totalCost / traysPerYield : 0;
+                
+                // Pieces per tray
+                const piecesPerTray = (piecesPerYield > 0 && traysPerYield > 0) ? piecesPerYield / traysPerYield : 0;
+                
+                // Yield displays
+                $('#totalYieldGramsDisplay').text(totalYieldGrams.toFixed(2) + ' g');
+                $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(4));
+                $('#gramsPerPieceDisplay').text(gramsPerPiece.toFixed(2) + ' g');
+                $('#unitPricePerPieceDisplay').text('₱ ' + unitPricePerPiece.toFixed(2));
+                $('#gramsPerTrayDisplay').text(gramsPerTray.toFixed(2) + ' g');
+                $('#unitPricePerTrayDisplay').text('₱ ' + unitPricePerTray.toFixed(2));
+                $('#piecesPerTrayDisplay').text(piecesPerTray.toFixed(0) + ' pcs');
+            } else {
+                $('#yieldComputationSection').addClass('hidden');
+            }
 
             $('#directCostDisplay').text('₱ ' + directCost.toFixed(2));
+            $('#combinedCostDisplay').text('₱ ' + combinedCost.toFixed(2));
             $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
             $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
             $('#sellingPriceDisplay').text('₱ ' + sellingPrice.toFixed(2));
         }
 
-        // Recalculate on overhead/profit change
-        $('#overheadCost, #profitMargin').on('input', function() {
+        // Recalculate on overhead/profit/yield change
+        $('#overheadCost, #profitMargin, #piecesPerYield, #traysPerYield').on('input', function() {
             updateCostingDisplay();
         });
+        
+        // Load Products for Combined Recipes dropdown
+        function loadCombinedRecipesDropdown() {
+            $.ajax({
+                url: baseUrl + 'Products/GetAll',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data) {
+                        let options = '<option value="">Select a recipe...</option>';
+                        response.data.forEach(function(product) {
+                            options += '<option value="' + product.product_id + '" data-name="' + product.material_name + '" data-cost="' + (product.total_cost || 0) + '" data-yield="' + (product.yield_grams || 0) + '">' + product.material_name + '</option>';
+                        });
+                        $('#combinedRecipeSelect').html(options);
+                    }
+                }
+            });
+        }
+        
+        // Add Combined Recipe
+        $('#btnAddCombinedRecipe').on('click', function() {
+            const select = $('#combinedRecipeSelect');
+            const selectedOption = select.find('option:selected');
+            const recipeId = select.val();
+            const recipeName = selectedOption.data('name');
+            const recipeTotalCost = parseFloat(selectedOption.data('cost')) || 0;
+            const recipeYield = parseFloat(selectedOption.data('yield')) || 0;
+            const qtyPerUnit = parseFloat($('#combinedRecipeQty').val()) || 0;
+            const unitType = $('#combinedRecipeUnit').val();
+            
+            if (!recipeId) {
+                Toast.warning('Please select a recipe to combine.');
+                return;
+            }
+            
+            if (qtyPerUnit <= 0) {
+                Toast.warning('Please enter a valid quantity per unit.');
+                return;
+            }
+            
+            // Check if recipe already exists
+            const existingIndex = combinedRecipesList.findIndex(item => item.id === recipeId);
+            if (existingIndex >= 0) {
+                Toast.warning('This recipe is already added. Remove it first to add again.');
+                return;
+            }
+            
+            // Calculate cost per gram from the recipe's total cost and yield
+            const costPerGram = (recipeYield > 0) ? recipeTotalCost / recipeYield : 0;
+            const totalCost = costPerGram * qtyPerUnit;
+            
+            combinedRecipesList.push({
+                id: recipeId,
+                name: recipeName,
+                quantity: qtyPerUnit,
+                unit: unitType,
+                costPerGram: costPerGram,
+                totalCost: totalCost
+            });
+            
+            updateCombinedRecipesListDisplay();
+            updateCostingDisplay();
+            
+            // Reset inputs
+            $('#combinedRecipeSelect').val('');
+            $('#combinedRecipeQty').val('');
+        });
+        
+        // Remove Combined Recipe
+        $(document).on('click', '.btn-remove-combined-recipe', function() {
+            const index = $(this).data('index');
+            const recipeName = combinedRecipesList[index].name;
+            Confirm.delete('Are you sure you want to remove "' + recipeName + '" from combined recipes?', function() {
+                combinedRecipesList.splice(index, 1);
+                updateCombinedRecipesListDisplay();
+                updateCostingDisplay();
+            });
+        });
+        
+        // Update Combined Recipes List Display
+        function updateCombinedRecipesListDisplay() {
+            if (combinedRecipesList.length === 0) {
+                $('#combinedRecipesList').html('<p class="text-xs text-gray-500 text-center py-2">No combined recipes added</p>');
+                return;
+            }
+            
+            let html = '';
+            combinedRecipesList.forEach(function(item, index) {
+                html += '<div class="flex items-center justify-between p-2 border border-amber-200 rounded-md bg-white">';
+                html += '<div class="flex-1">';
+                html += '<div class="text-xs font-medium text-gray-800">' + item.name + '</div>';
+                html += '<div class="text-xs text-gray-500">' + item.quantity + ' ' + item.unit + ' × ₱' + item.costPerGram.toFixed(4) + '/g = ₱' + item.totalCost.toFixed(2) + '</div>';
+                html += '</div>';
+                html += '<button type="button" class="text-red-600 hover:text-red-800 btn-remove-combined-recipe" data-index="' + index + '" title="Remove"><i class="fas fa-times"></i></button>';
+                html += '</div>';
+            });
+            $('#combinedRecipesList').html(html);
+        }
 
         // Open Manage Product Categories Modal
         $('#btnManageCategories').on('click', function() {
