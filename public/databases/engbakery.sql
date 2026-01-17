@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 17, 2026 at 07:09 AM
+-- Generation Time: Jan 17, 2026 at 08:12 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,9 @@ CREATE TABLE `daily_sales` (
 
 CREATE TABLE `daily_stock` (
   `daily_stock_id` int(11) NOT NULL,
-  `inventory_date` datetime NOT NULL
+  `inventory_date` date NOT NULL,
+  `time_start` time NOT NULL,
+  `time_end` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -80,9 +82,9 @@ CREATE TABLE `material_category` (
 --
 
 INSERT INTO `material_category` (`category_id`, `category_name`, `description`, `date_created`) VALUES
-(2, 'wala', '', '2026-01-16 09:40:51'),
-(4, 'test', 'test', '2026-01-16 09:40:33'),
-(6, 'asdasd', 'asdasd', '2026-01-16 11:54:06');
+(2, 'Raw Ingredients', '', '2026-01-17 06:35:50'),
+(6, 'Packaging', 'hahahaha', '2026-01-17 06:36:00'),
+(8, 'Office Supplies', '', '2026-01-17 06:36:20');
 
 -- --------------------------------------------------------
 
@@ -164,6 +166,13 @@ CREATE TABLE `product_category` (
   `date_created` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `product_category`
+--
+
+INSERT INTO `product_category` (`prod_cat_id`, `category_name`, `description`, `date_created`) VALUES
+(1, 'Bread', 'asdasd', '2026-01-17 06:34:51');
+
 -- --------------------------------------------------------
 
 --
@@ -217,7 +226,7 @@ CREATE TABLE `raw_materials` (
 --
 
 INSERT INTO `raw_materials` (`material_id`, `cost_id`, `stock_id`, `category_id`, `material_name`, `material_quantity`, `unit`, `date_created`) VALUES
-(1, 1, 1, 4, 'Name', 13131, 'grams', '2026-01-16 12:01:50');
+(2, 2, 2, 2, 'Flour', 100, 'kg', '2026-01-17 06:37:18');
 
 -- --------------------------------------------------------
 
@@ -237,7 +246,7 @@ CREATE TABLE `raw_material_cost` (
 --
 
 INSERT INTO `raw_material_cost` (`cost_id`, `material_id`, `cost_per_unit`, `date_created`) VALUES
-(1, 1, 0.15231132434697, '2026-01-16 12:01:50');
+(2, 2, 15, '2026-01-17 06:37:18');
 
 -- --------------------------------------------------------
 
@@ -257,7 +266,7 @@ CREATE TABLE `raw_material_stock` (
 --
 
 INSERT INTO `raw_material_stock` (`stock_id`, `material_id`, `current_quantity`, `last_updated`) VALUES
-(1, 1, 13131, '2026-01-16 12:01:50');
+(2, 2, 100, '2026-01-17 06:37:18');
 
 --
 -- Indexes for dumped tables
@@ -388,7 +397,7 @@ ALTER TABLE `daily_stock_items`
 -- AUTO_INCREMENT for table `material_category`
 --
 ALTER TABLE `material_category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `material_delivery`
@@ -418,7 +427,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `product_category`
 --
 ALTER TABLE `product_category`
-  MODIFY `prod_cat_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `prod_cat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `product_costs`
@@ -436,19 +445,19 @@ ALTER TABLE `product_recipe`
 -- AUTO_INCREMENT for table `raw_materials`
 --
 ALTER TABLE `raw_materials`
-  MODIFY `material_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `material_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `raw_material_cost`
 --
 ALTER TABLE `raw_material_cost`
-  MODIFY `cost_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `cost_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `raw_material_stock`
 --
 ALTER TABLE `raw_material_stock`
-  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `stock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

@@ -31,6 +31,11 @@
         <button type="button" id="addDailyStockButton">Add Stock</button>
     </form>
 
+    <form action="">
+        <label for="CheckInventory">Click button to check if inventory exists today</label>
+        <button type="button" id="CheckInventory">Check Inventory</button>
+    </form>
+
     <script>
         $('#addDailyStockButton').on('click', function () {
             const data = {
@@ -56,6 +61,18 @@
                     alert('Error: ' + (res?.message || xhr.statusText));
                 }
             });
+        });
+
+        $('#CheckInventory').on('click', function () {
+            $.ajax({
+                url: `<?= base_url() ?>DailyStock/CheckIfInventoryExists`,
+                type: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                },
+            })
         });
     </script>
 
