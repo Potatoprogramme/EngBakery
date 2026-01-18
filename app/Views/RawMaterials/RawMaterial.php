@@ -168,7 +168,7 @@
                     </div>
                     
                     <div id="converted_qty_wrapper">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Converted Quantity</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Converted</label>
                         <div class="flex">
                             <input type="text" id="converted_quantity" readonly
                                 class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 

@@ -99,6 +99,7 @@ $(document).ready(function() {
         // Reset converted Quantity display
         $('#converted_quantity').val('0');
         $('#converted_qty_wrapper').removeClass('hidden');
+        $('#converted_unit_label').text('kg');
     }
 
     // Calculate cost per unit with conversions
@@ -115,32 +116,29 @@ $(document).ready(function() {
         const perUnit = qty > 0 ? (cost / qty) : 0;
         $('#cost_per_unit').val(perUnit.toFixed(3));
 
-        // Update converted quantity display
+        // Update converted cost display
         if (unit === 'pcs') {
             $('#converted_qty_wrapper').addClass('hidden');
             $('#converted_cost_wrapper').addClass('hidden');
-        } else {
+        } else if (conversion) {
             $('#converted_qty_wrapper').removeClass('hidden');
-            
-            if (conversion) {
-                // Determine converted quantity
-                const convertedQty = qty >= 0 ? (qty / conversion.factor).toFixed(2) : '0.00';
-                $('#converted_quantity').val(convertedQty);
-                $('#converted_unit_label').text(conversion.largeUnit);
+            $('#converted_unit_label').text(conversion.largeUnit);
 
-                // Determine converted cost
-                if (perUnit > 0) {
-                    const costPerLarge = (perUnit * conversion.factor).toFixed(2);
-                    $('#converted_cost').val(costPerLarge);
-                    $('#converted_cost_unit_label').text('per ' + conversion.largeUnit);
-                    $('#converted_cost_wrapper').removeClass('hidden');
-                } else {
-                     $('#converted_cost_wrapper').addClass('hidden');
-                }
+            // Update converted quantity (e.g., 25000 grams = 25 kg)
+            const convertedQty = qty > 0 ? (qty / conversion.factor).toFixed(2) : '0';
+            $('#converted_quantity').val(convertedQty);
+
+            // Determine converted cost (cost per kg/liter)
+            if (perUnit > 0) {
+                const costPerLarge = (perUnit * conversion.factor).toFixed(2);
+                $('#converted_cost').val(costPerLarge);
+                $('#converted_cost_unit_label').text('per ' + conversion.largeUnit);
+                $('#converted_cost_wrapper').removeClass('hidden');
             } else {
-                // Fail-safe if conversion not found but not pcs (shouldn't happen with current logic)
-                 $('#converted_cost_wrapper').addClass('hidden');
+                $('#converted_cost_wrapper').addClass('hidden');
             }
+        } else {
+            $('#converted_cost_wrapper').addClass('hidden');
         }
     }
 
