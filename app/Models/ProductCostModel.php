@@ -14,11 +14,12 @@ class ProductCostModel extends Model
     protected $allowedFields = [
         'product_id',
         'direct_cost',
+        'overhead_cost_percentage',
+        'overhead_cost_amount',
         'combined_recipe_cost',
-        'overhead_cost',
-        'total_cost',
-        'profit_margin',
+        'profit_margin_percentage',
         'profit_amount',
+        'total_cost',
         'selling_price',
         'selling_price_per_tray',
         'selling_price_per_piece',
@@ -50,9 +51,10 @@ class ProductCostModel extends Model
             'product_id' => $productId,
             'direct_cost' => floatval($data['direct_cost'] ?? 0),
             'combined_recipe_cost' => floatval($data['combined_recipe_cost'] ?? 0),
-            'overhead_cost' => floatval($data['overhead_cost'] ?? 0),
+            'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? 0),
+            'overhead_cost_amount' => floatval($data['overhead_cost_amount'] ?? 0),
             'total_cost' => floatval($data['total_cost'] ?? 0),
-            'profit_margin' => floatval($data['profit_margin'] ?? 0),
+            'profit_margin_percentage' => floatval($data['profit_margin_percentage'] ?? 0),
             'profit_amount' => floatval($data['profit_amount'] ?? 0),
             'selling_price' => floatval($data['selling_price'] ?? $data['selling_price_overall'] ?? 0),
             'selling_price_per_tray' => floatval($data['selling_price_per_tray'] ?? 0),
@@ -84,20 +86,20 @@ class ProductCostModel extends Model
     {
         $directCost = floatval($params['direct_cost'] ?? 0);
         $combinedRecipeCost = floatval($params['combined_recipe_cost'] ?? 0);
-        $overheadPercentage = floatval($params['overhead_percentage'] ?? 0);
-        $profitMargin = floatval($params['profit_margin'] ?? 0);
+        $overheadPercentage = floatval($params['overhead_cost_percentage'] ?? 0);
+        $profitMarginPercentage = floatval($params['profit_margin_percentage'] ?? 0);
         $yieldGrams = floatval($params['yield_grams'] ?? 0);
         $traysPerYield = intval($params['trays_per_yield'] ?? 0);
         $piecesPerYield = intval($params['pieces_per_yield'] ?? 0);
 
         // Calculate overhead cost based on direct cost
-        $overheadCost = $directCost * ($overheadPercentage / 100);
+        $overheadCostAmount = $directCost * ($overheadPercentage / 100);
 
         // Total cost = direct + combined + overhead
-        $totalCost = $directCost + $combinedRecipeCost + $overheadCost;
+        $totalCost = $directCost + $combinedRecipeCost + $overheadCostAmount;
 
         // Calculate profit amount
-        $profitAmount = $totalCost * ($profitMargin / 100);
+        $profitAmount = $totalCost * ($profitMarginPercentage / 100);
 
         // Overall selling price
         $sellingPrice = $totalCost + $profitAmount;
@@ -124,9 +126,10 @@ class ProductCostModel extends Model
         return [
             'direct_cost' => $directCost,
             'combined_recipe_cost' => $combinedRecipeCost,
-            'overhead_cost' => $overheadCost,
+            'overhead_cost_percentage' => $overheadPercentage,
+            'overhead_cost_amount' => $overheadCostAmount,
             'total_cost' => $totalCost,
-            'profit_margin' => $profitMargin,
+            'profit_margin_percentage' => $profitMarginPercentage,
             'profit_amount' => $profitAmount,
             'selling_price' => $sellingPrice,
             'selling_price_per_tray' => $sellingPricePerTray,
@@ -150,9 +153,10 @@ class ProductCostModel extends Model
                 pc.product_cost_id,
                 pc.direct_cost,
                 pc.combined_recipe_cost,
-                pc.overhead_cost,
+                pc.overhead_cost_percentage,
+                pc.overhead_cost_amount,
                 pc.total_cost,
-                pc.profit_margin,
+                pc.profit_margin_percentage,
                 pc.profit_amount,
                 pc.selling_price,
                 pc.selling_price_per_tray,

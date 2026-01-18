@@ -2,20 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\ProductRecipeModel;
-use App\Models\ProductCostModel;
-
 class ProductsController extends BaseController
 {
-    protected $productRecipeModel;
-    protected $productCostModel;
-
-    public function __construct()
-    {
-        $this->productRecipeModel = new ProductRecipeModel();
-        $this->productCostModel = new ProductCostModel();
-    }
-
     public function test(): string
     {
         return  view('Template/Header').
@@ -82,16 +70,11 @@ class ProductsController extends BaseController
             $this->db->transStart();
             
             try {
-                // Step 1: Insert the product first (recipe_id will be updated later)
-                // NOTE: This requires running the fix_circular_fk_jan18.sql migration
-                // to remove the FK constraint on products.recipe_id
+                // Step 1: Insert the product first
                 $productData = [
-                    'recipe_id' => 0, // Will be updated after recipe is created
                     'category' => $category,
                     'product_name' => trim($productName),
                     'product_description' => trim($data['product_description'] ?? ''),
-                    'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? 0),
-                    'profit_margin' => floatval($data['profit_margin'] ?? 0),
                 ];
                 
                 $this->db->table('products')->insert($productData);
@@ -100,7 +83,6 @@ class ProductsController extends BaseController
                 log_message('debug', 'Created product with ID: ' . $productId);
                 
                 // Step 2: Insert all recipe ingredients
-                $firstRecipeId = null;
                 foreach ($ingredients as $index => $ingredient) {
                     $ingredientData = [
                         'product_id' => $productId,
@@ -110,29 +92,25 @@ class ProductsController extends BaseController
                     ];
                     $this->db->table('product_recipe')->insert($ingredientData);
                     
-                    if ($index === 0) {
-                        $firstRecipeId = $this->db->insertID();
-                    }
-                    
                     log_message('debug', 'Inserted ingredient: ' . json_encode($ingredientData));
                 }
                 
-                // Step 3: Update product with first recipe ID (optional reference)
-                if ($firstRecipeId) {
-                    $this->db->table('products')
-                        ->where('product_id', $productId)
-                        ->update(['recipe_id' => $firstRecipeId]);
-                    
-                    log_message('debug', 'Updated product recipe_id to: ' . $firstRecipeId);
-                }
-                
-                // Step 4: Insert product costs
+                // Step 3: Insert product costs
                 $costData = [
                     'product_id' => $productId,
                     'direct_cost' => floatval($data['direct_cost'] ?? 0),
-                    'overhead_cost' => floatval($data['overhead_cost'] ?? 0),
+                    'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? 0),
+                    'overhead_cost_amount' => floatval($data['overhead_cost_amount'] ?? 0),
+                    'combined_recipe_cost' => floatval($data['combined_recipe_cost'] ?? 0),
+                    'profit_margin_percentage' => floatval($data['profit_margin_percentage'] ?? 0),
+                    'profit_amount' => floatval($data['profit_amount'] ?? 0),
                     'total_cost' => floatval($data['total_cost'] ?? 0),
                     'selling_price' => floatval($data['selling_price_overall'] ?? 0),
+                    'selling_price_per_tray' => floatval($data['selling_price_per_tray'] ?? 0),
+                    'selling_price_per_piece' => floatval($data['selling_price_per_piece'] ?? 0),
+                    'yield_grams' => floatval($data['yield_grams'] ?? 0),
+                    'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
+                    'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
                 ];
                 
                 $this->db->table('product_costs')->insert($costData);
@@ -274,12 +252,58 @@ class ProductsController extends BaseController
                 'product_name' => trim($data['product_name'] ?? $existingProduct['product_name']),
                 'product_description' => trim($data['product_description'] ?? $existingProduct['product_description']),
                 'category' => $data['category'] ?? $existingProduct['category'],
-                'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? $existingProduct['overhead_cost_percentage']),
-                'profit_margin' => floatval($data['profit_margin'] ?? $existingProduct['profit_margin']),
             ];
 
             if (isset($data['direct_cost'])) {
                 $updateData['direct_cost'] = floatval($data['direct_cost']);
+            }
+
+            if (isset($data['overhead_cost_percentage'])) {
+                $updateData['overhead_cost_percentage'] = floatval($data['overhead_cost_percentage']);
+            }
+
+            if (isset($data['overhead_cost_amount'])) {
+                $updateData['overhead_cost_amount'] = floatval($data['overhead_cost_amount']);
+            }
+
+            if (isset($data['combined_recipe_cost'])) {
+                $updateData['combined_recipe_cost'] = floatval($data['combined_recipe_cost']);
+            }
+
+            if (isset($data['profit_margin_percentage'])) {
+                $updateData['profit_margin_percentage'] = floatval($data['profit_margin_percentage']);
+            }
+
+            if (isset($data['profit_amount'])) {
+                $updateData['profit_amount'] = floatval($data['profit_amount']);
+            }
+
+            if (isset($data['total_cost'])) {
+                $updateData['total_cost'] = floatval($data['total_cost']);
+            }
+
+            if (isset($data['selling_price_overall'])) {
+                $updateData['selling_price'] = floatval($data['selling_price_overall']);
+            }
+
+            if (isset($data['selling_price_per_tray'])) {
+                $updateData['selling_price_per_tray'] = floatval($data['selling_price_per_tray']);
+            }
+
+            if (isset($data['selling_price_per_piece'])) {
+                $updateData['selling_price_per_piece'] = floatval($data['selling_price_per_piece']);
+            }
+
+            if (isset($data['yield_grams'])) {
+                $updateData['yield_grams'] = floatval($data['yield_grams']);
+            }
+
+            if (isset($data['trays_per_yield'])) {
+                $updateData['trays_per_yield'] = intval($data['trays_per_yield']);
+            }
+
+            if (isset($data['pieces_per_yield'])) {
+                $updateData['pieces_per_yield'] = intval($data['pieces_per_yield']);
             }
 
             if (isset($data['ingredients'])) {

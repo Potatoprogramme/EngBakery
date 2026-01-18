@@ -78,7 +78,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Product Category
+                                    Category
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -88,7 +88,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Quantity
+                                    Direct Cost
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -98,7 +98,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Unit
+                                    Total Cost
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -108,7 +108,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Cost per Unit
+                                    Selling Price
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -1068,16 +1068,16 @@
 
                         let rows = '';
                         if (response.success && response.data && response.data.length > 0) {
-                            response.data.forEach(function (mat) {
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-category="' + (mat.category_id || '') + '">';
-                                rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + mat.material_name + '</td>';
-                                rows += '<td class="px-6 py-4">' + (mat.category_name || '-') + '</td>';
-                                rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
-                                rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
-                                rows += '<td class="px-6 py-4">' + parseFloat(mat.cost_per_unit || 0).toFixed(3) + '</td>';
+                            response.data.forEach(function (product) {
+                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-category="' + (product.category || '') + '">';
+                                rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
+                                rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
+                                rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
+                                rows += '<td class="px-6 py-4">' + parseFloat(product.total_cost || 0).toFixed(2) + '</td>';
+                                rows += '<td class="px-6 py-4">' + parseFloat(product.selling_price || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">';
-                                rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                                rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                                rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 rows += '</td>';
                                 rows += '</tr>';
                             });
@@ -1150,7 +1150,7 @@
                 product_name: $('#material_name').val(),
                 category: $('#category_id').val(),
                 overhead_cost_percentage: overheadPercentage,
-                profit_margin: profitMargin,
+                profit_margin_percentage: profitMargin,
                 // Ingredients array
                 ingredients: ingredientsList.map(item => ({
                     material_id: item.id,
@@ -1170,7 +1170,7 @@
                 // Costing data
                 direct_cost: directCost,
                 combined_recipe_cost: combinedRecipeCost,
-                overhead_cost: overheadCost,
+                overhead_cost_amount: overheadCost,
                 total_cost: totalCost,
                 profit_amount: profitAmount,
                 // Selling prices
@@ -1201,9 +1201,9 @@
             console.log('Direct Cost:', formData.direct_cost);
             console.log('Combined Recipe Cost:', formData.combined_recipe_cost);
             console.log('Overhead Percentage:', formData.overhead_cost_percentage);
-            console.log('Overhead Cost:', formData.overhead_cost);
+            console.log('Overhead Cost Amount:', formData.overhead_cost_amount);
             console.log('Total Cost:', formData.total_cost);
-            console.log('Profit Margin:', formData.profit_margin);
+            console.log('Profit Margin Percentage:', formData.profit_margin_percentage);
             console.log('Profit Amount:', formData.profit_amount);
             console.log('');
             console.log('--- SELLING PRICES ---');
