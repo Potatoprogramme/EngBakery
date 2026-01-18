@@ -59,9 +59,17 @@ class ProductModel extends Model
                 pc.direct_cost,
                 pc.overhead_cost_percentage,
                 pc.overhead_cost_amount,
+                pc.combined_recipe_cost,
                 pc.total_cost,
                 pc.profit_margin_percentage,
+                pc.profit_amount,
                 pc.selling_price,
+                pc.selling_price AS selling_price_overall,
+                pc.selling_price_per_tray,
+                pc.selling_price_per_piece,
+                pc.yield_grams,
+                pc.trays_per_yield,
+                pc.pieces_per_yield,
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
@@ -78,11 +86,11 @@ class ProductModel extends Model
             SELECT 
                 pr.recipe_id,
                 pr.material_id,
-                pr.quantity_needed,
+                pr.quantity_needed AS quantity,
                 pr.unit,
                 rm.material_name,
                 rmc.cost_per_unit,
-                (pr.quantity_needed * rmc.cost_per_unit) as ingredient_cost
+                (pr.quantity_needed * rmc.cost_per_unit) as total_cost
             FROM product_recipe pr
             LEFT JOIN raw_materials rm ON pr.material_id = rm.material_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
@@ -223,17 +231,20 @@ class ProductModel extends Model
             if (isset($data['direct_cost'])) {
                 $directCost = floatval($data['direct_cost']);
                 $overheadCostPercentage = floatval($data['overhead_cost_percentage'] ?? 0);
-                $overheadCostAmount = $directCost * ($overheadCostPercentage / 100);
-                $totalCost = $directCost + $overheadCostAmount;
+                $overheadCostAmount = floatval($data['overhead_cost_amount'] ?? ($directCost * ($overheadCostPercentage / 100)));
+                $combinedRecipeCost = floatval($data['combined_recipe_cost'] ?? 0);
+                $totalCost = floatval($data['total_cost'] ?? ($directCost + $overheadCostAmount + $combinedRecipeCost));
                 $profitMarginPercentage = floatval($data['profit_margin_percentage'] ?? 0);
-                $profitAmount = $totalCost * ($profitMarginPercentage / 100);
-                $sellingPrice = $totalCost + $profitAmount;
+                $profitAmount = floatval($data['profit_amount'] ?? ($totalCost * ($profitMarginPercentage / 100)));
+                
+                // Use user's entered selling price if provided, otherwise calculate
+                $sellingPrice = floatval($data['selling_price'] ?? ($totalCost + $profitAmount));
 
                 $costData = [
                     'direct_cost' => $directCost,
                     'overhead_cost_percentage' => $overheadCostPercentage,
                     'overhead_cost_amount' => $overheadCostAmount,
-                    'combined_recipe_cost' => floatval($data['combined_recipe_cost'] ?? 0),
+                    'combined_recipe_cost' => $combinedRecipeCost,
                     'profit_margin_percentage' => $profitMarginPercentage,
                     'profit_amount' => $profitAmount,
                     'total_cost' => $totalCost,
