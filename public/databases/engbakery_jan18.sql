@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 18, 2026 at 05:12 AM
+-- Generation Time: Jan 18, 2026 at 01:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -78,16 +78,6 @@ CREATE TABLE `material_category` (
   `date_created` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `material_category`
---
-
-INSERT INTO `material_category` (`category_id`, `category_name`, `description`, `label`, `date_created`) VALUES
-(2, 'Raw Ingredients', '', 'general', '2026-01-17 09:08:17'),
-(6, 'Packaging', '', 'general', '2026-01-17 09:08:25'),
-(9, 'Office Supplies', '', 'general', '2026-01-17 09:08:32'),
-(10, 'Coffee Expenses', '', 'drinks', '2026-01-17 07:34:03');
-
 -- --------------------------------------------------------
 
 --
@@ -146,7 +136,6 @@ CREATE TABLE `order_item_id` (
 
 CREATE TABLE `products` (
   `product_id` int(11) NOT NULL,
-  `recipe_id` int(11) NOT NULL,
   `category` enum('drinks','bread') NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `product_description` varchar(255) NOT NULL,
@@ -201,28 +190,13 @@ CREATE TABLE `product_recipe` (
 
 CREATE TABLE `raw_materials` (
   `material_id` int(11) NOT NULL,
-  `cost_id` int(11) NOT NULL,
-  `stock_id` int(11) NOT NULL,
   `category_id` int(11) NOT NULL,
+  `product_id` varchar(45) NOT NULL,
   `material_name` varchar(255) NOT NULL,
   `material_quantity` int(11) NOT NULL,
   `unit` varchar(255) NOT NULL,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `raw_materials`
---
-
-INSERT INTO `raw_materials` (`material_id`, `cost_id`, `stock_id`, `category_id`, `material_name`, `material_quantity`, `unit`, `date_created`) VALUES
-(3, 3, 3, 2, 'Flour - All purpose', 25000, 'grams', '2026-01-17 07:34:37'),
-(4, 4, 4, 2, 'Flour - Kutitap First Class', 25000, 'grams', '2026-01-17 07:35:06'),
-(5, 5, 5, 2, 'Sugar 99', 50000, 'grams', '2026-01-17 07:35:34'),
-(6, 6, 6, 2, 'Sugar Brown', 50000, 'grams', '2026-01-17 07:36:22'),
-(7, 7, 7, 2, 'Sugar White', 50000, 'grams', '2026-01-17 07:37:02'),
-(8, 8, 8, 6, 'Baking cups 2oz', 1200, 'pcs', '2026-01-17 07:39:10'),
-(9, 9, 9, 6, 'Paper plate', 35, 'pcs', '2026-01-17 07:40:51'),
-(10, 10, 10, 6, 'Plastic Bag - Medium', 240, 'grams', '2026-01-17 07:41:24');
 
 -- --------------------------------------------------------
 
@@ -236,20 +210,6 @@ CREATE TABLE `raw_material_cost` (
   `cost_per_unit` double NOT NULL,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `raw_material_cost`
---
-
-INSERT INTO `raw_material_cost` (`cost_id`, `material_id`, `cost_per_unit`, `date_created`) VALUES
-(3, 3, 0.054, '2026-01-17 07:34:37'),
-(4, 4, 0.036, '2026-01-17 07:35:06'),
-(5, 5, 0.062, '2026-01-17 07:35:34'),
-(6, 6, 0.06, '2026-01-17 07:36:22'),
-(7, 7, 0.0716, '2026-01-17 07:37:02'),
-(8, 8, 0.065, '2026-01-17 07:39:10'),
-(9, 9, 0.91428571428571, '2026-01-17 07:40:51'),
-(10, 10, 0.83333333333333, '2026-01-17 07:41:24');
 
 -- --------------------------------------------------------
 
@@ -265,20 +225,6 @@ CREATE TABLE `raw_material_stock` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `raw_material_stock`
---
-
-INSERT INTO `raw_material_stock` (`stock_id`, `material_id`, `current_quantity`, `last_updated`) VALUES
-(3, 3, 25000, '2026-01-17 07:34:37'),
-(4, 4, 25000, '2026-01-17 07:35:06'),
-(5, 5, 50000, '2026-01-17 07:35:34'),
-(6, 6, 50000, '2026-01-17 07:36:22'),
-(7, 7, 50000, '2026-01-17 07:37:02'),
-(8, 8, 1200, '2026-01-17 07:39:10'),
-(9, 9, 35, '2026-01-17 07:40:51'),
-(10, 10, 240, '2026-01-17 07:41:24');
-
---
 -- Indexes for dumped tables
 --
 
@@ -287,7 +233,7 @@ INSERT INTO `raw_material_stock` (`stock_id`, `material_id`, `current_quantity`,
 --
 ALTER TABLE `daily_sales`
   ADD PRIMARY KEY (`sale_id`),
-  ADD KEY `item_id` (`item_id`);
+  ADD KEY `daily_sales_ibfk1_idx` (`item_id`);
 
 --
 -- Indexes for table `daily_stock`
@@ -300,7 +246,8 @@ ALTER TABLE `daily_stock`
 --
 ALTER TABLE `daily_stock_items`
   ADD PRIMARY KEY (`item_id`),
-  ADD KEY `daily_stock_id` (`daily_stock_id`);
+  ADD KEY `daily_stock_id` (`daily_stock_id`),
+  ADD KEY `product_id_idx` (`product_id`);
 
 --
 -- Indexes for table `material_category`
@@ -333,9 +280,7 @@ ALTER TABLE `order_item_id`
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
-  ADD PRIMARY KEY (`product_id`),
-  ADD KEY `recipe_id` (`recipe_id`),
-  ADD KEY `prod_cat_id` (`category`);
+  ADD PRIMARY KEY (`product_id`);
 
 --
 -- Indexes for table `product_costs`
@@ -357,8 +302,6 @@ ALTER TABLE `product_recipe`
 --
 ALTER TABLE `raw_materials`
   ADD PRIMARY KEY (`material_id`),
-  ADD KEY `cost_id` (`cost_id`),
-  ADD KEY `stock_id` (`stock_id`),
   ADD KEY `category_id` (`category_id`);
 
 --
@@ -465,13 +408,14 @@ ALTER TABLE `raw_material_stock`
 -- Constraints for table `daily_sales`
 --
 ALTER TABLE `daily_sales`
-  ADD CONSTRAINT `daily_sales_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `daily_stock` (`daily_stock_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `daily_sales_ibfk1` FOREIGN KEY (`item_id`) REFERENCES `daily_stock_items` (`item_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `daily_stock_items`
 --
 ALTER TABLE `daily_stock_items`
-  ADD CONSTRAINT `daily_stock_items_ibfk_1` FOREIGN KEY (`daily_stock_id`) REFERENCES `daily_stock` (`daily_stock_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `daily_stock_items_ibfk_1` FOREIGN KEY (`daily_stock_id`) REFERENCES `daily_stock` (`daily_stock_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `material_delivery`
@@ -485,12 +429,6 @@ ALTER TABLE `material_delivery`
 ALTER TABLE `order_item_id`
   ADD CONSTRAINT `order_item_id_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `order_item_id_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `products`
---
-ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`recipe_id`) REFERENCES `product_recipe` (`recipe_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `product_costs`
@@ -509,8 +447,6 @@ ALTER TABLE `product_recipe`
 -- Constraints for table `raw_materials`
 --
 ALTER TABLE `raw_materials`
-  ADD CONSTRAINT `raw_materials_ibfk_1` FOREIGN KEY (`cost_id`) REFERENCES `raw_material_cost` (`cost_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `raw_materials_ibfk_2` FOREIGN KEY (`stock_id`) REFERENCES `raw_material_stock` (`stock_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `raw_materials_ibfk_3` FOREIGN KEY (`category_id`) REFERENCES `material_category` (`category_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
