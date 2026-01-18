@@ -46,6 +46,11 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
 });
 
+$routes->group('Order', function (RouteCollection $routes) {
+    $routes->get('/', 'OrdersController::order');
+    $routes->get('OrderHistory', 'OrdersController::orderHistory');
+});
+
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('TestView', 'MaterialCategoryController::testView');
     $routes->post('Add', 'MaterialCategoryController::addCategory');// access via ajax request (accepts JSON data)

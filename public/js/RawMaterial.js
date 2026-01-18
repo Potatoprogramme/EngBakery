@@ -212,14 +212,14 @@ $(document).ready(function() {
 
                         rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
                         rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
-                        rows += '<td class="px-6 py-4">' + (mat.category_name || '-') + '</td>';
-                        rows += '<td class="px-6 py-4">' + labelBadge + '</td>';
-                        rows += '<td class="px-6 py-4">' + mat.material_quantity + '</td>';
-                        rows += '<td class="px-6 py-4">' + mat.unit + '</td>';
-                        rows += '<td class="px-6 py-4">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
-                        rows += '<td class="px-6 py-4">';
-                        rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                        rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                        rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
+                        rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
+                        rows += '<td class="px-6 py-4 text-gray-700">' + mat.material_quantity + '</td>';
+                        rows += '<td class="px-6 py-4 text-gray-700">' + mat.unit + '</td>';
+                        rows += '<td class="px-6 py-4 text-gray-900 font-semibold">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
+                        rows += '<td class="px-6 py-4 ">';
+                        rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                        rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                         rows += '</td>';
                         rows += '</tr>';
                     });
