@@ -14,7 +14,7 @@ class DailyStockItemsModel extends Model
         'daily_stock_id',
         'product_id',
         'beginning_stock',
-        'pull_out_stock',
+        'pull_out_quantity',
         'ending_stock',
     ];
 
@@ -23,4 +23,10 @@ class DailyStockItemsModel extends Model
     // protected $createdField = 'date_created';
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
+
+    public function addDailyStockItem($id, $data)
+    {
+        $data['daily_stock_id'] = $id;
+        return $this->insert($data);
+    }
 }

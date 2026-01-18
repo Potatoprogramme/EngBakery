@@ -59,6 +59,13 @@ class InventoryController extends BaseController
         }
 
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
+            $lastInsertId = $this->dailyStockModel->getInsertID();
+
+            // fetch all products first
+            $products = $this->productModel->where('category', 'bread')->findAll()['product_id'];
+            // insert all bread items into daily stock items model
+            // $this->dailyStockModel->insertDailyStockItems($lastInsertId, $products);
+
             return $this->response->setStatusCode(201)->setJSON([
                 'success' => true,
                 'message' => 'Today\'s inventory added successfully.'
