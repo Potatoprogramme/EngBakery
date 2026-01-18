@@ -813,8 +813,9 @@
                 const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
                 const totalCost = directCost + combinedCost + overheadCost;
                 const profitMargin = parseFloat($('#profitMargin').val()) || 0;
-                const profitAmount = totalCost / ((100 - 40) / 100);
-                const sellingPrice = totalCost + profitAmount;
+                const targetProfit = totalCost / ((100 - profitMargin) / 100);
+                const profitAmount = targetProfit - totalCost;
+                const sellingPrice = targetProfit;
 
                 // Check if all ingredients are in grams
                 const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => item.unit === 'grams');
