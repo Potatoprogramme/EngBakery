@@ -1009,13 +1009,110 @@
         $('#addMaterialForm').on('submit', function(e) {
             e.preventDefault();
 
+            // Calculate costs before submission
+            const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+            const isCombinedEnabled = $('#enableCombinedRecipes').is(':checked');
+            const combinedRecipeCost = isCombinedEnabled ? combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0) : 0;
+            const overheadPercentage = parseFloat($('#overheadCost').val()) || 0;
+            const overheadCost = directCost * (overheadPercentage / 100);
+            const totalCost = directCost + combinedRecipeCost + overheadCost;
+            const profitMargin = parseFloat($('#profitMargin').val()) || 0;
+            const profitAmount = totalCost * (profitMargin / 100);
+            
+            // Calculate yield info
+            const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => item.unit === 'grams');
+            const yieldGrams = allIngredientsInGrams ? ingredientsList.reduce((sum, item) => sum + item.quantity, 0) : 0;
+            const traysPerYield = parseInt($('#traysPerYield').val()) || 0;
+            const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
+
             const formData = {
-                material_name: $('#material_name').val(),
-                category_id: $('#category_id').val(),
-                unit: $('#unit').val(),
-                material_quantity: $('#material_quantity').val(),
-                total_cost: $('#total_cost').val()
+                product_name: $('#material_name').val(),
+                category: $('#category_id').val(),
+                overhead_cost_percentage: overheadPercentage,
+                profit_margin: profitMargin,
+                // Ingredients array
+                ingredients: ingredientsList.map(item => ({
+                    material_id: item.id,
+                    quantity: item.quantity,
+                    unit: item.unit,
+                    cost_per_unit: item.costPerUnit,
+                    total_cost: item.totalCost
+                })),
+                // Combined recipes array
+                combined_recipes: isCombinedEnabled ? combinedRecipesList.map(item => ({
+                    product_id: item.id,
+                    quantity: item.quantity,
+                    unit: item.unit,
+                    cost_per_gram: item.costPerGram,
+                    total_cost: item.totalCost
+                })) : [],
+                // Costing data
+                direct_cost: directCost,
+                combined_recipe_cost: combinedRecipeCost,
+                overhead_cost: overheadCost,
+                total_cost: totalCost,
+                profit_amount: profitAmount,
+                // Selling prices
+                selling_price_overall: parseFloat($('#sellingPriceOverall').val()) || (totalCost + profitAmount),
+                selling_price_per_tray: parseFloat($('#sellingPricePerTray').val()) || 0,
+                selling_price_per_piece: parseFloat($('#sellingPricePerPiece').val()) || 0,
+                // Yield data
+                yield_grams: yieldGrams,
+                trays_per_yield: traysPerYield,
+                pieces_per_yield: piecesPerYield
             };
+
+            // ==================== DEBUG LOGGING ====================
+            console.log('========== FORM SUBMISSION DEBUG ==========');
+            console.log('Product Name:', formData.product_name);
+            console.log('Category:', formData.category);
+            console.log('');
+            console.log('--- INGREDIENTS ---');
+            console.log('Ingredients Count:', formData.ingredients.length);
+            console.log('Ingredients List:', JSON.stringify(formData.ingredients, null, 2));
+            console.log('');
+            console.log('--- COMBINED RECIPES ---');
+            console.log('Combined Recipes Enabled:', isCombinedEnabled);
+            console.log('Combined Recipes Count:', formData.combined_recipes.length);
+            console.log('Combined Recipes List:', JSON.stringify(formData.combined_recipes, null, 2));
+            console.log('');
+            console.log('--- COSTING ---');
+            console.log('Direct Cost:', formData.direct_cost);
+            console.log('Combined Recipe Cost:', formData.combined_recipe_cost);
+            console.log('Overhead Percentage:', formData.overhead_cost_percentage);
+            console.log('Overhead Cost:', formData.overhead_cost);
+            console.log('Total Cost:', formData.total_cost);
+            console.log('Profit Margin:', formData.profit_margin);
+            console.log('Profit Amount:', formData.profit_amount);
+            console.log('');
+            console.log('--- SELLING PRICES ---');
+            console.log('Selling Price Overall:', formData.selling_price_overall);
+            console.log('Selling Price Per Tray:', formData.selling_price_per_tray);
+            console.log('Selling Price Per Piece:', formData.selling_price_per_piece);
+            console.log('');
+            console.log('--- YIELD DATA ---');
+            console.log('Yield Grams:', formData.yield_grams);
+            console.log('Trays Per Yield:', formData.trays_per_yield);
+            console.log('Pieces Per Yield:', formData.pieces_per_yield);
+            console.log('');
+            console.log('--- FULL FORM DATA (JSON) ---');
+            console.log(JSON.stringify(formData, null, 2));
+            console.log('============================================');
+            // ==================== END DEBUG LOGGING ====================
+
+            // Validate required fields
+            if (!formData.product_name || formData.product_name.trim() === '') {
+                Toast.error('Product name is required.');
+                return;
+            }
+            if (!formData.category) {
+                Toast.error('Product category is required.');
+                return;
+            }
+            if (formData.ingredients.length === 0) {
+                Toast.error('Please add at least one ingredient.');
+                return;
+            }
 
             $.ajax({
                 url: baseUrl + 'Products/AddProduct',
@@ -1024,6 +1121,8 @@
                 contentType: 'application/json',
                 dataType: 'json',
                 success: function(response) {
+                    console.log('--- AJAX RESPONSE ---');
+                    console.log('Response:', JSON.stringify(response, null, 2));
                     if (response.success) {
                         Toast.success('Product added successfully!');
                         closeModal();
@@ -1033,6 +1132,10 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.log('--- AJAX ERROR ---');
+                    console.log('Status:', status);
+                    console.log('Error:', error);
+                    console.log('Response Text:', xhr.responseText);
                     Toast.error('Error adding product: ' + error);
                 }
             });
