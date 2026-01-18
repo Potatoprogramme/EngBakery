@@ -32,7 +32,6 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
 
 $routes->group('Products', function (RouteCollection $routes) {
     $routes->get('/', 'ProductsController::products');
-    $routes->get('Test', 'ProductsController::test');
     $routes->get('GetAll', 'ProductsController::getAllProducts');
     $routes->get('GetProduct/(:num)', 'ProductsController::getProduct/$1');
     $routes->post('AddProduct', 'ProductsController::addProduct');
