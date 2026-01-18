@@ -26,4 +26,20 @@ class DailyStockModel extends Model
     {
         return $this->where('inventory_date', $date)->first();
     }
+
+    public function checkInventoryToday($date)
+    {
+        if ($this->where('inventory_date', $date)->first()) {
+            return true;
+        }
+        return false;
+    }
+    public function checkInventoryExists($date)
+    {
+        return $this->where('inventory_date', $date)->first();
+    }
+    public function addTodaysInventory($data)
+    {
+        return $this->insert($data);
+    }
 }
