@@ -42,7 +42,8 @@ $routes->group('Products', function (RouteCollection $routes) {
 
 $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
-    $routes->get('AddInventory', 'InventoryController::addInventory');
+    $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
+    $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
@@ -58,6 +59,7 @@ $routes->group('MaterialCategory', function (RouteCollection $routes) {
     $routes->get('FetchAll', 'MaterialCategoryController::fetchAllCategories');
 });
 
+// Daily Stock Routes may be removed later if not needed
 $routes->group('DailyStock', function (RouteCollection $routes) {
     $routes->get('TestView', 'DailyStockController::testView');
     $routes->get('CheckIfInventoryExists', 'DailyStockController::checkIfInventoryExists');
