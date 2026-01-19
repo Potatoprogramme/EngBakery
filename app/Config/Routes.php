@@ -43,6 +43,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
+    $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {

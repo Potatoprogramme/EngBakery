@@ -21,6 +21,24 @@ class InventoryController extends BaseController
             view('Template/Footer');
     }
 
+    public function fetchTodaysInventory()
+    {
+        $today = date('Y-m-d');
+        $daily_stock_id = $this->dailyStockModel->where('inventory_date', $today)->first();
+        if ($daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock_id['daily_stock_id'])) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => true,
+                'data' => $daily_stock_items,
+                'message' => 'Inventory fetched successfully.'
+            ]);
+        } else {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => false,
+                'error' => $this->dailyStockItemsModel->errors(),
+            ]);
+        }
+    }
+
     public function checkInventoryToday()
     {
         $today = date('Y-m-d');
@@ -29,7 +47,8 @@ class InventoryController extends BaseController
         if ($inventory) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
-                'message' => 'Inventory exists for today.'
+                'message' => 'Inventory exists for today.',
+                'data' => $inventory
             ]);
         } else {
             return $this->response->setStatusCode(200)->setJSON([
@@ -62,14 +81,21 @@ class InventoryController extends BaseController
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
             // fetch all products first
-            $products = $this->productModel->where('category', 'bread')->findAll()['product_id'];
-            // insert all bread items into daily stock items model
-            // $this->dailyStockModel->insertDailyStockItems($lastInsertId, $products);
+            $productIds = $this->productModel->where('category', 'bread')->findColumn("product_id");
 
-            return $this->response->setStatusCode(201)->setJSON([
-                'success' => true,
-                'message' => 'Today\'s inventory added successfully.'
-            ]);
+            // insert all bread items into daily stock items model
+            if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+                return $this->response->setStatusCode(201)->setJSON([
+                    'success' => true,
+                    'message' => 'Today\'s inventory added successfully.'
+                ]);
+            } else {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add daily stock items.',
+                    'error' => $this->dailyStockItemsModel->errors(),
+                ]);
+            }
         } else {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,

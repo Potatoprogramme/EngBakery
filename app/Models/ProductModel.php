@@ -109,11 +109,11 @@ class ProductModel extends Model
     {
         $builder = $this->db->table('products');
         $builder->where('LOWER(product_name)', strtolower(trim($name)));
-        
+
         if ($excludeId) {
             $builder->where('product_id !=', $excludeId);
         }
-        
+
         return $builder->countAllResults() > 0;
     }
 
@@ -239,7 +239,7 @@ class ProductModel extends Model
                 $totalCost = floatval($data['total_cost'] ?? ($directCost + $overheadCostAmount + $combinedRecipeCost));
                 $profitMarginPercentage = floatval($data['profit_margin_percentage'] ?? 0);
                 $profitAmount = floatval($data['profit_amount'] ?? ($totalCost * ($profitMarginPercentage / 100)));
-                
+
                 // Use user's entered selling price if provided, otherwise calculate
                 $sellingPrice = floatval($data['selling_price'] ?? ($totalCost + $profitAmount));
 
