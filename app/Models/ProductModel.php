@@ -12,12 +12,9 @@ class ProductModel extends Model
     protected $useSoftDeletes = false;
 
     protected $allowedFields = [
-        'recipe_id',
         'category',
         'product_name',
         'product_description',
-        'overhead_cost_percentage',
-        'profit_margin',
         'date_created',
     ];
 
@@ -35,11 +32,11 @@ class ProductModel extends Model
                 p.product_name,
                 p.product_description,
                 p.category,
-                p.overhead_cost_percentage,
-                p.profit_margin,
                 pc.direct_cost,
-                pc.overhead_cost,
+                pc.overhead_cost_percentage,
+                pc.overhead_cost_amount,
                 pc.total_cost,
+                pc.profit_margin_percentage,
                 pc.selling_price,
                 p.date_created
             FROM products p
@@ -56,16 +53,23 @@ class ProductModel extends Model
         return $this->db->query("
             SELECT 
                 p.product_id,
-                p.recipe_id,
                 p.product_name,
                 p.product_description,
                 p.category,
-                p.overhead_cost_percentage,
-                p.profit_margin,
                 pc.direct_cost,
-                pc.overhead_cost,
+                pc.overhead_cost_percentage,
+                pc.overhead_cost_amount,
+                pc.combined_recipe_cost,
                 pc.total_cost,
+                pc.profit_margin_percentage,
+                pc.profit_amount,
                 pc.selling_price,
+                pc.selling_price AS selling_price_overall,
+                pc.selling_price_per_tray,
+                pc.selling_price_per_piece,
+                pc.yield_grams,
+                pc.trays_per_yield,
+                pc.pieces_per_yield,
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
@@ -82,11 +86,11 @@ class ProductModel extends Model
             SELECT 
                 pr.recipe_id,
                 pr.material_id,
-                pr.quantity_needed,
+                pr.quantity_needed AS quantity,
                 pr.unit,
                 rm.material_name,
                 rmc.cost_per_unit,
-                (pr.quantity_needed * rmc.cost_per_unit) as ingredient_cost
+                (pr.quantity_needed * rmc.cost_per_unit) as total_cost
             FROM product_recipe pr
             LEFT JOIN raw_materials rm ON pr.material_id = rm.material_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
@@ -119,45 +123,18 @@ class ProductModel extends Model
         $this->db->transStart();
 
         try {
-            // Note: The database has a foreign key constraint from products to product_recipe
-            // This is problematic. We'll need to handle this carefully.
-            
-            // First, create a placeholder recipe entry
-            $recipeData = [
-                'product_id' => 0, // Will be updated later
-                'material_id' => 0, // Placeholder
-                'quantity_needed' => 0,
-                'unit' => 'grams',
-            ];
-            
-            $this->db->table('product_recipe')->insert($recipeData);
-            $recipeId = $this->db->insertID();
-
-            // Now create the product
+            // Create the product
             $productData = [
-                'recipe_id' => $recipeId,
                 'category' => $data['category'],
                 'product_name' => $data['product_name'],
                 'product_description' => $data['product_description'] ?? '',
-                'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? 0),
-                'profit_margin' => floatval($data['profit_margin'] ?? 0),
             ];
 
             $this->db->table('products')->insert($productData);
             $productId = $this->db->insertID();
 
-            // Update the recipe with the actual product_id
-            $this->db->table('product_recipe')
-                ->where('recipe_id', $recipeId)
-                ->update(['product_id' => $productId]);
-
             // Insert recipe ingredients if provided
             if (!empty($data['ingredients']) && is_array($data['ingredients'])) {
-                // Delete the placeholder recipe
-                $this->db->table('product_recipe')
-                    ->where('recipe_id', $recipeId)
-                    ->delete();
-
                 foreach ($data['ingredients'] as $ingredient) {
                     $ingredientData = [
                         'product_id' => $productId,
@@ -167,27 +144,32 @@ class ProductModel extends Model
                     ];
                     $this->db->table('product_recipe')->insert($ingredientData);
                 }
-
-                // Update recipe_id in products table with the first ingredient's recipe_id
-                $firstRecipeId = $this->db->query("SELECT recipe_id FROM product_recipe WHERE product_id = ? LIMIT 1", [$productId])->getRow()->recipe_id ?? $recipeId;
-                $this->db->table('products')
-                    ->where('product_id', $productId)
-                    ->update(['recipe_id' => $firstRecipeId]);
             }
 
             // Calculate and insert product costs
             $directCost = floatval($data['direct_cost'] ?? 0);
-            $overheadCost = $directCost * (floatval($data['overhead_cost_percentage'] ?? 0) / 100);
-            $totalCost = $directCost + $overheadCost;
-            $profitAmount = $totalCost * (floatval($data['profit_margin'] ?? 0) / 100);
+            $overheadCostPercentage = floatval($data['overhead_cost_percentage'] ?? 0);
+            $overheadCostAmount = $directCost * ($overheadCostPercentage / 100);
+            $totalCost = $directCost + $overheadCostAmount;
+            $profitMarginPercentage = floatval($data['profit_margin_percentage'] ?? 0);
+            $profitAmount = $totalCost * ($profitMarginPercentage / 100);
             $sellingPrice = $totalCost + $profitAmount;
 
             $costData = [
                 'product_id' => $productId,
                 'direct_cost' => $directCost,
-                'overhead_cost' => $overheadCost,
+                'overhead_cost_percentage' => $overheadCostPercentage,
+                'overhead_cost_amount' => $overheadCostAmount,
+                'combined_recipe_cost' => floatval($data['combined_recipe_cost'] ?? 0),
+                'profit_margin_percentage' => $profitMarginPercentage,
+                'profit_amount' => $profitAmount,
                 'total_cost' => $totalCost,
                 'selling_price' => $sellingPrice,
+                'selling_price_per_tray' => floatval($data['selling_price_per_tray'] ?? 0),
+                'selling_price_per_piece' => floatval($data['selling_price_per_piece'] ?? 0),
+                'yield_grams' => floatval($data['yield_grams'] ?? 0),
+                'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
+                'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
             ];
 
             $this->db->table('product_costs')->insert($costData);
@@ -220,8 +202,6 @@ class ProductModel extends Model
                 'product_name' => $data['product_name'],
                 'product_description' => $data['product_description'] ?? '',
                 'category' => $data['category'],
-                'overhead_cost_percentage' => floatval($data['overhead_cost_percentage'] ?? 0),
-                'profit_margin' => floatval($data['profit_margin'] ?? 0),
             ];
 
             $this->db->table('products')
@@ -250,16 +230,30 @@ class ProductModel extends Model
             // Update product costs if provided
             if (isset($data['direct_cost'])) {
                 $directCost = floatval($data['direct_cost']);
-                $overheadCost = $directCost * (floatval($data['overhead_cost_percentage'] ?? 0) / 100);
-                $totalCost = $directCost + $overheadCost;
-                $profitAmount = $totalCost * (floatval($data['profit_margin'] ?? 0) / 100);
-                $sellingPrice = $totalCost + $profitAmount;
+                $overheadCostPercentage = floatval($data['overhead_cost_percentage'] ?? 0);
+                $overheadCostAmount = floatval($data['overhead_cost_amount'] ?? ($directCost * ($overheadCostPercentage / 100)));
+                $combinedRecipeCost = floatval($data['combined_recipe_cost'] ?? 0);
+                $totalCost = floatval($data['total_cost'] ?? ($directCost + $overheadCostAmount + $combinedRecipeCost));
+                $profitMarginPercentage = floatval($data['profit_margin_percentage'] ?? 0);
+                $profitAmount = floatval($data['profit_amount'] ?? ($totalCost * ($profitMarginPercentage / 100)));
+                
+                // Use user's entered selling price if provided, otherwise calculate
+                $sellingPrice = floatval($data['selling_price'] ?? ($totalCost + $profitAmount));
 
                 $costData = [
                     'direct_cost' => $directCost,
-                    'overhead_cost' => $overheadCost,
+                    'overhead_cost_percentage' => $overheadCostPercentage,
+                    'overhead_cost_amount' => $overheadCostAmount,
+                    'combined_recipe_cost' => $combinedRecipeCost,
+                    'profit_margin_percentage' => $profitMarginPercentage,
+                    'profit_amount' => $profitAmount,
                     'total_cost' => $totalCost,
                     'selling_price' => $sellingPrice,
+                    'selling_price_per_tray' => floatval($data['selling_price_per_tray'] ?? 0),
+                    'selling_price_per_piece' => floatval($data['selling_price_per_piece'] ?? 0),
+                    'yield_grams' => floatval($data['yield_grams'] ?? 0),
+                    'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
+                    'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
                 ];
 
                 // Check if cost record exists

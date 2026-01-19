@@ -12,6 +12,8 @@ use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
 use App\Models\DailyStockModel;
 use App\Models\ProductModel;
+use App\Models\ProductRecipeModel;
+use App\Models\ProductCostModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -38,6 +40,8 @@ abstract class BaseController extends Controller
     protected $rawMaterialsModel;
     protected $dailyStockModel;
     protected $productModel;
+    protected $productRecipeModel;
+    protected $productCostModel;
 
     // Database connection
     protected $db;
@@ -60,7 +64,9 @@ abstract class BaseController extends Controller
         $this->rawMaterialsModel = new RawMaterialsModel();
         $this->dailyStockModel = new DailyStockModel();
         $this->productModel = new ProductModel();
-
+        $this->productRecipeModel = new ProductRecipeModel();
+        $this->productCostModel = new ProductCostModel();
+        
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 
