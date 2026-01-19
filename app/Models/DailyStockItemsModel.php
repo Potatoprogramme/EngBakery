@@ -15,7 +15,7 @@ class DailyStockItemsModel extends Model
         'product_id',
         'beginning_stock',
         'pull_out_quantity',
-        'ending_stock',
+        'ending_stock', // can be calculated
     ];
 
     // Dates
@@ -24,9 +24,27 @@ class DailyStockItemsModel extends Model
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
 
-    public function addDailyStockItem($id, $data)
+    public function insertDailyStockItems($dailyStockId, $productIds)
     {
-        $data['daily_stock_id'] = $id;
-        return $this->insert($data);
+        $insertData = [];
+        foreach ($productIds as $productId) {
+            $insertData[] = [
+                'daily_stock_id' => $dailyStockId,
+                'product_id' => $productId,
+                'beginning_stock' => 0,
+                'pull_out_quantity' => 0,
+                'ending_stock' => 0,
+            ];
+        }
+        return $this->insertBatch($insertData);
+    }
+
+    public function fetchAllStockItems($dailyStockId)
+    {
+        $stockItems = $this->where('daily_stock_id', $dailyStockId)
+            ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
+            ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
+            ->findAll();
+        return $stockItems;
     }
 }

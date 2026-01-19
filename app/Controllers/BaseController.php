@@ -14,6 +14,7 @@ use App\Models\DailyStockModel;
 use App\Models\ProductModel;
 use App\Models\ProductRecipeModel;
 use App\Models\ProductCostModel;
+use App\Models\DailyStockItemsModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -42,6 +43,7 @@ abstract class BaseController extends Controller
     protected $productModel;
     protected $productRecipeModel;
     protected $productCostModel;
+    protected $dailyStockItemsModel;
 
     // Database connection
     protected $db;
@@ -66,7 +68,8 @@ abstract class BaseController extends Controller
         $this->productModel = new ProductModel();
         $this->productRecipeModel = new ProductRecipeModel();
         $this->productCostModel = new ProductCostModel();
-        
+        $this->dailyStockItemsModel = new DailyStockItemsModel();
+
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 

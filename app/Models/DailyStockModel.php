@@ -29,10 +29,7 @@ class DailyStockModel extends Model
 
     public function checkInventoryToday($date)
     {
-        if ($this->where('inventory_date', $date)->first()) {
-            return true;
-        }
-        return false;
+        return $this->where('inventory_date', $date)->first();
     }
     public function checkInventoryExists($date)
     {
