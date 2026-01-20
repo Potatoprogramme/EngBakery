@@ -24,6 +24,10 @@
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Add Today's Inventory
                         </button>
+                        <button id="btnDeleteTodaysInventory" type="button"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            Delete Today's Inventory
+                        </button>
                     </div>
                 </div>
 
@@ -51,11 +55,15 @@
                 </div>
             </div>
 
-            <!-- Floating Add Inventory button for mobile -->
-            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
+            <!-- Floating buttons for mobile -->
+            <div class="fixed bottom-6 left-0 right-0 flex justify-center gap-2 z-30 sm:hidden px-6">
                 <button id="btnAddTodaysInventoryMobile" type="button"
-                    class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                    Add Today's Inventory
+                    class="flex-1 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                    Add Inventory
+                </button>
+                <button id="btnDeleteTodaysInventoryMobile" type="button"
+                    class="flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    Delete
                 </button>
             </div>
             <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
@@ -406,11 +414,12 @@
                 success: function (response) {
                     // Destroy existing DataTable first
                     if (response.success) {
-                        showToast('info', response.message, 2000);
+                        // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
                     } else {
                         showToast('warning', response.message, 2000);
+                        loadInventory([]);
                     }
                 },
                 error: function (xhr, status, error) {
@@ -461,6 +470,8 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
                         console.log(response.message);
                     } else {
                         showToast('error', response.message, 2000);
@@ -482,7 +493,7 @@
                 success: function (response) {
                     console.log(response);
                     if (response.success) {
-                        showToast('success', response.message, 2000);
+                        // showToast('success', response.message, 2000);
                         loadInventory(response.data);
                         console.log('Inventory data:', response.data);
                     } else {
@@ -578,6 +589,12 @@
             $('#editInventoryForm')[0].reset();
         });
 
+        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+            if (confirm('Are you sure you want to delete today\'s entire inventory? This action cannot be undone.')) {
+                deleteTodaysInventory();
+            }
+        });
+
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -617,4 +634,34 @@
                 }
             });
         });
+
+        function deleteTodaysInventory() {
+            const baseUrl = '<?= base_url() ?>';
+            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+            $.ajax({
+                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ date: today }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Clear the table
+                        $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
+                        // Reset date/time display
+                        $('#timeRange').text('--:-- - --:--');
+                        // Reload the table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
     </script>

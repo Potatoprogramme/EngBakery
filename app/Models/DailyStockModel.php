@@ -39,4 +39,8 @@ class DailyStockModel extends Model
     {
         return $this->insert($data);
     }
+    public function deleteInventoryByDate($date)
+    {
+        return $this->where('inventory_date', $date)->delete();
+    }
 }

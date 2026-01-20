@@ -47,4 +47,8 @@ class DailyStockItemsModel extends Model
             ->findAll();
         return $stockItems;
     }
+    public function updateStockItem($item_id, $data)
+    {
+        return $this->update($item_id, $data);
+    }
 }
