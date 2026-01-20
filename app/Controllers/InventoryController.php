@@ -24,8 +24,20 @@ class InventoryController extends BaseController
     public function fetchTodaysInventory()
     {
         $today = date('Y-m-d');
-        $daily_stock_id = $this->dailyStockModel->where('inventory_date', $today)->first();
-        if ($daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock_id['daily_stock_id'])) {
+        $daily_stock = $this->dailyStockModel->where('inventory_date', $today)->first();
+
+        // Check if daily_stock exists before accessing it
+        if (!$daily_stock) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => true,
+                'data' => [],
+                'message' => 'No inventory found for today.',
+            ]);
+        }
+
+        $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
+
+        if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $daily_stock_items,
@@ -34,7 +46,8 @@ class InventoryController extends BaseController
         } else {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => false,
-                'error' => $this->dailyStockItemsModel->errors(),
+                'message' => 'No inventory items found.',
+                'data' => []
             ]);
         }
     }
@@ -100,6 +113,78 @@ class InventoryController extends BaseController
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Failed to add today\'s inventory.'
+            ]);
+        }
+    }
+
+    public function deleteTodaysInventory()
+    {
+        $today = date('Y-m-d');
+        if ($this->dailyStockModel->deleteInventoryByDate($today)) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => true,
+                'message' => 'Today\'s inventory deleted successfully.'
+            ]);
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to delete today\'s inventory.'
+            ]);
+        }
+    }
+
+    public function updateStockItem($item_id)
+    {
+        $json = $this->request->getJSON();
+
+        // Validate input
+        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Invalid input data'
+            ]);
+        }
+
+        // Validate that values are non-negative
+        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Values cannot be negative'
+            ]);
+        }
+
+        // Get the item to verify it exists
+        $item = $this->dailyStockItemsModel->find($item_id);
+
+        if (!$item) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory item not found'
+            ]);
+        }
+
+        // Calculate ending stock
+        $endingStock = $json->beginning_stock - $json->pull_out_quantity;
+
+        // Prepare update data
+        $updateData = [
+            'beginning_stock' => $json->beginning_stock,
+            'pull_out_quantity' => $json->pull_out_quantity,
+            'ending_stock' => $endingStock
+        ];
+
+        // Update the item
+        if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory item updated successfully',
+                'data' => $updateData
+            ]);
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to update inventory item',
+                'errors' => $this->dailyStockItemsModel->errors()
             ]);
         }
     }
