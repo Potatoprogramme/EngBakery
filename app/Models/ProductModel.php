@@ -38,6 +38,9 @@ class ProductModel extends Model
                 pc.total_cost,
                 pc.profit_margin_percentage,
                 pc.selling_price,
+                pc.yield_grams,
+                pc.trays_per_yield,
+                pc.pieces_per_yield,
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
