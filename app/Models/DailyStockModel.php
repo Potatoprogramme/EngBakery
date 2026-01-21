@@ -43,4 +43,12 @@ class DailyStockModel extends Model
     {
         return $this->where('inventory_date', $date)->delete();
     }
+
+    /**
+     * Get today's inventory record
+     */
+    public function getTodaysInventory(): ?array
+    {
+        return $this->where('inventory_date', date('Y-m-d'))->first();
+    }
 }

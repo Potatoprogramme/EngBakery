@@ -24,18 +24,8 @@ class OrdersController extends BaseController
 
     public function getProducts()
     {
-        $products = $this->db->query("
-            SELECT p.product_id, p.category, p.product_name, p.product_description,
-                   CASE 
-                       WHEN p.category = 'bread' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
-                       ELSE pc.selling_price 
-                   END as price,
-                   pc.selling_price, pc.selling_price_per_piece, pc.selling_price_per_tray,
-                   pc.pieces_per_yield, pc.trays_per_yield
-            FROM products p
-            LEFT JOIN product_costs pc ON p.product_id = pc.product_id
-            ORDER BY p.category, p.product_name
-        ")->getResultArray();
+        // Use ProductModel method instead of raw query in controller
+        $products = $this->productModel->getProductsForOrdering();
 
         return $this->response->setJSON([
             'success' => true,
@@ -47,6 +37,7 @@ class OrdersController extends BaseController
     {
         $data = $this->request->getJSON(true);
 
+        // Validation
         if (empty($data['items']) || !is_array($data['items'])) {
             return $this->response->setJSON([
                 'success' => false,
@@ -68,8 +59,8 @@ class OrdersController extends BaseController
             ]);
         }
 
-        $today = date('Y-m-d');
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        // Check for today's inventory using model method
+        $dailyStock = $this->dailyStockModel->getTodaysInventory();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
@@ -81,45 +72,23 @@ class OrdersController extends BaseController
         $this->db->transStart();
 
         try {
-            $orderNumber = $this->orderModel->generateOrderNumber();
-
-            $orderId = $this->orderModel->createOrder([
+            // Prepare order data
+            $orderData = [
                 'total_payment_due' => $data['total_payment_due'],
                 'amount_received' => $data['amount_received'],
                 'amount_change' => floatval($data['amount_received']) - floatval($data['total_payment_due']),
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'order_type' => $data['order_type'] ?? 'walk-in'
-            ]);
+            ];
 
-            if (!$orderId) {
-                throw new \Exception('Failed to create order.');
-            }
-
-            if (!$this->orderItemModel->addOrderItems($orderId, $data['items'])) {
-                throw new \Exception('Failed to add order items.');
-            }
-
-            foreach ($data['items'] as $item) {
-                $stockItem = $this->dailyStockItemsModel
-                    ->where('daily_stock_id', $dailyStock['daily_stock_id'])
-                    ->where('product_id', $item['product_id'])
-                    ->first();
-
-                if ($stockItem) {
-                    $newEndingStock = intval($stockItem['ending_stock']) - intval($item['quantity']);
-                    if ($newEndingStock < 0) $newEndingStock = 0;
-
-                    $this->dailyStockItemsModel->update($stockItem['item_id'], [
-                        'ending_stock' => $newEndingStock
-                    ]);
-
-                    $this->dailySalesModel->recordSale(
-                        $stockItem['item_id'],
-                        intval($item['quantity']),
-                        floatval($item['total'])
-                    );
-                }
-            }
+            // Process order using model method (handles items, stock, sales)
+            $result = $this->orderModel->processCompleteOrder(
+                $orderData,
+                $data['items'],
+                $this->dailyStockItemsModel,
+                $this->dailySalesModel,
+                $dailyStock['daily_stock_id']
+            );
 
             $this->db->transComplete();
 
@@ -127,18 +96,10 @@ class OrdersController extends BaseController
                 throw new \Exception('Transaction failed.');
             }
 
-            $orderDetails = $this->orderModel->getOrderById($orderId);
-            $orderItems = $this->orderItemModel->getOrderItems($orderId);
-
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Payment processed successfully.',
-                'data' => [
-                    'order_id' => $orderId,
-                    'order_number' => $orderNumber,
-                    'order' => $orderDetails,
-                    'items' => $orderItems
-                ]
+                'data' => $result
             ]);
 
         } catch (\Exception $e) {
@@ -216,39 +177,20 @@ class OrdersController extends BaseController
             ]);
         }
 
-        $order = $this->orderModel->find($orderId);
-
-        if (!$order) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Order not found.'
-            ]);
-        }
-
         $this->db->transStart();
 
         try {
-            $orderItems = $this->orderItemModel->getOrderItems($orderId);
-            $today = date('Y-m-d');
-            $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+            // Get today's inventory (optional - only restore stock if same day)
+            $dailyStock = $this->dailyStockModel->getTodaysInventory();
+            $dailyStockId = $dailyStock ? $dailyStock['daily_stock_id'] : null;
 
-            if ($dailyStock) {
-                foreach ($orderItems as $item) {
-                    $stockItem = $this->dailyStockItemsModel
-                        ->where('daily_stock_id', $dailyStock['daily_stock_id'])
-                        ->where('product_id', $item['product_id'])
-                        ->first();
-
-                    if ($stockItem) {
-                        $this->dailyStockItemsModel->update($stockItem['item_id'], [
-                            'ending_stock' => intval($stockItem['ending_stock']) + intval($item['amout'])
-                        ]);
-                    }
-                }
-            }
-
-            $this->orderItemModel->where('order_id', $orderId)->delete();
-            $this->orderModel->delete($orderId);
+            // Use model method to void order and restore stock
+            $this->orderModel->voidOrderWithRestore(
+                $orderId,
+                $this->orderItemModel,
+                $this->dailyStockItemsModel,
+                $dailyStockId
+            );
 
             $this->db->transComplete();
 

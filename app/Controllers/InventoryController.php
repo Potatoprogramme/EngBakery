@@ -93,10 +93,10 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // fetch all products first
-            $productIds = $this->productModel->where('category', 'bread')->findColumn("product_id");
+            // fetch ALL products (bread AND drinks) for inventory tracking
+            $productIds = $this->productModel->findColumn("product_id");
 
-            // insert all bread items into daily stock items model
+            // insert all products into daily stock items model
             if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
@@ -113,6 +113,76 @@ class InventoryController extends BaseController
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Failed to add today\'s inventory.'
+            ]);
+        }
+    }
+
+    /**
+     * Get products not yet in today's inventory (for adding mid-day)
+     */
+    public function getAvailableProducts()
+    {
+        $today = date('Y-m-d');
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No inventory exists for today. Create inventory first.',
+                'data' => []
+            ]);
+        }
+
+        $products = $this->dailyStockItemsModel->getProductsNotInInventory($dailyStock['daily_stock_id']);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $products
+        ]);
+    }
+
+    /**
+     * Add a product to today's existing inventory
+     */
+    public function addProductToInventory()
+    {
+        $json = $this->request->getJSON();
+
+        if (!$json || !isset($json->product_id)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product ID is required'
+            ]);
+        }
+
+        $today = date('Y-m-d');
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No inventory exists for today. Create inventory first.'
+            ]);
+        }
+
+        $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
+        
+        $result = $this->dailyStockItemsModel->addProductToInventory(
+            $dailyStock['daily_stock_id'],
+            intval($json->product_id),
+            $beginningStock
+        );
+
+        if ($result) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Product added to inventory successfully',
+                'item_id' => $result
+            ]);
+        } else {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product already exists in inventory or failed to add'
             ]);
         }
     }
@@ -163,14 +233,24 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Calculate ending stock
-        $endingStock = $json->beginning_stock - $json->pull_out_quantity;
+        // Calculate how many were sold (old beginning - old pull_out - old ending)
+        $oldBeginning = intval($item['beginning_stock']);
+        $oldPullOut = intval($item['pull_out_quantity']);
+        $oldEnding = intval($item['ending_stock']);
+        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+        if ($quantitySold < 0) $quantitySold = 0;
+
+        // Calculate new ending stock = new beginning - new pull_out - quantity already sold
+        $newBeginning = intval($json->beginning_stock);
+        $newPullOut = intval($json->pull_out_quantity);
+        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+        if ($newEndingStock < 0) $newEndingStock = 0;
 
         // Prepare update data
         $updateData = [
-            'beginning_stock' => $json->beginning_stock,
-            'pull_out_quantity' => $json->pull_out_quantity,
-            'ending_stock' => $endingStock
+            'beginning_stock' => $newBeginning,
+            'pull_out_quantity' => $newPullOut,
+            'ending_stock' => $newEndingStock
         ];
 
         // Update the item
