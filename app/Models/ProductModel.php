@@ -22,6 +22,32 @@ class ProductModel extends Model
     protected $useTimestamps = false;
 
     /**
+     * Get all products for ordering page with correct pricing
+     * Bread uses selling_price_per_piece, drinks use selling_price
+     * Also includes current stock from today's inventory
+     */
+    public function getProductsForOrdering(): array
+    {
+        $today = date('Y-m-d');
+        
+        return $this->db->query("
+            SELECT p.product_id, p.category, p.product_name, p.product_description,
+                   CASE 
+                       WHEN p.category = 'bread' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
+                       ELSE pc.selling_price 
+                   END as price,
+                   pc.selling_price, pc.selling_price_per_piece, pc.selling_price_per_tray,
+                   pc.pieces_per_yield, pc.trays_per_yield,
+                   COALESCE(dsi.ending_stock, 0) as available_stock
+            FROM products p
+            LEFT JOIN product_costs pc ON p.product_id = pc.product_id
+            LEFT JOIN daily_stock ds ON ds.inventory_date = ?
+            LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
+            ORDER BY p.category, p.product_name
+        ", [$today])->getResultArray();
+    }
+
+    /**
      * Get all products with their details
      */
     public function getAllWithDetails(): array
