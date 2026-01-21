@@ -26,8 +26,6 @@ class ProductCostModel extends Model
         'yield_grams',
         'trays_per_yield',
         'pieces_per_yield',
-        'grams_per_tray',
-        'grams_per_piece',
         'date_created',
     ];
 
@@ -64,8 +62,6 @@ class ProductCostModel extends Model
             'yield_grams' => floatval($data['yield_grams'] ?? 0),
             'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
             'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
-            'grams_per_tray' => floatval($data['grams_per_tray'] ?? 0),
-            'grams_per_piece' => floatval($data['grams_per_piece'] ?? 0),
         ];
 
         if ($existingCost) {
@@ -168,8 +164,6 @@ class ProductCostModel extends Model
                 pc.yield_grams,
                 pc.trays_per_yield,
                 pc.pieces_per_yield,
-                pc.grams_per_tray,
-                pc.grams_per_piece,
                 pc.date_created
             FROM product_costs pc
             JOIN products p ON pc.product_id = p.product_id

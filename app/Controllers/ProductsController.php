@@ -111,8 +111,6 @@ class ProductsController extends BaseController
                     'yield_grams' => floatval($data['yield_grams'] ?? 0),
                     'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
                     'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
-                    'grams_per_tray' => floatval($data['grams_per_tray'] ?? 0),
-                    'grams_per_piece' => floatval($data['grams_per_piece'] ?? 0),
                 ];
                 
                 $this->db->table('product_costs')->insert($costData);
@@ -306,14 +304,6 @@ class ProductsController extends BaseController
 
             if (isset($data['pieces_per_yield'])) {
                 $updateData['pieces_per_yield'] = intval($data['pieces_per_yield']);
-            }
-
-            if (isset($data['grams_per_tray'])) {
-                $updateData['grams_per_tray'] = floatval($data['grams_per_tray']);
-            }
-
-            if (isset($data['grams_per_piece'])) {
-                $updateData['grams_per_piece'] = floatval($data['grams_per_piece']);
             }
 
             if (isset($data['ingredients'])) {
