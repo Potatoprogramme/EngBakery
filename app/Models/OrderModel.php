@@ -126,6 +126,23 @@ class OrderModel extends Model
                     intval($item['quantity']),
                     floatval($item['total'])
                 );
+            } else {
+                // Product not in inventory - auto-add it with 0 beginning stock
+                $newItemId = $dailyStockItemsModel->addProductToInventory(
+                    $dailyStockId,
+                    intval($item['product_id']),
+                    0 // beginning_stock = 0
+                );
+                
+                if ($newItemId) {
+                    // Now deduct and record the sale
+                    $dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                    $dailySalesModel->recordSale(
+                        $newItemId,
+                        intval($item['quantity']),
+                        floatval($item['total'])
+                    );
+                }
             }
         }
 
