@@ -62,58 +62,34 @@
                 </button>
             </div>
 
-            <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
+            <!-- Desktop Table View -->
+            <div class="hidden sm:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
                 <table id="selection-table" class="min-w-full text-sm text-left">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Product Name
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Category
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Direct Cost
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Total Cost
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
                                     Selling Price
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
@@ -126,12 +102,37 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Card View -->
+            <div class="sm:hidden mb-20">
+                <!-- Search input for mobile -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="mobileSearchInput" placeholder="Search products..." 
+                            class="w-full px-4 py-2.5 pl-10 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cards Container -->
+                <div id="mobileCardsContainer" class="space-y-3">
+                    <!-- Cards will be loaded via AJAX -->
+                </div>
+                
+                <!-- No results message -->
+                <div id="mobileNoResults" class="hidden text-center py-8 text-gray-500">
+                    <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i>
+                    <p>No products found</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Add Product Modal -->
     <div id="addMaterialModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
             style="max-width: 64rem;">
             <div class="flex justify-between items-center mb-4">
@@ -140,144 +141,194 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+
+            <!-- Progress Stepper -->
+            <div class="mb-6">
+                <div class="flex items-center w-full px-2 sm:px-4">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="step1Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            1
+                        </div>
+                        <span id="step1Label" class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product Info</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="step2Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            2
+                        </div>
+                        <span id="step2Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="step3Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            3
+                        </div>
+                        <span id="step3Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
+                    </div>
+                </div>
+            </div>
+
             <form id="addMaterialForm">
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Name <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" name="material_name" id="material_name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="e.g., Cafe Latte" required>
-                </div>
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700">Product Category <span
-                            class="text-red-500">*</span></label>
-                    <select name="category_id" id="category_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        required>
-                        <option value="">Select Category</option>
-                        <option value="dough">Dough</option>
-                        <option value="bread">Bread</option>
-                        <option value="drinks">Drinks</option>
-                    </select>
-                </div>
-                <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
-                    <h2 class="text-center text-m font-medium">Product Ingredients</h2>
-
+                <!-- STEP 1: Product Info -->
+                <div id="addStep1" class="step-content">
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700">Ingredients <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Name <span
                                 class="text-red-500">*</span></label>
-                        <div class="flex items-center">
-                            <select name="ingredient_id" id="ingredient_id"
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="">Select Ingredient</option>
-                            </select>
-                        </div>
+                        <input type="text" name="material_name" id="material_name"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g., Cafe Latte" required>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
-                                    class="text-red-500">*</span></label>
-                            <input type="number" name="ingredient_quantity" id="ingredient_quantity"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="100" min="0.01" step="0.01">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                            <select name="ingredient_unit" id="ingredient_unit"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="grams">grams</option>
-                                <option value="pcs">pcs</option>
-                                <option value="ml">ml</option>
-                                <option value="kg">kg</option>
-                                <option value="liters">liters</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="">
-                        <button type="button" id="btnAddIngredient"
-                            class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
-                            Add Ingredient
-                        </button>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">Product Category <span
+                                class="text-red-500">*</span></label>
+                        <select name="category_id" id="category_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            required>
+                            <option value="">Select Category</option>
+                            <option value="dough">Dough</option>
+                            <option value="bread">Bread</option>
+                            <option value="drinks">Drinks</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Ingredients List Container -->
-                <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Added Ingredients</h4>
-                    <div id="ingredientsList" class="space-y-2 max-h-40 overflow-y-auto">
-                        <p class="text-sm text-gray-500 text-center py-2">No ingredients added yet</p>
-                    </div>
-                </div>
+                <!-- STEP 2: Ingredients -->
+                <div id="addStep2" class="step-content hidden">
+                    <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h2 class="text-center text-m font-medium mb-3">Product Ingredients</h2>
 
-                <!-- Additional Ingredients Container -->
-                <div id="combinedRecipeSection"
-                    class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 combined-recipe-container">
-                    <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
-                            class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
-                    <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
-                    
-                    <!-- Warning if no yield info -->
-                    <div id="additionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
-                    </div>
-                    
-                    <div id="additionalRecipeInputs" class="hidden">
                         <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
-                            <div class="flex gap-2">
-                                <select id="combinedRecipeSelect"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                                    <option value="">Select a recipe...</option>
-                                </select>
-                                <button type="button" id="btnAddCombinedRecipe"
-                                    class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <label class="block text-sm font-medium text-gray-700">Ingredients <span
+                                    class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="ingredient_search" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    placeholder="Search ingredient..." autocomplete="off">
+                                <div id="ingredient_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <!-- Dropdown items will be populated here -->
+                                </div>
+                                <input type="hidden" name="ingredient_id" id="ingredient_id">
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                        class="text-red-500">*</span></label>
+                                <input type="number" name="ingredient_quantity" id="ingredient_quantity"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    placeholder="100" min="0.01" step="0.01">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <select name="ingredient_unit" id="ingredient_unit"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="grams">grams</option>
+                                    <option value="pcs">pcs</option>
+                                    <option value="ml">ml</option>
+                                    <option value="kg">kg</option>
+                                    <option value="liters">liters</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="">
+                            <button type="button" id="btnAddIngredient"
+                                class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+                                Add Ingredient
+                            </button>
+                        </div>
                     </div>
-                    <!-- Combined Recipes List -->
-                    <div id="combinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
-                        <p class="text-xs text-amber-500 text-center py-2">No additional recipes added</p>
+
+                    <!-- Ingredients List Container -->
+                    <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Added Ingredients</h4>
+                        <div id="ingredientsList" class="space-y-2 max-h-40 overflow-y-auto">
+                            <p class="text-sm text-gray-500 text-center py-2">No ingredients added yet</p>
+                        </div>
+                    </div>
+
+                    <!-- Additional Ingredients Container -->
+                    <div id="combinedRecipeSection"
+                        class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 combined-recipe-container">
+                        <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
+                                class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
+                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
+                        
+                        <!-- Warning if no yield info -->
+                        <div id="additionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
+                        </div>
+                        
+                        <div id="additionalRecipeInputs" class="hidden">
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
+                                <div class="flex gap-2">
+                                    <select id="combinedRecipeSelect"
+                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                        <option value="">Select a recipe...</option>
+                                    </select>
+                                    <button type="button" id="btnAddCombinedRecipe"
+                                        class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Combined Recipes List -->
+                        <div id="combinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
+                            <p class="text-xs text-amber-500 text-center py-2">No additional recipes added</p>
+                        </div>
+                    </div>
+                        
+                    <!-- Direct Cost Display for Step 2 -->
+                    <div class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                        <span class="text-sm text-gray-600 font-medium">Direct Cost</span>
+                        <span id="step2DirectCostDisplay" class="text-lg font-semibold text-primary">₱ 0.00</span>
                     </div>
                 </div>
 
-                <!-- Costing Container -->
-                <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
-                            </h4>
-                            <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
-                                see totals instantly.</p>
-                        </div>
-                        <div class="text-left sm:text-right">
-                            <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
-                            <div id="totalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 grid gap-3">
-                        <div id="costsGrid" class="grid gap-3 sm:grid-cols-2">
-                            <div id="directCostCard"
-                                class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Direct Cost</span>
-                                <span id="directCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
-                            </div>
-                            <div id="combinedCostCard"
-                                class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Combined Recipes Cost</span>
-                                <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
-                            </div>
-                        </div>
-
-                        <div
-                            class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <!-- STEP 3: Costing -->
+                <div id="addStep3" class="step-content hidden">
+                    <!-- Costing Container -->
+                    <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <span class="text-sm text-gray-600">Overhead Cost</span>
-                                <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
+                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
+                                </h4>
+                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
+                                    see totals instantly.</p>
                             </div>
-                            <div class="flex w-full sm:w-32">
+                            <div class="text-left sm:text-right">
+                                <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
+                                <div id="totalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid gap-3">
+                            <div id="costsGrid" class="grid gap-3 sm:grid-cols-2">
+                                <div id="directCostCard"
+                                    class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Direct Cost</span>
+                                    <span id="directCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
+                                </div>
+                                <div id="combinedCostCard"
+                                    class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                                    <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
+                                </div>
+                            </div>
+
+                            <div
+                                class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <span class="text-sm text-gray-600">Overhead Cost</span>
+                                    <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
+                                </div>
+                                <div class="flex w-full sm:w-32">
                                 <input type="number" id="overheadCost"
                                     class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
                                     placeholder="0" min="0">
@@ -422,8 +473,8 @@
 
                 <!-- Selling Price Container -->
                 <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
-                    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
-                    </h4>
+                    <h2 class="font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
+                    </h2>
 
                     <!-- Overall Selling Price -->
                     <div class="mb-4">
@@ -476,12 +527,23 @@
                                 id="recommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
                     </div>
                 </div>
+                </div>
 
-                <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelAdd"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
-                    <button type="submit" id="btnSaveMaterial"
-                        class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Save</button>
+                <!-- Navigation Buttons -->
+                <div class="flex gap-2 justify-between mt-4">
+                    <div>
+                        <button type="button" id="btnBackStep" class="hidden px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnCancelAdd"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="btnNextStep"
+                            class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                        <button type="submit" id="btnSaveMaterial"
+                            class="hidden px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Save</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -489,7 +551,7 @@
 
     <!-- Edit Product Modal -->
     <div id="editProductModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
             style="max-width: 64rem;">
             <div class="flex justify-between items-center mb-4">
@@ -498,349 +560,412 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+
+            <!-- Progress Stepper for Edit -->
+            <div class="mb-6">
+                <div class="flex items-center w-full px-2 sm:px-4">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="editStep1Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            1
+                        </div>
+                        <span id="editStep1Label" class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product Info</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="editConnector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="editStep2Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            2
+                        </div>
+                        <span id="editStep2Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="editConnector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
+                        <div id="editStep3Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            3
+                        </div>
+                        <span id="editStep3Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
+                    </div>
+                </div>
+            </div>
+
             <form id="editProductForm">
                 <input type="hidden" id="edit_product_id" name="product_id">
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Name <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" name="edit_material_name" id="edit_material_name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="e.g., Cafe Latte" required>
-                </div>
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700">Product Category <span
-                            class="text-red-500">*</span></label>
-                    <select name="edit_category_id" id="edit_category_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        required>
-                        <option value="">Select Category</option>
-                        <option value="dough">Dough</option>
-                        <option value="bread">Bread</option>
-                        <option value="drinks">Drinks</option>
-                    </select>
-                </div>
-                <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
-                    <h2 class="text-center text-m font-medium">Product Ingredients</h2>
-
+                
+                <!-- EDIT STEP 1: Product Info -->
+                <div id="editStep1" class="edit-step-content">
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700">Ingredients <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Name <span
                                 class="text-red-500">*</span></label>
-                        <div class="flex items-center">
-                            <select name="edit_ingredient_id" id="edit_ingredient_id"
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="">Select Ingredient</option>
-                            </select>
-                        </div>
+                        <input type="text" name="edit_material_name" id="edit_material_name"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g., Cafe Latte" required>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
-                                    class="text-red-500">*</span></label>
-                            <input type="number" name="edit_ingredient_quantity" id="edit_ingredient_quantity"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="100" min="0.01" step="0.01">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                            <select name="edit_ingredient_unit" id="edit_ingredient_unit"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="grams">grams</option>
-                                <option value="pcs">pcs</option>
-                                <option value="ml">ml</option>
-                                <option value="kg">kg</option>
-                                <option value="liters">liters</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="">
-                        <button type="button" id="btnEditAddIngredient"
-                            class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
-                            Add Ingredient
-                        </button>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700">Product Category <span
+                                class="text-red-500">*</span></label>
+                        <select name="edit_category_id" id="edit_category_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            required>
+                            <option value="">Select Category</option>
+                            <option value="dough">Dough</option>
+                            <option value="bread">Bread</option>
+                            <option value="drinks">Drinks</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Ingredients List Container -->
-                <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Added Ingredients</h4>
-                    <div id="editIngredientsList" class="space-y-2 max-h-40 overflow-y-auto">
-                        <p class="text-sm text-gray-500 text-center py-2">No ingredients added yet</p>
-                    </div>
-                </div>
+                <!-- EDIT STEP 2: Ingredients -->
+                <div id="editStep2" class="edit-step-content hidden">
+                    <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h2 class="text-center text-m font-medium">Product Ingredients</h2>
 
-                <!-- Additional Ingredients Container -->
-                <div id="editCombinedRecipeSection"
-                    class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 edit-combined-recipe-container">
-                    <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
-                            class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
-                    <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
-                    
-                    <!-- Warning if no yield info -->
-                    <div id="editAdditionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
-                    </div>
-                    
-                    <div id="editAdditionalRecipeInputs" class="hidden">
                         <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
-                            <div class="flex gap-2">
-                                <select id="editCombinedRecipeSelect"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                                    <option value="">Select a recipe...</option>
+                            <label class="block text-sm font-medium text-gray-700">Ingredients <span
+                                    class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="edit_ingredient_search" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    placeholder="Search ingredient..." autocomplete="off">
+                                <div id="edit_ingredient_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <!-- Dropdown items will be populated here -->
+                                </div>
+                                <input type="hidden" name="edit_ingredient_id" id="edit_ingredient_id">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                        class="text-red-500">*</span></label>
+                                <input type="number" name="edit_ingredient_quantity" id="edit_ingredient_quantity"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    placeholder="100" min="0.01" step="0.01">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <select name="edit_ingredient_unit" id="edit_ingredient_unit"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="grams">grams</option>
+                                    <option value="pcs">pcs</option>
+                                    <option value="ml">ml</option>
+                                    <option value="kg">kg</option>
+                                    <option value="liters">liters</option>
                                 </select>
-                                <button type="button" id="btnEditAddCombinedRecipe"
-                                    class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
-                                    <i class="fas fa-plus"></i>
-                                </button>
                             </div>
                         </div>
+                        <div class="">
+                            <button type="button" id="btnEditAddIngredient"
+                                class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+                                Add Ingredient
+                            </button>
+                        </div>
                     </div>
-                    <!-- Combined Recipes List -->
-                    <div id="editCombinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
-                        <p class="text-xs text-amber-500 text-center py-2">No additional recipes added</p>
+
+                    <!-- Ingredients List Container -->
+                    <div class="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Added Ingredients</h4>
+                        <div id="editIngredientsList" class="space-y-2 max-h-40 overflow-y-auto">
+                            <p class="text-sm text-gray-500 text-center py-2">No ingredients added yet</p>
+                        </div>
+                    </div>
+
+                    <!-- Direct Cost Display for Step 2 -->
+                    <div class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                        <span class="text-sm text-gray-600 font-medium">Direct Cost</span>
+                        <span id="editStep2DirectCostDisplay" class="text-sm font-semibold text-gray-900">₱ 0.00</span>
+                    </div>
+
+                    <!-- Additional Ingredients Container -->
+                    <div id="editCombinedRecipeSection"
+                        class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 edit-combined-recipe-container">
+                        <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
+                                class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
+                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
+                        
+                        <!-- Warning if no yield info -->
+                        <div id="editAdditionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
+                        </div>
+                        
+                        <div id="editAdditionalRecipeInputs" class="hidden">
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
+                                <div class="flex gap-2">
+                                    <select id="editCombinedRecipeSelect"
+                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                        <option value="">Select a recipe...</option>
+                                    </select>
+                                    <button type="button" id="btnEditAddCombinedRecipe"
+                                        class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Combined Recipes List -->
+                        <div id="editCombinedRecipesList" class="space-y-2 max-h-32 overflow-y-auto">
+                            <p class="text-xs text-amber-500 text-center py-2">No additional recipes added</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Costing Container -->
-                <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
-                            </h4>
-                            <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
-                                see totals instantly.</p>
-                        </div>
-                        <div class="text-left sm:text-right">
-                            <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
-                            <div id="editTotalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 grid gap-3">
-                        <div id="editCostsGrid" class="grid gap-3 sm:grid-cols-2">
-                            <div id="editDirectCostCard"
-                                class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Direct Cost</span>
-                                <span id="editDirectCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
-                            </div>
-                            <div id="editCombinedCostCard"
-                                class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Combined Recipes Cost</span>
-                                <span id="editCombinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
-                            </div>
-                        </div>
-
-                        <div
-                            class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <!-- EDIT STEP 3: Costing -->
+                <div id="editStep3" class="edit-step-content hidden">
+                    <!-- Costing Container -->
+                    <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <span class="text-sm text-gray-600">Overhead Cost</span>
-                                <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
+                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
+                                </h4>
+                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
+                                    see totals instantly.</p>
                             </div>
-                            <div class="flex w-full sm:w-32">
-                                <input type="number" id="editOverheadCost"
-                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                    placeholder="0" min="0">
-                                <span
-                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
-                                    %
-                                </span>
+                            <div class="text-left sm:text-right">
+                                <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
+                                <div id="editTotalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
                             </div>
                         </div>
-                    </div>
 
-                    <div id="editYieldComputationSection" class="mt-4 hidden">
-                        <div class="border-t border-dashed border-gray-300 pt-4">
-                            <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Yield
-                                Computation</h5>
-                            <div class="grid gap-3 sm:grid-cols-2">
-                                <div
-                                    class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Total Yield (grams)</span>
-                                    <span id="editTotalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0
-                                        g</span>
+                        <div class="mt-4 grid gap-3">
+                            <div id="editCostsGrid" class="grid gap-3 sm:grid-cols-2">
+                                <div id="editDirectCostCard"
+                                    class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Direct Cost</span>
+                                    <span id="editDirectCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
                                 </div>
-                                <div
-                                    class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Unit Price per Gram</span>
-                                    <span id="editUnitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱
-                                        0.00</span>
+                                <div id="editCombinedCostCard"
+                                    class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                                    <span id="editCombinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                                 </div>
                             </div>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                <div id="editPerTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
-                                        Tray / Box</h6>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label for="editTraysPerYield" class="text-sm text-gray-600">Trays/Boxes</label>
-                                            <div class="flex w-32">
-                                                <input type="number" id="editTraysPerYield"
-                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="0" min="0" step="1" value="0">
-                                                <span
-                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
+                            <div
+                                class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <span class="text-sm text-gray-600">Overhead Cost</span>
+                                    <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
+                                </div>
+                                <div class="flex w-full sm:w-32">
+                                    <input type="number" id="editOverheadCost"
+                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                        placeholder="0" min="0">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                        %
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="editYieldComputationSection" class="mt-4 hidden">
+                            <div class="border-t border-dashed border-gray-300 pt-4">
+                                <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Yield
+                                    Computation</h5>
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div
+                                        class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Total Yield (grams)</span>
+                                        <span id="editTotalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0
+                                            g</span>
+                                    </div>
+                                    <div
+                                        class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Unit Price per Gram</span>
+                                        <span id="editUnitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱
+                                            0.00</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <div id="editPerTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
+                                            Tray / Box</h6>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label for="editTraysPerYield" class="text-sm text-gray-600">Trays/Boxes</label>
+                                                <div class="flex w-32">
+                                                    <input type="number" id="editTraysPerYield"
+                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                        placeholder="0" min="0" step="1" value="0">
+                                                    <span
+                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label for="editGramsPerTray" class="text-sm text-gray-600">Grams per Tray</label>
+                                                <div class="flex w-32">
+                                                    <input type="number" id="editGramsPerTray"
+                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                        placeholder="0" min="0" step="0.01" value="0">
+                                                    <span
+                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-600">Unit Price per Tray</span>
+                                                <span id="editUnitPricePerTrayDisplay"
+                                                    class="text-sm font-medium text-purple-600">₱ 0.00</span>
+                                            </div>
+                                            <div id="editAdditionalPricePerTrayRow" class="hidden flex items-center justify-between">
+                                                <span class="text-sm text-amber-600">Additional Price per Tray</span>
+                                                <span id="editAdditionalPricePerTrayDisplay"
+                                                    class="text-sm font-medium text-amber-600">₱ 0.00</span>
+                                            </div>
+                                            <div id="editTotalPricePerTrayRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                                <span class="text-sm text-gray-700 font-semibold">Total Price per Tray</span>
+                                                <span id="editTotalPricePerTrayDisplay"
+                                                    class="text-sm font-bold text-purple-700">₱ 0.00</span>
                                             </div>
                                         </div>
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label for="editGramsPerTray" class="text-sm text-gray-600">Grams per Tray</label>
-                                            <div class="flex w-32">
-                                                <input type="number" id="editGramsPerTray"
-                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="0" min="0" step="0.01" value="0">
-                                                <span
-                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
+                                    </div>
+                                    <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
+                                            Piece / Slice / Plate</h6>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label for="editPiecesPerYield" id="editPiecesLabel"
+                                                    class="text-sm text-gray-600">Pieces/Slices/Plates</label>
+                                                <div class="flex w-32">
+                                                    <input type="number" id="editPiecesPerYield"
+                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                        placeholder="0" min="0" step="1" value="0">
+                                                    <span
+                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-600">Unit Price per Tray</span>
-                                            <span id="editUnitPricePerTrayDisplay"
-                                                class="text-sm font-medium text-purple-600">₱ 0.00</span>
-                                        </div>
-                                        <div id="editAdditionalPricePerTrayRow" class="hidden flex items-center justify-between">
-                                            <span class="text-sm text-amber-600">Additional Price per Tray</span>
-                                            <span id="editAdditionalPricePerTrayDisplay"
-                                                class="text-sm font-medium text-amber-600">₱ 0.00</span>
-                                        </div>
-                                        <div id="editTotalPricePerTrayRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                            <span class="text-sm text-gray-700 font-semibold">Total Price per Tray</span>
-                                            <span id="editTotalPricePerTrayDisplay"
-                                                class="text-sm font-bold text-purple-700">₱ 0.00</span>
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label for="editGramsPerPiece" class="text-sm text-gray-600">Grams per Piece</label>
+                                                <div class="flex w-32">
+                                                    <input type="number" id="editGramsPerPiece"
+                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                        placeholder="0" min="0" step="0.01" value="0">
+                                                    <span
+                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-600">Unit Price per Piece</span>
+                                                <span id="editUnitPricePerPieceDisplay"
+                                                    class="text-sm font-medium text-blue-600">₱ 0.00</span>
+                                            </div>
+                                            <div id="editAdditionalPricePerPieceRow" class="hidden flex items-center justify-between">
+                                                <span class="text-sm text-amber-600">Additional Price per Piece</span>
+                                                <span id="editAdditionalPricePerPieceDisplay"
+                                                    class="text-sm font-medium text-amber-600">₱ 0.00</span>
+                                            </div>
+                                            <div id="editTotalPricePerPieceRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                                <span class="text-sm text-gray-700 font-semibold">Total Price per Piece</span>
+                                                <span id="editTotalPricePerPieceDisplay"
+                                                    class="text-sm font-bold text-blue-700">₱ 0.00</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
-                                        Piece / Slice / Plate</h6>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label for="editPiecesPerYield" id="editPiecesLabel"
-                                                class="text-sm text-gray-600">Pieces/Slices/Plates</label>
-                                            <div class="flex w-32">
-                                                <input type="number" id="editPiecesPerYield"
-                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="0" min="0" step="1" value="0">
-                                                <span
-                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label for="editGramsPerPiece" class="text-sm text-gray-600">Grams per Piece</label>
-                                            <div class="flex w-32">
-                                                <input type="number" id="editGramsPerPiece"
-                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="0" min="0" step="0.01" value="0">
-                                                <span
-                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-600">Unit Price per Piece</span>
-                                            <span id="editUnitPricePerPieceDisplay"
-                                                class="text-sm font-medium text-blue-600">₱ 0.00</span>
-                                        </div>
-                                        <div id="editAdditionalPricePerPieceRow" class="hidden flex items-center justify-between">
-                                            <span class="text-sm text-amber-600">Additional Price per Piece</span>
-                                            <span id="editAdditionalPricePerPieceDisplay"
-                                                class="text-sm font-medium text-amber-600">₱ 0.00</span>
-                                        </div>
-                                        <div id="editTotalPricePerPieceRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                            <span class="text-sm text-gray-700 font-semibold">Total Price per Piece</span>
-                                            <span id="editTotalPricePerPieceDisplay"
-                                                class="text-sm font-bold text-blue-700">₱ 0.00</span>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <label for="editProfitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
+                                    <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
+                                </div>
+                                <div class="flex w-full sm:w-28">
+                                    <input type="number" id="editProfitMargin"
+                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                        placeholder="30" min="0" value="30">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                        %
+                                    </span>
                                 </div>
                             </div>
+                            <div
+                                class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Profit Amount</span>
+                                <span id="editProfitAmountDisplay" class="text-sm font-semibold text-green-700">₱ 0.00</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <label for="editProfitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
-                                <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
-                            </div>
-                            <div class="flex w-full sm:w-28">
-                                <input type="number" id="editProfitMargin"
-                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                    placeholder="30" min="0" value="30">
-                                <span
-                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
-                                    %
-                                </span>
-                            </div>
-                        </div>
-                        <div
-                            class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
-                            <span class="text-sm text-gray-600">Profit Amount</span>
-                            <span id="editProfitAmountDisplay" class="text-sm font-semibold text-green-700">₱ 0.00</span>
-                        </div>
-                    </div>
-                </div>
+                    <!-- Selling Price Container -->
+                    <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
+                        <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
+                        </h4>
 
-                <!-- Selling Price Container -->
-                <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
-                    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
-                    </h4>
-
-                    <!-- Overall Selling Price -->
-                    <div class="mb-4">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <label for="editSellingPriceOverall" class="text-sm font-medium text-gray-700">Overall
-                                Price</label>
-                            <div class="flex w-full sm:w-40">
-                                <span
-                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                <input type="number" id="editSellingPriceOverall"
-                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
-                                    placeholder="0.00" step="0.01" min="0" value="0">
+                        <!-- Overall Selling Price -->
+                        <div class="mb-4">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <label for="editSellingPriceOverall" class="text-sm font-medium text-gray-700">Overall
+                                    Price</label>
+                                <div class="flex w-full sm:w-40">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                    <input type="number" id="editSellingPriceOverall"
+                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
+                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                </div>
                             </div>
+                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                    id="editRecommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                id="editRecommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
-                    </div>
 
-                    <!-- Per Tray Selling Price -->
-                    <div id="editSellingPricePerTrayRow" class="mb-4 hidden">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <label for="editSellingPricePerTray" class="text-sm font-medium text-gray-700">Price per
-                                Tray</label>
-                            <div class="flex w-full sm:w-40">
-                                <span
-                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                <input type="number" id="editSellingPricePerTray"
-                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
-                                    placeholder="0.00" step="0.01" min="0" value="0">
+                        <!-- Per Tray Selling Price -->
+                        <div id="editSellingPricePerTrayRow" class="mb-4 hidden">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <label for="editSellingPricePerTray" class="text-sm font-medium text-gray-700">Price per
+                                    Tray</label>
+                                <div class="flex w-full sm:w-40">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                    <input type="number" id="editSellingPricePerTray"
+                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
+                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                </div>
                             </div>
+                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                    id="editRecommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                id="editRecommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
-                    </div>
 
-                    <!-- Per Piece Selling Price -->
-                    <div id="editSellingPricePerPieceRow" class="hidden">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <label for="editSellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per
-                                Piece</label>
-                            <div class="flex w-full sm:w-40">
-                                <span
-                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                <input type="number" id="editSellingPricePerPiece"
-                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
-                                    placeholder="0.00" step="0.01" min="0" value="0">
+                        <!-- Per Piece Selling Price -->
+                        <div id="editSellingPricePerPieceRow" class="hidden">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <label for="editSellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per
+                                    Piece</label>
+                                <div class="flex w-full sm:w-40">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                    <input type="number" id="editSellingPricePerPiece"
+                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
+                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                </div>
                             </div>
+                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                    id="editRecommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
-                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                id="editRecommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
                     </div>
                 </div>
 
-                <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelEdit"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
-                    <button type="submit" id="btnUpdateProduct"
-                        class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Update</button>
+                <!-- Navigation Buttons -->
+                <div class="flex gap-2 justify-between mt-4">
+                    <button type="button" id="btnEditBackStep"
+                        class="hidden px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        <i class="fas fa-arrow-left me-1"></i> Back
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" id="btnCancelEdit"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="btnEditNextStep"
+                            class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+                            Next <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                        <button type="submit" id="btnUpdateProduct"
+                            class="hidden px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Update</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -848,11 +973,11 @@
 
     <!-- View Product Modal -->
     <div id="viewProductModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40 flex items-center justify-center p-4 sm:p-0">
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-6 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
             style="max-width: 48rem;">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-primary"><i class="fas fa-box-open me-2"></i>Product Details</h3>
+                <h3 class="text-lg font-semibold text-primary">Product Details</h3>
                 <button type="button" id="btnCloseViewModal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
@@ -869,7 +994,7 @@
             <!-- Ingredients Section -->
             <div class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    <i class="fas fa-list-ul me-1 text-primary"></i> Ingredients
+                    Ingredients
                 </h4>
                 <div id="viewIngredientsList" class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 max-h-48 overflow-y-auto">
                     <!-- Ingredients will be loaded here -->
@@ -879,7 +1004,7 @@
             <!-- Combined Recipes Section (shown only if applicable) -->
             <div id="viewCombinedRecipesSection" class="mb-4 hidden">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    <i class="fas fa-layer-group me-1 text-amber-500"></i> Combined Recipes
+                    Combined Recipes
                 </h4>
                 <div id="viewCombinedRecipesList" class="bg-amber-50 rounded-lg border border-amber-200 divide-y divide-amber-200 max-h-32 overflow-y-auto">
                     <!-- Combined recipes will be loaded here -->
@@ -889,7 +1014,7 @@
             <!-- Costing Breakdown -->
             <div class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    <i class="fas fa-calculator me-1 text-blue-500"></i> Costing Breakdown
+                    Costing Breakdown
                 </h4>
                 <div class="bg-gray-50 rounded-lg border border-gray-200 p-3 space-y-2">
                     <div class="flex justify-between items-center">
@@ -914,7 +1039,7 @@
             <!-- Yield Information (shown only for bread/dough) -->
             <div id="viewYieldSection" class="mb-4 hidden">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    <i class="fas fa-balance-scale me-1 text-green-500"></i> Yield Computation
+                    Yield Computation
                 </h4>
                 
                 <!-- Total Yield and Price per Gram -->
@@ -990,7 +1115,7 @@
             <!-- Profit & Selling Price -->
             <div class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                    <i class="fas fa-tags me-1 text-green-500"></i> Profit & Selling Price
+                    Profit & Selling Price
                 </h4>
                 <div class="bg-green-50 rounded-lg border border-green-200 p-3 space-y-2">
                     <div class="flex justify-between items-center">
@@ -1082,6 +1207,96 @@
             loadMaterials();
             loadFilterCategories();
 
+            // Helper function to get category badge HTML
+            function getCategoryBadge(category) {
+                const cat = (category || '').toLowerCase();
+                let bgColor, textColor, icon;
+                
+                switch(cat) {
+                    case 'bread':
+                        bgColor = 'bg-amber-100';
+                        textColor = 'text-amber-700';
+                        icon = 'fa-bread-slice';
+                        break;
+                    case 'dough':
+                        bgColor = 'bg-orange-100';
+                        textColor = 'text-orange-700';
+                        icon = 'fa-circle';
+                        break;
+                    case 'drinks':
+                        bgColor = 'bg-blue-100';
+                        textColor = 'text-blue-700';
+                        icon = 'fa-mug-hot';
+                        break;
+                    default:
+                        bgColor = 'bg-gray-100';
+                        textColor = 'text-gray-700';
+                        icon = 'fa-box';
+                }
+                
+                return '<span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ' + bgColor + ' ' + textColor + '">' +
+                       '<i class="fas ' + icon + ' text-[10px]"></i> ' + (category || '-') + '</span>';
+            }
+
+            // Mobile card menu toggle
+            $(document).on('click', '.card-menu-btn', function(e) {
+                e.stopPropagation();
+                const $menu = $(this).siblings('.card-menu');
+                
+                // Close all other menus first
+                $('.card-menu').not($menu).addClass('hidden');
+                
+                // Toggle this menu
+                $menu.toggleClass('hidden');
+            });
+
+            // Close card menus when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
+                    $('.card-menu').addClass('hidden');
+                }
+            });
+
+            // View button in card menu
+            $(document).on('click', '.card-view-btn', function(e) {
+                e.stopPropagation();
+                const productId = $(this).data('id');
+                $('.card-menu').addClass('hidden');
+                openViewModal(productId);
+            });
+
+            // Click on card to view (excluding menu area)
+            $(document).on('click', '.product-card', function(e) {
+                if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
+                    const productId = $(this).data('product-id');
+                    openViewModal(productId);
+                }
+            });
+
+            // Mobile search functionality
+            $('#mobileSearchInput').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase().trim();
+                let hasResults = false;
+                
+                $('.product-card').each(function() {
+                    const productName = $(this).data('name') || '';
+                    const category = $(this).data('category') || '';
+                    
+                    if (productName.includes(searchTerm) || category.toLowerCase().includes(searchTerm)) {
+                        $(this).removeClass('hidden');
+                        hasResults = true;
+                    } else {
+                        $(this).addClass('hidden');
+                    }
+                });
+                
+                if (hasResults || searchTerm === '') {
+                    $('#mobileNoResults').addClass('hidden');
+                } else {
+                    $('#mobileNoResults').removeClass('hidden');
+                }
+            });
+
             // Open Add Product Modal (Desktop & Mobile)
             $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function() {
                 $('#addMaterialModal').removeClass('hidden');
@@ -1092,6 +1307,10 @@
                 updateCombinedRecipesListDisplay();
                 updateCostingDisplay();
                 updateUIBasedOnCategory();
+                
+                // Reset to step 1 and update display
+                currentAddStep = 1;
+                updateStepDisplay();
             });
 
             // Track previous category for Add modal
@@ -1214,6 +1433,11 @@
                 currentLabelRestriction = null;
                 addPreviousCategory = ''; // Reset the previous category tracker
 
+                // Reset search inputs
+                $('#ingredient_search').val('');
+                $('#ingredient_id').val('');
+                hideIngredientDropdown();
+
                 // Reset combined recipes UI
                 $('#combinedRecipeSection').addClass('hidden');
                 $('#combinedCostCard').addClass('hidden');
@@ -1226,7 +1450,120 @@
                 // Reset UI to default state
                 $('.combined-recipe-container').removeClass('hidden');
                 $('#ingredient_unit option').show();
+
+                // Reset to step 1
+                currentAddStep = 1;
+                updateStepDisplay();
             }
+
+            // =====================================================
+            // STEP NAVIGATION LOGIC
+            // =====================================================
+            let currentAddStep = 1;
+            const totalSteps = 3;
+
+            // Update step display based on current step
+            function updateStepDisplay() {
+                // Hide all step content
+                $('#addStep1, #addStep2, #addStep3').addClass('hidden');
+                
+                // Show current step content
+                $('#addStep' + currentAddStep).removeClass('hidden');
+
+                // Update stepper indicators
+                for (let i = 1; i <= totalSteps; i++) {
+                    const indicator = $('#step' + i + 'Indicator');
+                    const label = $('#step' + i + 'Label');
+
+                    if (i < currentAddStep) {
+                        // Completed step - solid primary background with checkmark
+                        indicator.removeClass('border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
+                            .addClass('bg-primary text-white border-0');
+                        indicator.html('<i class="fas fa-check"></i>');
+                        label.removeClass('text-gray-400 text-primary').addClass('text-primary');
+                    } else if (i === currentAddStep) {
+                        // Current step - bordered circle with shaded background
+                        indicator.removeClass('border-gray-300 bg-primary text-white border-0 text-gray-400')
+                            .addClass('border-2 border-primary bg-primary/10 text-primary');
+                        indicator.html(i);
+                        label.removeClass('text-gray-400').addClass('text-primary');
+                    } else {
+                        // Future step - gray border and text
+                        indicator.removeClass('border-primary bg-primary/10 bg-primary text-white text-primary border-0')
+                            .addClass('border-2 border-gray-300 text-gray-400');
+                        indicator.html(i);
+                        label.removeClass('text-primary').addClass('text-gray-400');
+                    }
+                }
+
+                // Update connector colors
+                $('#connector1').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 1 ? 'bg-primary' : 'bg-gray-300');
+                $('#connector2').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 2 ? 'bg-primary' : 'bg-gray-300');
+
+                // Update button visibility
+                if (currentAddStep === 1) {
+                    $('#btnBackStep').addClass('hidden');
+                    $('#btnNextStep').removeClass('hidden');
+                    $('#btnSaveMaterial').addClass('hidden');
+                } else if (currentAddStep === 2) {
+                    $('#btnBackStep').removeClass('hidden');
+                    $('#btnNextStep').removeClass('hidden');
+                    $('#btnSaveMaterial').addClass('hidden');
+                } else if (currentAddStep === 3) {
+                    $('#btnBackStep').removeClass('hidden');
+                    $('#btnNextStep').addClass('hidden');
+                    $('#btnSaveMaterial').removeClass('hidden');
+                }
+            }
+
+            // Next step button click
+            $('#btnNextStep').on('click', function() {
+                // Validate current step before proceeding
+                if (currentAddStep === 1) {
+                    const productName = $('#material_name').val().trim();
+                    const category = $('#category_id').val();
+
+                    if (!productName) {
+                        Toast.warning('Please enter a product name.');
+                        $('#material_name').focus();
+                        return;
+                    }
+                    if (!category) {
+                        Toast.warning('Please select a product category.');
+                        $('#category_id').focus();
+                        return;
+                    }
+                }
+
+                if (currentAddStep === 2) {
+                    if (ingredientsList.length === 0) {
+                        Toast.warning('Please add at least one ingredient.');
+                        return;
+                    }
+                }
+
+                if (currentAddStep < totalSteps) {
+                    currentAddStep++;
+                    updateStepDisplay();
+                    
+                    // Scroll modal to top
+                    $('#addMaterialModal .overflow-y-auto').scrollTop(0);
+                }
+            });
+
+            // Back step button click
+            $('#btnBackStep').on('click', function() {
+                if (currentAddStep > 1) {
+                    currentAddStep--;
+                    updateStepDisplay();
+                    
+                    // Scroll modal to top
+                    $('#addMaterialModal .overflow-y-auto').scrollTop(0);
+                }
+            });
+
+            // Initialize step display when modal opens
+            // (This is handled in the open modal click handler)
 
             // Ingredients test data
             let ingredientsList = [];
@@ -1260,63 +1597,127 @@
 
             // Update ingredients dropdown based on current label restriction
             function updateIngredientsDropdown() {
-                let options = '<option value="">Select Ingredient</option>';
+                // Clear search input when dropdown is updated
+                $('#ingredient_search').val('');
+                $('#ingredient_id').val('');
+            }
+
+            // Get filtered ingredients based on category and search term
+            function getFilteredIngredients(searchTerm = '') {
                 const category = $('#category_id').val();
+                const filtered = [];
 
                 allIngredientsData.forEach(function(mat) {
                     const label = (mat.label || 'general').toLowerCase();
 
-                    // Filter logic based on product category:
-                    // - If category is 'bread', show only 'general' and 'bread' labeled ingredients
-                    // - If category is 'drinks', show only 'general' and 'drinks' labeled ingredients
-                    // - If no category selected, show all
+                    // Filter logic based on product category
                     let shouldShow = false;
 
                     if (!category) {
-                        // No category selected, show all
                         shouldShow = true;
                     } else if (label === 'general' || label === '') {
-                        // Always show general ingredients
                         shouldShow = true;
                     } else if ((category === 'bread' || category === 'dough') && label === 'bread' || label === 'dough') {
-                        // Show bread ingredients only for bread products
                         shouldShow = true;
                     } else if (category === 'drinks' && label === 'drinks') {
-                        // Show drinks ingredients only for drinks products
                         shouldShow = true;
+                    }
+
+                    // Apply search filter
+                    if (shouldShow && searchTerm) {
+                        const name = mat.material_name.toLowerCase();
+                        shouldShow = name.includes(searchTerm.toLowerCase());
                     }
 
                     if (shouldShow) {
-                        options += '<option value="' + mat.material_id + '" data-name="' + mat.material_name + '" data-cost="' + mat.cost_per_unit + '" data-unit="' + mat.unit + '" data-label="' + label + '">' + mat.material_name + '</option>';
+                        filtered.push(mat);
                     }
                 });
-                $('#ingredient_id').html(options);
+
+                return filtered;
             }
 
-            // Auto-select unit based on selected ingredient (Add Modal)
-            $('#ingredient_id').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const ingredientUnit = selectedOption.data('unit');
-                if (ingredientUnit) {
-                    $('#ingredient_unit').val(ingredientUnit);
+            // Show ingredient dropdown with filtered results
+            function showIngredientDropdown(searchTerm = '') {
+                const filtered = getFilteredIngredients(searchTerm);
+                let html = '';
+
+                if (filtered.length === 0) {
+                    html = '<div class="px-3 py-2 text-sm text-gray-500">No ingredients found</div>';
+                } else {
+                    filtered.forEach(function(mat) {
+                        const label = (mat.label || 'general').toLowerCase();
+                        html += '<div class="ingredient-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
+                            'data-id="' + mat.material_id + '" ' +
+                            'data-name="' + mat.material_name + '" ' +
+                            'data-cost="' + mat.cost_per_unit + '" ' +
+                            'data-unit="' + mat.unit + '" ' +
+                            'data-label="' + label + '">' +
+                            '<span class="font-medium">' + mat.material_name + '</span>' +
+                            '<span class="text-xs text-gray-400 ml-2">(' + label + ')</span>' +
+                            '</div>';
+                    });
                 }
+
+                $('#ingredient_dropdown').html(html).removeClass('hidden');
+            }
+
+            // Hide ingredient dropdown
+            function hideIngredientDropdown() {
+                $('#ingredient_dropdown').addClass('hidden');
+            }
+
+            // Ingredient search input events (Add Modal)
+            $('#ingredient_search').on('focus', function() {
+                showIngredientDropdown($(this).val());
             });
+
+            $('#ingredient_search').on('input', function() {
+                showIngredientDropdown($(this).val());
+            });
+
+            // Select ingredient from dropdown (Add Modal)
+            $(document).on('click', '.ingredient-option', function() {
+                const $this = $(this);
+                const id = $this.data('id');
+                const name = $this.data('name');
+                const unit = $this.data('unit');
+
+                $('#ingredient_id').val(id);
+                $('#ingredient_search').val(name);
+                $('#ingredient_unit').val(unit);
+                hideIngredientDropdown();
+                $('#ingredient_quantity').focus();
+            });
+
+            // Hide dropdown when clicking outside (Add Modal)
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#ingredient_search, #ingredient_dropdown').length) {
+                    hideIngredientDropdown();
+                }
+                if (!$(e.target).closest('#edit_ingredient_search, #edit_ingredient_dropdown').length) {
+                    hideEditIngredientDropdown();
+                }
+            })
+
+            // Auto-select unit is now handled in the ingredient-option click event above
 
             // Add Ingredient to List
             $('#btnAddIngredient').on('click', function() {
-                const select = $('#ingredient_id');
-                const selectedOption = select.find('option:selected');
-                const ingredientId = select.val();
-                const ingredientName = selectedOption.data('name');
-                const costPerUnit = parseFloat(selectedOption.data('cost')) || 0;
+                const ingredientId = $('#ingredient_id').val();
+                const ingredientName = $('#ingredient_search').val();
+                
+                // Find the ingredient data from allIngredientsData
+                const ingredientData = allIngredientsData.find(mat => mat.material_id == ingredientId);
+                const costPerUnit = ingredientData ? parseFloat(ingredientData.cost_per_unit) || 0 : 0;
                 const quantity = parseFloat($('#ingredient_quantity').val()) || 0;
                 const unit = $('#ingredient_unit').val();
-                const label = selectedOption.data('label') || 'general';
+                const label = ingredientData ? (ingredientData.label || 'general').toLowerCase() : 'general';
 
                 // Validation with specific messages
                 if (!ingredientId) {
                     Toast.warning('Please select an ingredient from the dropdown.');
-                    $('#ingredient_id').focus();
+                    $('#ingredient_search').focus();
                     return;
                 }
 
@@ -1350,8 +1751,9 @@
 
                 // Reset ingredient inputs and refocus
                 $('#ingredient_id').val('');
+                $('#ingredient_search').val('');
                 $('#ingredient_quantity').val('');
-                $('#ingredient_id').focus();
+                $('#ingredient_search').focus();
 
                 Toast.success('Ingredient added successfully!');
             });
@@ -1620,8 +2022,19 @@
                 }
 
                 $('#directCostDisplay').text('₱ ' + directCost.toFixed(2));
-                // Hide combined cost card since it's not part of total cost
-                $('#combinedCostCard').addClass('hidden');
+                // Update Step 2 direct cost display
+                $('#step2DirectCostDisplay').text('₱ ' + directCost.toFixed(2));
+                
+                // Show/hide combined cost card based on whether there are combined recipes
+                if (combinedRecipesList.length > 0) {
+                    $('#combinedCostCard').removeClass('hidden');
+                    $('#combinedCostDisplay').text('₱ ' + combinedCost.toFixed(2));
+                    $('#directCostCard').removeClass('col-span-2').addClass('col-span-1');
+                } else {
+                    $('#combinedCostCard').addClass('hidden');
+                    $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+                }
+                
                 $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
                 $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#recommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
@@ -1909,8 +2322,11 @@
                         }
 
                         let rows = '';
+                        let cards = '';
+                        
                         if (response.success && response.data && response.data.length > 0) {
                             response.data.forEach(function(product) {
+                                // Desktop table rows
                                 rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
@@ -1918,13 +2334,60 @@
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.total_cost || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.selling_price || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">';
-                                rows += '<button class="text-blue-600 hover:text-blue-800 me-2 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                                rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                                rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 rows += '</td>';
                                 rows += '</tr>';
+                                
+                                // Mobile card view
+                                const categoryBadge = getCategoryBadge(product.category);
+                                cards += '<div class="product-card bg-white rounded-lg shadow-md border border-gray-100 p-4 cursor-pointer" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-name="' + product.product_name.toLowerCase() + '">';
+                                cards += '  <div class="flex justify-between items-start mb-3">';
+                                cards += '    <div class="flex-1 pr-2">';
+                                cards += '      <h3 class="font-semibold text-gray-800 text-base leading-tight">' + product.product_name + '</h3>';
+                                cards += '      <div class="mt-1">' + categoryBadge + '</div>';
+                                cards += '    </div>';
+                                cards += '    <div class="relative">';
+                                cards += '      <button class="card-menu-btn p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors" data-id="' + product.product_id + '">';
+                                cards += '        <i class="fas fa-ellipsis-v"></i>';
+                                cards += '      </button>';
+                                cards += '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] py-1">';
+                                cards += '        <button class="card-view-btn w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                                cards += '          <i class="fas fa-eye text-gray-400"></i> View';
+                                cards += '        </button>';
+                                cards += '        <button class="btn-edit w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                                cards += '          <i class="fas fa-edit"></i> Edit';
+                                cards += '        </button>';
+                                cards += '        <div class="border-t border-gray-100 my-1"></div>';
+                                cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                                cards += '          <i class="fas fa-trash"></i> Delete';
+                                cards += '        </button>';
+                                cards += '      </div>';
+                                cards += '    </div>';
+                                cards += '  </div>';
+                                cards += '  <div class="grid grid-cols-3 gap-2 text-center">';
+                                cards += '    <div class="bg-gray-50 rounded-lg p-2">';
+                                cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>';
+                                cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.direct_cost || 0).toFixed(2) + '</p>';
+                                cards += '    </div>';
+                                cards += '    <div class="bg-gray-50 rounded-lg p-2">';
+                                cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Cost</p>';
+                                cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.total_cost || 0).toFixed(2) + '</p>';
+                                cards += '    </div>';
+                                cards += '    <div class="bg-primary/10 rounded-lg p-2">';
+                                cards += '      <p class="text-[10px] text-primary uppercase tracking-wide">Selling Price</p>';
+                                cards += '      <p class="text-sm font-bold text-primary">₱' + parseFloat(product.selling_price || 0).toFixed(2) + '</p>';
+                                cards += '    </div>';
+                                cards += '  </div>';
+                                cards += '</div>';
                             });
+                            $('#mobileNoResults').addClass('hidden');
+                        } else {
+                            $('#mobileNoResults').removeClass('hidden');
                         }
+                        
                         $('#materialsTableBody').html(rows);
+                        $('#mobileCardsContainer').html(cards);
 
                         // Initialize DataTable with custom labels
                         const tableElement = document.getElementById('selection-table');
@@ -2112,7 +2575,7 @@
             // Delete Product
             $(document).on('click', '.btn-delete', function() {
                 const id = $(this).data('id');
-                if (confirm('Are you sure you want to delete this product?')) {
+                Confirm.delete('Are you sure you want to delete this product?', function() {
                     $.ajax({
                         url: baseUrl + 'Products/DeleteProduct/' + id,
                         type: 'POST',
@@ -2129,12 +2592,14 @@
                             Toast.error('Error deleting product: ' + error);
                         }
                     });
-                }
+                });
             });
 
             // Apply Filter
             $('#apply-filters').on('click', function() {
                 const categoryId = $('#filter-category').val();
+                
+                // Filter desktop table
                 $('table tbody tr').each(function() {
                     if (categoryId === '' || $(this).data('category') == categoryId) {
                         $(this).show();
@@ -2142,12 +2607,32 @@
                         $(this).hide();
                     }
                 });
+                
+                // Filter mobile cards
+                let hasResults = false;
+                $('.product-card').each(function() {
+                    if (categoryId === '' || $(this).data('category') == categoryId) {
+                        $(this).removeClass('hidden');
+                        hasResults = true;
+                    } else {
+                        $(this).addClass('hidden');
+                    }
+                });
+                
+                if (hasResults || categoryId === '') {
+                    $('#mobileNoResults').addClass('hidden');
+                } else {
+                    $('#mobileNoResults').removeClass('hidden');
+                }
             });
 
             // Reset Filter
             $('#reset-filters').on('click', function() {
                 $('#filter-category').val('');
                 $('table tbody tr').show();
+                $('.product-card').removeClass('hidden');
+                $('#mobileNoResults').addClass('hidden');
+                $('#mobileSearchInput').val('');
             });
 
             // =====================================================
@@ -2166,6 +2651,10 @@
 
             // Function to open edit modal and load product data
             function openEditModal(productId) {
+                console.log('=== OPEN EDIT MODAL DEBUG ===');
+                console.log('openEditModal called with productId:', productId);
+                console.log('productId type:', typeof productId);
+                
                 // Load ingredients dropdown first, then fetch product data
                 $.ajax({
                     url: baseUrl + 'RawMaterials/GetAll',
@@ -2183,11 +2672,14 @@
                         loadEditCombinedRecipesDropdown();
 
                         // Fetch product data after ingredients are loaded
+                        console.log('=== FETCHING PRODUCT DATA ===');
+                        console.log('URL:', baseUrl + 'Products/GetProduct/' + productId);
                         $.ajax({
                             url: baseUrl + 'Products/GetProduct/' + productId,
                             type: 'GET',
                             dataType: 'json',
                             success: function(response) {
+                                console.log('Product fetch response:', response);
                                 if (response.success && response.data) {
                                     const product = response.data;
                                     console.log('Product Data:', product);
@@ -2272,6 +2764,10 @@
                             updateEditCombinedRecipesListDisplay();
                             updateEditCostingDisplay();
 
+                            // Reset to step 1 and update display
+                            currentEditStep = 1;
+                            updateEditStepDisplay();
+
                             // Show modal
                             $('#editProductModal').removeClass('hidden');
                         } else {
@@ -2279,6 +2775,11 @@
                         }
                     },
                     error: function(xhr, status, error) {
+                        console.log('=== AJAX ERROR ===');
+                        console.log('XHR:', xhr);
+                        console.log('Status:', status);
+                        console.log('Error:', error);
+                        console.log('Response Text:', xhr.responseText);
                         Toast.error('Error loading product: ' + error);
                     }
                 });
@@ -2298,6 +2799,11 @@
                 editCombinedRecipesList = [];
                 editPreviousCategory = ''; // Reset the previous category tracker
 
+                // Reset search inputs
+                $('#edit_ingredient_search').val('');
+                $('#edit_ingredient_id').val('');
+                hideEditIngredientDropdown();
+
                 // Reset combined recipes UI
                 $('#editCombinedRecipeSection').addClass('hidden');
                 $('#editCombinedCostCard').addClass('hidden');
@@ -2310,7 +2816,117 @@
                 // Reset UI to default state
                 $('.edit-combined-recipe-container').removeClass('hidden');
                 $('#edit_ingredient_unit option').show();
+
+                // Reset to step 1
+                currentEditStep = 1;
+                updateEditStepDisplay();
             }
+
+            // =====================================================
+            // EDIT STEP NAVIGATION LOGIC
+            // =====================================================
+            let currentEditStep = 1;
+            const totalEditSteps = 3;
+
+            // Update edit step display based on current step
+            function updateEditStepDisplay() {
+                // Hide all step content
+                $('#editStep1, #editStep2, #editStep3').addClass('hidden');
+                
+                // Show current step content
+                $('#editStep' + currentEditStep).removeClass('hidden');
+
+                // Update stepper indicators
+                for (let i = 1; i <= totalEditSteps; i++) {
+                    const indicator = $('#editStep' + i + 'Indicator');
+                    const label = $('#editStep' + i + 'Label');
+                    
+                    if (i < currentEditStep) {
+                        // Completed step
+                        indicator.removeClass('border-gray-300 text-gray-400 bg-primary/10 border-primary text-primary')
+                            .addClass('bg-primary border-primary text-white');
+                        indicator.html('<i class="fas fa-check text-xs"></i>');
+                        label.removeClass('text-gray-400').addClass('text-primary');
+                    } else if (i === currentEditStep) {
+                        // Current step
+                        indicator.removeClass('border-gray-300 text-gray-400 bg-primary text-white')
+                            .addClass('bg-primary/10 border-primary text-primary');
+                        indicator.html(i);
+                        label.removeClass('text-gray-400').addClass('text-primary');
+                    } else {
+                        // Future step
+                        indicator.removeClass('bg-primary/10 border-primary text-primary bg-primary text-white')
+                            .addClass('border-gray-300 text-gray-400');
+                        indicator.html(i);
+                        label.removeClass('text-primary').addClass('text-gray-400');
+                    }
+                }
+
+                // Update connector colors
+                $('#editConnector1').removeClass('bg-primary bg-gray-300').addClass(currentEditStep > 1 ? 'bg-primary' : 'bg-gray-300');
+                $('#editConnector2').removeClass('bg-primary bg-gray-300').addClass(currentEditStep > 2 ? 'bg-primary' : 'bg-gray-300');
+
+                // Update button visibility
+                if (currentEditStep === 1) {
+                    $('#btnEditBackStep').addClass('hidden');
+                    $('#btnEditNextStep').removeClass('hidden');
+                    $('#btnUpdateProduct').addClass('hidden');
+                } else if (currentEditStep === 2) {
+                    $('#btnEditBackStep').removeClass('hidden');
+                    $('#btnEditNextStep').removeClass('hidden');
+                    $('#btnUpdateProduct').addClass('hidden');
+                } else if (currentEditStep === 3) {
+                    $('#btnEditBackStep').removeClass('hidden');
+                    $('#btnEditNextStep').addClass('hidden');
+                    $('#btnUpdateProduct').removeClass('hidden');
+                }
+            }
+
+            // Edit Next step button click
+            $('#btnEditNextStep').on('click', function() {
+                // Validate current step before proceeding
+                if (currentEditStep === 1) {
+                    const productName = $('#edit_material_name').val().trim();
+                    const category = $('#edit_category_id').val();
+                    
+                    if (!productName) {
+                        Toast.error('Please enter a product name.');
+                        $('#edit_material_name').focus();
+                        return;
+                    }
+                    if (!category) {
+                        Toast.error('Please select a category.');
+                        $('#edit_category_id').focus();
+                        return;
+                    }
+                }
+
+                if (currentEditStep === 2) {
+                    if (editIngredientsList.length === 0) {
+                        Toast.error('Please add at least one ingredient.');
+                        return;
+                    }
+                }
+
+                if (currentEditStep < totalEditSteps) {
+                    currentEditStep++;
+                    updateEditStepDisplay();
+                    // Update costing display when entering step 3
+                    if (currentEditStep === 3) {
+                        updateEditCostingDisplay();
+                    }
+                }
+            });
+
+            // Edit Back step button click
+            $('#btnEditBackStep').on('click', function() {
+                if (currentEditStep > 1) {
+                    currentEditStep--;
+                    updateEditStepDisplay();
+                    // Update costing display when going back
+                    updateEditCostingDisplay();
+                }
+            });
 
             // Handle edit category change
             // Track the previous category to determine if we need to clear ingredients
@@ -2423,8 +3039,15 @@
 
             // Update edit ingredients dropdown based on current label restriction
             function updateEditIngredientsDropdown() {
-                let options = '<option value="">Select Ingredient</option>';
+                // Clear search input when dropdown is updated
+                $('#edit_ingredient_search').val('');
+                $('#edit_ingredient_id').val('');
+            }
+
+            // Get filtered ingredients for Edit modal based on category and search term
+            function getEditFilteredIngredients(searchTerm = '') {
                 const category = $('#edit_category_id').val();
+                const filtered = [];
 
                 allIngredientsData.forEach(function(mat) {
                     const label = (mat.label || 'general').toLowerCase();
@@ -2441,21 +3064,74 @@
                         shouldShow = true;
                     }
 
+                    // Apply search filter
+                    if (shouldShow && searchTerm) {
+                        const name = mat.material_name.toLowerCase();
+                        shouldShow = name.includes(searchTerm.toLowerCase());
+                    }
+
                     if (shouldShow) {
-                        options += '<option value="' + mat.material_id + '" data-name="' + mat.material_name + '" data-cost="' + mat.cost_per_unit + '" data-unit="' + mat.unit + '" data-label="' + label + '">' + mat.material_name + '</option>';
+                        filtered.push(mat);
                     }
                 });
-                $('#edit_ingredient_id').html(options);
+
+                return filtered;
             }
 
-            // Auto-select unit based on selected ingredient (Edit Modal)
-            $('#edit_ingredient_id').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const ingredientUnit = selectedOption.data('unit');
-                if (ingredientUnit) {
-                    $('#edit_ingredient_unit').val(ingredientUnit);
+            // Show edit ingredient dropdown with filtered results
+            function showEditIngredientDropdown(searchTerm = '') {
+                const filtered = getEditFilteredIngredients(searchTerm);
+                let html = '';
+
+                if (filtered.length === 0) {
+                    html = '<div class="px-3 py-2 text-sm text-gray-500">No ingredients found</div>';
+                } else {
+                    filtered.forEach(function(mat) {
+                        const label = (mat.label || 'general').toLowerCase();
+                        html += '<div class="edit-ingredient-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
+                            'data-id="' + mat.material_id + '" ' +
+                            'data-name="' + mat.material_name + '" ' +
+                            'data-cost="' + mat.cost_per_unit + '" ' +
+                            'data-unit="' + mat.unit + '" ' +
+                            'data-label="' + label + '">' +
+                            '<span class="font-medium">' + mat.material_name + '</span>' +
+                            '<span class="text-xs text-gray-400 ml-2">(' + label + ')</span>' +
+                            '</div>';
+                    });
                 }
+
+                $('#edit_ingredient_dropdown').html(html).removeClass('hidden');
+            }
+
+            // Hide edit ingredient dropdown
+            function hideEditIngredientDropdown() {
+                $('#edit_ingredient_dropdown').addClass('hidden');
+            }
+
+            // Ingredient search input events (Edit Modal)
+            $('#edit_ingredient_search').on('focus', function() {
+                showEditIngredientDropdown($(this).val());
             });
+
+            $('#edit_ingredient_search').on('input', function() {
+                showEditIngredientDropdown($(this).val());
+            });
+
+            // Select ingredient from dropdown (Edit Modal)
+            $(document).on('click', '.edit-ingredient-option', function() {
+                const $this = $(this);
+                const id = $this.data('id');
+                const name = $this.data('name');
+                const unit = $this.data('unit');
+
+                $('#edit_ingredient_id').val(id);
+                $('#edit_ingredient_search').val(name);
+                $('#edit_ingredient_unit').val(unit);
+                hideEditIngredientDropdown();
+                $('#edit_ingredient_quantity').focus();
+            })
+
+            // Auto-select unit is now handled in the edit-ingredient-option click event above
 
             // Load Edit Combined Recipes dropdown
             function loadEditCombinedRecipesDropdown() {
@@ -2548,19 +3224,20 @@
 
             // Add Ingredient to Edit List
             $('#btnEditAddIngredient').on('click', function() {
-                const select = $('#edit_ingredient_id');
-                const selectedOption = select.find('option:selected');
-                const ingredientId = select.val();
-                const ingredientName = selectedOption.data('name');
-                const costPerUnit = parseFloat(selectedOption.data('cost')) || 0;
+                const ingredientId = $('#edit_ingredient_id').val();
+                const ingredientName = $('#edit_ingredient_search').val();
+                
+                // Find the ingredient data from allIngredientsData
+                const ingredientData = allIngredientsData.find(mat => mat.material_id == ingredientId);
+                const costPerUnit = ingredientData ? parseFloat(ingredientData.cost_per_unit) || 0 : 0;
                 const quantity = parseFloat($('#edit_ingredient_quantity').val()) || 0;
                 const unit = $('#edit_ingredient_unit').val();
-                const label = selectedOption.data('label') || 'general';
+                const label = ingredientData ? (ingredientData.label || 'general').toLowerCase() : 'general';
 
                 // Validation with specific messages
                 if (!ingredientId) {
                     Toast.warning('Please select an ingredient from the dropdown.');
-                    $('#edit_ingredient_id').focus();
+                    $('#edit_ingredient_search').focus();
                     return;
                 }
 
@@ -2594,8 +3271,9 @@
 
                 // Reset ingredient inputs and refocus
                 $('#edit_ingredient_id').val('');
+                $('#edit_ingredient_search').val('');
                 $('#edit_ingredient_quantity').val('');
-                $('#edit_ingredient_id').focus();
+                $('#edit_ingredient_search').focus();
 
                 Toast.success('Ingredient added successfully!');
             });
@@ -2954,8 +3632,19 @@
                 }
 
                 $('#editDirectCostDisplay').text('₱ ' + directCost.toFixed(2));
-                // Hide combined cost card since it's not part of total cost
-                $('#editCombinedCostCard').addClass('hidden');
+                // Update Step 2 direct cost display
+                $('#editStep2DirectCostDisplay').text('₱ ' + directCost.toFixed(2));
+                
+                // Show/hide combined cost card based on whether there are combined recipes
+                if (editCombinedRecipesList.length > 0) {
+                    $('#editCombinedCostCard').removeClass('hidden');
+                    $('#editCombinedCostDisplay').text('₱ ' + combinedCost.toFixed(2));
+                    $('#editDirectCostCard').removeClass('col-span-2').addClass('col-span-1');
+                } else {
+                    $('#editCombinedCostCard').addClass('hidden');
+                    $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
+                }
+                
                 $('#editTotalCostDisplay').text('₱ ' + totalCost.toFixed(2));
                 $('#editProfitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#editRecommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
@@ -3394,9 +4083,17 @@
 
             // Edit button in view modal - close view modal and open edit modal
             $('#btnViewEdit').on('click', function() {
-                if (currentViewProductId) {
+                console.log('=== EDIT BUTTON CLICK DEBUG ===');
+                console.log('currentViewProductId:', currentViewProductId);
+                const productId = currentViewProductId;
+                console.log('productId stored:', productId);
+                if (productId) {
                     closeViewModal();
-                    openEditModal(currentViewProductId);
+                    console.log('Calling openEditModal with ID:', productId);
+                    openEditModal(productId);
+                } else {
+                    console.log('No product ID found!');
+                    Toast.error('No product selected to edit.');
                 }
             });
 
