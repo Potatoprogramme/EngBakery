@@ -41,8 +41,6 @@ class ProductModel extends Model
                 pc.yield_grams,
                 pc.trays_per_yield,
                 pc.pieces_per_yield,
-                pc.grams_per_tray,
-                pc.grams_per_piece,
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
@@ -75,8 +73,6 @@ class ProductModel extends Model
                 pc.yield_grams,
                 pc.trays_per_yield,
                 pc.pieces_per_yield,
-                pc.grams_per_tray,
-                pc.grams_per_piece,
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
@@ -261,8 +257,6 @@ class ProductModel extends Model
                     'yield_grams' => floatval($data['yield_grams'] ?? 0),
                     'trays_per_yield' => intval($data['trays_per_yield'] ?? 0),
                     'pieces_per_yield' => intval($data['pieces_per_yield'] ?? 0),
-                    'grams_per_tray' => floatval($data['grams_per_tray'] ?? 0),
-                    'grams_per_piece' => floatval($data['grams_per_piece'] ?? 0),
                 ];
 
                 // Check if cost record exists
