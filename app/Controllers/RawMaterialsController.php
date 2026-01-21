@@ -46,10 +46,9 @@ class RawMaterialsController extends BaseController
     {
         $data = $this->request->getJSON(true);
         
-        // Validate required fields (total_cost can be 0 for free ingredients)
+        // Validate required fields
         if (empty($data['material_name']) || empty($data['category_id']) || 
-            empty($data['unit']) || empty($data['material_quantity']) || 
-            (!isset($data['total_cost']) || $data['total_cost'] === '')) {
+            empty($data['unit']) || empty($data['material_quantity']) || empty($data['total_cost'])) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
@@ -135,10 +134,9 @@ class RawMaterialsController extends BaseController
     {
         $data = $this->request->getJSON(true);
         
-        // Validate required fields (total_cost can be 0 for free ingredients)
+        // Validate required fields
         if (empty($data['material_id']) || empty($data['material_name']) || empty($data['category_id']) || 
-            empty($data['unit']) || empty($data['material_quantity']) || 
-            (!isset($data['total_cost']) || $data['total_cost'] === '')) {
+            empty($data['unit']) || empty($data['material_quantity']) || empty($data['total_cost'])) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
