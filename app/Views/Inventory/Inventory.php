@@ -601,9 +601,9 @@
 
             $('#materialsTableBody').html(rows);
 
-            // Initialize DataTable with custom labels
+            // Initialize DataTable with custom labels - ONLY if we have data
             const tableElement = document.getElementById('selection-table');
-            if (tableElement && typeof simpleDatatables !== 'undefined') {
+            if (tableElement && typeof simpleDatatables !== 'undefined' && items && items.length > 0) {
                 dataTable = new simpleDatatables.DataTable('#selection-table', {
                     labels: {
                         placeholder: "Search inventory...",
@@ -710,7 +710,7 @@
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         // Clear the table
-                        $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
+                        $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
                         // Reload the table
