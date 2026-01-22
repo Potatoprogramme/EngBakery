@@ -143,41 +143,15 @@ function attachProductCardHandlers() {
     });
 }
 
-// ==========================================
-// Tab Switching
-// ==========================================
-function initTabs() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-
-            // Remove active state from all buttons
-            tabButtons.forEach(btn => {
-                btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
-            });
-
-            // Add active state to clicked button
-            this.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
-            this.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            // Show the selected tab content
-            document.getElementById(targetTab + '-content').classList.remove('hidden');
-        });
-    });
-}
 
 // ==========================================
 // Product Modal
 // ==========================================
+
+/**
+ * Initialize the product selection modal
+ * Handles quantity controls, price display, and adding items to cart
+ */
 function initProductModal() {
     const productModal = document.getElementById('productModal');
     const productQuantity = document.getElementById('productQuantity');
@@ -187,6 +161,9 @@ function initProductModal() {
     const btnCancelProduct = document.getElementById('btnCancelProduct');
     const productOrderForm = document.getElementById('productOrderForm');
 
+    /**
+     * Update the total price display based on quantity
+     */
     function updateProductTotal() {
         let quantity = parseInt(productQuantity.value) || 0;
         if (quantity < 1) {
@@ -546,52 +523,95 @@ function renderCheckoutCart() {
     document.getElementById('step3Total').textContent = 'P' + total.toFixed(2);
 }
 
+/**
+ * Show a specific step in the checkout process
+ * @param {number} step - The step number to display (1-4)
+ */
 function showStep(step) {
+    // Hide all checkout steps
     document.querySelectorAll('.checkout-step').forEach(s => s.classList.add('hidden'));
+    // Show the target step
     document.getElementById('checkoutStep' + step).classList.remove('hidden');
+    // Update the progress indicator
     updateStepProgress(step);
 }
 
+/**
+ * Update the step progress indicator UI
+ * Matches the Product modal stepper style with circles and connectors
+ * @param {number} step - The current active step (1-4)
+ */
 function updateStepProgress(step) {
-    const progressLine = document.getElementById('progressLine');
-    const progressPercent = ((step - 1) / 3) * 100;
-    progressLine.style.width = progressPercent + '%';
-    
+    // Update step indicators (matching Product modal style)
     for (let i = 1; i <= 4; i++) {
         const stepEl = document.getElementById('step' + i);
         const label = document.getElementById('step' + i + 'Label');
         
-        if (i <= step) {
-            stepEl.classList.remove('border-gray-300', 'bg-white', 'text-gray-400');
-            stepEl.classList.add('border-primary', 'bg-primary', 'text-white', 'shadow-md');
-            label.classList.remove('text-gray-400', 'font-medium');
-            label.classList.add('text-primary', 'font-semibold');
+        if (i < step) {
+            // Completed steps - filled with primary color
+            stepEl.classList.remove('border-gray-300', 'text-gray-400', 'bg-primary/10');
+            stepEl.classList.add('border-primary', 'bg-primary', 'text-white');
+            label.classList.remove('text-gray-400');
+            label.classList.add('text-primary');
+        } else if (i === step) {
+            // Current step - primary outline with light background
+            stepEl.classList.remove('border-gray-300', 'text-gray-400', 'bg-primary', 'text-white');
+            stepEl.classList.add('border-primary', 'text-primary', 'bg-primary/10');
+            label.classList.remove('text-gray-400');
+            label.classList.add('text-primary');
         } else {
-            stepEl.classList.remove('border-primary', 'bg-primary', 'text-white', 'shadow-md');
-            stepEl.classList.add('border-gray-300', 'bg-white', 'text-gray-400');
-            label.classList.remove('text-primary', 'font-semibold');
-            label.classList.add('text-gray-400', 'font-medium');
+            // Future steps - gray outline
+            stepEl.classList.remove('border-primary', 'bg-primary', 'text-white', 'text-primary', 'bg-primary/10');
+            stepEl.classList.add('border-gray-300', 'text-gray-400');
+            label.classList.remove('text-primary');
+            label.classList.add('text-gray-400');
+        }
+    }
+    
+    // Update connector lines between steps
+    for (let i = 1; i <= 3; i++) {
+        const connector = document.getElementById('connector' + i);
+        if (connector) {
+            if (i < step) {
+                // Completed connector - primary color
+                connector.classList.remove('bg-gray-300');
+                connector.classList.add('bg-primary');
+            } else {
+                // Incomplete connector - gray color
+                connector.classList.remove('bg-primary');
+                connector.classList.add('bg-gray-300');
+            }
         }
     }
 }
 
+/**
+ * Reset the checkout progress to initial state
+ * Called when starting a new checkout or closing the modal
+ */
 function resetStepProgress() {
     currentStep = 1;
     document.getElementById('amountTendered').value = '';
-    document.getElementById('changeAmount').textContent = 'P0.00';
+    document.getElementById('changeAmount').textContent = '₱0.00';
     document.getElementById('changeAmount').classList.remove('text-green-600', 'text-red-600');
     document.getElementById('checkoutOrderType').value = 'walk-in';
     document.getElementById('checkoutPaymentMethod').value = 'cash';
 }
 
+/**
+ * Calculate and display the change amount
+ * Shows green for positive change, red for insufficient amount
+ */
 function calculateChange() {
     const tendered = parseFloat(document.getElementById('amountTendered').value) || 0;
     const change = tendered - checkoutTotalAmount;
     const changeEl = document.getElementById('changeAmount');
     
-    changeEl.textContent = 'P' + change.toFixed(2);
+    // Display the change amount with peso sign
+    changeEl.textContent = '₱' + change.toFixed(2);
     changeEl.classList.remove('text-green-600', 'text-red-600');
     
+    // Color code: green for sufficient, red for insufficient
     if (change >= 0) {
         changeEl.classList.add('text-green-600');
     } else {
@@ -599,6 +619,10 @@ function calculateChange() {
     }
 }
 
+/**
+ * Complete the checkout process
+ * Validates amount, sends order to server, and shows success
+ */
 async function completeCheckout() {
     const tendered = parseFloat(document.getElementById('amountTendered').value) || 0;
     

@@ -70,10 +70,10 @@
 
             <!-- Tabs -->
             <div class="flex gap-2 mb-3">
-                <button data-tab="breads" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md">
+                <button type="button" data-tab="breads" onclick="switchTab('breads')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
                     Breads
                 </button>
-                <button data-tab="drinks" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400">
+                <button type="button" data-tab="drinks" onclick="switchTab('drinks')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                     Drinks
                 </button>
             </div>
@@ -206,91 +206,92 @@
     </div>
 
     <!-- Checkout Modal with Step Progress -->
-    <div id="checkoutModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="relative w-full max-w-2xl mx-auto border shadow-xl bg-white max-h-[95vh] overflow-y-auto">
+    <!-- Checkout Modal with Step Progress -->
+    <div id="checkoutModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+        <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
+            style="max-width: 42rem;">
             <!-- Header -->
-            <div class="sticky top-0 bg-white border-b border-gray-200 p-5 sm:p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800">Checkout</h3>
-                    <button type="button" id="btnCloseCheckout" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                
-                <!-- Redesigned Step Progress Bar -->
-                <div class="relative">
-                    <!-- Progress Background Line -->
-                    <div class="absolute top-5 left-0 right-0 h-1 bg-gray-200"></div>
-                    <!-- Progress Active Line -->
-                    <div id="progressLine" class="absolute top-5 left-0 h-1 bg-primary transition-all duration-300" style="width: 0%;"></div>
-                    
-                    <!-- Steps Container -->
-                    <div class="relative flex justify-between">
-                        <!-- Step 1 -->
-                        <div class="flex flex-col items-center">
-                            <div id="step1" class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border-2 border-primary bg-primary text-white font-bold text-base sm:text-lg shadow-md z-10">
-                                1
-                            </div>
-                            <span id="step1Label" class="text-xs sm:text-sm mt-2 text-primary font-semibold">Cart</span>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-primary">Checkout</h3>
+                <button type="button" id="btnCloseCheckout" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Progress Stepper (same style as Product modal) -->
+            <div class="mb-6">
+                <div class="flex items-center w-full px-2 sm:px-4">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step1" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            1
                         </div>
-                        <!-- Step 2 -->
-                        <div class="flex flex-col items-center">
-                            <div id="step2" class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-400 font-bold text-base sm:text-lg z-10">
-                                2
-                            </div>
-                            <span id="step2Label" class="text-xs sm:text-sm mt-2 text-gray-400 font-medium">Payment</span>
+                        <span id="step1Label" class="text-[9px] sm:text-[11px] font-medium text-primary text-center leading-tight">Cart</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step2" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            2
                         </div>
-                        <!-- Step 3 -->
-                        <div class="flex flex-col items-center">
-                            <div id="step3" class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-400 font-bold text-base sm:text-lg z-10">
-                                3
-                            </div>
-                            <span id="step3Label" class="text-xs sm:text-sm mt-2 text-gray-400 font-medium">Amount</span>
+                        <span id="step2Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Payment</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step3" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            3
                         </div>
-                        <!-- Step 4 -->
-                        <div class="flex flex-col items-center">
-                            <div id="step4" class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-400 font-bold text-base sm:text-lg z-10">
-                                4
-                            </div>
-                            <span id="step4Label" class="text-xs sm:text-sm mt-2 text-gray-400 font-medium">Done</span>
+                        <span id="step3Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Amount</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector3" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 4 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step4" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            4
                         </div>
+                        <span id="step4Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Done</span>
                     </div>
                 </div>
             </div>
 
             <!-- Step Content Container -->
-            <div class="p-5 sm:p-6">
+            <div>
                 <!-- Step 1: Cart Review -->
                 <div id="checkoutStep1" class="checkout-step">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Order Summary</h4>
-                    <div id="checkoutCartItems" class="space-y-3 max-h-60 overflow-y-auto mb-4">
-                        <!-- Cart items will be inserted here -->
+                    <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h4 class="text-center text-sm font-medium mb-3">Order Summary</h4>
+                        <div id="checkoutCartItems" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- Cart items will be inserted here -->
+                        </div>
                     </div>
-                    <div class="border-t-2 pt-4">
-                        <div class="flex justify-between items-center text-xl font-bold">
+                    <div class="p-3 border border-primary/20 rounded-md bg-primary/5 mb-4">
+                        <div class="flex justify-between items-center text-lg font-bold">
                             <span>Total:</span>
                             <span class="text-primary" id="checkoutTotal">P0.00</span>
                         </div>
                     </div>
-                    <div class="mt-6 flex gap-3">
-                        <button type="button" id="btnCancelCheckout" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
-                        <button type="button" id="btnToStep2" class="flex-1 px-5 py-4 text-base font-bold text-white bg-primary hover:bg-secondary transition-colors">Next</button>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnCancelCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="btnToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
                     </div>
                 </div>
 
                 <!-- Step 2: Payment Method -->
                 <div id="checkoutStep2" class="checkout-step hidden">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Select Payment Method</h4>
-                    <div class="mb-5">
-                        <label class="block text-base font-medium text-gray-700 mb-2">Order Type</label>
-                        <select id="checkoutOrderType" class="w-full px-4 py-4 border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Type <span class="text-red-500">*</span></label>
+                        <select id="checkoutOrderType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="walk-in">Walk-in</option>
                             <option value="foodpanda">FoodPanda</option>
                         </select>
                     </div>
-                    <div class="mb-5">
-                        <label class="block text-base font-medium text-gray-700 mb-2">Payment Method</label>
-                        <select id="checkoutPaymentMethod" class="w-full px-4 py-4 border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span class="text-red-500">*</span></label>
+                        <select id="checkoutPaymentMethod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="cash">Cash</option>
                             <option value="gcash">GCash</option>
                             <option value="maya">Maya</option>
@@ -298,74 +299,73 @@
                             <option value="debit card">Debit Card</option>
                         </select>
                     </div>
-                    <div class="mt-6 flex gap-3">
-                        <button type="button" id="btnBackToStep1" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Back</button>
-                        <button type="button" id="btnToStep3" class="flex-1 px-5 py-4 text-base font-bold text-white bg-primary hover:bg-secondary transition-colors">Next</button>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnBackToStep1" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnToStep3" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
                     </div>
                 </div>
 
                 <!-- Step 3: Amount Tendered -->
                 <div id="checkoutStep3" class="checkout-step hidden">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Enter Amount Tendered</h4>
-                    <div class="mb-4 p-4 bg-primary/5 border border-primary/20">
+                    <div class="mb-3 p-3 border border-primary/20 rounded-md bg-primary/5">
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600 font-medium">Total Amount:</span>
-                            <span class="text-2xl font-bold text-primary" id="step3Total">P0.00</span>
+                            <span class="text-xl font-bold text-primary" id="step3Total">P0.00</span>
                         </div>
                     </div>
-                    <div class="mb-5">
-                        <label class="block text-base font-medium text-gray-700 mb-2">Amount Tendered</label>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount Tendered <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-bold text-xl">P</span>
-                            <input type="number" id="amountTendered" class="w-full pl-10 pr-4 py-4 border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-2xl font-semibold\" placeholder="0.00" min="0" step="0.01">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">₱</span>
+                            <input type="number" id="amountTendered" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-lg font-semibold" placeholder="0.00" min="0" step="0.01">
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-3 mb-5">
-                        <button type="button" class="quick-amount px-3 py-3 text-sm font-semibold border-2 border-gray-300 bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-type="exact">Exact</button>
-                        <button type="button" class="quick-amount px-3 py-3 text-sm font-semibold border-2 border-gray-300 bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="50">P50</button>
-                        <button type="button" class="quick-amount px-3 py-3 text-sm font-semibold border-2 border-gray-300 bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="100">P100</button>
-                        <button type="button" class="quick-amount px-3 py-3 text-sm font-semibold border-2 border-gray-300 bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="500">P500</button>
+                    <div class="grid grid-cols-4 gap-2 mb-3">
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-type="exact">Exact</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="50">₱50</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="100">₱100</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="500">₱500</button>
                     </div>
-                    <div class="p-4 bg-gray-100 border-2 border-gray-200 mb-5">
+                    <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4">
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600 font-medium text-lg">Change:</span>
-                            <span class="text-2xl font-bold" id="changeAmount">P0.00</span>
+                            <span class="text-gray-600 font-medium">Change:</span>
+                            <span class="text-xl font-bold text-green-600" id="changeAmount">₱0.00</span>
                         </div>
                     </div>
-                    <div class="mt-6 flex gap-3">
-                        <button type="button" id="btnBackToStep2" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Back</button>
-                        <button type="button" id="btnCompleteCheckout" class="flex-1 px-5 py-4 text-base font-bold text-white bg-green-600 hover:bg-green-700 transition-colors">Complete</button>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnBackToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnCompleteCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Complete</button>
                     </div>
                 </div>
 
                 <!-- Step 4: Success -->
                 <div id="checkoutStep4" class="checkout-step hidden">
-                    <div class="text-center py-8">
-                        <div class="w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-green-100 text-green-600 rounded-full border-4 border-green-500">
-                            <i class="fas fa-check text-5xl"></i>
+                    <div class="text-center py-4">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 text-green-600 rounded-full border-2 border-green-500">
+                            <i class="fas fa-check text-3xl"></i>
                         </div>
-                        <h4 class="text-2xl font-bold text-gray-800 mb-2">Order Complete!</h4>
-                        <p class="text-gray-500 mb-1">Order Number:</p>
-                        <p class="text-3xl font-bold text-primary mb-6" id="orderNumber">ORD-000000-000</p>
-                        <div class="p-5 bg-gray-50 border-2 border-gray-200 mb-6 text-left">
-                            <div class="flex justify-between text-base mb-2">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Order Complete!</h4>
+                        <p class="text-sm text-gray-500 mb-1">Order Number:</p>
+                        <p class="text-2xl font-bold text-primary mb-4" id="orderNumber">ORD-000000-000</p>
+                        <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4 text-left">
+                            <div class="flex justify-between text-sm mb-2">
                                 <span class="text-gray-600">Total:</span>
-                                <span class="font-bold text-gray-800" id="finalTotal">P0.00</span>
+                                <span class="font-bold text-gray-800" id="finalTotal">₱0.00</span>
                             </div>
-                            <div class="flex justify-between text-base mb-2">
+                            <div class="flex justify-between text-sm mb-2">
                                 <span class="text-gray-600">Tendered:</span>
-                                <span class="text-gray-800" id="finalTendered">P0.00</span>
+                                <span class="text-gray-800" id="finalTendered">₱0.00</span>
                             </div>
-                            <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-300">
+                            <div class="flex justify-between text-base font-bold pt-2 border-t border-gray-300">
                                 <span class="text-gray-700">Change:</span>
-                                <span class="text-green-600" id="finalChange">P0.00</span>
+                                <span class="text-green-600" id="finalChange">₱0.00</span>
                             </div>
                         </div>
-                        <div class="flex gap-3">
-                            <button type="button" id="btnPrintInvoice" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
-                                <i class="fas fa-print mr-2"></i> Print
+                        <div class="flex gap-2">
+                            <button type="button" id="btnPrintInvoice" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                                <i class="fas fa-print mr-2"></i>Print
                             </button>
-                            <button type="button" id="btnNewOrder" class="flex-1 px-5 py-4 text-base font-bold text-white bg-primary hover:bg-secondary transition-colors">New Order</button>
+                            <button type="button" id="btnNewOrder" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">New Order</button>
                         </div>
                     </div>
                 </div>
@@ -526,6 +526,35 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
+    
+    <!-- Tab Switching Function (inline to ensure it works) -->
+    <script>
+        function switchTab(tabName) {
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+            });
+            
+            // Add active state to clicked button
+            var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+                activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+            }
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.add('hidden');
+            });
+            
+            // Show selected tab content
+            var targetContent = document.getElementById(tabName + '-content');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+        }
+    </script>
     
     <!-- Set base URL for JS modules -->
     <script>
