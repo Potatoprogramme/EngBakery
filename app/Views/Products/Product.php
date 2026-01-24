@@ -359,7 +359,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div id="yieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
                                 <div id="perTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                     <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                         Tray / Box</h6>
@@ -401,7 +401,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                <div id="perPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                     <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                         Piece / Slice / Plate</h6>
                                     <div class="space-y-2">
@@ -780,7 +780,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div id="editYieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <div id="editPerTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Tray / Box</h6>
@@ -822,7 +822,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <div id="editPerPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Piece / Slice / Plate</h6>
                                         <div class="space-y-2">
@@ -1055,7 +1055,7 @@
                 </div>
 
                 <!-- Per Tray and Per Piece details -->
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div id="viewYieldGridContainer" class="grid gap-3 sm:grid-cols-2">
                     <!-- Per Tray -->
                     <div id="viewPerTraySection" class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Tray / Box</h6>
@@ -1375,6 +1375,10 @@
                         // Show per tray section and enable pieces input for bread
                         $('#perTraySection').removeClass('hidden');
                         $('#piecesPerYield').prop('disabled', false);
+                        
+                        // Bread uses 2 columns layout
+                        $('#yieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                        $('#perPieceSection').removeClass('col-span-2');
                     } else {
                         // Hide combined recipes section for dough
                         $('#combinedRecipeSection').addClass('hidden');
@@ -1386,6 +1390,10 @@
                         $('#piecesPerYield').prop('disabled', false);
                         $('#traysPerYield').val(0);
                         $('#gramsPerTray').val(0);
+                        
+                        // Dough uses 1 column layout (full width for Per Piece)
+                        $('#yieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                        $('#perPieceSection').addClass('col-span-2');
                     }
                     
                     // Hide all units except grams for bread and dough
@@ -2994,6 +3002,10 @@
                         // Show per tray section and enable pieces input for bread
                         $('#editPerTraySection').removeClass('hidden');
                         $('#editPiecesPerYield').prop('disabled', false);
+                        
+                        // Bread uses 2 columns layout
+                        $('#editYieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                        $('#editPerPieceSection').removeClass('col-span-2');
                     } else {
                         // Hide combined recipes section for dough
                         $('#editCombinedRecipeSection').addClass('hidden');
@@ -3005,6 +3017,10 @@
                         $('#editPiecesPerYield').prop('disabled', false);
                         $('#editTraysPerYield').val(0);
                         $('#editGramsPerTray').val(0);
+                        
+                        // Dough uses 1 column layout (full width for Per Piece)
+                        $('#editYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                        $('#editPerPieceSection').addClass('col-span-2');
                     }
                     
                     // Hide all units except grams for bread and dough
@@ -3941,6 +3957,18 @@
 
                             if (yieldGrams > 0 || traysPerYield > 0 || piecesPerYield > 0) {
                                 $('#viewYieldSection').removeClass('hidden');
+                                
+                                // Set grid layout based on category AND whether Per Tray has data
+                                // If no trays data, Per Piece should take full width regardless of category
+                                if (traysPerYield > 0) {
+                                    // Has tray data - use 2 columns
+                                    $('#viewYieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                                    $('#viewPerPieceSection').removeClass('col-span-2');
+                                } else {
+                                    // No tray data - Per Piece takes full width (1 column)
+                                    $('#viewYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                                    $('#viewPerPieceSection').addClass('col-span-2');
+                                }
                                 
                                 // Display total yield
                                 $('#viewYieldGrams').text(yieldGrams.toFixed(2) + ' g');
