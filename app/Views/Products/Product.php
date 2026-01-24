@@ -359,7 +359,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div id="yieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
                                 <div id="perTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                     <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                         Tray / Box</h6>
@@ -401,7 +401,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                <div id="perPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                     <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                         Piece / Slice / Plate</h6>
                                     <div class="space-y-2">
@@ -780,7 +780,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div id="editYieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
                                     <div id="editPerTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Tray / Box</h6>
@@ -822,7 +822,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <div id="editPerPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Piece / Slice / Plate</h6>
                                         <div class="space-y-2">
@@ -1055,7 +1055,7 @@
                 </div>
 
                 <!-- Per Tray and Per Piece details -->
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div id="viewYieldGridContainer" class="grid gap-3 sm:grid-cols-2">
                     <!-- Per Tray -->
                     <div id="viewPerTraySection" class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Tray / Box</h6>
@@ -1375,17 +1375,25 @@
                         // Show per tray section and enable pieces input for bread
                         $('#perTraySection').removeClass('hidden');
                         $('#piecesPerYield').prop('disabled', false);
+                        
+                        // Bread uses 2 columns layout
+                        $('#yieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                        $('#perPieceSection').removeClass('col-span-2');
                     } else {
                         // Hide combined recipes section for dough
                         $('#combinedRecipeSection').addClass('hidden');
                         $('#combinedCostCard').addClass('hidden');
                         $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
                         
-                        // Hide per tray section and disable pieces input for dough
+                        // Hide per tray section for dough but keep pieces enabled for yield calculation
                         $('#perTraySection').addClass('hidden');
-                        $('#piecesPerYield').prop('disabled', true);
+                        $('#piecesPerYield').prop('disabled', false);
                         $('#traysPerYield').val(0);
                         $('#gramsPerTray').val(0);
+                        
+                        // Dough uses 1 column layout (full width for Per Piece)
+                        $('#yieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                        $('#perPieceSection').addClass('col-span-2');
                     }
                     
                     // Hide all units except grams for bread and dough
@@ -1830,16 +1838,28 @@
                 const profitAmount = targetProfit - totalCost;
                 const sellingPrice = targetProfit;
 
-                // Check if all ingredients are in grams or ml (ml can be treated as grams for liquid ingredients like water)
-                const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => allowedUnitsForYield.includes(item.unit.toLowerCase()));
+                // Get current category to determine if yield computation should be shown
+                const currentCategory = $('#category_id').val();
+                
+                // Show yield computation section based on category (bread or dough categories)
+                // Yield computation is only available for bread and dough categories
+                const showYieldComputation = (currentCategory === 'bread' || currentCategory === 'dough') && ingredientsList.length > 0;
 
-                // Show/hide yield computation section based on whether all ingredients are in grams/ml
-                if (allIngredientsInGrams) {
+                // Show/hide yield computation section based on category
+                if (showYieldComputation) {
                     $('#yieldComputationSection').removeClass('hidden');
 
-                    // Auto-calculate total yield from ingredients (all in grams/ml)
-                    const totalYieldGrams = ingredientsList.reduce((sum, item) => sum + item.quantity, 0);
+                    // Auto-calculate total yield from ingredients that are in grams or ml
+                    const allowedUnitsForYield = ['grams', 'ml', 'g'];
+                    let totalYieldGrams = 0;
+                    let yieldContributingCost = 0;
+                    
+                    ingredientsList.forEach(item => {
+                        if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
+                            totalYieldGrams += item.quantity;
+                            yieldContributingCost += item.totalCost;
+                        }
+                    });
 
                     // Get current input values
                     let piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
@@ -1847,8 +1867,8 @@
                     let gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
                     let gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
 
-                    // Unit price per gram
-                    const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
+                    // Unit price per gram - based only on yield-contributing ingredients
+                    const unitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
 
                     // Flexible Yield Computation Logic:
                     let unitPricePerPiece = 0;
@@ -1876,26 +1896,19 @@
                     }
 
                     // Handle PIECE calculations
-                    // Get the current category to check if it's dough
-                    const currentCategory = $('#category_id').val();
-                    
                     if (changedField === 'gramsPerPiece' && gramsPerPiece > 0) {
                         // User entered grams per piece - calculate number of pieces (whole numbers only)
-                        // For dough, don't auto-calculate pieces from grams per piece
-                        if (currentCategory !== 'dough') {
-                            if (traysPerYield > 0 && gramsPerTray > 0) {
-                                // If trays exist, pieces = pieces per tray (based on grams per tray)
-                                piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
-                                piecesPerTray = piecesPerYield;
-                            } else if (totalYieldGrams > 0) {
-                                // Direct calculation from total yield
-                                piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
-                            }
-                            $('#piecesPerYield').val(piecesPerYield);
+                        if (traysPerYield > 0 && gramsPerTray > 0) {
+                            // If trays exist, pieces = pieces per tray (based on grams per tray)
+                            piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
+                            piecesPerTray = piecesPerYield;
+                        } else if (totalYieldGrams > 0) {
+                            // Direct calculation from total yield
+                            piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
                         }
-                    } else if (changedField === 'piecesPerYield' && piecesPerYield > 0 && currentCategory !== 'dough') {
+                        $('#piecesPerYield').val(piecesPerYield);
+                    } else if (changedField === 'piecesPerYield' && piecesPerYield > 0) {
                         // User entered pieces - calculate grams per piece
-                        // Skip this calculation entirely for dough category
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             // Pieces input = pieces per tray
                             piecesPerTray = piecesPerYield;
@@ -1905,9 +1918,8 @@
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
                         $('#gramsPerPiece').val(gramsPerPiece.toFixed(2));
-                    } else if (piecesPerYield > 0 && currentCategory !== 'dough') {
+                    } else if (piecesPerYield > 0) {
                         // Default: calculate grams per piece from pieces
-                        // Skip this calculation entirely for dough category
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
                             gramsPerPiece = gramsPerTray / piecesPerTray;
@@ -2990,17 +3002,25 @@
                         // Show per tray section and enable pieces input for bread
                         $('#editPerTraySection').removeClass('hidden');
                         $('#editPiecesPerYield').prop('disabled', false);
+                        
+                        // Bread uses 2 columns layout
+                        $('#editYieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                        $('#editPerPieceSection').removeClass('col-span-2');
                     } else {
                         // Hide combined recipes section for dough
                         $('#editCombinedRecipeSection').addClass('hidden');
                         $('#editCombinedCostCard').addClass('hidden');
                         $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
                         
-                        // Hide per tray section and disable pieces input for dough
+                        // Hide per tray section for dough but keep pieces enabled for yield calculation
                         $('#editPerTraySection').addClass('hidden');
-                        $('#editPiecesPerYield').prop('disabled', true);
+                        $('#editPiecesPerYield').prop('disabled', false);
                         $('#editTraysPerYield').val(0);
                         $('#editGramsPerTray').val(0);
+                        
+                        // Dough uses 1 column layout (full width for Per Piece)
+                        $('#editYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                        $('#editPerPieceSection').addClass('col-span-2');
                     }
                     
                     // Hide all units except grams for bread and dough
@@ -3447,15 +3467,28 @@
                 const profitAmount = targetProfit - totalCost;
                 const sellingPrice = targetProfit;
 
-                // Check if all ingredients are in grams or ml (ml can be treated as grams for liquid ingredients like water)
-                const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                const allIngredientsInGrams = editIngredientsList.length > 0 && editIngredientsList.every(item => allowedUnitsForYield.includes(item.unit.toLowerCase()));
+                // Get current category to determine if yield computation should be shown
+                const currentCategory = $('#edit_category_id').val();
+                
+                // Show yield computation section based on category (bread or dough categories)
+                // Yield computation is only available for bread and dough categories
+                const showYieldComputation = (currentCategory === 'bread' || currentCategory === 'dough') && editIngredientsList.length > 0;
 
-                // Show/hide yield computation section
-                if (allIngredientsInGrams) {
+                // Show/hide yield computation section based on category
+                if (showYieldComputation) {
                     $('#editYieldComputationSection').removeClass('hidden');
 
-                    const totalYieldGrams = editIngredientsList.reduce((sum, item) => sum + item.quantity, 0);
+                    // Auto-calculate total yield from ingredients that are in grams or ml
+                    const allowedUnitsForYield = ['grams', 'ml', 'g'];
+                    let totalYieldGrams = 0;
+                    let yieldContributingCost = 0;
+                    
+                    editIngredientsList.forEach(item => {
+                        if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
+                            totalYieldGrams += item.quantity;
+                            yieldContributingCost += item.totalCost;
+                        }
+                    });
                     
                     // Get current input values
                     let piecesPerYield = parseInt($('#editPiecesPerYield').val()) || 0;
@@ -3463,7 +3496,8 @@
                     let gramsPerPiece = parseFloat($('#editGramsPerPiece').val()) || 0;
                     let gramsPerTray = parseFloat($('#editGramsPerTray').val()) || 0;
 
-                    const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
+                    // Unit price per gram - based only on yield-contributing ingredients
+                    const unitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
 
                     let unitPricePerPiece = 0;
                     let unitPricePerTray = 0;
@@ -3490,26 +3524,19 @@
                     }
 
                     // Handle PIECE calculations
-                    // Get the current category to check if it's dough
-                    const currentCategory = $('#edit_category_id').val();
-                    
                     if (changedField === 'editGramsPerPiece' && gramsPerPiece > 0) {
                         // User entered grams per piece - calculate number of pieces (whole numbers only)
-                        // For dough, don't auto-calculate pieces from grams per piece
-                        if (currentCategory !== 'dough') {
-                            if (traysPerYield > 0 && gramsPerTray > 0) {
-                                // If trays exist, pieces = pieces per tray (based on grams per tray)
-                                piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
-                                piecesPerTray = piecesPerYield;
-                            } else if (totalYieldGrams > 0) {
-                                // Direct calculation from total yield
-                                piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
-                            }
-                            $('#editPiecesPerYield').val(piecesPerYield);
+                        if (traysPerYield > 0 && gramsPerTray > 0) {
+                            // If trays exist, pieces = pieces per tray (based on grams per tray)
+                            piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
+                            piecesPerTray = piecesPerYield;
+                        } else if (totalYieldGrams > 0) {
+                            // Direct calculation from total yield
+                            piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
                         }
-                    } else if (changedField === 'editPiecesPerYield' && piecesPerYield > 0 && currentCategory !== 'dough') {
+                        $('#editPiecesPerYield').val(piecesPerYield);
+                    } else if (changedField === 'editPiecesPerYield' && piecesPerYield > 0) {
                         // User entered pieces - calculate grams per piece
-                        // Skip this calculation entirely for dough category
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             // Pieces input = pieces per tray
                             piecesPerTray = piecesPerYield;
@@ -3519,9 +3546,8 @@
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
                         $('#editGramsPerPiece').val(gramsPerPiece.toFixed(2));
-                    } else if (piecesPerYield > 0 && currentCategory !== 'dough') {
+                    } else if (piecesPerYield > 0) {
                         // Default: calculate grams per piece from pieces
-                        // Skip this calculation entirely for dough category
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
                             gramsPerPiece = gramsPerTray / piecesPerTray;
@@ -3931,6 +3957,18 @@
 
                             if (yieldGrams > 0 || traysPerYield > 0 || piecesPerYield > 0) {
                                 $('#viewYieldSection').removeClass('hidden');
+                                
+                                // Set grid layout based on category AND whether Per Tray has data
+                                // If no trays data, Per Piece should take full width regardless of category
+                                if (traysPerYield > 0) {
+                                    // Has tray data - use 2 columns
+                                    $('#viewYieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
+                                    $('#viewPerPieceSection').removeClass('col-span-2');
+                                } else {
+                                    // No tray data - Per Piece takes full width (1 column)
+                                    $('#viewYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
+                                    $('#viewPerPieceSection').addClass('col-span-2');
+                                }
                                 
                                 // Display total yield
                                 $('#viewYieldGrams').text(yieldGrams.toFixed(2) + ' g');
