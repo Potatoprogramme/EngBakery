@@ -46,11 +46,19 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->post('DeleteTodaysInventory', 'InventoryController::deleteTodaysInventory');
     $routes->post('UpdateStockItem/(:num)', 'InventoryController::updateStockItem/$1');
+    $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
+    $routes->post('AddProductToInventory', 'InventoryController::addProductToInventory');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('/', 'OrdersController::order');
     $routes->get('OrderHistory', 'OrdersController::orderHistory');
+    $routes->get('GetProducts', 'OrdersController::getProducts');
+    $routes->post('ProcessPayment', 'OrdersController::processPayment');
+    $routes->get('GetOrderHistory', 'OrdersController::getOrderHistory');
+    $routes->get('GetOrderDetails/(:num)', 'OrdersController::getOrderDetails/$1');
+    $routes->get('GetTodaysSales', 'OrdersController::getTodaysSales');
+    $routes->post('VoidOrder/(:num)', 'OrdersController::voidOrder/$1');
 });
 
 $routes->group('MaterialCategory', function (RouteCollection $routes) {

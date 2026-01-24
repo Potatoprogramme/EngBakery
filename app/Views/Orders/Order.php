@@ -20,10 +20,6 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Product Lists</h2>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" id="btnAddMaterial"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            View Customers Orders
-                        </button>
                         <a href="<?= base_url('Order/OrderHistory') ?>" id="btnExport" class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             Order History
                         </a>
@@ -31,83 +27,76 @@
                 </div>
             </div>
 
-            <!-- Floating View Customer button for mobile -->
-            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
-                <button type="button" id="btnAddMaterialMobile"
-                    class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                    View Customer Orders
+            <!-- Floating Cart Button -->
+            <div id="floatingCartContainer" class="fixed bottom-6 right-6 z-40">
+                <!-- Mini Cart Panel (Hidden by default) -->
+                <div id="miniCartPanel" class="hidden absolute bottom-20 right-0 w-80 sm:w-96 bg-white border border-gray-200 shadow-2xl max-h-[70vh] overflow-hidden">
+                    <!-- Mini Cart Header -->
+                    <div class="bg-primary text-white px-4 py-3 flex justify-between items-center">
+                        <h4 class="font-semibold">Your Order</h4>
+                        <button type="button" id="btnCloseMiniCart" class="text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Mini Cart Items -->
+                    <div id="miniCartItems" class="max-h-64 overflow-y-auto p-3">
+                        <!-- Items will be dynamically inserted here -->
+                    </div>
+                    
+                    <!-- Mini Cart Footer -->
+                    <div class="border-t border-gray-200 p-4 bg-gray-50">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-gray-600 font-medium">Total:</span>
+                            <span class="text-xl font-bold text-primary" id="miniCartTotal">P0.00</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" id="btnClearCart" class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">
+                                Clear
+                            </button>
+                            <button type="button" id="btnMiniCartCheckout" class="flex-[2] px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-secondary transition-colors">
+                                Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Floating Cart Button -->
+                <button type="button" id="floatingCartBtn" class="relative w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    <span id="cartBadge" class="hidden absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">0</span>
                 </button>
             </div>
 
             <!-- Tabs -->
-            <div class="flex gap-2 mb-4">
-                <button data-tab="breads" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md">
+            <div class="flex gap-2 mb-3">
+                <button type="button" data-tab="breads" onclick="switchTab('breads')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
                     Breads
                 </button>
-                <button data-tab="drinks" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400">
+                <button type="button" data-tab="drinks" onclick="switchTab('drinks')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                     Drinks
                 </button>
             </div>
 
             <!-- Tab Content: Breads -->
-            <div id="breads-content" class="tab-content p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Pandesal" data-product-price="5.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800">Pandesal</h5>
-                        <p class="text-sm text-gray-600">Classic Filipino bread roll</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱5.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Ensaymada" data-product-price="25.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800">Ensaymada</h5>
-                        <p class="text-sm text-gray-600">Sweet buttery pastry</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱25.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Spanish Bread" data-product-price="8.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800 ">Spanish Bread</h5>
-                        <p class="text-sm text-gray-600">Sweet bread with filling</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱8.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Cheese Bread" data-product-price="12.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800">Cheese Bread</h5>
-                        <p class="text-sm text-gray-600">Bread topped with cheese</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱12.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Monay" data-product-price="6.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800">Monay</h5>
-                        <p class="text-sm text-gray-600">Traditional oval bread</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱6.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Putok" data-product-price="7.00">
-                        <h5 class="text-lg/5 font-semibold text-gray-800">Putok</h5>
-                        <p class="text-sm text-gray-600">Cracked top bread</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱7.00</p>
-                    </button>
+            <div id="breads-content" class="tab-content p-3 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
+                <div id="breads-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                    <!-- Products will be loaded dynamically -->
+                    <div class="col-span-full text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Loading products...</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Tab Content: Drinks -->
-            <div id="drinks-content" class="tab-content hidden p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Coffee" data-product-price="30.00">
-                        <h5 class="text-lg font-semibold text-gray-800">Coffee</h5>
-                        <p class="text-sm text-gray-600">Hot brewed coffee</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱30.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Iced Coffee" data-product-price="35.00">
-                        <h5 class="text-lg font-semibold text-gray-800">Iced Coffee</h5>
-                        <p class="text-sm text-gray-600">Chilled coffee drink</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱35.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Milk Tea" data-product-price="40.00">
-                        <h5 class="text-lg font-semibold text-gray-800">Milk Tea</h5>
-                        <p class="text-sm text-gray-600">Creamy milk tea</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱40.00</p>
-                    </button>
-                    <button type="button" class="product-card bg-white block p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all text-left" data-product-name="Juice" data-product-price="25.00">
-                        <h5 class="text-lg font-semibold text-gray-800">Juice</h5>
-                        <p class="text-sm text-gray-600">Fresh fruit juice</p>
-                        <p class="mt-2 py-2 text-center text-2xl font-bold text-primary rounded bg-gray-100 border border-gray-300">₱25.00</p>
-                    </button>
+            <div id="drinks-content" class="tab-content hidden p-3 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
+                <div id="drinks-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                    <!-- Products will be loaded dynamically -->
+                    <div class="col-span-full text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Loading products...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,7 +104,7 @@
 
     <!-- Product Selection Modal -->
     <div id="productModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg rounded-lg bg-white">
+        <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg bg-white rounded-lg">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800" id="productModalTitle">Product Name</h3>
                 <button type="button" id="btnCloseProductModal" class="text-gray-400 hover:text-gray-600">
@@ -125,27 +114,27 @@
             <form id="productOrderForm">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                    <div class="text-2xl font-bold text-primary" id="productPrice">₱0.00</div>
+                    <div class="text-2xl font-bold text-primary" id="productPrice">P0.00</div>
                 </div>
                 <div class="mb-4">
                     <label for="productQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span class="text-red-500">*</span></label>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="btnQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <button type="button" id="btnQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="productQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        <button type="button" id="btnQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <input type="number" id="productQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <button type="button" id="btnQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             +
                         </button>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
-                    <div class="text-xl font-bold text-gray-800" id="productTotal">₱0.00</div>
+                    <div class="text-xl font-bold text-gray-800" id="productTotal">P0.00</div>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelProduct" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary rounded-lg hover:bg-secondary transition-all">Add to Order</button>
+                    <button type="button" id="btnCancelProduct" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Add to Order</button>
                 </div>
             </form>
         </div>
@@ -153,7 +142,7 @@
 
     <!-- Customer Orders Modal -->
     <div id="customerOrdersModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl mx-auto p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
+        <div class="relative w-full max-w-2xl mx-auto p-6 border shadow-lg bg-white max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800">Customer Orders</h3>
                 <button type="button" id="btnCloseOrdersModal" class="text-gray-400 hover:text-gray-600">
@@ -168,11 +157,11 @@
             <div class="mt-6 pt-4 border-t border-gray-200">
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-lg font-semibold text-gray-800">Grand Total:</span>
-                    <span class="text-2xl font-bold text-primary" id="grandTotal">₱0.00</span>
+                    <span class="text-2xl font-bold text-primary" id="grandTotal">P0.00</span>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnClearOrders" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Clear All</button>
-                    <button type="submit" id="btnCheckout" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary rounded-lg hover:bg-secondary transition-all">Checkout</button>
+                    <button type="button" id="btnClearOrders" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Clear All</button>
+                    <button type="submit" id="btnCheckout" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Checkout</button>
                 </div>
             </div>
         </div>
@@ -180,7 +169,7 @@
 
     <!-- Edit Order Quantity Modal -->
     <div id="editOrderModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg rounded-lg bg-white">
+        <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg bg-white">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800" id="editOrderModalTitle">Edit Order</h3>
                 <button type="button" id="btnCloseEditOrderModal" class="text-gray-400 hover:text-gray-600">
@@ -190,29 +179,214 @@
             <form id="editOrderForm">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                    <div class="text-2xl font-bold text-primary" id="editOrderPrice">₱0.00</div>
+                    <div class="text-2xl font-bold text-primary" id="editOrderPrice">P0.00</div>
                 </div>
                 <div class="mb-4">
                     <label for="editOrderQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span class="text-red-500">*</span></label>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="btnEditQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <button type="button" id="btnEditQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        <button type="button" id="btnEditQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <button type="button" id="btnEditQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             +
                         </button>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
-                    <div class="text-xl font-bold text-gray-800" id="editOrderTotal">₱0.00</div>
+                    <div class="text-xl font-bold text-gray-800" id="editOrderTotal">P0.00</div>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelEditOrder" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary rounded-lg hover:bg-secondary transition-all">Update Order</button>
+                    <button type="button" id="btnCancelEditOrder" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Update Order</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Checkout Modal with Step Progress -->
+    <!-- Checkout Modal with Step Progress -->
+    <div id="checkoutModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+        <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
+            style="max-width: 42rem;">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-primary">Checkout</h3>
+                <button type="button" id="btnCloseCheckout" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Progress Stepper (same style as Product modal) -->
+            <div class="mb-6">
+                <div class="flex items-center w-full px-2 sm:px-4">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step1" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            1
+                        </div>
+                        <span id="step1Label" class="text-[9px] sm:text-[11px] font-medium text-primary text-center leading-tight">Cart</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step2" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            2
+                        </div>
+                        <span id="step2Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Payment</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step3" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            3
+                        </div>
+                        <span id="step3Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Amount</span>
+                    </div>
+                    <!-- Connector -->
+                    <div id="connector3" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
+                    <!-- Step 4 -->
+                    <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                        <div id="step4" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                            4
+                        </div>
+                        <span id="step4Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Done</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Content Container -->
+            <div>
+                <!-- Step 1: Cart Review -->
+                <div id="checkoutStep1" class="checkout-step">
+                    <div class="mb-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                        <h4 class="text-center text-sm font-medium mb-3">Order Summary</h4>
+                        <div id="checkoutCartItems" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- Cart items will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="p-3 border border-primary/20 rounded-md bg-primary/5 mb-4">
+                        <div class="flex justify-between items-center text-lg font-bold">
+                            <span>Total:</span>
+                            <span class="text-primary" id="checkoutTotal">P0.00</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnCancelCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="btnToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Payment Method -->
+                <div id="checkoutStep2" class="checkout-step hidden">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Type <span class="text-red-500">*</span></label>
+                        <select id="checkoutOrderType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="walk-in">Walk-in</option>
+                            <option value="foodpanda">FoodPanda</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span class="text-red-500">*</span></label>
+                        <select id="checkoutPaymentMethod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="cash">Cash</option>
+                            <option value="gcash">GCash</option>
+                            <option value="maya">Maya</option>
+                            <option value="credit card">Credit Card</option>
+                            <option value="debit card">Debit Card</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnBackToStep1" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnToStep3" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Amount Tendered -->
+                <div id="checkoutStep3" class="checkout-step hidden">
+                    <div class="mb-3 p-3 border border-primary/20 rounded-md bg-primary/5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 font-medium">Total Amount:</span>
+                            <span class="text-xl font-bold text-primary" id="step3Total">P0.00</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount Tendered <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">₱</span>
+                            <input type="number" id="amountTendered" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-lg font-semibold" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 mb-3">
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-type="exact">Exact</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="50">₱50</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="100">₱100</button>
+                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="500">₱500</button>
+                    </div>
+                    <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 font-medium">Change:</span>
+                            <span class="text-xl font-bold text-green-600" id="changeAmount">₱0.00</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnBackToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnCompleteCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Complete</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Success -->
+                <div id="checkoutStep4" class="checkout-step hidden">
+                    <div class="text-center py-4">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 text-green-600 rounded-full border-2 border-green-500">
+                            <i class="fas fa-check text-3xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Order Complete!</h4>
+                        <p class="text-sm text-gray-500 mb-1">Order Number:</p>
+                        <p class="text-2xl font-bold text-primary mb-4" id="orderNumber">ORD-000000-000</p>
+                        <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4 text-left">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Total:</span>
+                                <span class="font-bold text-gray-800" id="finalTotal">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Tendered:</span>
+                                <span class="text-gray-800" id="finalTendered">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between text-base font-bold pt-2 border-t border-gray-300">
+                                <span class="text-gray-700">Change:</span>
+                                <span class="text-green-600" id="finalChange">₱0.00</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" id="btnPrintInvoice" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                                <i class="fas fa-print mr-2"></i>Print
+                            </button>
+                            <button type="button" id="btnNewOrder" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">New Order</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div id="exitConfirmModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md mx-auto p-8 border shadow-xl bg-white">
+            <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-5 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-4xl"></i>
+                </div>
+                <h4 class="text-xl font-bold text-gray-800 mb-3">Exit Checkout?</h4>
+                <p class="text-gray-600 mb-6">Are you sure you want to exit? Your checkout progress will be lost.</p>
+                <div class="flex gap-3">
+                    <button type="button" id="btnCancelExit" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Stay</button>
+                    <button type="button" id="btnConfirmExit" class="flex-1 px-5 py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Exit</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -353,337 +527,42 @@
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
     
-    <!-- App Scripts -->
+    <!-- Tab Switching Function (inline to ensure it works) -->
     <script>
-        // Set base URL for JS modules
-        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';        
-        // Cart system
-        let orderCart = [];
-                // Tab switching functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-
-                    // Remove active state from all buttons
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-                        btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
-                    });
-
-                    // Add active state to clicked button
-                    this.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
-                    this.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-
-                    // Hide all tab contents
-                    tabContents.forEach(content => {
-                        content.classList.add('hidden');
-                    });
-
-                    // Show the selected tab content
-                    document.getElementById(targetTab + '-content').classList.remove('hidden');
-                });
+        function switchTab(tabName) {
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
             });
-
-            // Product card click handlers
-            const productCards = document.querySelectorAll('.product-card');
-            const productModal = document.getElementById('productModal');
-            const productModalTitle = document.getElementById('productModalTitle');
-            const productPrice = document.getElementById('productPrice');
-            const productQuantity = document.getElementById('productQuantity');
-            const productTotal = document.getElementById('productTotal');
-            const btnQtyDecrease = document.getElementById('btnQtyDecrease');
-            const btnQtyIncrease = document.getElementById('btnQtyIncrease');
-            const btnCloseProductModal = document.getElementById('btnCloseProductModal');
-            const btnCancelProduct = document.getElementById('btnCancelProduct');
-            const productOrderForm = document.getElementById('productOrderForm');
-
-            let currentProductPrice = 0;
-
-            // Open product modal when card is clicked
-            productCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const productName = this.getAttribute('data-product-name');
-                    const price = parseFloat(this.getAttribute('data-product-price'));
-                    
-                    currentProductPrice = price;
-                    productModalTitle.textContent = productName;
-                    productPrice.textContent = '₱' + price.toFixed(2);
-                    productQuantity.value = 1;
-                    productTotal.textContent = '₱' + price.toFixed(2);
-                    
-                    productModal.classList.remove('hidden');
-                });
-            });
-
-            // Helper to keep quantity and total in sync
-            function updateProductTotal() {
-                let quantity = parseInt(productQuantity.value) || 0;
-                if (quantity < 1) {
-                    quantity = 1;
-                    productQuantity.value = 1;
-                }
-                const total = currentProductPrice * quantity;
-                productTotal.textContent = '₱' + total.toFixed(2);
+            
+            // Add active state to clicked button
+            var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+                activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
             }
-
-            // Update total when quantity changes manually
-            productQuantity.addEventListener('input', updateProductTotal);
-
-            // Decrease quantity
-            btnQtyDecrease.addEventListener('click', function() {
-                let quantity = parseInt(productQuantity.value) || 1;
-                if (quantity > 1) {
-                    productQuantity.value = quantity - 1;
-                    updateProductTotal();
-                }
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.add('hidden');
             });
-
-            // Increase quantity
-            btnQtyIncrease.addEventListener('click', function() {
-                let quantity = parseInt(productQuantity.value) || 1;
-                productQuantity.value = quantity + 1;
-                updateProductTotal();
-            });
-
-            // Close modal handlers
-            btnCloseProductModal.addEventListener('click', function() {
-                productModal.classList.add('hidden');
-            });
-
-            btnCancelProduct.addEventListener('click', function() {
-                productModal.classList.add('hidden');
-            });
-
-            // Close modal when clicking outside
-            productModal.addEventListener('click', function(e) {
-                if (e.target === productModal) {
-                    productModal.classList.add('hidden');
-                }
-            });
-
-            // Handle form submission - Add to Cart
-            productOrderForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const productName = productModalTitle.textContent;
-                const quantity = parseInt(productQuantity.value);
-                const price = currentProductPrice;
-                const total = price * quantity;
-                
-                // Check if product already exists in cart
-                const existingItem = orderCart.find(item => item.name === productName);
-                if (existingItem) {
-                    existingItem.quantity += quantity;
-                    existingItem.total = existingItem.quantity * existingItem.price;
-                } else {
-                    orderCart.push({
-                        name: productName,
-                        price: price,
-                        quantity: quantity,
-                        total: total
-                    });
-                }
-                
-                console.log('Order Cart:', orderCart);
-                Toast.success('Added ' + quantity + ' x ' + productName + ' to order!');
-                
-                productModal.classList.add('hidden');
-            });
-
-            // Customer Orders Modal functionality
-            const customerOrdersModal = document.getElementById('customerOrdersModal');
-            const btnCloseOrdersModal = document.getElementById('btnCloseOrdersModal');
-            const ordersListContainer = document.getElementById('ordersListContainer');
-            const grandTotal = document.getElementById('grandTotal');
-            const btnClearOrders = document.getElementById('btnClearOrders');
-            const btnCheckout = document.getElementById('btnCheckout');
-            const btnAddMaterial = document.getElementById('btnAddMaterial');
-            const btnAddMaterialMobile = document.getElementById('btnAddMaterialMobile');
-
-            // Function to render orders list
-            function renderOrdersList() {
-                if (orderCart.length === 0) {
-                    ordersListContainer.innerHTML = `
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-shopping-cart text-4xl mb-3"></i>
-                            <p class="text-lg">No orders yet</p>
-                            <p class="text-sm">Add products to get started</p>
-                        </div>
-                    `;
-                    grandTotal.textContent = '₱0.00';
-                    return;
-                }
-
-                let total = 0;
-                let html = '<div class="space-y-3">';
-                
-                orderCart.forEach((item, index) => {
-                    total += item.total;
-                    html += `
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                            <div class="flex-1 cursor-pointer btn-edit-order" data-index="${index}">
-                                <h4 class="font-semibold text-gray-800">${item.name}</h4>
-                                <p class="text-sm text-gray-600">₱${item.price.toFixed(2)} × ${item.quantity}</p>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="font-bold text-primary">₱${item.total.toFixed(2)}</span>
-                                <button type="button" class="btn-remove-order text-red-500 hover:text-red-700" data-index="${index}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += '</div>';
-                ordersListContainer.innerHTML = html;
-                grandTotal.textContent = '₱' + total.toFixed(2);
-
-                // Add remove button handlers
-                document.querySelectorAll('.btn-remove-order').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        orderCart.splice(index, 1);
-                        renderOrdersList();
-                    });
-                });
-
-                // Add edit order handlers
-                document.querySelectorAll('.btn-edit-order').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        openEditOrderModal(index);
-                    });
-                });
+            
+            // Show selected tab content
+            var targetContent = document.getElementById(tabName + '-content');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
             }
-
-            // Edit Order Modal functionality
-            const editOrderModal = document.getElementById('editOrderModal');
-            const editOrderModalTitle = document.getElementById('editOrderModalTitle');
-            const editOrderPrice = document.getElementById('editOrderPrice');
-            const editOrderQuantity = document.getElementById('editOrderQuantity');
-            const editOrderTotal = document.getElementById('editOrderTotal');
-            const btnEditQtyDecrease = document.getElementById('btnEditQtyDecrease');
-            const btnEditQtyIncrease = document.getElementById('btnEditQtyIncrease');
-            const btnCloseEditOrderModal = document.getElementById('btnCloseEditOrderModal');
-            const btnCancelEditOrder = document.getElementById('btnCancelEditOrder');
-            const editOrderForm = document.getElementById('editOrderForm');
-
-            let currentEditIndex = -1;
-            let currentEditPrice = 0;
-
-            // Open edit order modal
-            function openEditOrderModal(index) {
-                const item = orderCart[index];
-                currentEditIndex = index;
-                currentEditPrice = item.price;
-                
-                editOrderModalTitle.textContent = 'Edit: ' + item.name;
-                editOrderPrice.textContent = '₱' + item.price.toFixed(2);
-                editOrderQuantity.value = item.quantity;
-                editOrderTotal.textContent = '₱' + item.total.toFixed(2);
-                
-                editOrderModal.classList.remove('hidden');
-            }
-
-            // Update edit order total
-            function updateEditOrderTotal() {
-                let quantity = parseInt(editOrderQuantity.value) || 0;
-                if (quantity < 1) {
-                    quantity = 1;
-                    editOrderQuantity.value = 1;
-                }
-                const total = currentEditPrice * quantity;
-                editOrderTotal.textContent = '₱' + total.toFixed(2);
-            }
-
-            // Edit quantity handlers
-            editOrderQuantity.addEventListener('input', updateEditOrderTotal);
-
-            btnEditQtyDecrease.addEventListener('click', function() {
-                let quantity = parseInt(editOrderQuantity.value) || 1;
-                if (quantity > 1) {
-                    editOrderQuantity.value = quantity - 1;
-                    updateEditOrderTotal();
-                }
-            });
-
-            btnEditQtyIncrease.addEventListener('click', function() {
-                let quantity = parseInt(editOrderQuantity.value) || 1;
-                editOrderQuantity.value = quantity + 1;
-                updateEditOrderTotal();
-            });
-
-            // Close edit order modal
-            btnCloseEditOrderModal.addEventListener('click', function() {
-                editOrderModal.classList.add('hidden');
-            });
-
-            btnCancelEditOrder.addEventListener('click', function() {
-                editOrderModal.classList.add('hidden');
-            });
-
-            editOrderModal.addEventListener('click', function(e) {
-                if (e.target === editOrderModal) {
-                    editOrderModal.classList.add('hidden');
-                }
-            });
-
-            // Update order in cart
-            editOrderForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const newQuantity = parseInt(editOrderQuantity.value);
-                
-                if (currentEditIndex >= 0 && currentEditIndex < orderCart.length) {
-                    orderCart[currentEditIndex].quantity = newQuantity;
-                    orderCart[currentEditIndex].total = orderCart[currentEditIndex].price * newQuantity;
-                    renderOrdersList();
-                }
-                
-                editOrderModal.classList.add('hidden');
-            });
-
-            // Open customer orders modal
-            function openOrdersModal() {
-                renderOrdersList();
-                customerOrdersModal.classList.remove('hidden');
-            }
-
-            // Close customer orders modal
-            btnCloseOrdersModal.addEventListener('click', function() {
-                customerOrdersModal.classList.add('hidden');
-            });
-
-            // Close modal when clicking outside
-            customerOrdersModal.addEventListener('click', function(e) {
-                if (e.target === customerOrdersModal) {
-                    customerOrdersModal.classList.add('hidden');
-                }
-            });
-
-            // Clear all orders
-            btnClearOrders.addEventListener('click', function() {
-                Confirm.show('Are you sure you want to clear all orders?', function() {
-                    orderCart = [];
-                    renderOrdersList();
-                });
-            });
-
-            // Checkout
-            btnCheckout.addEventListener('click', function() {
-                if (orderCart.length === 0) {
-                    Toast.warning('No orders to checkout!');
-                    return;
-                }
-                
-                // TODO: Implement checkout logic (save to database, process payment, etc.)
-                Toast.info('Checkout feature coming soon!\nTotal: ' + grandTotal.textContent);
-            });
-
-            // View Customer Orders buttons
-            btnAddMaterial.addEventListener('click', openOrdersModal);
-            btnAddMaterialMobile.addEventListener('click', openOrdersModal);
-        });    </script>
+        }
+    </script>
+    
+    <!-- Set base URL for JS modules -->
+    <script>
+        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+    </script>
+    
+    <!-- Order Module Scripts -->
+    <script src="<?= base_url('js/order/cart-manager.js') ?>"></script>
+    <script src="<?= base_url('js/order/order-main.js') ?>"></script>
+</body>
+</html>

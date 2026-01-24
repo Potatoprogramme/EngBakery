@@ -1,11 +1,22 @@
 <body class="bg-gray-50">
-    <!-- Main Content -->
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
             <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
                 <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
+                    <li><a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a></li>
                     <li>
-                        <a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </li>
+                    <li><a href="<?= base_url('Order') ?>" class="hover:text-primary">Order</a></li>
+                    <li>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('Order') ?>" class="hover:text-primary">Order</a>
                     </li>
                     <li>
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -16,118 +27,49 @@
                     <li class="text-gray-700">Order History</li>
                 </ol>
             </nav>
+            
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Order History Lists</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Order History</h2>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" id="btnExport"
-                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            Export
-                        </button>
+                        <a href="<?= base_url('Order') ?>" class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            <i class="fas fa-plus mr-2"></i>New Order
+                        </a>
                     </div>
                 </div>
-
-                <!-- Divider line -->
                 <div class="border-t border-gray-200 my-4"></div>
-
-                <!-- Filters section -->
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <!-- Date Filters -->
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filter-date-from" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
-                            <input type="date" id="filter-date-from" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateFrom" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
+                            <input type="date" id="filterDateFrom" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filter-date-to" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
-                            <input type="date" id="filter-date-to" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
+                            <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                     </div>
-                    <!-- Filter Buttons -->
                     <div class="flex gap-2 sm:justify-end">
-                        <button id="apply-filters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
-                        <button id="reset-filters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
+                        <button id="btnApplyFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
+                        <button id="btnResetFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
                     </div>
                 </div>
             </div>
 
             <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
-                <table id="selection-table" class="min-w-full text-sm text-left text-gray-500">
+                <table id="ordersTable" class="min-w-full text-sm text-left text-gray-500">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">
-                                    Order Number
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">
-                                    Date Ordered
-                                </span>
-                            </th>
-                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">
-                                    Amount
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">
-                                    Action
-                                </span>
-                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Order Number</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Date & Time</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Type</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Payment</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Amount</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#ORD-2026-001</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">January 18, 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱385.00</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary" data-order-id="1" data-order-number="#ORD-2026-001" data-date="January 18, 2026" data-total="385.00">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#ORD-2026-002</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">January 17, 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱215.00</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary" data-order-id="1" data-order-number="#ORD-2026-001" data-date="January 18, 2026" data-total="385.00">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#ORD-2026-003</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">January 16, 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱540.00</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary" data-order-id="1" data-order-number="#ORD-2026-001" data-date="January 18, 2026" data-total="385.00">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#ORD-2026-004</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">January 15, 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱125.00</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary" data-order-id="1" data-order-number="#ORD-2026-001" data-date="January 18, 2026" data-total="385.00">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#ORD-2026-005</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">January 14, 2026</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱ 690.00</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary" data-order-id="1" data-order-number="#ORD-2026-001" data-date="January 18, 2026" data-total="385.00">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading orders...</p></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -136,237 +78,269 @@
 
     <!-- Order Details Modal -->
     <div id="orderDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-3xl mx-auto p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
-                <h3 class="text-2xl font-bold text-gray-800" id="orderDetailsTitle">Order Details</h3>
-                <button type="button" id="btnCloseOrderDetails" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <!-- Order Info -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-1">Order Number</p>
-                    <p class="text-lg font-semibold text-gray-900" id="detailOrderNumber">-</p>
+        <div class="relative w-full max-w-lg mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
+            <div id="receiptContent" class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="text-center flex-1">
+                        <h2 class="text-2xl font-bold text-gray-800">EngBakery</h2>
+                        <p class="text-sm text-gray-500">Order Receipt</p>
+                    </div>
+                    <button type="button" id="btnCloseOrderDetails" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-1">Date Ordered</p>
-                    <p class="text-lg font-semibold text-gray-900" id="detailOrderDate">-</p>
+                <div class="border-t border-dashed border-gray-300 py-3">
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div><span class="text-gray-600">Order #:</span></div>
+                        <div class="text-right font-semibold" id="detailOrderNumber">-</div>
+                        <div><span class="text-gray-600">Date:</span></div>
+                        <div class="text-right" id="detailOrderDate">-</div>
+                        <div><span class="text-gray-600">Time:</span></div>
+                        <div class="text-right" id="detailOrderTime">-</div>
+                        <div><span class="text-gray-600">Type:</span></div>
+                        <div class="text-right" id="detailOrderType">-</div>
+                        <div><span class="text-gray-600">Payment:</span></div>
+                        <div class="text-right" id="detailPaymentMethod">-</div>
+                    </div>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-1">Total Amount</p>
-                    <p class="text-lg font-bold text-primary" id="detailOrderTotal">-</p>
+                <div class="border-t border-dashed border-gray-300 py-3">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Items</h4>
+                    <div id="orderItemsList" class="space-y-2 text-sm"></div>
                 </div>
-            </div>
-
-            <!-- Order Items -->
-            <div class="mb-6">
-                <h4 class="text-lg font-semibold text-gray-800 mb-3">Order Items</h4>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-gray-700 font-semibold">Product</th>
-                                <th class="px-4 py-3 text-right text-gray-700 font-semibold">Price</th>
-                                <th class="px-4 py-3 text-center text-gray-700 font-semibold">Quantity</th>
-                                <th class="px-4 py-3 text-right text-gray-700 font-semibold">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orderItemsList" class="divide-y divide-gray-200">
-                            <!-- Items will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Order Summary -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-gray-700">Subtotal:</span>
-                    <span class="font-semibold text-gray-900" id="summarySubtotal">₱0.00</span>
-                </div>
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-gray-700">Tax (0%):</span>
-                    <span class="font-semibold text-gray-900">₱0.00</span>
-                </div>
-                <div class="border-t border-gray-300 pt-2 mt-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-bold text-gray-900">Total:</span>
-                        <span class="text-2xl font-bold text-primary" id="summaryTotal">₱0.00</span>
+                <div class="border-t border-dashed border-gray-300 py-3 space-y-2">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>TOTAL:</span>
+                        <span id="detailTotalAmount">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Amount Received:</span>
+                        <span id="detailAmountReceived">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Change:</span>
+                        <span id="detailChange">₱0.00</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Action Buttons -->
-            <div class="flex gap-3 mt-6 justify-end">
-                <button type="button" id="btnPrintOrder" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            <div class="px-6 pb-6 flex gap-2">
+                <button type="button" id="btnPrintReceipt" class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
-                <button type="button" id="btnCloseModal" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary">
-                    Close
+                <button type="button" id="btnVoidOrder" class="px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-600 hover:text-white transition-all">
+                    <i class="fas fa-ban mr-2"></i>Void
                 </button>
+                <button type="button" id="btnCloseModal" class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- External Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
     
-    <!-- App Scripts -->
     <script>
-        // Set base URL for JS modules
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
-        // Sample order data
-        const orderData = {
-            1: {
-                items: [
-                    { name: 'Pandesal', price: 5.00, quantity: 10, subtotal: 50.00 },
-                    { name: 'Ensaymada', price: 25.00, quantity: 5, subtotal: 125.00 },
-                    { name: 'Coffee', price: 30.00, quantity: 3, subtotal: 90.00 },
-                    { name: 'Milk Tea', price: 40.00, quantity: 3, subtotal: 120.00 }
-                ]
-            },
-            2: {
-                items: [
-                    { name: 'Spanish Bread', price: 8.00, quantity: 15, subtotal: 120.00 },
-                    { name: 'Iced Coffee', price: 35.00, quantity: 2, subtotal: 70.00 },
-                    { name: 'Pandesal', price: 5.00, quantity: 5, subtotal: 25.00 }
-                ]
-            },
-            3: {
-                items: [
-                    { name: 'Cheese Bread', price: 12.00, quantity: 20, subtotal: 240.00 },
-                    { name: 'Ensaymada', price: 25.00, quantity: 8, subtotal: 200.00 },
-                    { name: 'Coffee', price: 30.00, quantity: 2, subtotal: 60.00 },
-                    { name: 'Milk Tea', price: 40.00, quantity: 1, subtotal: 40.00 }
-                ]
-            },
-            4: {
-                items: [
-                    { name: 'Pandesal', price: 5.00, quantity: 10, subtotal: 50.00 },
-                    { name: 'Monay', price: 6.00, quantity: 5, subtotal: 30.00 },
-                    { name: 'Juice', price: 25.00, quantity: 1, subtotal: 25.00 },
-                    { name: 'Coffee', price: 30.00, quantity: 1, subtotal: 20.00 }
-                ]
-            },
-            5: {
-                items: [
-                    { name: 'Ensaymada', price: 25.00, quantity: 10, subtotal: 250.00 },
-                    { name: 'Spanish Bread', price: 8.00, quantity: 20, subtotal: 160.00 },
-                    { name: 'Milk Tea', price: 40.00, quantity: 4, subtotal: 160.00 },
-                    { name: 'Iced Coffee', price: 35.00, quantity: 2, subtotal: 70.00 },
-                    { name: 'Pandesal', price: 5.00, quantity: 10, subtotal: 50.00 }
-                ]
-            }
-        };
+        let dataTable = null;
+        let currentOrderId = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize DataTable
-            const dataTable = new simpleDatatables.DataTable("#selection-table", {
+        $(document).ready(function() {
+            loadOrders();
+            initFilters();
+            initOrderDetailsModal();
+        });
+
+        function loadOrders(dateFrom = null, dateTo = null) {
+            let url = BASE_URL + 'Order/GetOrderHistory';
+            const params = [];
+            if (dateFrom) params.push('date_from=' + dateFrom);
+            if (dateTo) params.push('date_to=' + dateTo);
+            if (params.length) url += '?' + params.join('&');
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        renderOrders(response.data);
+                    } else {
+                        $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
+                    }
+                },
+                error: function() {
+                    $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>');
+                }
+            });
+        }
+
+        function renderOrders(orders) {
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+
+            if (!orders || orders.length === 0) {
+                $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
+                return;
+            }
+
+            let html = '';
+            orders.forEach(order => {
+                const orderDate = new Date(order.date_created + ' ' + order.time_created);
+                const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
+                const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
+
+                html += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${order.order_number}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass}">${typeName}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 capitalize">${order.payment_method}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-order-id="${order.order_id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            $('#ordersTableBody').html(html);
+
+            dataTable = new simpleDatatables.DataTable("#ordersTable", {
                 searchable: true,
                 sortable: true,
                 perPage: 10,
                 perPageSelect: [5, 10, 25, 50],
                 labels: {
                     placeholder: "Search orders...",
-                    noRows: "No order history found",
+                    noRows: "No orders found",
                     info: "Showing {start} to {end} of {rows} orders"
                 }
             });
 
-            // Order Details Modal elements
-            const orderDetailsModal = document.getElementById('orderDetailsModal');
-            const btnCloseOrderDetails = document.getElementById('btnCloseOrderDetails');
-            const btnCloseModal = document.getElementById('btnCloseModal');
-            const btnPrintOrder = document.getElementById('btnPrintOrder');
+            $('.btn-view-order').on('click', function() {
+                openOrderDetails($(this).data('order-id'));
+            });
+        }
 
-            // Function to open order details modal
-            function openOrderDetails(orderId, orderNumber, orderDate, orderTotal) {
-                const order = orderData[orderId];
-                
-                // Set order info
-                document.getElementById('orderDetailsTitle').textContent = 'Order Details - ' + orderNumber;
-                document.getElementById('detailOrderNumber').textContent = orderNumber;
-                document.getElementById('detailOrderDate').textContent = orderDate;
-                document.getElementById('detailOrderTotal').textContent = '₱' + parseFloat(orderTotal).toFixed(2);
+        function initFilters() {
+            $('#btnApplyFilters').on('click', function() {
+                const dateFrom = $('#filterDateFrom').val();
+                const dateTo = $('#filterDateTo').val();
+                loadOrders(dateFrom, dateTo);
+            });
 
-                // Render order items
-                const orderItemsList = document.getElementById('orderItemsList');
-                orderItemsList.innerHTML = '';
-                
-                if (order && order.items) {
-                    order.items.forEach(item => {
-                        const row = `
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 text-gray-900">${item.name}</td>
-                                <td class="px-4 py-3 text-right text-gray-700">₱${item.price.toFixed(2)}</td>
-                                <td class="px-4 py-3 text-center text-gray-700">${item.quantity}</td>
-                                <td class="px-4 py-3 text-right font-semibold text-gray-900">₱${item.subtotal.toFixed(2)}</td>
-                            </tr>
-                        `;
-                        orderItemsList.innerHTML += row;
-                    });
+            $('#btnResetFilters').on('click', function() {
+                $('#filterDateFrom').val('');
+                $('#filterDateTo').val('');
+                loadOrders();
+            });
+        }
+
+        function initOrderDetailsModal() {
+            $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
+            $('#orderDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#orderDetailsModal').addClass('hidden'); });
+
+            $('#btnPrintReceipt').on('click', function() {
+                const content = $('#receiptContent').clone();
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Receipt - EngBakery</title>
+                        <style>
+                            body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+                            .text-center { text-align: center; }
+                            .font-bold { font-weight: bold; }
+                            .text-2xl { font-size: 1.5rem; }
+                            .text-lg { font-size: 1.1rem; }
+                            .text-sm { font-size: 0.9rem; }
+                            .border-t { border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+                            .flex { display: flex; justify-content: space-between; }
+                            .space-y-2 > * + * { margin-top: 0.5rem; }
+                            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+                            .text-right { text-align: right; }
+                            #btnCloseOrderDetails { display: none; }
+                        </style>
+                    </head>
+                    <body>${content.html()}</body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+            });
+
+            $('#btnVoidOrder').on('click', function() {
+                if (!currentOrderId) return;
+                Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function() {
+                    voidOrder(currentOrderId);
+                });
+            });
+        }
+
+        function openOrderDetails(orderId) {
+            currentOrderId = orderId;
+            $.ajax({
+                url: BASE_URL + 'Order/GetOrderDetails/' + orderId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const order = response.data.order;
+                        const items = response.data.items;
+                        const orderDate = new Date(order.date_created + ' ' + order.time_created);
+
+                        $('#detailOrderNumber').text(order.order_number);
+                        $('#detailOrderDate').text(orderDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+                        $('#detailOrderTime').text(orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+                        $('#detailOrderType').text(order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in');
+                        $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1));
+
+                        let itemsHtml = '';
+                        items.forEach(item => {
+                            itemsHtml += `
+                                <div class="flex justify-between">
+                                    <span>${item.product_name} x${item.amout}</span>
+                                    <span>₱${parseFloat(item.total_cost_of_item).toFixed(2)}</span>
+                                </div>
+                            `;
+                        });
+                        $('#orderItemsList').html(itemsHtml);
+
+                        $('#detailTotalAmount').text('₱' + parseFloat(order.total_payment_due).toFixed(2));
+                        $('#detailAmountReceived').text('₱' + parseFloat(order.amount_received).toFixed(2));
+                        $('#detailChange').text('₱' + parseFloat(order.amount_change).toFixed(2));
+
+                        $('#orderDetailsModal').removeClass('hidden');
+                    } else {
+                        Toast.error('Failed to load order details');
+                    }
+                },
+                error: function() {
+                    Toast.error('Error loading order details');
                 }
+            });
+        }
 
-                // Set summary
-                document.getElementById('summarySubtotal').textContent = '₱' + parseFloat(orderTotal).toFixed(2);
-                document.getElementById('summaryTotal').textContent = '₱' + parseFloat(orderTotal).toFixed(2);
-
-                // Show modal
-                orderDetailsModal.classList.remove('hidden');
-            }
-
-            // View order button click handler
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.btn-view-order')) {
-                    const btn = e.target.closest('.btn-view-order');
-                    const orderId = btn.getAttribute('data-order-id');
-                    const orderNumber = btn.getAttribute('data-order-number');
-                    const orderDate = btn.getAttribute('data-date');
-                    const orderTotal = btn.getAttribute('data-total');
-                    
-                    openOrderDetails(orderId, orderNumber, orderDate, orderTotal);
+        function voidOrder(orderId) {
+            $.ajax({
+                url: BASE_URL + 'Order/VoidOrder/' + orderId,
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Toast.success('Order voided successfully');
+                        $('#orderDetailsModal').addClass('hidden');
+                        loadOrders();
+                    } else {
+                        Toast.error(response.message || 'Failed to void order');
+                    }
+                },
+                error: function() {
+                    Toast.error('Error voiding order');
                 }
             });
-
-            // Close modal handlers
-            btnCloseOrderDetails.addEventListener('click', function() {
-                orderDetailsModal.classList.add('hidden');
-            });
-
-            btnCloseModal.addEventListener('click', function() {
-                orderDetailsModal.classList.add('hidden');
-            });
-
-            // Close modal when clicking outside
-            orderDetailsModal.addEventListener('click', function(e) {
-                if (e.target === orderDetailsModal) {
-                    orderDetailsModal.classList.add('hidden');
-                }
-            });
-
-            // Print order
-            btnPrintOrder.addEventListener('click', function() {
-                window.print();
-            });
-
-            // Date filter functionality
-            const applyFilters = document.getElementById('apply-filters');
-            const resetFilters = document.getElementById('reset-filters');
-            const filterDateFrom = document.getElementById('filter-date-from');
-            const filterDateTo = document.getElementById('filter-date-to');
-
-            applyFilters.addEventListener('click', function() {
-                // TODO: Implement filter logic with backend
-                alert('Filter functionality will be implemented with backend integration');
-            });
-
-            resetFilters.addEventListener('click', function() {
-                filterDateFrom.value = '';
-                filterDateTo.value = '';
-                // TODO: Reset table data
-            });
-        });    </script>
+        }
+    </script>

@@ -20,6 +20,10 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
                     <div class="flex flex-wrap gap-2">
+                        <button id="btnAddProductToInventory" type="button"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
+                            <i class="fas fa-plus mr-2"></i> Add Product
+                        </button>
                         <button id="btnAddTodaysInventory" type="button"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Add Today's Inventory
@@ -72,6 +76,14 @@
                         <tr>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
+<<<<<<< HEAD
+=======
+                                    Category
+                                </span>
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                <span class="flex items-center">
+>>>>>>> main
                                     SRP
                                 </span>
                             </th>
@@ -193,6 +205,49 @@
         </div>
     </div>
 
+<<<<<<< HEAD
+=======
+    <!-- Add Product to Inventory Modal -->
+    <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="addProductModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="addProductModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Add Product to Inventory</h3>
+
+            <form id="addProductForm">
+                <div class="mb-4">
+                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select Product</label>
+                    <select id="selectProduct" name="product_id" required
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        <option value="">-- Select a product --</option>
+                    </select>
+                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in inventory.</p>
+                </div>
+
+                <div class="mb-6">
+                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock (optional)</label>
+                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" id="btnSubmitAddProduct"
+                        class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                        Add to Inventory
+                    </button>
+                    <button type="button" id="addProductModalCancel"
+                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+>>>>>>> main
     <style>
         @media (max-width: 640px) {
 
@@ -519,9 +574,21 @@
                 items.forEach(function (item) {
                     // Calculate sales: beginning - ending - pull_out
                     const sales = (parseInt(item.beginning_stock) || 0) - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
-                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                    
+                    // Use appropriate price based on category
+                    const price = item.category === 'bread' && item.selling_price_per_piece > 0 
+                        ? item.selling_price_per_piece 
+                        : item.selling_price;
+                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+                    
+                    // Category badge color
+                    const categoryClass = item.category === 'bread' 
+                        ? 'bg-amber-100 text-amber-800' 
+                        : 'bg-blue-100 text-blue-800';
+                    const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
 
                     rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
+                    rows += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';
                     rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-4">' + (item.beginning_stock || 0) + '</td>';
@@ -535,14 +602,14 @@
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>';
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>';
             }
 
             $('#materialsTableBody').html(rows);
 
-            // Initialize DataTable with custom labels
+            // Initialize DataTable with custom labels - ONLY if we have data
             const tableElement = document.getElementById('selection-table');
-            if (tableElement && typeof simpleDatatables !== 'undefined') {
+            if (tableElement && typeof simpleDatatables !== 'undefined' && items && items.length > 0) {
                 dataTable = new simpleDatatables.DataTable('#selection-table', {
                     labels: {
                         placeholder: "Search inventory...",
@@ -649,7 +716,7 @@
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         // Clear the table
-                        $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
+                        $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
                         // Reload the table
@@ -664,4 +731,89 @@
                 }
             });
         }
+
+        // Add Product to Inventory functionality
+        $('#btnAddProductToInventory').on('click', function () {
+            loadAvailableProducts();
+            $('#addProductModal').removeClass('hidden');
+        });
+
+        // Close Add Product Modal
+        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
+            $('#addProductModal').addClass('hidden');
+            $('#addProductForm')[0].reset();
+        });
+
+        // Close modal on backdrop click
+        $('#addProductModalBackdrop').on('click', function () {
+            $('#addProductModal').addClass('hidden');
+            $('#addProductForm')[0].reset();
+        });
+
+        // Load available products (not yet in inventory)
+        function loadAvailableProducts() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/GetAvailableProducts',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const select = $('#selectProduct');
+                    select.html('<option value="">-- Select a product --</option>');
+                    
+                    if (response.success && response.data.length > 0) {
+                        response.data.forEach(function(product) {
+                            const categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+                            select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
+                        });
+                        $('#noProductsMessage').addClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', false);
+                    } else {
+                        $('#noProductsMessage').removeClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error loading products: ' + error, 2000);
+                }
+            });
+        }
+
+        // Submit Add Product Form
+        $('#addProductForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const productId = $('#selectProduct').val();
+            const beginningStock = $('#addBeginningStock').val() || 0;
+
+            if (!productId) {
+                showToast('warning', 'Please select a product', 2000);
+                return;
+            }
+
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddProductToInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    beginning_stock: beginningStock
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        $('#addProductModal').addClass('hidden');
+                        $('#addProductForm')[0].reset();
+                        fetchAllStockitems(); // Reload the table
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
+                }
+            });
+        });
     </script>
