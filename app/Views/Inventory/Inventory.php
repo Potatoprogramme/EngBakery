@@ -76,14 +76,11 @@
                         <tr>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-<<<<<<< HEAD
-=======
                                     Category
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
->>>>>>> main
                                     SRP
                                 </span>
                             </th>
@@ -205,8 +202,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-=======
     <!-- Add Product to Inventory Modal -->
     <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="addProductModalBackdrop"></div>
@@ -247,7 +242,6 @@
         </div>
     </div>
 
->>>>>>> main
     <style>
         @media (max-width: 640px) {
 
