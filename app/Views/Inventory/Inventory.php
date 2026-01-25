@@ -608,8 +608,6 @@
             let rows = '';
             if (items && items.length > 0) {
                 items.forEach(function (item) {
-                    // Calculate sales: beginning - ending - pull_out
-                    const sales = (parseInt(item.beginning_stock) || 0) - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
 
                     // Use appropriate price based on category
                     const price = item.category === 'bread' && item.selling_price_per_piece > 0
@@ -629,8 +627,8 @@
                     rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-4">' + (item.beginning_stock || 0) + '</td>';
                     rows += '<td class="px-6 py-4">' + (item.pull_out_quantity || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">' + (item.ending_stock || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">' + sales + '</td>';
+                    rows += '<td class="px-6 py-4">' + (ending_stock = item.beginning_stock - item.pull_out_quantity - item.quantity_sold || 0) + '</td>';
+                    rows += '<td class="px-6 py-4">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</td>';
                     rows += '<td class="px-6 py-4">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
@@ -665,10 +663,10 @@
             const itemId = $(this).data('id');
             const row = $(this).closest('tr');
 
-            // Get current values from the row
-            const productName = row.find('td:eq(1)').text();
-            const beginningStock = row.find('td:eq(2)').text();
-            const pullOutQty = row.find('td:eq(3)').text();
+            // Get current values from the row (correct column indices)
+            const productName = row.find('td:eq(2)').text(); // Column 2 is product name
+            const beginningStock = row.find('td:eq(3)').text(); // Column 3 is beginning stock
+            const pullOutQty = row.find('td:eq(4)').text(); // Column 4 is pull out quantity
 
             // Store item ID and populate modal
             $('#editItemId').val(itemId);

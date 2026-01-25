@@ -1,0 +1,24 @@
+<?php
+namespace App\Controllers;
+
+class SalesController extends BaseController
+{
+    public function index()
+    {
+        return view('Template/Header') .
+            view('Template/SideNav') .
+            view('Template/notification') .
+            view('Sales/Sales') .
+            view('Template/Footer');
+    }
+
+    public function getTodaysSales()
+    {
+        $sales = $this->dailySalesModel->getTodaysSummary();
+
+        echo json_encode([
+            'success' => true,
+            'data' => $sales
+        ]);
+    }
+}
