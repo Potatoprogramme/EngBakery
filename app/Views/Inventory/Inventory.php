@@ -76,8 +76,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Category
-                                </span>
+                                    Category </span>
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
@@ -214,16 +213,19 @@
 
             <form id="addProductForm">
                 <div class="mb-4">
-                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select Product</label>
+                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select
+                        Product</label>
                     <select id="selectProduct" name="product_id" required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                         <option value="">-- Select a product --</option>
                     </select>
-                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in inventory.</p>
+                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in
+                        inventory.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock (optional)</label>
+                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock
+                        (optional)</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                 </div>
@@ -568,16 +570,16 @@
                 items.forEach(function (item) {
                     // Calculate sales: beginning - ending - pull_out
                     const sales = (parseInt(item.beginning_stock) || 0) - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
-                    
+
                     // Use appropriate price based on category
-                    const price = item.category === 'bread' && item.selling_price_per_piece > 0 
-                        ? item.selling_price_per_piece 
+                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
+                        ? item.selling_price_per_piece
                         : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-                    
+
                     // Category badge color
-                    const categoryClass = item.category === 'bread' 
-                        ? 'bg-amber-100 text-amber-800' 
+                    const categoryClass = item.category === 'bread'
+                        ? 'bg-amber-100 text-amber-800'
                         : 'bg-blue-100 text-blue-800';
                     const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
 
@@ -754,9 +756,9 @@
                 success: function (response) {
                     const select = $('#selectProduct');
                     select.html('<option value="">-- Select a product --</option>');
-                    
+
                     if (response.success && response.data.length > 0) {
-                        response.data.forEach(function(product) {
+                        response.data.forEach(function (product) {
                             const categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
                             select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
                         });
