@@ -1191,13 +1191,6 @@
         }
     </style>
 
-    <!-- jQuery CDN -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <!-- Font Awesome -->
-    <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <!-- Simple DataTables -->
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-
     <script>
         $(document).ready(function() {
             const baseUrl = '<?= base_url() ?>';

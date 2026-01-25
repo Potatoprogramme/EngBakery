@@ -20,7 +20,8 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Product Lists</h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Order/OrderHistory') ?>" id="btnExport" class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                        <a href="<?= base_url('Order/OrderHistory') ?>" id="btnExport"
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             Order History
                         </a>
                     </div>
@@ -30,7 +31,8 @@
             <!-- Floating Cart Button -->
             <div id="floatingCartContainer" class="fixed bottom-6 right-6 z-40">
                 <!-- Mini Cart Panel (Hidden by default) -->
-                <div id="miniCartPanel" class="hidden absolute bottom-20 right-0 w-80 sm:w-96 bg-white border border-gray-200 shadow-2xl max-h-[70vh] overflow-hidden">
+                <div id="miniCartPanel"
+                    class="hidden absolute bottom-20 right-0 w-80 sm:w-96 bg-white border border-gray-200 shadow-2xl max-h-[70vh] overflow-hidden">
                     <!-- Mini Cart Header -->
                     <div class="bg-primary text-white px-4 py-3 flex justify-between items-center">
                         <h4 class="font-semibold">Your Order</h4>
@@ -38,12 +40,12 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Mini Cart Items -->
                     <div id="miniCartItems" class="max-h-64 overflow-y-auto p-3">
                         <!-- Items will be dynamically inserted here -->
                     </div>
-                    
+
                     <!-- Mini Cart Footer -->
                     <div class="border-t border-gray-200 p-4 bg-gray-50">
                         <div class="flex justify-between items-center mb-3">
@@ -51,29 +53,35 @@
                             <span class="text-xl font-bold text-primary" id="miniCartTotal">P0.00</span>
                         </div>
                         <div class="flex gap-2">
-                            <button type="button" id="btnClearCart" class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">
+                            <button type="button" id="btnClearCart"
+                                class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">
                                 Clear
                             </button>
-                            <button type="button" id="btnMiniCartCheckout" class="flex-[2] px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-secondary transition-colors">
+                            <button type="button" id="btnMiniCartCheckout"
+                                class="flex-[2] px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-secondary transition-colors">
                                 Checkout
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Floating Cart Button -->
-                <button type="button" id="floatingCartBtn" class="relative w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
+                <button type="button" id="floatingCartBtn"
+                    class="relative w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
                     <i class="fas fa-shopping-cart text-xl"></i>
-                    <span id="cartBadge" class="hidden absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">0</span>
+                    <span id="cartBadge"
+                        class="hidden absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">0</span>
                 </button>
             </div>
 
             <!-- Tabs -->
             <div class="flex gap-2 mb-3">
-                <button type="button" data-tab="breads" onclick="switchTab('breads')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
+                <button type="button" data-tab="breads" onclick="switchTab('breads')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
                     Breads
                 </button>
-                <button type="button" data-tab="drinks" onclick="switchTab('drinks')" class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                <button type="button" data-tab="drinks" onclick="switchTab('drinks')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                     Drinks
                 </button>
             </div>
@@ -103,7 +111,8 @@
     </div>
 
     <!-- Product Selection Modal -->
-    <div id="productModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div id="productModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg bg-white rounded-lg">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800" id="productModalTitle">Product Name</h3>
@@ -117,13 +126,18 @@
                     <div class="text-2xl font-bold text-primary" id="productPrice">P0.00</div>
                 </div>
                 <div class="mb-4">
-                    <label for="productQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span class="text-red-500">*</span></label>
+                    <label for="productQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span
+                            class="text-red-500">*</span></label>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="btnQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <button type="button" id="btnQtyDecrease"
+                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="productQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        <button type="button" id="btnQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <input type="number" id="productQuantity" name="quantity" min="1" value="1"
+                            class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                            required>
+                        <button type="button" id="btnQtyIncrease"
+                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             +
                         </button>
                     </div>
@@ -133,15 +147,19 @@
                     <div class="text-xl font-bold text-gray-800" id="productTotal">P0.00</div>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelProduct" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Add to Order</button>
+                    <button type="button" id="btnCancelProduct"
+                        class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Add
+                        to Order</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Customer Orders Modal -->
-    <div id="customerOrdersModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div id="customerOrdersModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div class="relative w-full max-w-2xl mx-auto p-6 border shadow-lg bg-white max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800">Customer Orders</h3>
@@ -149,7 +167,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div id="ordersListContainer">
                 <!-- Orders will be dynamically inserted here -->
             </div>
@@ -160,15 +178,19 @@
                     <span class="text-2xl font-bold text-primary" id="grandTotal">P0.00</span>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnClearOrders" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Clear All</button>
-                    <button type="submit" id="btnCheckout" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Checkout</button>
+                    <button type="button" id="btnClearOrders"
+                        class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Clear
+                        All</button>
+                    <button type="submit" id="btnCheckout"
+                        class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Checkout</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Edit Order Quantity Modal -->
-    <div id="editOrderModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div id="editOrderModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div class="relative w-full max-w-md mx-auto p-6 border shadow-lg bg-white">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800" id="editOrderModalTitle">Edit Order</h3>
@@ -182,13 +204,18 @@
                     <div class="text-2xl font-bold text-primary" id="editOrderPrice">P0.00</div>
                 </div>
                 <div class="mb-4">
-                    <label for="editOrderQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span class="text-red-500">*</span></label>
+                    <label for="editOrderQuantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity <span
+                            class="text-red-500">*</span></label>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="btnEditQtyDecrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <button type="button" id="btnEditQtyDecrease"
+                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        <button type="button" id="btnEditQtyIncrease" class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
+                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1"
+                            class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                            required>
+                        <button type="button" id="btnEditQtyIncrease"
+                            class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             +
                         </button>
                     </div>
@@ -198,8 +225,11 @@
                     <div class="text-xl font-bold text-gray-800" id="editOrderTotal">P0.00</div>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" id="btnCancelEditOrder" class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Update Order</button>
+                    <button type="button" id="btnCancelEditOrder"
+                        class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 max-w-[75%] px-4 py-3 text-lg font-bold text-white bg-primary hover:bg-secondary transition-all">Update
+                        Order</button>
                 </div>
             </form>
         </div>
@@ -207,7 +237,8 @@
 
     <!-- Checkout Modal with Step Progress -->
     <!-- Checkout Modal with Step Progress -->
-    <div id="checkoutModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+    <div id="checkoutModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
             style="max-width: 42rem;">
             <!-- Header -->
@@ -223,37 +254,45 @@
                 <div class="flex items-center w-full px-2 sm:px-4">
                     <!-- Step 1 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                        <div id="step1" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step1"
+                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             1
                         </div>
-                        <span id="step1Label" class="text-[9px] sm:text-[11px] font-medium text-primary text-center leading-tight">Cart</span>
+                        <span id="step1Label"
+                            class="text-[9px] sm:text-[11px] font-medium text-primary text-center leading-tight">Cart</span>
                     </div>
                     <!-- Connector -->
                     <div id="connector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
                     <!-- Step 2 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                        <div id="step2" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step2"
+                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             2
                         </div>
-                        <span id="step2Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Payment</span>
+                        <span id="step2Label"
+                            class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Payment</span>
                     </div>
                     <!-- Connector -->
                     <div id="connector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
                     <!-- Step 3 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                        <div id="step3" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step3"
+                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             3
                         </div>
-                        <span id="step3Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Amount</span>
+                        <span id="step3Label"
+                            class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Amount</span>
                     </div>
                     <!-- Connector -->
                     <div id="connector3" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-2"></div>
                     <!-- Step 4 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                        <div id="step4" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step4"
+                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             4
                         </div>
-                        <span id="step4Label" class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Done</span>
+                        <span id="step4Label"
+                            class="text-[9px] sm:text-[11px] font-medium text-gray-400 text-center leading-tight">Done</span>
                     </div>
                 </div>
             </div>
@@ -275,23 +314,29 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" id="btnCancelCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
-                        <button type="button" id="btnToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
+                        <button type="button" id="btnCancelCheckout"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="btnToStep2"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
                     </div>
                 </div>
 
                 <!-- Step 2: Payment Method -->
                 <div id="checkoutStep2" class="checkout-step hidden">
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Type <span class="text-red-500">*</span></label>
-                        <select id="checkoutOrderType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Type <span
+                                class="text-red-500">*</span></label>
+                        <select id="checkoutOrderType"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="walk-in">Walk-in</option>
                             <option value="foodpanda">FoodPanda</option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span class="text-red-500">*</span></label>
-                        <select id="checkoutPaymentMethod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span
+                                class="text-red-500">*</span></label>
+                        <select id="checkoutPaymentMethod"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="cash">Cash</option>
                             <option value="gcash">GCash</option>
                             <option value="maya">Maya</option>
@@ -300,8 +345,10 @@
                         </select>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" id="btnBackToStep1" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
-                        <button type="button" id="btnToStep3" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
+                        <button type="button" id="btnBackToStep1"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnToStep3"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next</button>
                     </div>
                 </div>
 
@@ -314,17 +361,29 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount Tendered <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount Tendered <span
+                                class="text-red-500">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">₱</span>
-                            <input type="number" id="amountTendered" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-lg font-semibold" placeholder="0.00" min="0" step="0.01">
+                            <span
+                                class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">₱</span>
+                            <input type="number" id="amountTendered"
+                                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-lg font-semibold"
+                                placeholder="0.00" min="0" step="0.01">
                         </div>
                     </div>
                     <div class="grid grid-cols-4 gap-2 mb-3">
-                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-type="exact">Exact</button>
-                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="50">₱50</button>
-                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="100">₱100</button>
-                        <button type="button" class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors" data-amount="500">₱500</button>
+                        <button type="button"
+                            class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                            data-type="exact">Exact</button>
+                        <button type="button"
+                            class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                            data-amount="50">₱50</button>
+                        <button type="button"
+                            class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                            data-amount="100">₱100</button>
+                        <button type="button"
+                            class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                            data-amount="500">₱500</button>
                     </div>
                     <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4">
                         <div class="flex justify-between items-center">
@@ -333,15 +392,18 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" id="btnBackToStep2" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
-                        <button type="button" id="btnCompleteCheckout" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Complete</button>
+                        <button type="button" id="btnBackToStep2"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
+                        <button type="button" id="btnCompleteCheckout"
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Complete</button>
                     </div>
                 </div>
 
                 <!-- Step 4: Success -->
                 <div id="checkoutStep4" class="checkout-step hidden">
                     <div class="text-center py-4">
-                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 text-green-600 rounded-full border-2 border-green-500">
+                        <div
+                            class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-green-100 text-green-600 rounded-full border-2 border-green-500">
                             <i class="fas fa-check text-3xl"></i>
                         </div>
                         <h4 class="text-xl font-bold text-gray-800 mb-2">Order Complete!</h4>
@@ -362,10 +424,13 @@
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <button type="button" id="btnPrintInvoice" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                            <button type="button" id="btnPrintInvoice"
+                                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
                                 <i class="fas fa-print mr-2"></i>Print
                             </button>
-                            <button type="button" id="btnNewOrder" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">New Order</button>
+                            <button type="button" id="btnNewOrder"
+                                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">New
+                                Order</button>
                         </div>
                     </div>
                 </div>
@@ -374,17 +439,21 @@
     </div>
 
     <!-- Exit Confirmation Modal -->
-    <div id="exitConfirmModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4">
+    <div id="exitConfirmModal"
+        class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4">
         <div class="relative w-full max-w-md mx-auto p-8 border shadow-xl bg-white">
             <div class="text-center">
-                <div class="w-20 h-20 mx-auto mb-5 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full">
+                <div
+                    class="w-20 h-20 mx-auto mb-5 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full">
                     <i class="fas fa-exclamation-triangle text-4xl"></i>
                 </div>
                 <h4 class="text-xl font-bold text-gray-800 mb-3">Exit Checkout?</h4>
                 <p class="text-gray-600 mb-6">Are you sure you want to exit? Your checkout progress will be lost.</p>
                 <div class="flex gap-3">
-                    <button type="button" id="btnCancelExit" class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Stay</button>
-                    <button type="button" id="btnConfirmExit" class="flex-1 px-5 py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Exit</button>
+                    <button type="button" id="btnCancelExit"
+                        class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Stay</button>
+                    <button type="button" id="btnConfirmExit"
+                        class="flex-1 px-5 py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Exit</button>
                 </div>
             </div>
         </div>
@@ -431,12 +500,15 @@
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
                         <div class="flex">
-                            <label for="material_quantity" class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                            <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of Measure</label>
+                            <label for="material_quantity"
+                                class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                    class="text-red-500">*</span></label>
+                            <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of
+                                Measure</label>
                         </div>
                         <div class="flex">
-                            <input type="number" name="material_quantity" id="material_quantity" 
-                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0" 
+                            <input type="number" name="material_quantity" id="material_quantity"
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0"
                                 placeholder="25000" min="0.01" step="0.01" required>
                             <select name="unit" id="unit"
                                 class="w-32 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -447,14 +519,14 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div id="converted_qty_wrapper">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Converted Quantity</label>
                         <div class="flex">
                             <input type="text" id="converted_quantity" readonly
-                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                 value="0">
-                            <span id="converted_unit_label" 
+                            <span id="converted_unit_label"
                                 class="inline-flex items-center justify-center w-20 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-sm">
                                 kg
                             </span>
@@ -476,7 +548,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cost per Unit</label>
-                        
+
                         <!-- Base Unit Cost -->
                         <div class="flex mb-2">
                             <div class="relative flex-1">
@@ -484,10 +556,10 @@
                                     <span class="text-gray-500 sm:text-sm">₱</span>
                                 </div>
                                 <input type="text" id="cost_per_unit" readonly
-                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                     value="0.000">
                             </div>
-                            <span id="cost_unit_label" 
+                            <span id="cost_unit_label"
                                 class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
                                 per unit
                             </span>
@@ -500,10 +572,10 @@
                                     <span class="text-gray-500 sm:text-sm">₱</span>
                                 </div>
                                 <input type="text" id="converted_cost" readonly
-                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                     value="0.00">
                             </div>
-                            <span id="converted_cost_unit_label" 
+                            <span id="converted_cost_unit_label"
                                 class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
                                 per kg
                             </span>
@@ -522,32 +594,27 @@
         </div>
     </div>
 
-    <!-- External Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    
     <!-- Tab Switching Function (inline to ensure it works) -->
     <script>
         function switchTab(tabName) {
             // Remove active state from all tab buttons
-            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            document.querySelectorAll('.tab-btn').forEach(function (btn) {
                 btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
                 btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
             });
-            
+
             // Add active state to clicked button
             var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
             if (activeBtn) {
                 activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
                 activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
             }
-            
+
             // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(function(content) {
+            document.querySelectorAll('.tab-content').forEach(function (content) {
                 content.classList.add('hidden');
             });
-            
+
             // Show selected tab content
             var targetContent = document.getElementById(tabName + '-content');
             if (targetContent) {
@@ -555,14 +622,15 @@
             }
         }
     </script>
-    
+
     <!-- Set base URL for JS modules -->
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
     </script>
-    
+
     <!-- Order Module Scripts -->
     <script src="<?= base_url('js/order/cart-manager.js') ?>"></script>
     <script src="<?= base_url('js/order/order-main.js') ?>"></script>
 </body>
+
 </html>
