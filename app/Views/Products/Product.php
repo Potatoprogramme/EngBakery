@@ -108,19 +108,19 @@
                 <!-- Search input for mobile -->
                 <div class="mb-4">
                     <div class="relative">
-                        <input type="text" id="mobileSearchInput" placeholder="Search products..."
+                        <input type="text" id="mobileSearchInput" placeholder="Search products..." 
                             class="w-full px-4 py-2.5 pl-10 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-3">
                     <!-- Cards will be loaded via AJAX -->
                 </div>
-
+                
                 <!-- No results message -->
                 <div id="mobileNoResults" class="hidden text-center py-8 text-gray-500">
                     <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i>
@@ -147,35 +147,28 @@
                 <div class="flex items-center w-full px-2 sm:px-4">
                     <!-- Step 1 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="step1Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step1Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             1
                         </div>
-                        <span id="step1Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product
-                            Info</span>
+                        <span id="step1Label" class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product Info</span>
                     </div>
                     <!-- Connector -->
                     <div id="connector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
                     <!-- Step 2 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="step2Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step2Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             2
                         </div>
-                        <span id="step2Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
+                        <span id="step2Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
                     </div>
                     <!-- Connector -->
                     <div id="connector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
                     <!-- Step 3 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="step3Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="step3Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             3
                         </div>
-                        <span id="step3Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
+                        <span id="step3Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
                     </div>
                 </div>
             </div>
@@ -213,11 +206,10 @@
                             <label class="block text-sm font-medium text-gray-700">Ingredients <span
                                     class="text-red-500">*</span></label>
                             <div class="relative">
-                                <input type="text" id="ingredient_search"
+                                <input type="text" id="ingredient_search" 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                     placeholder="Search ingredient..." autocomplete="off">
-                                <div id="ingredient_dropdown"
-                                    class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                <div id="ingredient_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                     <!-- Dropdown items will be populated here -->
                                 </div>
                                 <input type="hidden" name="ingredient_id" id="ingredient_id">
@@ -264,20 +256,16 @@
                         class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 combined-recipe-container">
                         <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
                                 class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
-                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this
-                            product. Set up Trays/Pieces first.</p>
-
+                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
+                        
                         <!-- Warning if no yield info -->
-                        <div id="additionalYieldWarning"
-                            class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to
-                            enable additional recipes.
+                        <div id="additionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
                         </div>
-
+                        
                         <div id="additionalRecipeInputs" class="hidden">
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per
-                                    piece)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
                                 <div class="flex gap-2">
                                     <select id="combinedRecipeSelect"
                                         class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
@@ -295,10 +283,9 @@
                             <p class="text-xs text-amber-500 text-center py-2">No additional recipes added</p>
                         </div>
                     </div>
-
+                        
                     <!-- Direct Cost Display for Step 2 -->
-                    <div
-                        class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <div class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
                         <span class="text-sm text-gray-600 font-medium">Direct Cost</span>
                         <span id="step2DirectCostDisplay" class="text-lg font-semibold text-primary">₱ 0.00</span>
                     </div>
@@ -310,11 +297,9 @@
                     <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing
-                                    Breakdown
+                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
                                 </h4>
-                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit
-                                    to
+                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
                                     see totals instantly.</p>
                             </div>
                             <div class="text-left sm:text-right">
@@ -333,8 +318,7 @@
                                 <div id="combinedCostCard"
                                     class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
                                     <span class="text-sm text-gray-600">Combined Recipes Cost</span>
-                                    <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱
-                                        0.00</span>
+                                    <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                                 </div>
                             </div>
 
@@ -345,223 +329,210 @@
                                     <p class="text-xs text-gray-500">Enter the overhead percentage to apply.</p>
                                 </div>
                                 <div class="flex w-full sm:w-32">
-                                    <input type="number" id="overheadCost"
-                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                        placeholder="0" min="0">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
-                                        %
-                                    </span>
-                                </div>
+                                <input type="number" id="overheadCost"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                    placeholder="0" min="0">
+                                <span
+                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                    %
+                                </span>
                             </div>
                         </div>
+                    </div>
 
-                        <div id="yieldComputationSection" class="mt-4 hidden">
-                            <div class="border-t border-dashed border-gray-300 pt-4">
-                                <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Yield
-                                    Computation</h5>
-                                <div class="grid gap-3 sm:grid-cols-2">
-                                    <div
-                                        class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                        <span class="text-sm text-gray-600">Total Yield (grams)</span>
-                                        <span id="totalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0
-                                            g</span>
-                                    </div>
-                                    <div
-                                        class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
-                                        <span class="text-sm text-gray-600">Unit Price per Gram</span>
-                                        <span id="unitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱
-                                            0.00</span>
-                                    </div>
+                    <div id="yieldComputationSection" class="mt-4 hidden">
+                        <div class="border-t border-dashed border-gray-300 pt-4">
+                            <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Yield
+                                Computation</h5>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div
+                                    class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Total Yield (grams)</span>
+                                    <span id="totalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0
+                                        g</span>
                                 </div>
+                                <div
+                                    class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Unit Price per Gram</span>
+                                    <span id="unitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱
+                                        0.00</span>
+                                </div>
+                            </div>
 
-                                <div id="yieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
-                                    <div id="perTraySection"
-                                        class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
-                                            Tray / Box</h6>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center justify-between gap-2">
-                                                <label for="traysPerYield"
-                                                    class="text-sm text-gray-600">Trays/Boxes</label>
-                                                <div class="flex w-32">
-                                                    <input type="number" id="traysPerYield"
-                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1" value="0">
-                                                    <span
-                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center justify-between gap-2">
-                                                <label for="gramsPerTray" class="text-sm text-gray-600">Grams per
-                                                    Tray</label>
-                                                <div class="flex w-32">
-                                                    <input type="number" id="gramsPerTray"
-                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="0.01" value="0">
-                                                    <span
-                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-600">Unit Price per Tray</span>
-                                                <span id="unitPricePerTrayDisplay"
-                                                    class="text-sm font-medium text-purple-600">₱ 0.00</span>
-                                            </div>
-                                            <div id="additionalPricePerTrayRow"
-                                                class="hidden flex items-center justify-between">
-                                                <span class="text-sm text-amber-600">Additional Price per Tray</span>
-                                                <span id="additionalPricePerTrayDisplay"
-                                                    class="text-sm font-medium text-amber-600">₱ 0.00</span>
-                                            </div>
-                                            <div id="totalPricePerTrayRow"
-                                                class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                                <span class="text-sm text-gray-700 font-semibold">Total Price per
-                                                    Tray</span>
-                                                <span id="totalPricePerTrayDisplay"
-                                                    class="text-sm font-bold text-purple-700">₱ 0.00</span>
+                            <div id="yieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div id="perTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
+                                        Tray / Box</h6>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="traysPerYield" class="text-sm text-gray-600">Trays/Boxes</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="traysPerYield"
+                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    placeholder="0" min="0" step="1" value="0">
+                                                <span
+                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
                                             </div>
                                         </div>
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="gramsPerTray" class="text-sm text-gray-600">Grams per Tray</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="gramsPerTray"
+                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    placeholder="0" min="0" step="0.01" value="0">
+                                                <span
+                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Unit Price per Tray</span>
+                                            <span id="unitPricePerTrayDisplay"
+                                                class="text-sm font-medium text-purple-600">₱ 0.00</span>
+                                        </div>
+                                        <div id="additionalPricePerTrayRow" class="hidden flex items-center justify-between">
+                                            <span class="text-sm text-amber-600">Additional Price per Tray</span>
+                                            <span id="additionalPricePerTrayDisplay"
+                                                class="text-sm font-medium text-amber-600">₱ 0.00</span>
+                                        </div>
+                                        <div id="totalPricePerTrayRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                            <span class="text-sm text-gray-700 font-semibold">Total Price per Tray</span>
+                                            <span id="totalPricePerTrayDisplay"
+                                                class="text-sm font-bold text-purple-700">₱ 0.00</span>
+                                        </div>
                                     </div>
-                                    <div id="perPieceSection"
-                                        class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
-                                            Piece / Slice / Plate</h6>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center justify-between gap-2">
-                                                <label for="piecesPerYield" id="piecesLabel"
-                                                    class="text-sm text-gray-600">Pieces/Slices/Plates</label>
-                                                <div class="flex w-32">
-                                                    <input type="number" id="piecesPerYield"
-                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1" value="0">
-                                                    <span
-                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
-                                                </div>
+                                </div>
+                                <div id="perPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
+                                        Piece / Slice / Plate</h6>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="piecesPerYield" id="piecesLabel"
+                                                class="text-sm text-gray-600">Pieces/Slices/Plates</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="piecesPerYield"
+                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    placeholder="0" min="0" step="1" value="0">
+                                                <span
+                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
                                             </div>
-                                            <div class="flex items-center justify-between gap-2">
-                                                <label for="gramsPerPiece" class="text-sm text-gray-600">Grams per
-                                                    Piece</label>
-                                                <div class="flex w-32">
-                                                    <input type="number" id="gramsPerPiece"
-                                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="0.01" value="0">
-                                                    <span
-                                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
-                                                </div>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label for="gramsPerPiece" class="text-sm text-gray-600">Grams per Piece</label>
+                                            <div class="flex w-32">
+                                                <input type="number" id="gramsPerPiece"
+                                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    placeholder="0" min="0" step="0.01" value="0">
+                                                <span
+                                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
                                             </div>
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-600">Unit Price per Piece</span>
-                                                <span id="unitPricePerPieceDisplay"
-                                                    class="text-sm font-medium text-blue-600">₱ 0.00</span>
-                                            </div>
-                                            <div id="additionalPricePerPieceRow"
-                                                class="hidden flex items-center justify-between">
-                                                <span class="text-sm text-amber-600">Additional Price per Piece</span>
-                                                <span id="additionalPricePerPieceDisplay"
-                                                    class="text-sm font-medium text-amber-600">₱ 0.00</span>
-                                            </div>
-                                            <div id="totalPricePerPieceRow"
-                                                class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                                <span class="text-sm text-gray-700 font-semibold">Total Price per
-                                                    Piece</span>
-                                                <span id="totalPricePerPieceDisplay"
-                                                    class="text-sm font-bold text-blue-700">₱ 0.00</span>
-                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">Unit Price per Piece</span>
+                                            <span id="unitPricePerPieceDisplay"
+                                                class="text-sm font-medium text-blue-600">₱ 0.00</span>
+                                        </div>
+                                        <div id="additionalPricePerPieceRow" class="hidden flex items-center justify-between">
+                                            <span class="text-sm text-amber-600">Additional Price per Piece</span>
+                                            <span id="additionalPricePerPieceDisplay"
+                                                class="text-sm font-medium text-amber-600">₱ 0.00</span>
+                                        </div>
+                                        <div id="totalPricePerPieceRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                            <span class="text-sm text-gray-700 font-semibold">Total Price per Piece</span>
+                                            <span id="totalPricePerPieceDisplay"
+                                                class="text-sm font-bold text-blue-700">₱ 0.00</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
-                                    <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
-                                </div>
-                                <div class="flex w-full sm:w-28">
-                                    <input type="number" id="profitMargin"
-                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                        placeholder="30" min="0" value="30">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
-                                        %
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Profit Amount</span>
-                                <span id="profitAmountDisplay" class="text-sm font-semibold text-green-700">₱
-                                    0.00</span>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Selling Price Container -->
-                    <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
-                        <h2 class="font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
-                        </h2>
-
-                        <!-- Overall Selling Price -->
-                        <div class="mb-4">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <label for="sellingPriceOverall" class="text-sm font-medium text-gray-700">Overall
-                                    Price</label>
-                                <div class="flex w-full sm:w-40">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                    <input type="number" id="sellingPriceOverall"
-                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
-                                </div>
+                    <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
+                                <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
                             </div>
-                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="recommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
+                            <div class="flex w-full sm:w-28">
+                                <input type="number" id="profitMargin"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+                                    placeholder="30" min="0" value="30">
+                                <span
+                                    class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
+                                    %
+                                </span>
+                            </div>
                         </div>
-
-                        <!-- Per Tray Selling Price -->
-                        <div id="sellingPricePerTrayRow" class="mb-4 hidden">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <label for="sellingPricePerTray" class="text-sm font-medium text-gray-700">Price per
-                                    Tray</label>
-                                <div class="flex w-full sm:w-40">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                    <input type="number" id="sellingPricePerTray"
-                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
-                                </div>
-                            </div>
-                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="recommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
-                        </div>
-
-                        <!-- Per Piece Selling Price -->
-                        <div id="sellingPricePerPieceRow" class="hidden">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <label for="sellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per
-                                    Piece</label>
-                                <div class="flex w-full sm:w-40">
-                                    <span
-                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
-                                    <input type="number" id="sellingPricePerPiece"
-                                        class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
-                                </div>
-                            </div>
-                            <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="recommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
+                        <div
+                            class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Profit Amount</span>
+                            <span id="profitAmountDisplay" class="text-sm font-semibold text-green-700">₱ 0.00</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Selling Price Container -->
+                <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
+                    <h2 class="font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
+                    </h2>
+
+                    <!-- Overall Selling Price -->
+                    <div class="mb-4">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPriceOverall" class="text-sm font-medium text-gray-700">Overall
+                                Price</label>
+                            <div class="flex w-full sm:w-40">
+                                <span
+                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPriceOverall"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
+                                    placeholder="0.00" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                id="recommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
+                    </div>
+
+                    <!-- Per Tray Selling Price -->
+                    <div id="sellingPricePerTrayRow" class="mb-4 hidden">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPricePerTray" class="text-sm font-medium text-gray-700">Price per
+                                Tray</label>
+                            <div class="flex w-full sm:w-40">
+                                <span
+                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPricePerTray"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
+                                    placeholder="0.00" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                id="recommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
+                    </div>
+
+                    <!-- Per Piece Selling Price -->
+                    <div id="sellingPricePerPieceRow" class="hidden">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="sellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per
+                                Piece</label>
+                            <div class="flex w-full sm:w-40">
+                                <span
+                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="sellingPricePerPiece"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
+                                    placeholder="0.00" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
+                                id="recommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
+                    </div>
+                </div>
                 </div>
 
                 <!-- Navigation Buttons -->
                 <div class="flex gap-2 justify-between mt-4">
                     <div>
-                        <button type="button" id="btnBackStep"
-                            class="hidden px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        <button type="button" id="btnBackStep" class="hidden px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
                             <i class="fas fa-arrow-left me-1"></i> Back
                         </button>
                     </div>
@@ -569,8 +540,7 @@
                         <button type="button" id="btnCancelAdd"
                             class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
                         <button type="button" id="btnNextStep"
-                            class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next
-                            <i class="fas fa-arrow-right ms-1"></i></button>
+                            class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Next <i class="fas fa-arrow-right ms-1"></i></button>
                         <button type="submit" id="btnSaveMaterial"
                             class="hidden px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Save</button>
                     </div>
@@ -596,42 +566,35 @@
                 <div class="flex items-center w-full px-2 sm:px-4">
                     <!-- Step 1 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="editStep1Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="editStep1Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 border-2 border-primary text-primary text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             1
                         </div>
-                        <span id="editStep1Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product
-                            Info</span>
+                        <span id="editStep1Label" class="text-[9px] sm:text-[12px] font-medium text-primary text-center leading-tight">Product Info</span>
                     </div>
                     <!-- Connector -->
                     <div id="editConnector1" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
                     <!-- Step 2 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="editStep2Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="editStep2Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             2
                         </div>
-                        <span id="editStep2Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
+                        <span id="editStep2Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Ingredients</span>
                     </div>
                     <!-- Connector -->
                     <div id="editConnector2" class="flex-1 h-0.5 bg-gray-300 -mt-5 sm:-mt-6 mx-1 sm:mx-4"></div>
                     <!-- Step 3 -->
                     <div class="flex flex-col items-center min-w-[60px] sm:min-w-[100px]">
-                        <div id="editStep3Indicator"
-                            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                        <div id="editStep3Indicator" class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 text-gray-400 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
                             3
                         </div>
-                        <span id="editStep3Label"
-                            class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
+                        <span id="editStep3Label" class="text-[9px] sm:text-[12px] font-medium text-gray-400 text-center leading-tight">Costing</span>
                     </div>
                 </div>
             </div>
 
             <form id="editProductForm">
                 <input type="hidden" id="edit_product_id" name="product_id">
-
+                
                 <!-- EDIT STEP 1: Product Info -->
                 <div id="editStep1" class="edit-step-content">
                     <div class="mb-3">
@@ -664,11 +627,10 @@
                             <label class="block text-sm font-medium text-gray-700">Ingredients <span
                                     class="text-red-500">*</span></label>
                             <div class="relative">
-                                <input type="text" id="edit_ingredient_search"
+                                <input type="text" id="edit_ingredient_search" 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                     placeholder="Search ingredient..." autocomplete="off">
-                                <div id="edit_ingredient_dropdown"
-                                    class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                <div id="edit_ingredient_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                     <!-- Dropdown items will be populated here -->
                                 </div>
                                 <input type="hidden" name="edit_ingredient_id" id="edit_ingredient_id">
@@ -711,8 +673,7 @@
                     </div>
 
                     <!-- Direct Cost Display for Step 2 -->
-                    <div
-                        class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <div class="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
                         <span class="text-sm text-gray-600 font-medium">Direct Cost</span>
                         <span id="editStep2DirectCostDisplay" class="text-sm font-semibold text-gray-900">₱ 0.00</span>
                     </div>
@@ -722,20 +683,16 @@
                         class="hidden mb-4 p-4 border border-amber-200 rounded-lg bg-amber-50 edit-combined-recipe-container">
                         <h4 class="text-sm font-semibold text-amber-800 mb-3"><i
                                 class="fas fa-layer-group me-1"></i>Additional (for dough and other breads)</h4>
-                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this
-                            product. Set up Trays/Pieces first.</p>
-
+                        <p class="text-xs text-amber-600 mb-3">Add other recipes (e.g., Soft Dough) per piece of this product. Set up Trays/Pieces first.</p>
+                        
                         <!-- Warning if no yield info -->
-                        <div id="editAdditionalYieldWarning"
-                            class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to
-                            enable additional recipes.
+                        <div id="editAdditionalYieldWarning" class="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Please set up Pieces per Yield first to enable additional recipes.
                         </div>
-
+                        
                         <div id="editAdditionalRecipeInputs" class="hidden">
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per
-                                    piece)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per piece)</label>
                                 <div class="flex gap-2">
                                     <select id="editCombinedRecipeSelect"
                                         class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
@@ -761,11 +718,9 @@
                     <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing
-                                    Breakdown
+                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Costing Breakdown
                                 </h4>
-                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit
-                                    to
+                                <p class="text-xs text-gray-500">Review the cost components and tweak overhead or profit to
                                     see totals instantly.</p>
                             </div>
                             <div class="text-left sm:text-right">
@@ -779,14 +734,12 @@
                                 <div id="editDirectCostCard"
                                     class="col-span-2 p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
                                     <span class="text-sm text-gray-600">Direct Cost</span>
-                                    <span id="editDirectCostDisplay" class="text-sm font-medium text-gray-900">₱
-                                        0.00</span>
+                                    <span id="editDirectCostDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
                                 </div>
                                 <div id="editCombinedCostCard"
                                     class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
                                     <span class="text-sm text-gray-600">Combined Recipes Cost</span>
-                                    <span id="editCombinedCostDisplay" class="text-sm font-medium text-amber-700">₱
-                                        0.00</span>
+                                    <span id="editCombinedCostDisplay" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                                 </div>
                             </div>
 
@@ -816,28 +769,24 @@
                                     <div
                                         class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
                                         <span class="text-sm text-gray-600">Total Yield (grams)</span>
-                                        <span id="editTotalYieldGramsDisplay"
-                                            class="text-sm font-medium text-gray-900">0
+                                        <span id="editTotalYieldGramsDisplay" class="text-sm font-medium text-gray-900">0
                                             g</span>
                                     </div>
                                     <div
                                         class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
                                         <span class="text-sm text-gray-600">Unit Price per Gram</span>
-                                        <span id="editUnitPricePerGramDisplay"
-                                            class="text-sm font-medium text-gray-900">₱
+                                        <span id="editUnitPricePerGramDisplay" class="text-sm font-medium text-gray-900">₱
                                             0.00</span>
                                     </div>
                                 </div>
 
                                 <div id="editYieldGridContainer" class="mt-4 grid gap-3 sm:grid-cols-2">
-                                    <div id="editPerTraySection"
-                                        class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <div id="editPerTraySection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Tray / Box</h6>
                                         <div class="space-y-2">
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="editTraysPerYield"
-                                                    class="text-sm text-gray-600">Trays/Boxes</label>
+                                                <label for="editTraysPerYield" class="text-sm text-gray-600">Trays/Boxes</label>
                                                 <div class="flex w-32">
                                                     <input type="number" id="editTraysPerYield"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
@@ -847,8 +796,7 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="editGramsPerTray" class="text-sm text-gray-600">Grams per
-                                                    Tray</label>
+                                                <label for="editGramsPerTray" class="text-sm text-gray-600">Grams per Tray</label>
                                                 <div class="flex w-32">
                                                     <input type="number" id="editGramsPerTray"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
@@ -862,23 +810,19 @@
                                                 <span id="editUnitPricePerTrayDisplay"
                                                     class="text-sm font-medium text-purple-600">₱ 0.00</span>
                                             </div>
-                                            <div id="editAdditionalPricePerTrayRow"
-                                                class="hidden flex items-center justify-between">
+                                            <div id="editAdditionalPricePerTrayRow" class="hidden flex items-center justify-between">
                                                 <span class="text-sm text-amber-600">Additional Price per Tray</span>
                                                 <span id="editAdditionalPricePerTrayDisplay"
                                                     class="text-sm font-medium text-amber-600">₱ 0.00</span>
                                             </div>
-                                            <div id="editTotalPricePerTrayRow"
-                                                class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                                <span class="text-sm text-gray-700 font-semibold">Total Price per
-                                                    Tray</span>
+                                            <div id="editTotalPricePerTrayRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                                <span class="text-sm text-gray-700 font-semibold">Total Price per Tray</span>
                                                 <span id="editTotalPricePerTrayDisplay"
                                                     class="text-sm font-bold text-purple-700">₱ 0.00</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="editPerPieceSection"
-                                        class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                                    <div id="editPerPieceSection" class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
                                             Piece / Slice / Plate</h6>
                                         <div class="space-y-2">
@@ -894,8 +838,7 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="editGramsPerPiece" class="text-sm text-gray-600">Grams per
-                                                    Piece</label>
+                                                <label for="editGramsPerPiece" class="text-sm text-gray-600">Grams per Piece</label>
                                                 <div class="flex w-32">
                                                     <input type="number" id="editGramsPerPiece"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
@@ -909,16 +852,13 @@
                                                 <span id="editUnitPricePerPieceDisplay"
                                                     class="text-sm font-medium text-blue-600">₱ 0.00</span>
                                             </div>
-                                            <div id="editAdditionalPricePerPieceRow"
-                                                class="hidden flex items-center justify-between">
+                                            <div id="editAdditionalPricePerPieceRow" class="hidden flex items-center justify-between">
                                                 <span class="text-sm text-amber-600">Additional Price per Piece</span>
                                                 <span id="editAdditionalPricePerPieceDisplay"
                                                     class="text-sm font-medium text-amber-600">₱ 0.00</span>
                                             </div>
-                                            <div id="editTotalPricePerPieceRow"
-                                                class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
-                                                <span class="text-sm text-gray-700 font-semibold">Total Price per
-                                                    Piece</span>
+                                            <div id="editTotalPricePerPieceRow" class="hidden flex items-center justify-between border-t border-gray-200 pt-2">
+                                                <span class="text-sm text-gray-700 font-semibold">Total Price per Piece</span>
                                                 <span id="editTotalPricePerPieceDisplay"
                                                     class="text-sm font-bold text-blue-700">₱ 0.00</span>
                                             </div>
@@ -931,8 +871,7 @@
                         <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <label for="editProfitMargin" class="text-sm text-gray-600">Profit Margin
-                                        (%)</label>
+                                    <label for="editProfitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
                                     <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
                                 </div>
                                 <div class="flex w-full sm:w-28">
@@ -948,16 +887,14 @@
                             <div
                                 class="p-3 rounded-lg border border-gray-200 bg-green-50 flex items-center justify-between">
                                 <span class="text-sm text-gray-600">Profit Amount</span>
-                                <span id="editProfitAmountDisplay" class="text-sm font-semibold text-green-700">₱
-                                    0.00</span>
+                                <span id="editProfitAmountDisplay" class="text-sm font-semibold text-green-700">₱ 0.00</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Selling Price Container -->
                     <div class="mb-4 p-4 border-2 border-primary rounded-lg bg-primary/5 shadow-sm">
-                        <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling
-                            Price
+                        <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Target Selling Price
                         </h4>
 
                         <!-- Overall Selling Price -->
@@ -974,8 +911,7 @@
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="editRecommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span>
-                            </div>
+                                    id="editRecommendedPriceOverall" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
 
                         <!-- Per Tray Selling Price -->
@@ -992,15 +928,13 @@
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="editRecommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span>
-                            </div>
+                                    id="editRecommendedPricePerTray" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
 
                         <!-- Per Piece Selling Price -->
                         <div id="editSellingPricePerPieceRow" class="hidden">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <label for="editSellingPricePerPiece" class="text-sm font-medium text-gray-700">Price
-                                    per
+                                <label for="editSellingPricePerPiece" class="text-sm font-medium text-gray-700">Price per
                                     Piece</label>
                                 <div class="flex w-full sm:w-40">
                                     <span
@@ -1011,8 +945,7 @@
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
-                                    id="editRecommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span>
-                            </div>
+                                    id="editRecommendedPricePerPiece" class="font-medium text-green-600">₱ 0.00</span></div>
                         </div>
                     </div>
                 </div>
@@ -1053,8 +986,7 @@
             <!-- Product Name and Category -->
             <div class="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
                 <h2 id="viewProductName" class="text-xl font-bold text-gray-800 mb-1">Product Name</h2>
-                <span id="viewProductCategory"
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                <span id="viewProductCategory" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
                     Category
                 </span>
             </div>
@@ -1064,8 +996,7 @@
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
                     Ingredients
                 </h4>
-                <div id="viewIngredientsList"
-                    class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                <div id="viewIngredientsList" class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 max-h-48 overflow-y-auto">
                     <!-- Ingredients will be loaded here -->
                 </div>
             </div>
@@ -1075,8 +1006,7 @@
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
                     Combined Recipes
                 </h4>
-                <div id="viewCombinedRecipesList"
-                    class="bg-amber-50 rounded-lg border border-amber-200 divide-y divide-amber-200 max-h-32 overflow-y-auto">
+                <div id="viewCombinedRecipesList" class="bg-amber-50 rounded-lg border border-amber-200 divide-y divide-amber-200 max-h-32 overflow-y-auto">
                     <!-- Combined recipes will be loaded here -->
                 </div>
             </div>
@@ -1096,8 +1026,7 @@
                         <span id="viewCombinedCost" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Overhead Cost <span id="viewOverheadPercent"
-                                class="text-xs text-gray-400">(0%)</span></span>
+                        <span class="text-sm text-gray-600">Overhead Cost <span id="viewOverheadPercent" class="text-xs text-gray-400">(0%)</span></span>
                         <span id="viewOverheadCost" class="text-sm font-medium text-gray-900">₱ 0.00</span>
                     </div>
                     <div class="border-t border-gray-300 pt-2 flex justify-between items-center">
@@ -1112,7 +1041,7 @@
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
                     Yield Computation
                 </h4>
-
+                
                 <!-- Total Yield and Price per Gram -->
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-gray-50 rounded-lg border border-gray-200 p-3">
@@ -1128,8 +1057,7 @@
                 <!-- Per Tray and Per Piece details -->
                 <div id="viewYieldGridContainer" class="grid gap-3 sm:grid-cols-2">
                     <!-- Per Tray -->
-                    <div id="viewPerTraySection"
-                        class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                    <div id="viewPerTraySection" class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Tray / Box</h6>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between items-center">
@@ -1148,8 +1076,7 @@
                                 <span class="text-gray-600 text-xs">Additional Price per Tray</span>
                                 <span id="viewAdditionalPricePerTray" class="font-medium text-amber-600">₱ 0.00</span>
                             </div>
-                            <div id="viewTotalPricePerTrayRow"
-                                class="hidden flex justify-between items-center border-t border-gray-200 pt-2">
+                            <div id="viewTotalPricePerTrayRow" class="hidden flex justify-between items-center border-t border-gray-200 pt-2">
                                 <span class="text-gray-700 font-semibold">Total Price per Tray</span>
                                 <span id="viewTotalPricePerTray" class="font-bold text-purple-700">₱ 0.00</span>
                             </div>
@@ -1157,10 +1084,8 @@
                     </div>
 
                     <!-- Per Piece -->
-                    <div id="viewPerPieceSection"
-                        class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Piece / Slice /
-                            Plate</h6>
+                    <div id="viewPerPieceSection" class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
+                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Piece / Slice / Plate</h6>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600" id="viewPiecesLabelText">Pieces/Slices/Plates</span>
@@ -1178,8 +1103,7 @@
                                 <span class="text-gray-600 text-xs">Additional Price per Piece</span>
                                 <span id="viewAdditionalPricePerPiece" class="font-medium text-amber-600">₱ 0.00</span>
                             </div>
-                            <div id="viewTotalPricePerPieceRow"
-                                class="hidden flex justify-between items-center border-t border-gray-200 pt-2">
+                            <div id="viewTotalPricePerPieceRow" class="hidden flex justify-between items-center border-t border-gray-200 pt-2">
                                 <span class="text-gray-700 font-semibold">Total Price per Piece</span>
                                 <span id="viewTotalPricePerPiece" class="font-bold text-blue-700">₱ 0.00</span>
                             </div>
@@ -1275,7 +1199,7 @@
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             const baseUrl = '<?= base_url() ?>';
             let dataTable = null;
 
@@ -1287,8 +1211,8 @@
             function getCategoryBadge(category) {
                 const cat = (category || '').toLowerCase();
                 let bgColor, textColor, icon;
-
-                switch (cat) {
+                
+                switch(cat) {
                     case 'bread':
                         bgColor = 'bg-amber-100';
                         textColor = 'text-amber-700';
@@ -1309,32 +1233,32 @@
                         textColor = 'text-gray-700';
                         icon = 'fa-box';
                 }
-
+                
                 return '<span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ' + bgColor + ' ' + textColor + '">' +
-                    '<i class="fas ' + icon + ' text-[10px]"></i> ' + (category || '-') + '</span>';
+                       '<i class="fas ' + icon + ' text-[10px]"></i> ' + (category || '-') + '</span>';
             }
 
             // Mobile card menu toggle
-            $(document).on('click', '.card-menu-btn', function (e) {
+            $(document).on('click', '.card-menu-btn', function(e) {
                 e.stopPropagation();
                 const $menu = $(this).siblings('.card-menu');
-
+                
                 // Close all other menus first
                 $('.card-menu').not($menu).addClass('hidden');
-
+                
                 // Toggle this menu
                 $menu.toggleClass('hidden');
             });
 
             // Close card menus when clicking outside
-            $(document).on('click', function (e) {
+            $(document).on('click', function(e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
                     $('.card-menu').addClass('hidden');
                 }
             });
 
             // View button in card menu
-            $(document).on('click', '.card-view-btn', function (e) {
+            $(document).on('click', '.card-view-btn', function(e) {
                 e.stopPropagation();
                 const productId = $(this).data('id');
                 $('.card-menu').addClass('hidden');
@@ -1342,7 +1266,7 @@
             });
 
             // Click on card to view (excluding menu area)
-            $(document).on('click', '.product-card', function (e) {
+            $(document).on('click', '.product-card', function(e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
                     const productId = $(this).data('product-id');
                     openViewModal(productId);
@@ -1350,14 +1274,14 @@
             });
 
             // Mobile search functionality
-            $('#mobileSearchInput').on('input', function () {
+            $('#mobileSearchInput').on('input', function() {
                 const searchTerm = $(this).val().toLowerCase().trim();
                 let hasResults = false;
-
-                $('.product-card').each(function () {
+                
+                $('.product-card').each(function() {
                     const productName = $(this).data('name') || '';
                     const category = $(this).data('category') || '';
-
+                    
                     if (productName.includes(searchTerm) || category.toLowerCase().includes(searchTerm)) {
                         $(this).removeClass('hidden');
                         hasResults = true;
@@ -1365,7 +1289,7 @@
                         $(this).addClass('hidden');
                     }
                 });
-
+                
                 if (hasResults || searchTerm === '') {
                     $('#mobileNoResults').addClass('hidden');
                 } else {
@@ -1374,7 +1298,7 @@
             });
 
             // Open Add Product Modal (Desktop & Mobile)
-            $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function () {
+            $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function() {
                 $('#addMaterialModal').removeClass('hidden');
                 loadIngredients();
                 loadCombinedRecipesDropdown();
@@ -1383,7 +1307,7 @@
                 updateCombinedRecipesListDisplay();
                 updateCostingDisplay();
                 updateUIBasedOnCategory();
-
+                
                 // Reset to step 1 and update display
                 currentAddStep = 1;
                 updateStepDisplay();
@@ -1393,22 +1317,9 @@
             let addPreviousCategory = '';
 
             // Handle category change
-            $('#category_id').on('change', function () {
+            $('#category_id').on('change', function() {
                 const category = $(this).val();
                 const previousCategory = addPreviousCategory;
-
-                // Disable pieces input for dough category
-                if (category === 'dough') {
-                    $('#piecesPerYield').prop('readonly', true).val(0);
-                    $('#piecesLabel').text('Pieces/Slices/Plates');
-                    // Hide per tray section for dough
-                    $('#perTraySection').addClass('hidden');
-                } else if (category === 'bread') {
-                    $('#piecesPerYield').prop('readonly', false);
-                    $('#perTraySection').removeClass('hidden');
-                } else if (category === 'drinks') {
-                    $('#piecesPerYield').prop('readonly', false);
-                }
 
                 // Only clear ingredients when switching between incompatible categories
                 // (drinks use different units vs bread/dough which use grams)
@@ -1418,14 +1329,14 @@
                     updateIngredientsListDisplay();
                     updateCombinedRecipesListDisplay();
                 }
-
+                
                 if (previousCategory === 'drinks' && (category === 'bread' || category === 'dough')) {
                     ingredientsList = [];
                     combinedRecipesList = [];
                     updateIngredientsListDisplay();
                     updateCombinedRecipesListDisplay();
                 }
-
+                
                 // Update the previous category tracker
                 addPreviousCategory = category;
                 currentLabelRestriction = category; // Set restriction based on category
@@ -1447,7 +1358,7 @@
                     $('#combinedCostCard').addClass('hidden');
                     $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
                     $('#yieldComputationSection').addClass('hidden');
-
+                    
                     // Show per tray section and enable pieces input for drinks
                     $('#perTraySection').removeClass('hidden');
                     $('#piecesPerYield').prop('disabled', false);
@@ -1460,11 +1371,11 @@
                         $('#combinedRecipeSection').removeClass('hidden');
                         $('#combinedCostCard').removeClass('hidden');
                         $('#directCostCard').removeClass('col-span-2').addClass('col-span-1');
-
+                        
                         // Show per tray section and enable pieces input for bread
                         $('#perTraySection').removeClass('hidden');
                         $('#piecesPerYield').prop('disabled', false);
-
+                        
                         // Bread uses 2 columns layout
                         $('#yieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
                         $('#perPieceSection').removeClass('col-span-2');
@@ -1473,18 +1384,18 @@
                         $('#combinedRecipeSection').addClass('hidden');
                         $('#combinedCostCard').addClass('hidden');
                         $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
-
+                        
                         // Hide per tray section for dough but keep pieces enabled for yield calculation
                         $('#perTraySection').addClass('hidden');
                         $('#piecesPerYield').prop('disabled', false);
                         $('#traysPerYield').val(0);
                         $('#gramsPerTray').val(0);
-
+                        
                         // Dough uses 1 column layout (full width for Per Piece)
                         $('#yieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
                         $('#perPieceSection').addClass('col-span-2');
                     }
-
+                    
                     // Hide all units except grams for bread and dough
                     $('#ingredient_unit option').hide();
                     $('#ingredient_unit option[value="grams"]').show();
@@ -1495,7 +1406,7 @@
                     $('#combinedCostCard').addClass('hidden');
                     $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
                     $('#ingredient_unit option').show();
-
+                    
                     // Show per tray section and enable pieces input by default
                     $('#perTraySection').removeClass('hidden');
                     $('#piecesPerYield').prop('disabled', false);
@@ -1503,7 +1414,7 @@
             }
 
             // Allow Enter key in quantity field to add ingredient
-            $('#ingredient_quantity').on('keypress', function (e) {
+            $('#ingredient_quantity').on('keypress', function(e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     $('#btnAddIngredient').click();
@@ -1511,7 +1422,7 @@
             });
 
             // Close Product Modal
-            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
+            $('#btnCloseModal, #btnCancelAdd').on('click', function() {
                 closeModal();
             });
 
@@ -1563,7 +1474,7 @@
             function updateStepDisplay() {
                 // Hide all step content
                 $('#addStep1, #addStep2, #addStep3').addClass('hidden');
-
+                
                 // Show current step content
                 $('#addStep' + currentAddStep).removeClass('hidden');
 
@@ -1614,7 +1525,7 @@
             }
 
             // Next step button click
-            $('#btnNextStep').on('click', function () {
+            $('#btnNextStep').on('click', function() {
                 // Validate current step before proceeding
                 if (currentAddStep === 1) {
                     const productName = $('#material_name').val().trim();
@@ -1642,18 +1553,18 @@
                 if (currentAddStep < totalSteps) {
                     currentAddStep++;
                     updateStepDisplay();
-
+                    
                     // Scroll modal to top
                     $('#addMaterialModal .overflow-y-auto').scrollTop(0);
                 }
             });
 
             // Back step button click
-            $('#btnBackStep').on('click', function () {
+            $('#btnBackStep').on('click', function() {
                 if (currentAddStep > 1) {
                     currentAddStep--;
                     updateStepDisplay();
-
+                    
                     // Scroll modal to top
                     $('#addMaterialModal .overflow-y-auto').scrollTop(0);
                 }
@@ -1680,7 +1591,7 @@
                     url: baseUrl + 'RawMaterials/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             // Store all ingredients data for filtering
                             allIngredientsData = response.data;
@@ -1704,7 +1615,7 @@
                 const category = $('#category_id').val();
                 const filtered = [];
 
-                allIngredientsData.forEach(function (mat) {
+                allIngredientsData.forEach(function(mat) {
                     const label = (mat.label || 'general').toLowerCase();
 
                     // Filter logic based on product category
@@ -1742,7 +1653,7 @@
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No ingredients found</div>';
                 } else {
-                    filtered.forEach(function (mat) {
+                    filtered.forEach(function(mat) {
                         const label = (mat.label || 'general').toLowerCase();
                         html += '<div class="ingredient-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
                             'data-id="' + mat.material_id + '" ' +
@@ -1765,16 +1676,16 @@
             }
 
             // Ingredient search input events (Add Modal)
-            $('#ingredient_search').on('focus', function () {
+            $('#ingredient_search').on('focus', function() {
                 showIngredientDropdown($(this).val());
             });
 
-            $('#ingredient_search').on('input', function () {
+            $('#ingredient_search').on('input', function() {
                 showIngredientDropdown($(this).val());
             });
 
             // Select ingredient from dropdown (Add Modal)
-            $(document).on('click', '.ingredient-option', function () {
+            $(document).on('click', '.ingredient-option', function() {
                 const $this = $(this);
                 const id = $this.data('id');
                 const name = $this.data('name');
@@ -1788,7 +1699,7 @@
             });
 
             // Hide dropdown when clicking outside (Add Modal)
-            $(document).on('click', function (e) {
+            $(document).on('click', function(e) {
                 if (!$(e.target).closest('#ingredient_search, #ingredient_dropdown').length) {
                     hideIngredientDropdown();
                 }
@@ -1800,10 +1711,10 @@
             // Auto-select unit is now handled in the ingredient-option click event above
 
             // Add Ingredient to List
-            $('#btnAddIngredient').on('click', function () {
+            $('#btnAddIngredient').on('click', function() {
                 const ingredientId = $('#ingredient_id').val();
                 const ingredientName = $('#ingredient_search').val();
-
+                
                 // Find the ingredient data from allIngredientsData
                 const ingredientData = allIngredientsData.find(mat => mat.material_id == ingredientId);
                 const costPerUnit = ingredientData ? parseFloat(ingredientData.cost_per_unit) || 0 : 0;
@@ -1856,10 +1767,10 @@
             });
 
             // Remove Ingredient from List
-            $(document).on('click', '.btn-remove-ingredient', function () {
+            $(document).on('click', '.btn-remove-ingredient', function() {
                 const index = $(this).data('index');
                 const ingredientName = ingredientsList[index].name;
-                Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function () {
+                Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function() {
                     ingredientsList.splice(index, 1);
                     updateIngredientsListDisplay();
                     updateCostingDisplay();
@@ -1874,7 +1785,7 @@
                 }
 
                 let html = '';
-                ingredientsList.forEach(function (item, index) {
+                ingredientsList.forEach(function(item, index) {
                     const labelBadge = getLabelBadge(item.label);
 
                     html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-white">';
@@ -1929,7 +1840,7 @@
 
                 // Get current category to determine if yield computation should be shown
                 const currentCategory = $('#category_id').val();
-
+                
                 // Show yield computation section based on category (bread or dough categories)
                 // Yield computation is only available for bread and dough categories
                 const showYieldComputation = (currentCategory === 'bread' || currentCategory === 'dough') && ingredientsList.length > 0;
@@ -1942,8 +1853,8 @@
                     const allowedUnitsForYield = ['grams', 'ml', 'g'];
                     let totalYieldGrams = 0;
                     let yieldContributingCost = 0;
-
-                    editIngredientsList.forEach(item => {
+                    
+                    ingredientsList.forEach(item => {
                         if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
                             totalYieldGrams += item.quantity;
                             yieldContributingCost += item.totalCost;
@@ -1956,7 +1867,7 @@
                     let gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
                     let gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
 
-                    // Unit price per gram - based only on yield-contributing ingredients (5 decimal places)
+                    // Unit price per gram - based only on yield-contributing ingredients
                     const unitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
 
                     // Flexible Yield Computation Logic:
@@ -2007,28 +1918,22 @@
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
                         $('#gramsPerPiece').val(gramsPerPiece.toFixed(2));
-                    }
-                    else if (piecesPerYield > 0 && changedField !== 'gramsPerPiece') {
-                        // REMOVED: Auto-calculation of grams per piece
-                        // Only calculate if not explicitly set by user via gramsPerPiece field
+                    } else if (piecesPerYield > 0) {
+                        // Default: calculate grams per piece from pieces
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
                             gramsPerPiece = gramsPerTray / piecesPerTray;
                         } else if (totalYieldGrams > 0) {
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
+                        if (parseFloat($('#gramsPerPiece').val()) === 0 || changedField === null) {
+                            $('#gramsPerPiece').val(gramsPerPiece > 0 ? gramsPerPiece.toFixed(2) : 0);
+                        }
                     }
 
                     // Calculate unit price per piece
                     if (piecesPerYield > 0) {
-                        const category = $('#category_id').val();
-
-                        if (category === 'dough') {
-                            // For dough: multiply grams per piece by unit price per gram
-                            // Use yieldContributingCost (direct cost only, no overhead) for accurate per-gram pricing
-                            const doughUnitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
-                            unitPricePerPiece = gramsPerPiece * doughUnitPricePerGram;
-                        } else if (traysPerYield > 0) {
+                        if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
                             unitPricePerPiece = unitPricePerTray / piecesPerTray;
                         } else {
@@ -2038,15 +1943,15 @@
 
                     // Yield displays
                     $('#totalYieldGramsDisplay').text(totalYieldGrams.toFixed(2) + ' g');
-                    $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(5));
+                    $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(3));
                     $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(3) : '-');
-                    $('#unitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(3) : '-');
+                    $('#unitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(2) : '-');
 
                     // Calculate additional price per piece (from combined recipes)
                     const additionalPricePerPiece = combinedRecipesList.reduce((sum, item) => {
                         return sum + (item.costPerUnit * item.gramsPerPiece);
                     }, 0);
-
+                    
                     // Calculate additional price per tray
                     let additionalPricePerTray = 0;
                     if (traysPerYield > 0 && piecesPerYield > 0) {
@@ -2056,7 +1961,7 @@
                         // If only trays, no additional per tray calculation possible
                         additionalPricePerTray = 0;
                     }
-
+                    
                     // Calculate total prices (unit price + additional)
                     const totalPricePerPiece = unitPricePerPiece + additionalPricePerPiece;
                     const totalPricePerTray = unitPricePerTray + additionalPricePerTray;
@@ -2071,7 +1976,7 @@
                         $('#additionalPricePerPieceRow').addClass('hidden');
                         $('#totalPricePerPieceRow').addClass('hidden');
                     }
-
+                    
                     if (combinedRecipesList.length > 0 && traysPerYield > 0 && piecesPerYield > 0) {
                         $('#additionalPricePerTrayRow').removeClass('hidden');
                         $('#additionalPricePerTrayDisplay').text('₱ ' + additionalPricePerTray.toFixed(2));
@@ -2106,13 +2011,13 @@
                     if (piecesPerYield > 0) {
                         $('#sellingPricePerPieceRow').removeClass('hidden');
                         $('#recommendedPricePerPiece').text('₱ ' + recommendedPricePerPiece.toFixed(2));
-
+                        
                         // Enable additional recipe inputs when pieces per yield is set
                         $('#additionalYieldWarning').addClass('hidden');
                         $('#additionalRecipeInputs').removeClass('hidden');
                     } else {
                         $('#sellingPricePerPieceRow').addClass('hidden');
-
+                        
                         // Disable additional recipe inputs when no pieces per yield
                         $('#additionalYieldWarning').removeClass('hidden');
                         $('#additionalRecipeInputs').addClass('hidden');
@@ -2122,7 +2027,7 @@
                     // Hide per tray and per piece selling prices when yield computation is hidden
                     $('#sellingPricePerTrayRow').addClass('hidden');
                     $('#sellingPricePerPieceRow').addClass('hidden');
-
+                    
                     // Disable additional recipe inputs when no yield computation
                     $('#additionalYieldWarning').removeClass('hidden');
                     $('#additionalRecipeInputs').addClass('hidden');
@@ -2131,7 +2036,7 @@
                 $('#directCostDisplay').text('₱ ' + directCost.toFixed(2));
                 // Update Step 2 direct cost display
                 $('#step2DirectCostDisplay').text('₱ ' + directCost.toFixed(2));
-
+                
                 // Show/hide combined cost card based on whether there are combined recipes
                 if (combinedRecipesList.length > 0) {
                     $('#combinedCostCard').removeClass('hidden');
@@ -2141,7 +2046,7 @@
                     $('#combinedCostCard').addClass('hidden');
                     $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
                 }
-
+                
                 $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
                 $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#recommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
@@ -2151,76 +2056,43 @@
             function recalculateCombinedRecipes() {
                 const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#traysPerYield').val()) || 0;
-
+                
                 // Calculate total pieces: if trays > 0, pieces is per tray, so multiply
                 // If no trays, pieces is total pieces
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-
-                combinedRecipesList.forEach(function (item) {
+                
+                combinedRecipesList.forEach(function(item) {
                     // Recalculate total cost based on total pieces
                     const costPerProductPiece = item.costPerUnit * item.gramsPerPiece;
                     item.costPerProductPiece = costPerProductPiece;
                     item.totalCost = costPerProductPiece * totalPieces;
                 });
-
+                
                 updateCombinedRecipesListDisplay();
             }
 
             // Recalculate on overhead/profit/yield change
-            $('#overheadCost, #profitMargin').on('input', function () {
+            $('#overheadCost, #profitMargin').on('input', function() {
                 updateCostingDisplay();
             });
 
             // Handle yield field changes with specific field tracking
-            $('#piecesPerYield').on('input', function () {
+            $('#piecesPerYield').on('input', function() {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('piecesPerYield');
             });
 
-            $('#traysPerYield').on('input', function () {
+            $('#traysPerYield').on('input', function() {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('traysPerYield');
             });
 
-            // Handle gramsPerPiece input for dough products
-            // Handle gramsPerPiece input for dough products
-            $('#gramsPerPiece').on('input', function () {
-                const category = $('#category_id').val();
-                const gramsPerPiece = parseFloat($(this).val()) || 0;
-
-                if (category === 'dough' && gramsPerPiece > 0) {
-                    const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                    let totalYieldGrams = 0;
-
-                    ingredientsList.forEach(item => {
-                        if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
-                            totalYieldGrams += item.quantity;
-                        }
-                    });
-
-                    if (totalYieldGrams > 0) {
-                        const piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
-                        $('#piecesPerYield').val(piecesPerYield);
-
-                        const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
-                        const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
-                        const totalCost = directCost + overheadCost;
-
-                        const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
-                        const unitPricePerPiece = gramsPerPiece * unitPricePerGram;
-
-                        // Display unit price per gram with 5 decimal places
-                        $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(5));
-
-                        // Display unit price per piece with 5 decimal places
-                        $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(5) : '₱ 0.00000');
-
-                        updateCostingDisplay('gramsPerPiece');
-                    }
-                }
+            $('#gramsPerPiece').on('input', function() {
+                recalculateCombinedRecipes();
+                updateCostingDisplay('gramsPerPiece');
             });
 
-            $('#gramsPerTray').on('input', function () {
+            $('#gramsPerTray').on('input', function() {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('gramsPerTray');
             });
@@ -2231,21 +2103,21 @@
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             console.log("All Products for Combined Recipes: ", response.data);
                             let options = '<option value="">Select a recipe...</option>';
-                            response.data.forEach(function (product) {
+                            response.data.forEach(function(product) {
                                 // Exclude drinks from combined recipes
                                 if (product.category === 'drinks') {
                                     return; // Skip drinks
                                 }
-
+                                
                                 // Use grams_per_piece from database if available, otherwise calculate
                                 const yieldGrams = parseFloat(product.yield_grams) || 0;
                                 const piecesPerYield = parseInt(product.pieces_per_yield) || 0;
                                 const traysPerYield = parseInt(product.trays_per_yield) || 0;
-
+                                
                                 // Prefer database values if available
                                 let gramsPerPiece = parseFloat(product.grams_per_piece) || 0;
                                 let gramsPerTray = parseFloat(product.grams_per_tray) || 0;
@@ -2256,7 +2128,7 @@
                                     if (traysPerYield > 0 && gramsPerTray === 0) {
                                         gramsPerTray = yieldGrams / traysPerYield;
                                     }
-
+                                    
                                     // Calculate grams per piece
                                     if (piecesPerYield > 0) {
                                         if (traysPerYield > 0) {
@@ -2278,13 +2150,13 @@
             }
 
             // Auto-populate quantity when a combined recipe is selected
-            $('#combinedRecipeSelect').on('change', function () {
+            $('#combinedRecipeSelect').on('change', function() {
                 const selectedOption = $(this).find('option:selected');
                 const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
                 const gramsPerTray = parseFloat(selectedOption.data('grams-per-tray')) || 0;
                 const recipeName = selectedOption.data('name');
                 const recipeId = selectedOption.val();
-
+                
                 console.log('========== ADDITIONAL RECIPE SELECTED ==========');
                 console.log('Recipe ID:', recipeId);
                 console.log('Recipe Name:', recipeName);
@@ -2308,7 +2180,7 @@
             });
 
             // Add Combined Recipe
-            $('#btnAddCombinedRecipe').on('click', function () {
+            $('#btnAddCombinedRecipe').on('click', function() {
                 const select = $('#combinedRecipeSelect');
                 const selectedOption = select.find('option:selected');
                 const recipeId = select.val();
@@ -2318,11 +2190,11 @@
                 const recipePiecesPerYield = parseInt(selectedOption.data('pieces-per-yield')) || 0;
                 // Get grams per piece directly from the dropdown data attribute (from database)
                 const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
-
+                
                 // Get the new product's pieces and trays per yield
                 const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#traysPerYield').val()) || 0;
-
+                
                 // Calculate total pieces: if trays > 0, pieces is per tray, so multiply
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
 
@@ -2335,7 +2207,7 @@
                     Toast.warning('The selected recipe "' + recipeName + '" has no grams per piece data. Please set it up first.');
                     return;
                 }
-
+                
                 if (piecesPerYield <= 0) {
                     Toast.warning('Please set up Pieces per Yield first.');
                     return;
@@ -2395,10 +2267,10 @@
             });
 
             // Remove Combined Recipe
-            $(document).on('click', '.btn-remove-combined-recipe', function () {
+            $(document).on('click', '.btn-remove-combined-recipe', function() {
                 const index = $(this).data('index');
                 const recipeName = combinedRecipesList[index].name;
-                Confirm.delete('Are you sure you want to remove "' + recipeName + '" from combined recipes?', function () {
+                Confirm.delete('Are you sure you want to remove "' + recipeName + '" from combined recipes?', function() {
                     combinedRecipesList.splice(index, 1);
                     updateCombinedRecipesListDisplay();
                     updateCostingDisplay();
@@ -2415,9 +2287,9 @@
                 const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#traysPerYield').val()) || 0;
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-
+                
                 let html = '';
-                combinedRecipesList.forEach(function (item, index) {
+                combinedRecipesList.forEach(function(item, index) {
                     html += '<div class="flex items-center justify-between p-2 border border-amber-200 rounded-md bg-white">';
                     html += '<div class="flex-1">';
                     html += '<div class="text-xs font-medium text-gray-800">' + item.name + '</div>';
@@ -2431,7 +2303,7 @@
             }
 
             // Calculate cost per unit
-            $('#material_quantity, #total_cost').on('input', function () {
+            $('#material_quantity, #total_cost').on('input', function() {
                 const qty = parseFloat($('#material_quantity').val()) || 0;
                 const cost = parseFloat($('#total_cost').val()) || 0;
                 const perUnit = qty > 0 ? (cost / qty).toFixed(3) : '0.000';
@@ -2452,7 +2324,7 @@
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
 
                         console.log("All Products: ", response.data);
                         // Destroy existing DataTable first
@@ -2463,9 +2335,9 @@
 
                         let rows = '';
                         let cards = '';
-
+                        
                         if (response.success && response.data && response.data.length > 0) {
-                            response.data.forEach(function (product) {
+                            response.data.forEach(function(product) {
                                 // Desktop table rows
                                 rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
@@ -2478,7 +2350,7 @@
                                 rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 rows += '</td>';
                                 rows += '</tr>';
-
+                                
                                 // Mobile card view
                                 const categoryBadge = getCategoryBadge(product.category);
                                 cards += '<div class="product-card bg-white rounded-lg shadow-md border border-gray-100 p-4 cursor-pointer" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-name="' + product.product_name.toLowerCase() + '">';
@@ -2525,7 +2397,7 @@
                         } else {
                             $('#mobileNoResults').removeClass('hidden');
                         }
-
+                        
                         $('#materialsTableBody').html(rows);
                         $('#mobileCardsContainer').html(cards);
 
@@ -2545,7 +2417,7 @@
                             });
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log('Error loading products: ' + error);
                         // Still initialize DataTable on error to show controls
                         if (dataTable) {
@@ -2572,7 +2444,7 @@
             }
 
             // Submit Add Product Form via AJAX
-            $('#addMaterialForm').on('submit', function (e) {
+            $('#addMaterialForm').on('submit', function(e) {
                 e.preventDefault();
 
                 // Calculate costs before submission
@@ -2691,7 +2563,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         console.log('--- AJAX RESPONSE ---');
                         console.log('Response:', JSON.stringify(response, null, 2));
                         if (response.success) {
@@ -2702,7 +2574,7 @@
                             Toast.error('Error: ' + response.message);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log('--- AJAX ERROR ---');
                         console.log('Status:', status);
                         console.log('Error:', error);
@@ -2713,14 +2585,14 @@
             });
 
             // Delete Product
-            $(document).on('click', '.btn-delete', function () {
+            $(document).on('click', '.btn-delete', function() {
                 const id = $(this).data('id');
-                Confirm.delete('Are you sure you want to delete this product?', function () {
+                Confirm.delete('Are you sure you want to delete this product?', function() {
                     $.ajax({
                         url: baseUrl + 'Products/DeleteProduct/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response.success) {
                                 Toast.success('Product deleted successfully!');
                                 loadMaterials();
@@ -2728,7 +2600,7 @@
                                 Toast.error('Error: ' + response.message);
                             }
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
                             Toast.error('Error deleting product: ' + error);
                         }
                     });
@@ -2736,21 +2608,21 @@
             });
 
             // Apply Filter
-            $('#apply-filters').on('click', function () {
+            $('#apply-filters').on('click', function() {
                 const categoryId = $('#filter-category').val();
-
+                
                 // Filter desktop table
-                $('table tbody tr').each(function () {
+                $('table tbody tr').each(function() {
                     if (categoryId === '' || $(this).data('category') == categoryId) {
                         $(this).show();
                     } else {
                         $(this).hide();
                     }
                 });
-
+                
                 // Filter mobile cards
                 let hasResults = false;
-                $('.product-card').each(function () {
+                $('.product-card').each(function() {
                     if (categoryId === '' || $(this).data('category') == categoryId) {
                         $(this).removeClass('hidden');
                         hasResults = true;
@@ -2758,7 +2630,7 @@
                         $(this).addClass('hidden');
                     }
                 });
-
+                
                 if (hasResults || categoryId === '') {
                     $('#mobileNoResults').addClass('hidden');
                 } else {
@@ -2767,7 +2639,7 @@
             });
 
             // Reset Filter
-            $('#reset-filters').on('click', function () {
+            $('#reset-filters').on('click', function() {
                 $('#filter-category').val('');
                 $('table tbody tr').show();
                 $('.product-card').removeClass('hidden');
@@ -2784,7 +2656,7 @@
             let editCombinedRecipesList = [];
 
             // Open Edit Product Modal
-            $(document).on('click', '.btn-edit', function () {
+            $(document).on('click', '.btn-edit', function() {
                 const productId = $(this).data('id');
                 openEditModal(productId);
             });
@@ -2794,20 +2666,20 @@
                 console.log('=== OPEN EDIT MODAL DEBUG ===');
                 console.log('openEditModal called with productId:', productId);
                 console.log('productId type:', typeof productId);
-
+                
                 // Load ingredients dropdown first, then fetch product data
                 $.ajax({
                     url: baseUrl + 'RawMaterials/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             // Store all ingredients data for filtering and label lookup
                             allIngredientsData = response.data;
                             // Update dropdown based on current restriction
                             updateEditIngredientsDropdown();
                         }
-
+                        
                         // Now load combined recipes dropdown
                         loadEditCombinedRecipesDropdown();
 
@@ -2818,117 +2690,117 @@
                             url: baseUrl + 'Products/GetProduct/' + productId,
                             type: 'GET',
                             dataType: 'json',
-                            success: function (response) {
+                            success: function(response) {
                                 console.log('Product fetch response:', response);
                                 if (response.success && response.data) {
                                     const product = response.data;
                                     console.log('Product Data:', product);
 
-                                    // Set basic product info
-                                    $('#edit_product_id').val(product.product_id);
-                                    $('#edit_material_name').val(product.product_name);
-                                    $('#edit_category_id').val(product.category);
+                            // Set basic product info
+                            $('#edit_product_id').val(product.product_id);
+                            $('#edit_material_name').val(product.product_name);
+                            $('#edit_category_id').val(product.category);
+                            
+                            // Set the previous category tracker for edit modal
+                            editPreviousCategory = product.category;
 
-                                    // Set the previous category tracker for edit modal
-                                    editPreviousCategory = product.category;
+                            // Set costing values
+                            $('#editOverheadCost').val(product.overhead_cost_percentage || 0);
+                            $('#editProfitMargin').val(product.profit_margin_percentage || 30);
 
-                                    // Set costing values
-                                    $('#editOverheadCost').val(product.overhead_cost_percentage || 0);
-                                    $('#editProfitMargin').val(product.profit_margin_percentage || 30);
+                            // Set yield values
+                            $('#editTraysPerYield').val(product.trays_per_yield || 0);
+                            $('#editPiecesPerYield').val(product.pieces_per_yield || 0);
+                            // Set grams per piece/tray from database (will recalculate if 0)
+                            $('#editGramsPerPiece').val(product.grams_per_piece || 0);
+                            $('#editGramsPerTray').val(product.grams_per_tray || 0);
 
-                                    // Set yield values
-                                    $('#editTraysPerYield').val(product.trays_per_yield || 0);
-                                    $('#editPiecesPerYield').val(product.pieces_per_yield || 0);
-                                    // Set grams per piece/tray from database (will recalculate if 0)
-                                    $('#editGramsPerPiece').val(product.grams_per_piece || 0);
-                                    $('#editGramsPerTray').val(product.grams_per_tray || 0);
+                            // Set selling prices
+                            $('#editSellingPriceOverall').val(product.selling_price_overall || 0);
+                            $('#editSellingPricePerTray').val(product.selling_price_per_tray || 0);
+                            $('#editSellingPricePerPiece').val(product.selling_price_per_piece || 0);
 
-                                    // Set selling prices
-                                    $('#editSellingPriceOverall').val(product.selling_price_overall || 0);
-                                    $('#editSellingPricePerTray').val(product.selling_price_per_tray || 0);
-                                    $('#editSellingPricePerPiece').val(product.selling_price_per_piece || 0);
-
-                                    // Load ingredients
-                                    editIngredientsList = [];
-                                    if (product.ingredients && product.ingredients.length > 0) {
-                                        product.ingredients.forEach(function (ing) {
-                                            // Look up the label from allIngredientsData if not provided
-                                            let ingredientLabel = ing.label || 'general';
-                                            if (!ing.label || ing.label === 'general') {
-                                                const rawMaterial = allIngredientsData.find(m => m.material_id == ing.material_id);
-                                                if (rawMaterial && rawMaterial.label) {
-                                                    ingredientLabel = rawMaterial.label;
-                                                }
-                                            }
-
-                                            editIngredientsList.push({
-                                                id: ing.material_id,
-                                                name: ing.material_name,
-                                                quantity: parseFloat(ing.quantity),
-                                                unit: ing.unit,
-                                                costPerUnit: parseFloat(ing.cost_per_unit),
-                                                totalCost: parseFloat(ing.total_cost),
-                                                label: ingredientLabel
-                                            });
-                                        });
+                            // Load ingredients
+                            editIngredientsList = [];
+                            if (product.ingredients && product.ingredients.length > 0) {
+                                product.ingredients.forEach(function(ing) {
+                                    // Look up the label from allIngredientsData if not provided
+                                    let ingredientLabel = ing.label || 'general';
+                                    if (!ing.label || ing.label === 'general') {
+                                        const rawMaterial = allIngredientsData.find(m => m.material_id == ing.material_id);
+                                        if (rawMaterial && rawMaterial.label) {
+                                            ingredientLabel = rawMaterial.label;
+                                        }
                                     }
-
-                                    // Load combined recipes
-                                    editCombinedRecipesList = [];
-                                    if (product.combined_recipes && product.combined_recipes.length > 0) {
-                                        $('#editEnableCombinedRecipes').prop('checked', true);
-                                        $('#editCombinedRecipeSection').removeClass('hidden');
-                                        $('#editCombinedCostCard').removeClass('hidden');
-                                        $('#editDirectCostCard').removeClass('col-span-2').addClass('col-span-1');
-
-                                        product.combined_recipes.forEach(function (recipe) {
-                                            editCombinedRecipesList.push({
-                                                id: recipe.product_id,
-                                                name: recipe.product_name,
-                                                quantity: parseFloat(recipe.quantity),
-                                                unit: recipe.unit,
-                                                costPerGram: parseFloat(recipe.cost_per_gram),
-                                                totalCost: parseFloat(recipe.total_cost)
-                                            });
-                                        });
-                                    } else {
-                                        $('#editEnableCombinedRecipes').prop('checked', false);
-                                        $('#editCombinedRecipeSection').addClass('hidden');
-                                        $('#editCombinedCostCard').addClass('hidden');
-                                        $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
-                                    }
-
-                                    // Update UI
-                                    updateEditUIBasedOnCategory();
-                                    updateEditIngredientsListDisplay();
-                                    updateEditCombinedRecipesListDisplay();
-                                    updateEditCostingDisplay();
-
-                                    // Reset to step 1 and update display
-                                    currentEditStep = 1;
-                                    updateEditStepDisplay();
-
-                                    // Show modal
-                                    $('#editProductModal').removeClass('hidden');
-                                } else {
-                                    Toast.error('Error loading product data: ' + (response.message || 'Unknown error'));
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.log('=== AJAX ERROR ===');
-                                console.log('XHR:', xhr);
-                                console.log('Status:', status);
-                                console.log('Error:', error);
-                                console.log('Response Text:', xhr.responseText);
-                                Toast.error('Error loading product: ' + error);
+                                    
+                                    editIngredientsList.push({
+                                        id: ing.material_id,
+                                        name: ing.material_name,
+                                        quantity: parseFloat(ing.quantity),
+                                        unit: ing.unit,
+                                        costPerUnit: parseFloat(ing.cost_per_unit),
+                                        totalCost: parseFloat(ing.total_cost),
+                                        label: ingredientLabel
+                                    });
+                                });
                             }
-                        });
+
+                            // Load combined recipes
+                            editCombinedRecipesList = [];
+                            if (product.combined_recipes && product.combined_recipes.length > 0) {
+                                $('#editEnableCombinedRecipes').prop('checked', true);
+                                $('#editCombinedRecipeSection').removeClass('hidden');
+                                $('#editCombinedCostCard').removeClass('hidden');
+                                $('#editDirectCostCard').removeClass('col-span-2').addClass('col-span-1');
+
+                                product.combined_recipes.forEach(function(recipe) {
+                                    editCombinedRecipesList.push({
+                                        id: recipe.product_id,
+                                        name: recipe.product_name,
+                                        quantity: parseFloat(recipe.quantity),
+                                        unit: recipe.unit,
+                                        costPerGram: parseFloat(recipe.cost_per_gram),
+                                        totalCost: parseFloat(recipe.total_cost)
+                                    });
+                                });
+                            } else {
+                                $('#editEnableCombinedRecipes').prop('checked', false);
+                                $('#editCombinedRecipeSection').addClass('hidden');
+                                $('#editCombinedCostCard').addClass('hidden');
+                                $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
+                            }
+
+                            // Update UI
+                            updateEditUIBasedOnCategory();
+                            updateEditIngredientsListDisplay();
+                            updateEditCombinedRecipesListDisplay();
+                            updateEditCostingDisplay();
+
+                            // Reset to step 1 and update display
+                            currentEditStep = 1;
+                            updateEditStepDisplay();
+
+                            // Show modal
+                            $('#editProductModal').removeClass('hidden');
+                        } else {
+                            Toast.error('Error loading product data: ' + (response.message || 'Unknown error'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('=== AJAX ERROR ===');
+                        console.log('XHR:', xhr);
+                        console.log('Status:', status);
+                        console.log('Error:', error);
+                        console.log('Response Text:', xhr.responseText);
+                        Toast.error('Error loading product: ' + error);
+                    }
+                });
                     }
                 });
             }
 
             // Close Edit Modal
-            $('#btnCloseEditModal, #btnCancelEdit').on('click', function () {
+            $('#btnCloseEditModal, #btnCancelEdit').on('click', function() {
                 closeEditModal();
             });
 
@@ -2972,7 +2844,7 @@
             function updateEditStepDisplay() {
                 // Hide all step content
                 $('#editStep1, #editStep2, #editStep3').addClass('hidden');
-
+                
                 // Show current step content
                 $('#editStep' + currentEditStep).removeClass('hidden');
 
@@ -2980,7 +2852,7 @@
                 for (let i = 1; i <= totalEditSteps; i++) {
                     const indicator = $('#editStep' + i + 'Indicator');
                     const label = $('#editStep' + i + 'Label');
-
+                    
                     if (i < currentEditStep) {
                         // Completed step
                         indicator.removeClass('border-gray-300 text-gray-400 bg-primary/10 border-primary text-primary')
@@ -3023,12 +2895,12 @@
             }
 
             // Edit Next step button click
-            $('#btnEditNextStep').on('click', function () {
+            $('#btnEditNextStep').on('click', function() {
                 // Validate current step before proceeding
                 if (currentEditStep === 1) {
                     const productName = $('#edit_material_name').val().trim();
                     const category = $('#edit_category_id').val();
-
+                    
                     if (!productName) {
                         Toast.error('Please enter a product name.');
                         $('#edit_material_name').focus();
@@ -3059,7 +2931,7 @@
             });
 
             // Edit Back step button click
-            $('#btnEditBackStep').on('click', function () {
+            $('#btnEditBackStep').on('click', function() {
                 if (currentEditStep > 1) {
                     currentEditStep--;
                     updateEditStepDisplay();
@@ -3071,11 +2943,11 @@
             // Handle edit category change
             // Track the previous category to determine if we need to clear ingredients
             let editPreviousCategory = '';
-
-            $('#edit_category_id').on('change', function () {
+            
+            $('#edit_category_id').on('change', function() {
                 const category = $(this).val();
                 const previousCategory = editPreviousCategory;
-
+                
                 // Only clear ingredients when switching from bread/dough to drinks
                 // This is because drinks use different units (ml, pcs) vs bread/dough (grams)
                 if ((previousCategory === 'bread' || previousCategory === 'dough') && category === 'drinks') {
@@ -3084,7 +2956,7 @@
                     updateEditIngredientsListDisplay();
                     updateEditCombinedRecipesListDisplay();
                 }
-
+                
                 // Also clear when switching from drinks to bread/dough
                 if (previousCategory === 'drinks' && (category === 'bread' || category === 'dough')) {
                     editIngredientsList = [];
@@ -3092,7 +2964,7 @@
                     updateEditIngredientsListDisplay();
                     updateEditCombinedRecipesListDisplay();
                 }
-
+                
                 // Update the previous category tracker
                 editPreviousCategory = category;
 
@@ -3113,7 +2985,7 @@
                     $('#editCombinedCostCard').addClass('hidden');
                     $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
                     $('#editYieldComputationSection').addClass('hidden');
-
+                    
                     // Show per tray section and enable pieces input for drinks
                     $('#editPerTraySection').removeClass('hidden');
                     $('#editPiecesPerYield').prop('disabled', false);
@@ -3126,11 +2998,11 @@
                         $('#editCombinedRecipeSection').removeClass('hidden');
                         $('#editCombinedCostCard').removeClass('hidden');
                         $('#editDirectCostCard').removeClass('col-span-2').addClass('col-span-1');
-
+                        
                         // Show per tray section and enable pieces input for bread
                         $('#editPerTraySection').removeClass('hidden');
                         $('#editPiecesPerYield').prop('disabled', false);
-
+                        
                         // Bread uses 2 columns layout
                         $('#editYieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
                         $('#editPerPieceSection').removeClass('col-span-2');
@@ -3139,18 +3011,18 @@
                         $('#editCombinedRecipeSection').addClass('hidden');
                         $('#editCombinedCostCard').addClass('hidden');
                         $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
-
+                        
                         // Hide per tray section for dough but keep pieces enabled for yield calculation
                         $('#editPerTraySection').addClass('hidden');
                         $('#editPiecesPerYield').prop('disabled', false);
                         $('#editTraysPerYield').val(0);
                         $('#editGramsPerTray').val(0);
-
+                        
                         // Dough uses 1 column layout (full width for Per Piece)
                         $('#editYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
                         $('#editPerPieceSection').addClass('col-span-2');
                     }
-
+                    
                     // Hide all units except grams for bread and dough
                     $('#edit_ingredient_unit option').hide();
                     $('#edit_ingredient_unit option[value="grams"]').show();
@@ -3161,7 +3033,7 @@
                     $('#editCombinedCostCard').addClass('hidden');
                     $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
                     $('#edit_ingredient_unit option').show();
-
+                    
                     // Show per tray section and enable pieces input by default
                     $('#editPerTraySection').removeClass('hidden');
                     $('#editPiecesPerYield').prop('disabled', false);
@@ -3174,7 +3046,7 @@
                     url: baseUrl + 'RawMaterials/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             // Store all ingredients data for filtering
                             allIngredientsData = response.data;
@@ -3197,7 +3069,7 @@
                 const category = $('#edit_category_id').val();
                 const filtered = [];
 
-                allIngredientsData.forEach(function (mat) {
+                allIngredientsData.forEach(function(mat) {
                     const label = (mat.label || 'general').toLowerCase();
 
                     let shouldShow = false;
@@ -3234,7 +3106,7 @@
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No ingredients found</div>';
                 } else {
-                    filtered.forEach(function (mat) {
+                    filtered.forEach(function(mat) {
                         const label = (mat.label || 'general').toLowerCase();
                         html += '<div class="edit-ingredient-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
                             'data-id="' + mat.material_id + '" ' +
@@ -3257,16 +3129,16 @@
             }
 
             // Ingredient search input events (Edit Modal)
-            $('#edit_ingredient_search').on('focus', function () {
+            $('#edit_ingredient_search').on('focus', function() {
                 showEditIngredientDropdown($(this).val());
             });
 
-            $('#edit_ingredient_search').on('input', function () {
+            $('#edit_ingredient_search').on('input', function() {
                 showEditIngredientDropdown($(this).val());
             });
 
             // Select ingredient from dropdown (Edit Modal)
-            $(document).on('click', '.edit-ingredient-option', function () {
+            $(document).on('click', '.edit-ingredient-option', function() {
                 const $this = $(this);
                 const id = $this.data('id');
                 const name = $this.data('name');
@@ -3287,20 +3159,20 @@
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             let options = '<option value="">Select a recipe...</option>';
-                            response.data.forEach(function (product) {
+                            response.data.forEach(function(product) {
                                 // Exclude drinks from combined recipes
                                 if (product.category === 'drinks') {
                                     return; // Skip drinks
                                 }
-
+                                
                                 // Use grams_per_piece from database if available, otherwise calculate
                                 const yieldGrams = parseFloat(product.yield_grams) || 0;
                                 const piecesPerYield = parseInt(product.pieces_per_yield) || 0;
                                 const traysPerYield = parseInt(product.trays_per_yield) || 0;
-
+                                
                                 // Prefer database values if available
                                 let gramsPerPiece = parseFloat(product.grams_per_piece) || 0;
                                 let gramsPerTray = parseFloat(product.grams_per_tray) || 0;
@@ -3311,7 +3183,7 @@
                                     if (traysPerYield > 0 && gramsPerTray === 0) {
                                         gramsPerTray = yieldGrams / traysPerYield;
                                     }
-
+                                    
                                     // Calculate grams per piece
                                     if (piecesPerYield > 0) {
                                         if (traysPerYield > 0) {
@@ -3333,13 +3205,13 @@
             }
 
             // Auto-populate quantity when a combined recipe is selected (Edit modal)
-            $('#editCombinedRecipeSelect').on('change', function () {
+            $('#editCombinedRecipeSelect').on('change', function() {
                 const selectedOption = $(this).find('option:selected');
                 const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
                 const gramsPerTray = parseFloat(selectedOption.data('grams-per-tray')) || 0;
                 const recipeName = selectedOption.data('name');
                 const recipeId = selectedOption.val();
-
+                
                 console.log('========== EDIT: ADDITIONAL RECIPE SELECTED ==========');
                 console.log('Recipe ID:', recipeId);
                 console.log('Recipe Name:', recipeName);
@@ -3363,7 +3235,7 @@
             });
 
             // Allow Enter key in edit quantity field to add ingredient
-            $('#edit_ingredient_quantity').on('keypress', function (e) {
+            $('#edit_ingredient_quantity').on('keypress', function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#btnEditAddIngredient').click();
@@ -3371,10 +3243,10 @@
             });
 
             // Add Ingredient to Edit List
-            $('#btnEditAddIngredient').on('click', function () {
+            $('#btnEditAddIngredient').on('click', function() {
                 const ingredientId = $('#edit_ingredient_id').val();
                 const ingredientName = $('#edit_ingredient_search').val();
-
+                
                 // Find the ingredient data from allIngredientsData
                 const ingredientData = allIngredientsData.find(mat => mat.material_id == ingredientId);
                 const costPerUnit = ingredientData ? parseFloat(ingredientData.cost_per_unit) || 0 : 0;
@@ -3427,10 +3299,10 @@
             });
 
             // Remove Ingredient from Edit List
-            $(document).on('click', '.btn-remove-edit-ingredient', function () {
+            $(document).on('click', '.btn-remove-edit-ingredient', function() {
                 const index = $(this).data('index');
                 const ingredientName = editIngredientsList[index].name;
-                Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function () {
+                Confirm.delete('Are you sure you want to remove "' + ingredientName + '" from the ingredients list?', function() {
                     editIngredientsList.splice(index, 1);
                     updateEditIngredientsListDisplay();
                     updateEditCostingDisplay();
@@ -3445,7 +3317,7 @@
                 }
 
                 let html = '';
-                editIngredientsList.forEach(function (item, index) {
+                editIngredientsList.forEach(function(item, index) {
                     const labelBadge = getLabelBadge(item.label);
 
                     html += '<div class="flex items-center justify-between p-2 border border-gray-200 rounded-md bg-white">';
@@ -3463,7 +3335,7 @@
             }
 
             // Add Combined Recipe to Edit
-            $('#btnEditAddCombinedRecipe').on('click', function () {
+            $('#btnEditAddCombinedRecipe').on('click', function() {
                 const select = $('#editCombinedRecipeSelect');
                 const selectedOption = select.find('option:selected');
                 const recipeId = select.val();
@@ -3471,11 +3343,11 @@
                 const recipeTotalCost = parseFloat(selectedOption.data('cost')) || 0;
                 const recipeYield = parseFloat(selectedOption.data('yield')) || 0;
                 const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
-
+                
                 // Get the product's pieces and trays per yield
                 const piecesPerYield = parseInt($('#editPiecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#editTraysPerYield').val()) || 0;
-
+                
                 // Calculate total pieces: if trays > 0, pieces is per tray, so multiply
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
 
@@ -3488,7 +3360,7 @@
                     Toast.warning('The selected product "' + recipeName + '" has no grams per piece set in its costing data.');
                     return;
                 }
-
+                
                 if (piecesPerYield <= 0) {
                     Toast.warning('Please set up Pieces per Yield first.');
                     return;
@@ -3512,7 +3384,7 @@
 
                 // Calculate cost per gram of the additional recipe
                 const costPerGram = recipeYield > 0 ? (recipeTotalCost / recipeYield) : 0;
-
+                
                 // Total cost = (cost per gram) × (grams per product piece) × (total pieces)
                 const costPerProductPiece = costPerGram * gramsPerPiece;
                 const totalCost = costPerProductPiece * totalPieces;
@@ -3548,10 +3420,10 @@
             });
 
             // Remove Combined Recipe from Edit
-            $(document).on('click', '.btn-remove-edit-combined-recipe', function () {
+            $(document).on('click', '.btn-remove-edit-combined-recipe', function() {
                 const index = $(this).data('index');
                 const recipeName = editCombinedRecipesList[index].name;
-                Confirm.delete('Are you sure you want to remove "' + recipeName + '" from combined recipes?', function () {
+                Confirm.delete('Are you sure you want to remove "' + recipeName + '" from combined recipes?', function() {
                     editCombinedRecipesList.splice(index, 1);
                     updateEditCombinedRecipesListDisplay();
                     updateEditCostingDisplay();
@@ -3568,9 +3440,9 @@
                 const piecesPerYield = parseInt($('#editPiecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#editTraysPerYield').val()) || 0;
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-
+                
                 let html = '';
-                editCombinedRecipesList.forEach(function (item, index) {
+                editCombinedRecipesList.forEach(function(item, index) {
                     html += '<div class="flex items-center justify-between p-2 border border-amber-200 rounded-md bg-white">';
                     html += '<div class="flex-1">';
                     html += '<div class="text-xs font-medium text-gray-800">' + item.name + '</div>';
@@ -3597,7 +3469,7 @@
 
                 // Get current category to determine if yield computation should be shown
                 const currentCategory = $('#edit_category_id').val();
-
+                
                 // Show yield computation section based on category (bread or dough categories)
                 // Yield computation is only available for bread and dough categories
                 const showYieldComputation = (currentCategory === 'bread' || currentCategory === 'dough') && editIngredientsList.length > 0;
@@ -3610,14 +3482,14 @@
                     const allowedUnitsForYield = ['grams', 'ml', 'g'];
                     let totalYieldGrams = 0;
                     let yieldContributingCost = 0;
-
+                    
                     editIngredientsList.forEach(item => {
                         if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
                             totalYieldGrams += item.quantity;
                             yieldContributingCost += item.totalCost;
                         }
                     });
-
+                    
                     // Get current input values
                     let piecesPerYield = parseInt($('#editPiecesPerYield').val()) || 0;
                     let traysPerYield = parseInt($('#editTraysPerYield').val()) || 0;
@@ -3682,16 +3554,14 @@
                         } else if (totalYieldGrams > 0) {
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
+                        if (parseFloat($('#editGramsPerPiece').val()) === 0 || changedField === null) {
+                            $('#editGramsPerPiece').val(gramsPerPiece > 0 ? gramsPerPiece.toFixed(2) : 0);
+                        }
                     }
 
                     // Calculate unit price per piece
                     if (piecesPerYield > 0) {
-                        const category = $('#edit_category_id').val();
-
-                        if (category === 'dough') {
-                            // For dough: multiply grams per piece by unit price per gram
-                            unitPricePerPiece = gramsPerPiece * unitPricePerGram;
-                        } else if (traysPerYield > 0) {
+                        if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
                             unitPricePerPiece = unitPricePerTray / piecesPerTray;
                         } else {
@@ -3703,20 +3573,20 @@
                     $('#editTotalYieldGramsDisplay').text(totalYieldGrams.toFixed(2) + ' g');
                     $('#editUnitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(3));
                     $('#editUnitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(3) : '-');
-                    $('#editUnitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(3) : '-');
+                    $('#editUnitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(2) : '-');
 
                     // Calculate additional price per piece (from combined recipes)
                     const additionalPricePerPiece = editCombinedRecipesList.reduce((sum, item) => {
                         return sum + (item.costPerUnit * item.gramsPerPiece);
                     }, 0);
-
+                    
                     // Calculate additional price per tray
                     let additionalPricePerTray = 0;
                     if (traysPerYield > 0 && piecesPerYield > 0) {
                         // If both trays and pieces are set, pieces = pieces per tray
                         additionalPricePerTray = additionalPricePerPiece * piecesPerYield;
                     }
-
+                    
                     // Calculate total prices (unit price + additional)
                     const totalPricePerPiece = unitPricePerPiece + additionalPricePerPiece;
                     const totalPricePerTray = unitPricePerTray + additionalPricePerTray;
@@ -3731,7 +3601,7 @@
                         $('#editAdditionalPricePerPieceRow').addClass('hidden');
                         $('#editTotalPricePerPieceRow').addClass('hidden');
                     }
-
+                    
                     if (editCombinedRecipesList.length > 0 && traysPerYield > 0 && piecesPerYield > 0) {
                         $('#editAdditionalPricePerTrayRow').removeClass('hidden');
                         $('#editAdditionalPricePerTrayDisplay').text('₱ ' + additionalPricePerTray.toFixed(2));
@@ -3766,13 +3636,13 @@
                     if (piecesPerYield > 0) {
                         $('#editSellingPricePerPieceRow').removeClass('hidden');
                         $('#editRecommendedPricePerPiece').text('₱ ' + recommendedPricePerPiece.toFixed(2));
-
+                        
                         // Enable additional recipe inputs when pieces per yield is set
                         $('#editAdditionalYieldWarning').addClass('hidden');
                         $('#editAdditionalRecipeInputs').removeClass('hidden');
                     } else {
                         $('#editSellingPricePerPieceRow').addClass('hidden');
-
+                        
                         // Disable additional recipe inputs when no pieces per yield
                         $('#editAdditionalYieldWarning').removeClass('hidden');
                         $('#editAdditionalRecipeInputs').addClass('hidden');
@@ -3781,7 +3651,7 @@
                     $('#editYieldComputationSection').addClass('hidden');
                     $('#editSellingPricePerTrayRow').addClass('hidden');
                     $('#editSellingPricePerPieceRow').addClass('hidden');
-
+                    
                     // Disable additional recipe inputs when no yield computation
                     $('#editAdditionalYieldWarning').removeClass('hidden');
                     $('#editAdditionalRecipeInputs').addClass('hidden');
@@ -3790,7 +3660,7 @@
                 $('#editDirectCostDisplay').text('₱ ' + directCost.toFixed(2));
                 // Update Step 2 direct cost display
                 $('#editStep2DirectCostDisplay').text('₱ ' + directCost.toFixed(2));
-
+                
                 // Show/hide combined cost card based on whether there are combined recipes
                 if (editCombinedRecipesList.length > 0) {
                     $('#editCombinedCostCard').removeClass('hidden');
@@ -3800,7 +3670,7 @@
                     $('#editCombinedCostCard').addClass('hidden');
                     $('#editDirectCostCard').removeClass('col-span-1').addClass('col-span-2');
                 }
-
+                
                 $('#editTotalCostDisplay').text('₱ ' + totalCost.toFixed(2));
                 $('#editProfitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#editRecommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
@@ -3810,48 +3680,48 @@
             function recalculateEditCombinedRecipes() {
                 const piecesPerYield = parseInt($('#editPiecesPerYield').val()) || 0;
                 const traysPerYield = parseInt($('#editTraysPerYield').val()) || 0;
-
+                
                 // Calculate total pieces: if trays > 0, pieces is per tray, so multiply
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-
-                editCombinedRecipesList.forEach(function (item) {
+                
+                editCombinedRecipesList.forEach(function(item) {
                     // Recalculate total cost based on total pieces
                     const costPerProductPiece = item.costPerUnit * item.gramsPerPiece;
                     item.costPerProductPiece = costPerProductPiece;
                     item.totalCost = costPerProductPiece * totalPieces;
                 });
-
+                
                 updateEditCombinedRecipesListDisplay();
             }
 
             // Recalculate edit costing on overhead/profit change
-            $('#editOverheadCost, #editProfitMargin').on('input', function () {
+            $('#editOverheadCost, #editProfitMargin').on('input', function() {
                 updateEditCostingDisplay();
             });
 
             // Handle yield field changes with specific field tracking (Edit modal)
-            $('#editPiecesPerYield').on('input', function () {
+            $('#editPiecesPerYield').on('input', function() {
                 recalculateEditCombinedRecipes();
                 updateEditCostingDisplay('editPiecesPerYield');
             });
 
-            $('#editTraysPerYield').on('input', function () {
+            $('#editTraysPerYield').on('input', function() {
                 recalculateEditCombinedRecipes();
                 updateEditCostingDisplay('editTraysPerYield');
             });
 
-            $('#editGramsPerPiece').on('input', function () {
+            $('#editGramsPerPiece').on('input', function() {
                 recalculateEditCombinedRecipes();
                 updateEditCostingDisplay('editGramsPerPiece');
             });
 
-            $('#editGramsPerTray').on('input', function () {
+            $('#editGramsPerTray').on('input', function() {
                 recalculateEditCombinedRecipes();
                 updateEditCostingDisplay('editGramsPerTray');
             });
 
             // Submit Edit Product Form via AJAX
-            $('#editProductForm').on('submit', function (e) {
+            $('#editProductForm').on('submit', function(e) {
                 e.preventDefault();
 
                 // Calculate costs before submission
@@ -3942,7 +3812,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         console.log('--- AJAX RESPONSE ---');
                         console.log('Response:', JSON.stringify(response, null, 2));
                         if (response.success) {
@@ -3953,7 +3823,7 @@
                             Toast.error('Error: ' + response.message);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.log('--- AJAX ERROR ---');
                         console.log('Status:', status);
                         console.log('Error:', error);
@@ -3975,7 +3845,7 @@
             let currentViewProductId = null;
 
             // Open View Product Modal when clicking on a row (but not on action buttons)
-            $(document).on('click', '.product-row', function (e) {
+            $(document).on('click', '.product-row', function(e) {
                 console.log('=== ROW CLICK DEBUG ===');
                 console.log('Row clicked!');
                 console.log('Event target:', e.target);
@@ -4007,7 +3877,7 @@
                     url: baseUrl + 'Products/GetProduct/' + productId,
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             const product = response.data;
                             console.log('View Product Data:', product);
@@ -4029,7 +3899,7 @@
                             // Populate ingredients list
                             let ingredientsHtml = '';
                             if (product.ingredients && product.ingredients.length > 0) {
-                                product.ingredients.forEach(function (ing) {
+                                product.ingredients.forEach(function(ing) {
                                     const totalCost = parseFloat(ing.total_cost) || 0;
                                     const costPerUnit = parseFloat(ing.cost_per_unit) || 0;
                                     ingredientsHtml += `
@@ -4052,7 +3922,7 @@
                                 $('#viewCombinedRecipesSection').removeClass('hidden');
                                 $('#viewCombinedCostRow').removeClass('hidden');
                                 let combinedHtml = '';
-                                product.combined_recipes.forEach(function (recipe) {
+                                product.combined_recipes.forEach(function(recipe) {
                                     const totalCost = parseFloat(recipe.total_cost) || 0;
                                     const costPerGram = parseFloat(recipe.cost_per_gram) || 0;
                                     combinedHtml += `
@@ -4087,7 +3957,7 @@
 
                             if (yieldGrams > 0 || traysPerYield > 0 || piecesPerYield > 0) {
                                 $('#viewYieldSection').removeClass('hidden');
-
+                                
                                 // Set grid layout based on category AND whether Per Tray has data
                                 // If no trays data, Per Piece should take full width regardless of category
                                 if (traysPerYield > 0) {
@@ -4099,26 +3969,26 @@
                                     $('#viewYieldGridContainer').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1');
                                     $('#viewPerPieceSection').addClass('col-span-2');
                                 }
-
+                                
                                 // Display total yield
                                 $('#viewYieldGrams').text(yieldGrams.toFixed(2) + ' g');
-
+                                
                                 // Calculate unit price per gram
                                 const unitPricePerGram = yieldGrams > 0 ? totalCost / yieldGrams : 0;
-                                $('#viewUnitPricePerGram').text('₱ ' + unitPricePerGram.toFixed(5));
-
+                                $('#viewUnitPricePerGram').text('₱ ' + unitPricePerGram.toFixed(3));
+                                
                                 // Calculate and display per tray information
                                 if (traysPerYield > 0) {
                                     $('#viewPerTraySection').removeClass('hidden');
                                     $('#viewTraysPerYield').text(traysPerYield);
-
+                                    
                                     // Use database value if available, otherwise calculate
                                     const gramsPerTray = parseFloat(product.grams_per_tray) || (yieldGrams / traysPerYield);
                                     const unitPricePerTray = totalCost / traysPerYield;
-
+                                    
                                     $('#viewGramsPerTray').text(gramsPerTray.toFixed(2) + ' g');
                                     $('#viewUnitPricePerTray').text('₱ ' + unitPricePerTray.toFixed(2));
-
+                                    
                                     // Calculate additional price per tray if there are combined recipes
                                     if (product.combined_recipes && product.combined_recipes.length > 0 && piecesPerYield > 0) {
                                         const additionalPricePerPiece = product.combined_recipes.reduce((sum, recipe) => {
@@ -4127,10 +3997,10 @@
                                             return sum + (costPerGram * gramsPerPiece);
                                         }, 0);
                                         const additionalPricePerTray = additionalPricePerPiece * piecesPerYield;
-
+                                        
                                         $('#viewAdditionalPricePerTrayRow').removeClass('hidden');
                                         $('#viewAdditionalPricePerTray').text('₱ ' + additionalPricePerTray.toFixed(2));
-
+                                        
                                         const totalPricePerTray = unitPricePerTray + additionalPricePerTray;
                                         $('#viewTotalPricePerTrayRow').removeClass('hidden');
                                         $('#viewTotalPricePerTray').text('₱ ' + totalPricePerTray.toFixed(2));
@@ -4141,54 +4011,36 @@
                                 } else {
                                     $('#viewPerTraySection').addClass('hidden');
                                 }
-
+                                
                                 // Calculate and display per piece information
                                 if (piecesPerYield > 0) {
                                     $('#viewPerPieceSection').removeClass('hidden');
-
+                                    
                                     // Update label based on whether trays exist
                                     if (traysPerYield > 0) {
                                         $('#viewPiecesLabelText').text('Pieces per Tray');
                                         $('#viewPiecesPerYield').text(piecesPerYield);
-
+                                        
                                         // Use database value if available, otherwise calculate
                                         const gramsPerTray = parseFloat(product.grams_per_tray) || (yieldGrams / traysPerYield);
                                         const gramsPerPiece = parseFloat(product.grams_per_piece) || (gramsPerTray / piecesPerYield);
                                         const unitPricePerTray = totalCost / traysPerYield;
-                                        let unitPricePerPiece = 0;
-
-                                        // For dough category: use direct cost only (no overhead) divided by yield grams
-                                        if (product.category === 'dough') {
-                                            const directCost = parseFloat(product.direct_cost) || 0;
-                                            const unitPricePerGramDough = yieldGrams > 0 ? directCost / yieldGrams : 0;
-                                            unitPricePerPiece = gramsPerPiece * unitPricePerGramDough;
-                                        } else {
-                                            unitPricePerPiece = unitPricePerTray / piecesPerYield;
-                                        }
-
+                                        const unitPricePerPiece = unitPricePerTray / piecesPerYield;
+                                        
                                         $('#viewGramsPerPiece').text(gramsPerPiece.toFixed(2) + ' g');
-                                        $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(3));
+                                        $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(2));
                                     } else {
                                         $('#viewPiecesLabelText').text('Pieces/Slices/Plates');
                                         $('#viewPiecesPerYield').text(piecesPerYield);
-
+                                        
                                         // Use database value if available, otherwise calculate
                                         const gramsPerPiece = parseFloat(product.grams_per_piece) || (yieldGrams / piecesPerYield);
-                                        let unitPricePerPiece = 0;
-
-                                        // For dough category: use direct cost only (no overhead) divided by yield grams
-                                        if (product.category === 'dough') {
-                                            const directCost = parseFloat(product.direct_cost) || 0;
-                                            const unitPricePerGramDough = yieldGrams > 0 ? directCost / yieldGrams : 0;
-                                            unitPricePerPiece = gramsPerPiece * unitPricePerGramDough;
-                                        } else {
-                                            unitPricePerPiece = totalCost / piecesPerYield;
-                                        }
-
+                                        const unitPricePerPiece = totalCost / piecesPerYield;
+                                        
                                         $('#viewGramsPerPiece').text(gramsPerPiece.toFixed(2) + ' g');
-                                        $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(3));
+                                        $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(2));
                                     }
-
+                                    
                                     // Calculate additional price per piece if there are combined recipes
                                     if (product.combined_recipes && product.combined_recipes.length > 0) {
                                         const additionalPricePerPiece = product.combined_recipes.reduce((sum, recipe) => {
@@ -4196,10 +4048,10 @@
                                             const gramsPerPiece = parseFloat(recipe.quantity) || 0;
                                             return sum + (costPerGram * gramsPerPiece);
                                         }, 0);
-
+                                        
                                         $('#viewAdditionalPricePerPieceRow').removeClass('hidden');
                                         $('#viewAdditionalPricePerPiece').text('₱ ' + additionalPricePerPiece.toFixed(2));
-
+                                        
                                         let unitPricePerPiece = 0;
                                         if (traysPerYield > 0) {
                                             const unitPricePerTray = totalCost / traysPerYield;
@@ -4207,7 +4059,7 @@
                                         } else {
                                             unitPricePerPiece = totalCost / piecesPerYield;
                                         }
-
+                                        
                                         const totalPricePerPiece = unitPricePerPiece + additionalPricePerPiece;
                                         $('#viewTotalPricePerPieceRow').removeClass('hidden');
                                         $('#viewTotalPricePerPiece').text('₱ ' + totalPricePerPiece.toFixed(2));
@@ -4251,14 +4103,14 @@
                             Toast.error('Error loading product details: ' + (response.message || 'Unknown error'));
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         Toast.error('Error loading product: ' + error);
                     }
                 });
             }
 
             // Close View Modal
-            $('#btnCloseViewModal, #btnViewClose').on('click', function () {
+            $('#btnCloseViewModal, #btnViewClose').on('click', function() {
                 closeViewModal();
             });
 
@@ -4268,7 +4120,7 @@
             }
 
             // Edit button in view modal - close view modal and open edit modal
-            $('#btnViewEdit').on('click', function () {
+            $('#btnViewEdit').on('click', function() {
                 console.log('=== EDIT BUTTON CLICK DEBUG ===');
                 console.log('currentViewProductId:', currentViewProductId);
                 const productId = currentViewProductId;
