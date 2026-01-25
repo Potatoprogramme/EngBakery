@@ -1,5 +1,5 @@
 /**
- * Inventory Table Module
+ * Inventory Table Module refactored
  * Handles DataTable initialization and rendering
  */
 

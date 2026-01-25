@@ -1,5 +1,5 @@
 /**
- * Inventory Modal Module
+ * Inventory Modal Module refactored
  * Handles all modal operations for inventory
  */
 

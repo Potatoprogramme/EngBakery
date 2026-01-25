@@ -1,5 +1,5 @@
 /**
- * Inventory Main Module
+ * Inventory Main Module refactored 
  * Main entry point for inventory functionality
  * 
  * Dependencies:
