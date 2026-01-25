@@ -61,8 +61,8 @@ class DailyStockItemsModel extends Model
     public function getStockItemByProduct(int $dailyStockId, int $productId): ?array
     {
         return $this->where('daily_stock_id', $dailyStockId)
-                    ->where('product_id', $productId)
-                    ->first();
+            ->where('product_id', $productId)
+            ->first();
     }
 
     /**
@@ -100,9 +100,9 @@ class DailyStockItemsModel extends Model
     {
         // Check if product already exists in this inventory
         $existing = $this->where('daily_stock_id', $dailyStockId)
-                         ->where('product_id', $productId)
-                         ->first();
-        
+            ->where('product_id', $productId)
+            ->first();
+
         if ($existing) {
             return false; // Already exists
         }

@@ -37,6 +37,21 @@ class InventoryController extends BaseController
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
 
+        foreach ($daily_stock_items as &$item) {
+            // Calculate sales: beginning - ending - pull_out
+            $item['total_sales'] = $this->dailySalesModel
+                ->selectSum('total_sales')
+                ->where('item_id', $item['item_id'])
+                ->where('date_created', $today)
+                ->first()['total_sales'] ?? 0;
+
+            $item['quantity_sold'] = $this->dailySalesModel
+                ->selectSum('quantity_sold')
+                ->where('item_id', $item['item_id'])
+                ->where('date_created', $today)
+                ->first()['quantity_sold'] ?? 0;
+        }
+
         if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -166,7 +181,7 @@ class InventoryController extends BaseController
         }
 
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
-        
+
         $result = $this->dailyStockItemsModel->addProductToInventory(
             $dailyStock['daily_stock_id'],
             intval($json->product_id),
@@ -238,13 +253,15 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
         $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-        if ($quantitySold < 0) $quantitySold = 0;
+        if ($quantitySold < 0)
+            $quantitySold = 0;
 
         // Calculate new ending stock = new beginning - new pull_out - quantity already sold
         $newBeginning = intval($json->beginning_stock);
         $newPullOut = intval($json->pull_out_quantity);
         $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-        if ($newEndingStock < 0) $newEndingStock = 0;
+        if ($newEndingStock < 0)
+            $newEndingStock = 0;
 
         // Prepare update data
         $updateData = [

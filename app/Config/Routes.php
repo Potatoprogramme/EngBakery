@@ -76,3 +76,8 @@ $routes->group('DailyStock', function (RouteCollection $routes) {
     $routes->post('CreateParticular', 'DailyStockController::createParticular');
 });
 
+$routes->group('Sales', function (RouteCollection $routes) {
+    $routes->get('/', 'SalesController::index');
+    $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
+});
+
