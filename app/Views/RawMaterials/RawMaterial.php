@@ -159,7 +159,7 @@
                         <div class="flex">
                             <input type="number" name="material_quantity" id="material_quantity"
                                 class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0"
-                                placeholder="25000" min="0.01" step="0.01" required>
+                                placeholder="25000" min="0" step="0.01" required>
                             <select name="unit" id="unit"
                                 class="w-32 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
                                 required>
@@ -193,7 +193,7 @@
                             </div>
                             <input type="number" name="total_cost" id="total_cost"
                                 class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="1350.00" step="0.01" min="0.01" required>
+                                placeholder="1350.00" step="0.01" min="0" required>
                         </div>
                     </div>
                     <div>
