@@ -325,7 +325,7 @@
                                 </div>
                                 <div id="combinedCostCard"
                                     class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                                    <span class="text-sm text-gray-600">Additional Cost</span>
                                     <span id="combinedCostDisplay" class="text-sm font-medium text-amber-700">₱
                                         0.00</span>
                                 </div>
@@ -770,7 +770,7 @@
                                 </div>
                                 <div id="editCombinedCostCard"
                                     class="hidden p-3 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                                    <span class="text-sm text-gray-600">Additional Cost</span>
                                     <span id="editCombinedCostDisplay" class="text-sm font-medium text-amber-700">₱
                                         0.00</span>
                                 </div>
@@ -1078,7 +1078,7 @@
                         <span id="viewDirectCost" class="text-sm font-medium text-gray-900">₱ 0.00</span>
                     </div>
                     <div id="viewCombinedCostRow" class="flex justify-between items-center hidden">
-                        <span class="text-sm text-gray-600">Combined Recipes Cost</span>
+                        <span class="text-sm text-gray-600">Additional Cost</span>
                         <span id="viewCombinedCost" class="text-sm font-medium text-amber-700">₱ 0.00</span>
                     </div>
                     <div class="flex justify-between items-center">
@@ -1925,7 +1925,7 @@
                 // Console log Costing Breakdown
                 console.log('========== COSTING BREAKDOWN ==========');
                 console.log('Direct Cost:', directCost.toFixed(3));
-                console.log('Combined Recipes Cost:', combinedCost.toFixed(2));
+                console.log('Additional Cost:', combinedCost.toFixed(2));
                 console.log('Overhead %:', $('#overheadCost').val() || 0);
                 console.log('Overhead Cost:', overheadCost.toFixed(2));
                 console.log('Total Cost (without combined):', totalCost.toFixed(2));
@@ -2017,9 +2017,8 @@
                         }
                         $('#gramsPerPiece').val(gramsPerPiece.toFixed(2));
                     }
-                    else if (piecesPerYield > 0 && changedField !== 'gramsPerPiece') {
-                        // REMOVED: Auto-calculation of grams per piece
-                        // Only calculate if not explicitly set by user via gramsPerPiece field
+                    else if (piecesPerYield > 0 && gramsPerPiece === 0 && changedField !== 'gramsPerPiece') {
+                        // Only auto-calculate grams per piece if it's currently 0 (not user-entered)
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
                             gramsPerPiece = gramsPerTray / piecesPerTray;
@@ -2029,14 +2028,17 @@
                     }
 
                     // Calculate unit price per piece (only if gramsPerPiece > 0)
-                    if (piecesPerYield > 0 && gramsPerPiece > 0) {
+                    // For dough: use the INPUT value of gramsPerPiece directly, not recalculated value
+                    const inputGramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
+                    if (piecesPerYield > 0 && inputGramsPerPiece > 0) {
                         const category = $('#category_id').val();
 
                         if (category === 'dough') {
                             // For dough: multiply grams per piece by unit price per gram
+                            // Use INPUT value to ensure consistency regardless of rounding
                             // Use yieldContributingCost (direct cost only, no overhead) for accurate per-gram pricing
                             const doughUnitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
-                            unitPricePerPiece = gramsPerPiece * doughUnitPricePerGram;
+                            unitPricePerPiece = inputGramsPerPiece * doughUnitPricePerGram;
                         } else if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
                             unitPricePerPiece = unitPricePerTray / piecesPerTray;
@@ -3703,8 +3705,8 @@
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
                         $('#editGramsPerPiece').val(gramsPerPiece.toFixed(2));
-                    } else if (piecesPerYield > 0) {
-                        // Default: calculate grams per piece from pieces
+                    } else if (piecesPerYield > 0 && gramsPerPiece === 0) {
+                        // Only auto-calculate grams per piece if it's currently 0 (not user-entered)
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
                             gramsPerPiece = gramsPerTray / piecesPerTray;
@@ -3714,12 +3716,15 @@
                     }
 
                     // Calculate unit price per piece (only if gramsPerPiece > 0)
-                    if (piecesPerYield > 0 && gramsPerPiece > 0) {
+                    // For dough: use the INPUT value of gramsPerPiece directly, not recalculated value
+                    const inputGramsPerPiece = parseFloat($('#editGramsPerPiece').val()) || 0;
+                    if (piecesPerYield > 0 && inputGramsPerPiece > 0) {
                         const category = $('#edit_category_id').val();
 
                         if (category === 'dough') {
                             // For dough: multiply grams per piece by unit price per gram
-                            unitPricePerPiece = gramsPerPiece * unitPricePerGram;
+                            // Use INPUT value to ensure consistency regardless of rounding
+                            unitPricePerPiece = inputGramsPerPiece * unitPricePerGram;
                         } else if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
                             unitPricePerPiece = unitPricePerTray / piecesPerTray;
