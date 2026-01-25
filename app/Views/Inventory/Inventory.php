@@ -214,16 +214,19 @@
 
             <form id="addProductForm">
                 <div class="mb-4">
-                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select Product</label>
+                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select
+                        Product</label>
                     <select id="selectProduct" name="product_id" required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                         <option value="">-- Select a product --</option>
                     </select>
-                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in inventory.</p>
+                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in
+                        inventory.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock (optional)</label>
+                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock
+                        (optional)</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                 </div>
@@ -241,7 +244,54 @@
             </form>
         </div>
     </div>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="deleteConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="deleteConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Today's Inventory?</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to delete today's entire inventory? This action
+                    cannot be undone.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmDelete"
+                    class="flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Delete
+                </button>
+                <button type="button" id="deleteConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Delete Modal Script
+        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+            $('#deleteConfirmModal').removeClass('hidden');
+        });
 
+        // Close Delete Confirmation Modal
+        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+        });
+
+        // Close modal on backdrop click
+        $('#deleteConfirmModalBackdrop').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+        });
+
+        // Confirm Delete
+        $('#btnConfirmDelete').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+            deleteTodaysInventory(); // This calls your function
+        });
+    </script>
     <style>
         @media (max-width: 640px) {
 
@@ -275,14 +325,6 @@
             }
         }
     </style>
-
-    <!-- jQuery CDN -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <!-- Font Awesome -->
-    <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <!-- Simple DataTables -->
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
     <script>
         let dataTable = null;
@@ -568,16 +610,16 @@
                 items.forEach(function (item) {
                     // Calculate sales: beginning - ending - pull_out
                     const sales = (parseInt(item.beginning_stock) || 0) - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
-                    
+
                     // Use appropriate price based on category
-                    const price = item.category === 'bread' && item.selling_price_per_piece > 0 
-                        ? item.selling_price_per_piece 
+                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
+                        ? item.selling_price_per_piece
                         : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-                    
+
                     // Category badge color
-                    const categoryClass = item.category === 'bread' 
-                        ? 'bg-amber-100 text-amber-800' 
+                    const categoryClass = item.category === 'bread'
+                        ? 'bg-amber-100 text-amber-800'
                         : 'bg-blue-100 text-blue-800';
                     const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
 
@@ -650,11 +692,6 @@
             $('#editInventoryForm')[0].reset();
         });
 
-        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
-            if (confirm('Are you sure you want to delete today\'s entire inventory? This action cannot be undone.')) {
-                deleteTodaysInventory();
-            }
-        });
 
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
@@ -754,9 +791,9 @@
                 success: function (response) {
                     const select = $('#selectProduct');
                     select.html('<option value="">-- Select a product --</option>');
-                    
+
                     if (response.success && response.data.length > 0) {
-                        response.data.forEach(function(product) {
+                        response.data.forEach(function (product) {
                             const categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
                             select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
                         });
