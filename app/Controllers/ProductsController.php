@@ -118,6 +118,23 @@ class ProductsController extends BaseController
                 $this->db->table('product_costs')->insert($costData);
                 
                 log_message('debug', 'Inserted product costs: ' . json_encode($costData));
+
+                // Step 4: Insert combined recipes if provided
+                $combinedRecipes = $data['combined_recipes'] ?? [];
+                if (!empty($combinedRecipes)) {
+                    foreach ($combinedRecipes as $combinedRecipe) {
+                        $combinedRecipeData = [
+                            'product_id' => $productId,
+                            'source_product_id' => intval($combinedRecipe['id'] ?? $combinedRecipe['source_product_id']),
+                            'grams_per_piece' => floatval($combinedRecipe['gramsPerPiece'] ?? $combinedRecipe['grams_per_piece'] ?? 0),
+                            'cost_per_gram' => floatval($combinedRecipe['costPerUnit'] ?? $combinedRecipe['cost_per_gram'] ?? 0),
+                            'total_cost' => floatval($combinedRecipe['totalCost'] ?? $combinedRecipe['total_cost'] ?? 0),
+                        ];
+                        $this->db->table('product_combined_recipes')->insert($combinedRecipeData);
+                        
+                        log_message('debug', 'Inserted combined recipe: ' . json_encode($combinedRecipeData));
+                    }
+                }
                 
                 // Commit transaction
                 $this->db->transComplete();
@@ -199,6 +216,10 @@ class ProductsController extends BaseController
             // Get recipe/ingredients
             $recipe = $this->productModel->getProductRecipe($id);
             $product['ingredients'] = $recipe;
+
+            // Get combined recipes
+            $combinedRecipes = $this->productCombinedRecipeModel->getCombinedRecipesByProductId($id);
+            $product['combined_recipes'] = $combinedRecipes;
             
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -320,8 +341,18 @@ class ProductsController extends BaseController
                 $updateData['ingredients'] = $data['ingredients'];
             }
 
+            // Handle combined recipes
+            if (isset($data['combined_recipes'])) {
+                $updateData['combined_recipes'] = $data['combined_recipes'];
+            }
+
             // Update product
             $result = $this->productModel->updateProduct($productId, $updateData);
+
+            // Update combined recipes separately (delete and re-insert)
+            if (isset($data['combined_recipes'])) {
+                $this->productCombinedRecipeModel->saveCombinedRecipes($productId, $data['combined_recipes']);
+            }
             
             if (!$result) {
                 return $this->response->setStatusCode(500)->setJSON([

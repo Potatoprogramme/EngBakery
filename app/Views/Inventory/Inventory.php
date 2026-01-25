@@ -212,48 +212,21 @@
             </button>
             <h3 class="text-xl font-semibold text-gray-900 mb-4">Add Product to Inventory</h3>
 
-            <!-- No Inventory State - Need to create inventory first -->
-            <div id="noInventoryState" class="hidden text-center py-6">
-                <div class="w-16 h-16 mx-auto mb-4 bg-amber-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-clock text-amber-600 text-2xl"></i>
-                </div>
-                <h4 class="text-lg font-medium text-gray-900 mb-2">No Inventory Yet</h4>
-                <p class="text-sm text-gray-500 mb-6">Please create today's inventory first by setting the start and end time.</p>
-                <button type="button" id="btnGoToAddInventory"
-                    class="w-full text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/40 font-medium rounded-lg text-sm px-5 py-2.5 mb-2">
-                    <i class="fas fa-plus mr-2"></i> Add Today's Inventory
-                </button>
-                <button type="button" id="btnCloseNoInventory"
-                    class="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Cancel
-                </button>
-            </div>
-
-            <!-- Empty State - All products already added -->
-            <div id="noProductsState" class="hidden text-center py-6">
-                <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-check text-green-600 text-2xl"></i>
-                </div>
-                <h4 class="text-lg font-medium text-gray-900 mb-2">All Set!</h4>
-                <p class="text-sm text-gray-500 mb-6">All products are already in today's inventory.</p>
-                <button type="button" id="btnCloseNoProducts"
-                    class="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Close
-                </button>
-            </div>
-
-            <!-- Form - Products available -->
             <form id="addProductForm">
                 <div class="mb-4">
-                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select Product</label>
+                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select
+                        Product</label>
                     <select id="selectProduct" name="product_id" required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
-                        <option value="">Select a product</option>
+                        <option value="">-- Select a product --</option>
                     </select>
+                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in
+                        inventory.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock (optional)</label>
+                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock
+                        (optional)</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                 </div>
@@ -271,7 +244,54 @@
             </form>
         </div>
     </div>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="deleteConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="deleteConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Today's Inventory?</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to delete today's entire inventory? This action
+                    cannot be undone.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmDelete"
+                    class="flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Delete
+                </button>
+                <button type="button" id="deleteConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Delete Modal Script
+        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+            $('#deleteConfirmModal').removeClass('hidden');
+        });
 
+        // Close Delete Confirmation Modal
+        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+        });
+
+        // Close modal on backdrop click
+        $('#deleteConfirmModalBackdrop').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+        });
+
+        // Confirm Delete
+        $('#btnConfirmDelete').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+            deleteTodaysInventory(); // This calls your function
+        });
+    </script>
     <style>
         @media (max-width: 640px) {
 
@@ -306,19 +326,525 @@
         }
     </style>
 
-    <!-- External Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-
-    <!-- Set base URL for JS modules -->
     <script>
-        window.BASE_URL = '<?= rtrim(base_url(), '/') ?>/';
-    </script>
+        let dataTable = null;
+        $(document).ready(function () {
+            const baseUrl = '<?= site_url() ?>';
 
-    <!-- Inventory Module Scripts -->
-    <script src="<?= base_url('js/inventory/inventory-api.js') ?>"></script>
-    <script src="<?= base_url('js/inventory/inventory-table.js') ?>"></script>
-    <script src="<?= base_url('js/inventory/inventory-modal.js') ?>"></script>
-    <script src="<?= base_url('js/inventory/inventory-main.js') ?>"></script>
+            // Display today's date
+            const today = new Date();
+            const dateString = today.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            $('#todayDate').text(dateString);
+
+            // Open Add Inventory Modal (Desktop & Mobile)
+            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
+                $('#timeInputModal').removeClass('hidden');
+                // Set default values to current time
+                const now = new Date();
+                const timeStr = now.toTimeString().slice(0, 5);
+                $('#time_start').val(timeStr);
+                $('#time_end').val(timeStr);
+            });
+
+            // Close Inventory Modal
+            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
+                closeModal();
+            });
+
+            // Close modal on outside click
+            $('#addMaterialModal').on('click', function (e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+
+            // Add Today's Inventory Button - Open Modal
+            $('#btnAddTodaysInventory').on('click', function () {
+                $('#timeInputModal').removeClass('hidden');
+                // Set default values to current time
+                const now = new Date();
+                const timeStr = now.toTimeString().slice(0, 5);
+                $('#time_start').val(timeStr);
+                $('#time_end').val(timeStr);
+            });
+
+            // Close Time Input Modal
+            $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
+                $('#timeInputModal').addClass('hidden');
+                $('#timeInputForm')[0].reset();
+            });
+
+            // Close modal on backdrop click
+            $('#timeInputModalBackdrop').on('click', function () {
+                $('#timeInputModal').addClass('hidden');
+                $('#timeInputForm')[0].reset();
+            });
+
+            // Submit Time Input Form
+            $('#timeInputForm').on('submit', function (e) {
+                e.preventDefault();
+                const timeStart = $('#time_start').val();
+                const timeEnd = $('#time_end').val();
+
+                // Validate time range
+                if (timeStart >= timeEnd) {
+                    showToast('warning', 'End time must be after start time');
+                    return;
+                }
+
+                $('#timeInputModal').addClass('hidden');
+                addTodaysInventory(timeStart, timeEnd);
+                $('#timeInputForm')[0].reset();
+            });
+
+            function closeModal() {
+                $('#addMaterialModal').addClass('hidden');
+                $('#addMaterialForm')[0].reset();
+            }
+
+            // Submit Add Inventory Form via AJAX
+            $('#addMaterialForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const formData = {
+                    // Add your inventory form fields here
+                };
+
+                $.ajax({
+                    url: baseUrl + 'Inventory/Add',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Inventory added successfully!');
+                            closeModal();
+                            loadInventory();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error adding inventory: ' + error);
+                    }
+                });
+            });
+
+            // Delete Inventory
+            $(document).on('click', '.btn-delete', function () {
+                const id = $(this).data('id');
+                if (confirm('Are you sure you want to delete this inventory record?')) {
+                    $.ajax({
+                        url: baseUrl + 'Inventory/Delete/' + id,
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                alert('Inventory deleted successfully!');
+                                loadInventory();
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            alert('Error deleting inventory: ' + error);
+                        }
+                    });
+                }
+            });
+
+            // Apply Filter
+            $('#apply-filters').on('click', function () {
+                const dateFrom = $('#filter-date-from').val();
+                const dateTo = $('#filter-date-to').val();
+
+                $('table tbody tr').each(function () {
+                    const rowDate = $(this).data('date');
+                    let show = true;
+
+                    if (dateFrom && rowDate) {
+                        show = show && (rowDate >= dateFrom);
+                    }
+                    if (dateTo && rowDate) {
+                        show = show && (rowDate <= dateTo);
+                    }
+
+                    if (show) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Reset Filter
+            $('#reset-filters').on('click', function () {
+                $('#filter-date-from').val('');
+                $('#filter-date-to').val('');
+                $('table tbody tr').show();
+            });
+        });
+
+        // Check first for today's inventory
+        $(document).ready(function () {
+            checkIfInventoryExists();
+        });
+
+        function checkIfInventoryExists() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/CheckInventoryToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    // Destroy existing DataTable first
+                    if (response.success) {
+                        // showToast('info', response.message, 2000);
+                        updateDateTime(response.data);
+                        fetchAllStockitems();
+                    } else {
+                        showToast('warning', response.message, 2000);
+                        loadInventory([]);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error checking inventory: ' + error);
+                }
+            });
+        }
+
+        function updateDateTime(data) {
+            // Update date display
+            if (data.inventory_date) {
+                const date = new Date(data.inventory_date);
+                const dateString = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                $('#todayDate').text(dateString);
+            }
+
+            // Update time range display
+            if (data.time_start && data.time_end) {
+                // Format time to 12-hour format with AM/PM
+                const formatTime = (time) => {
+                    const [hours, minutes] = time.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour % 12 || 12;
+                    return `${displayHour}:${minutes} ${ampm}`;
+                };
+
+                const timeStart = formatTime(data.time_start);
+                const timeEnd = formatTime(data.time_end);
+                $('#timeRange').text(`${timeStart} - ${timeEnd}`);
+            }
+        }
+
+        // If no inventory, show button for creating inventory
+        function addTodaysInventory(time_start, time_end) {
+            const baseUrl = `<?= base_url() ?>`;
+            $.ajax({
+                url: baseUrl + 'Inventory/AddTodaysInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ time_start: time_start, time_end: time_end }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
+                        console.log(response.message);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error adding inventory: ' + xhr.responseJSON.message, 2000);
+                    console.log(xhr.responseJSON);
+                }
+            });
+        }
+
+        function fetchAllStockitems() {
+            const baseURL = `<?= base_url() ?>`;
+            $.ajax({
+                url: `${baseURL}Inventory/FetchAllStockItems`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        // showToast('success', response.message, 2000);
+                        loadInventory(response.data);
+                        console.log('Inventory data:', response.data);
+                    } else {
+                        console.log("Error: " + response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error adding inventory: ' + xhr.responseJSON.message, 2000);
+                    console.log(xhr.responseJSON);
+                }
+            });
+        }
+
+        function loadInventory(items) {
+            // Destroy existing DataTable first
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+
+            let rows = '';
+            if (items && items.length > 0) {
+                items.forEach(function (item) {
+                    // Calculate sales: beginning - ending - pull_out
+                    const sales = (parseInt(item.beginning_stock) || 0) - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
+
+                    // Use appropriate price based on category
+                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
+                        ? item.selling_price_per_piece
+                        : item.selling_price;
+                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+
+                    // Category badge color
+                    const categoryClass = item.category === 'bread'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-blue-100 text-blue-800';
+                    const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
+
+                    rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
+                    rows += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';
+                    rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<td class="px-6 py-4">' + (item.beginning_stock || 0) + '</td>';
+                    rows += '<td class="px-6 py-4">' + (item.pull_out_quantity || 0) + '</td>';
+                    rows += '<td class="px-6 py-4">' + (item.ending_stock || 0) + '</td>';
+                    rows += '<td class="px-6 py-4">' + sales + '</td>';
+                    rows += '<td class="px-6 py-4">';
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</td>';
+                    rows += '</tr>';
+                });
+            } else {
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>';
+            }
+
+            $('#materialsTableBody').html(rows);
+
+            // Initialize DataTable with custom labels - ONLY if we have data
+            const tableElement = document.getElementById('selection-table');
+            if (tableElement && typeof simpleDatatables !== 'undefined' && items && items.length > 0) {
+                dataTable = new simpleDatatables.DataTable('#selection-table', {
+                    labels: {
+                        placeholder: "Search inventory...",
+                        perPage: "entries per page",
+                        noRows: "No inventory data available",
+                        noResults: "No results match your search",
+                        info: "Showing {start} to {end} of {rows} entries"
+                    },
+                    perPage: 10,
+                    perPageSelect: [5, 10, 25, 50]
+                });
+            }
+        }
+
+        // Edit Inventory Item - Open Modal
+        $(document).on('click', '.btn-edit', function () {
+            const itemId = $(this).data('id');
+            const row = $(this).closest('tr');
+
+            // Get current values from the row
+            const productName = row.find('td:eq(1)').text();
+            const beginningStock = row.find('td:eq(2)').text();
+            const pullOutQty = row.find('td:eq(3)').text();
+
+            // Store item ID and populate modal
+            $('#editItemId').val(itemId);
+            $('#editProductName').text(productName);
+            $('#editBeginningStock').val(beginningStock);
+            $('#editPullOutQuantity').val(pullOutQty);
+
+            // Show modal
+            $('#editInventoryModal').removeClass('hidden');
+        });
+
+        // Close Edit Modal
+        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
+            $('#editInventoryModal').addClass('hidden');
+            $('#editInventoryForm')[0].reset();
+        });
+
+        // Close modal on backdrop click
+        $('#editInventoryModalBackdrop').on('click', function () {
+            $('#editInventoryModal').addClass('hidden');
+            $('#editInventoryForm')[0].reset();
+        });
+
+
+        $('#editInventoryForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const itemId = $('#editItemId').val();
+            const beginningStock = $('#editBeginningStock').val();
+            const pullOutQuantity = $('#editPullOutQuantity').val();
+
+            // Validate inputs
+            if (beginningStock < 0 || pullOutQuantity < 0) {
+                showToast('warning', 'Values cannot be negative', 2000);
+                return;
+            }
+
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/UpdateStockItem/' + itemId,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    beginning_stock: beginningStock,
+                    pull_out_quantity: pullOutQuantity
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        $('#editInventoryModal').addClass('hidden');
+                        $('#editInventoryForm')[0].reset();
+                        fetchAllStockitems(); // Reload the table
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        });
+
+        function deleteTodaysInventory() {
+            const baseUrl = '<?= base_url() ?>';
+            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+            $.ajax({
+                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ date: today }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Clear the table
+                        $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
+                        // Reset date/time display
+                        $('#timeRange').text('--:-- - --:--');
+                        // Reload the table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
+
+        // Add Product to Inventory functionality
+        $('#btnAddProductToInventory').on('click', function () {
+            loadAvailableProducts();
+            $('#addProductModal').removeClass('hidden');
+        });
+
+        // Close Add Product Modal
+        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
+            $('#addProductModal').addClass('hidden');
+            $('#addProductForm')[0].reset();
+        });
+
+        // Close modal on backdrop click
+        $('#addProductModalBackdrop').on('click', function () {
+            $('#addProductModal').addClass('hidden');
+            $('#addProductForm')[0].reset();
+        });
+
+        // Load available products (not yet in inventory)
+        function loadAvailableProducts() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/GetAvailableProducts',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const select = $('#selectProduct');
+                    select.html('<option value="">-- Select a product --</option>');
+
+                    if (response.success && response.data.length > 0) {
+                        response.data.forEach(function (product) {
+                            const categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+                            select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
+                        });
+                        $('#noProductsMessage').addClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', false);
+                    } else {
+                        $('#noProductsMessage').removeClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error loading products: ' + error, 2000);
+                }
+            });
+        }
+
+        // Submit Add Product Form
+        $('#addProductForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const productId = $('#selectProduct').val();
+            const beginningStock = $('#addBeginningStock').val() || 0;
+
+            if (!productId) {
+                showToast('warning', 'Please select a product', 2000);
+                return;
+            }
+
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddProductToInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    beginning_stock: beginningStock
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        $('#addProductModal').addClass('hidden');
+                        $('#addProductForm')[0].reset();
+                        fetchAllStockitems(); // Reload the table
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
+                }
+            });
+        });
+    </script>

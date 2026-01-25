@@ -150,12 +150,15 @@
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
                         <div class="flex">
-                            <label for="material_quantity" class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                            <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of Measure</label>
+                            <label for="material_quantity"
+                                class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                    class="text-red-500">*</span></label>
+                            <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of
+                                Measure</label>
                         </div>
                         <div class="flex">
-                            <input type="number" name="material_quantity" id="material_quantity" 
-                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0" 
+                            <input type="number" name="material_quantity" id="material_quantity"
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0"
                                 placeholder="25000" min="0.01" step="0.01" required>
                             <select name="unit" id="unit"
                                 class="w-32 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -166,14 +169,14 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div id="converted_qty_wrapper">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Converted</label>
                         <div class="flex">
                             <input type="text" id="converted_quantity" readonly
-                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                 value="0">
-                            <span id="converted_unit_label" 
+                            <span id="converted_unit_label"
                                 class="inline-flex items-center justify-center w-20 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-sm">
                                 kg
                             </span>
@@ -195,7 +198,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cost per Unit</label>
-                        
+
                         <!-- Base Unit Cost -->
                         <div class="flex mb-2">
                             <div class="relative flex-1">
@@ -203,10 +206,10 @@
                                     <span class="text-gray-500 sm:text-sm">₱</span>
                                 </div>
                                 <input type="text" id="cost_per_unit" readonly
-                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                     value="0.000">
                             </div>
-                            <span id="cost_unit_label" 
+                            <span id="cost_unit_label"
                                 class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
                                 per unit
                             </span>
@@ -219,10 +222,10 @@
                                     <span class="text-gray-500 sm:text-sm">₱</span>
                                 </div>
                                 <input type="text" id="converted_cost" readonly
-                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0" 
+                                    class="block w-full pl-7 pr-3 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 focus:outline-none border-r-0"
                                     value="0.00">
                             </div>
-                            <span id="converted_cost_unit_label" 
+                            <span id="converted_cost_unit_label"
                                 class="inline-flex items-center justify-center w-24 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-xs sm:text-sm whitespace-nowrap">
                                 per kg
                             </span>
@@ -244,11 +247,6 @@
     <!-- Category Modal Component -->
     <?= view('MaterialCategories/CategoryModal') ?>
 
-    <!-- External Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    
     <!-- App Scripts -->
     <script>
         // Set base URL for JS modules

@@ -14,6 +14,7 @@ use App\Models\DailyStockModel;
 use App\Models\ProductModel;
 use App\Models\ProductRecipeModel;
 use App\Models\ProductCostModel;
+use App\Models\ProductCombinedRecipeModel;
 use App\Models\DailyStockItemsModel;
 use App\Models\OrderModel;
 use App\Models\OrderItemModel;
@@ -46,6 +47,7 @@ abstract class BaseController extends Controller
     protected $productModel;
     protected $productRecipeModel;
     protected $productCostModel;
+    protected $productCombinedRecipeModel;
     protected $dailyStockItemsModel;
     protected $orderModel;
     protected $orderItemModel;
@@ -74,6 +76,7 @@ abstract class BaseController extends Controller
         $this->productModel = new ProductModel();
         $this->productRecipeModel = new ProductRecipeModel();
         $this->productCostModel = new ProductCostModel();
+        $this->productCombinedRecipeModel = new ProductCombinedRecipeModel();
         $this->dailyStockItemsModel = new DailyStockItemsModel();
         $this->orderModel = new OrderModel();
         $this->orderItemModel = new OrderItemModel();
