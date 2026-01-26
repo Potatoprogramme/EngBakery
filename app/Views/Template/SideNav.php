@@ -92,12 +92,29 @@
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('Sales') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'sales') ? 'bg-primary' : '' ?>">
-                        <svg class="w-6 h-6 <?= ($current === 'sales') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button type="button" class="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= (strpos($current, 'sales') !== false) ? 'bg-primary' : '' ?>" aria-controls="dropdown-sales" data-collapse-toggle="dropdown-sales">
+                        <svg class="w-6 h-6 <?= (strpos($current, 'sales') !== false) ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
-                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'Sales') ? 'text-white' : '' ?>">Sales</span>
-                    </a>
+                        <span class="flex-1 ms-3 text-left whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= (strpos($current, 'sales') !== false) ? 'text-white' : '' ?>">Sales</span>
+                        <svg class="w-4 h-4 <?= (strpos($current, 'sales') !== false) ? 'text-white' : 'text-gray-900' ?> group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <ul id="dropdown-sales" class="<?= (strpos($current, 'sales') !== false) ? '' : 'hidden' ?> py-2 space-y-1">
+                        <li>
+                            <a href="<?= base_url('Sales/History') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300">
+                                <i class="fas fa-history mr-2 text-gray-500"></i>
+                                <span class="text-sm">Sales History</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('Sales') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300">
+                                <i class="fas fa-receipt mr-2 text-gray-500"></i>
+                                <span class="text-sm">Daily Remittance</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="py-2 my-2 border-y border-gray-100">
                     <a href="<?= base_url('DeliveryLog') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'deliverylog') ? 'bg-primary' : '' ?>">

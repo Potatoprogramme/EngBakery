@@ -78,6 +78,10 @@ $routes->group('DailyStock', function (RouteCollection $routes) {
 
 $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('/', 'SalesController::index');
+    $routes->get('History', 'SalesController::history');
     $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
+    $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
+    $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
+    $routes->post('SaveRemittance', 'SalesController::saveRemittance');
 });
 
