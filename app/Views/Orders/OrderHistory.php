@@ -15,18 +15,95 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </li>
-                    <li>
-                        <a href="<?= base_url('Order') ?>" class="hover:text-primary">Order</a>
-                    </li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
                     <li class="text-gray-700">Order History</li>
                 </ol>
             </nav>
+
+            <!-- Today's Sales Summary Cards -->
+            <div class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Total Orders Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-receipt text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Orders</p>
+                            <p id="todayTotalOrders" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total Revenue Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-peso-sign text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Revenue</p>
+                            <p id="todayTotalRevenue" class="text-xl font-semibold text-gray-800">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Items Sold Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-shopping-basket text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Items Sold</p>
+                            <p id="todayItemsSold" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stock Summary Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-boxes-stacked text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">In Stock</p>
+                            <p id="todayStockCount" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Summary Table (Collapsible) -->
+            <div class="mb-4 bg-white rounded-lg shadow-md overflow-hidden">
+                <button id="toggleStockSummary" class="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-box-open text-primary"></i>
+                        <span class="font-semibold text-gray-800">Today's Stock Summary</span>
+                        <span id="stockSummaryBadge" class="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">0 items</span>
+                    </div>
+                    <i id="stockChevron" class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                </button>
+                <div id="stockSummaryContent" class="hidden border-t border-gray-200">
+                    <div class="p-4 overflow-x-auto max-h-64 overflow-y-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-medium">Product</th>
+                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Category</th>
+                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Beginning</th>
+                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Sold</th>
+                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Pull Out</th>
+                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockSummaryBody">
+                                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Loading stock data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
@@ -143,9 +220,90 @@
 
         $(document).ready(function() {
             loadOrders();
+            loadTodaysSummary();
+            loadStockSummary();
             initFilters();
             initOrderDetailsModal();
+            initStockSummaryToggle();
         });
+
+        // Load Today's Sales Summary
+        function loadTodaysSummary() {
+            $.ajax({
+                url: BASE_URL + 'Order/GetTodaysSales',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#todayTotalOrders').text(response.data.total_orders || 0);
+                        $('#todayTotalRevenue').text('₱' + parseFloat(response.data.total_revenue || 0).toFixed(2));
+                        $('#todayItemsSold').text(response.data.total_items_sold || 0);
+                    }
+                }
+            });
+        }
+
+        // Load Stock Summary
+        function loadStockSummary() {
+            $.ajax({
+                url: BASE_URL + 'Order/GetTodaysStockSummary',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        let html = '';
+                        let totalProducts = response.data.length;
+                        
+                        response.data.forEach(item => {
+                            const beginning = parseInt(item.beginning_stock) || 0;
+                            const sold = beginning - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
+                            const pullOut = parseInt(item.pull_out_quantity) || 0;
+                            const remaining = parseInt(item.ending_stock) || 0;
+                            
+                            const categoryClass = item.category === 'bread' 
+                                ? 'bg-amber-100 text-amber-800' 
+                                : 'bg-blue-100 text-blue-800';
+                            const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
+                            
+                            // Highlight low stock
+                            const remainingClass = remaining <= 5 ? 'text-red-600 font-bold' : 'text-gray-700';
+                            
+                            html += `
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-4 py-2 font-medium text-gray-900">${item.product_name}</td>
+                                    <td class="px-4 py-2 text-center">
+                                        <span class="px-2 py-0.5 text-xs rounded-full ${categoryClass}">${categoryLabel}</span>
+                                    </td>
+                                    <td class="px-4 py-2 text-center text-gray-700">${beginning}</td>
+                                    <td class="px-4 py-2 text-center text-green-600 font-medium">${sold > 0 ? sold : 0}</td>
+                                    <td class="px-4 py-2 text-center text-orange-600">${pullOut}</td>
+                                    <td class="px-4 py-2 text-center ${remainingClass}">${remaining}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        $('#stockSummaryBody').html(html);
+                        $('#todayStockCount').text(totalProducts);
+                        $('#stockSummaryBadge').text(totalProducts + ' items');
+                    } else {
+                        $('#stockSummaryBody').html('<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No inventory data for today. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline">Create inventory first</a>.</td></tr>');
+                        $('#todayStockCount').text('0');
+                        $('#stockSummaryBadge').text('No inventory');
+                    }
+                },
+                error: function() {
+                    $('#stockSummaryBody').html('<tr><td colspan="6" class="px-4 py-8 text-center text-red-500">Error loading stock data</td></tr>');
+                }
+            });
+        }
+
+        // Toggle Stock Summary Section
+        function initStockSummaryToggle() {
+            $('#toggleStockSummary').on('click', function() {
+                $('#stockSummaryContent').toggleClass('hidden');
+                $('#stockChevron').toggleClass('rotate-180');
+            });
+        }
 
         function loadOrders(dateFrom = null, dateTo = null) {
             let url = BASE_URL + 'Order/GetOrderHistory';
