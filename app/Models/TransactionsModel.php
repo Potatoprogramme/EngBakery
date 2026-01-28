@@ -4,9 +4,9 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class DailySalesModel extends Model
+class TransactionsModel extends Model
 {
-    protected $table = 'daily_sales';
+    protected $table = 'transactions';
     protected $primaryKey = 'sale_id';
     protected $returnType = 'array';
     protected $allowedFields = [
