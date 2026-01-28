@@ -324,13 +324,21 @@
                 <!-- Step 2: Payment Method -->
                 <div id="checkoutStep2" class="checkout-step hidden">
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Type <span
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Order Type <span
                                 class="text-red-500">*</span></label>
-                        <select id="checkoutOrderType"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="walk-in">Walk-in</option>
-                            <option value="foodpanda">FoodPanda</option>
-                        </select>
+                        <input type="hidden" id="checkoutOrderType" value="walk-in">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" id="btnOrderTypeWalkin" onclick="selectOrderType('walk-in')"
+                                class="order-type-btn p-4 rounded-lg border-2 border-primary bg-primary/10 text-center transition-all hover:shadow-md">
+                                <i class="fas fa-walking text-2xl text-primary mb-2"></i>
+                                <p class="font-semibold text-primary">Walk-in</p>
+                            </button>
+                            <button type="button" id="btnOrderTypeFoodpanda" onclick="selectOrderType('foodpanda')"
+                                class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-pink-300">
+                                <img src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>" class="w-8 h-8 mx-auto mb-2" alt="FoodPanda">
+                                <p class="font-semibold text-gray-700">FoodPanda</p>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span
@@ -619,6 +627,39 @@
             var targetContent = document.getElementById(tabName + '-content');
             if (targetContent) {
                 targetContent.classList.remove('hidden');
+            }
+        }
+
+        // Order Type Selection Function
+        function selectOrderType(type) {
+            document.getElementById('checkoutOrderType').value = type;
+            
+            // Reset all buttons
+            document.getElementById('btnOrderTypeWalkin').classList.remove('border-primary', 'bg-primary/10');
+            document.getElementById('btnOrderTypeWalkin').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('btnOrderTypeWalkin').querySelector('i').classList.remove('text-primary');
+            document.getElementById('btnOrderTypeWalkin').querySelector('i').classList.add('text-gray-500');
+            document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.remove('text-primary');
+            document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.add('text-gray-700');
+            
+            document.getElementById('btnOrderTypeFoodpanda').classList.remove('border-pink-500', 'bg-pink-50');
+            document.getElementById('btnOrderTypeFoodpanda').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-pink-600');
+            document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-gray-700');
+            
+            // Highlight selected button
+            if (type === 'walk-in') {
+                document.getElementById('btnOrderTypeWalkin').classList.remove('border-gray-300', 'bg-white');
+                document.getElementById('btnOrderTypeWalkin').classList.add('border-primary', 'bg-primary/10');
+                document.getElementById('btnOrderTypeWalkin').querySelector('i').classList.remove('text-gray-500');
+                document.getElementById('btnOrderTypeWalkin').querySelector('i').classList.add('text-primary');
+                document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.remove('text-gray-700');
+                document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.add('text-primary');
+            } else if (type === 'foodpanda') {
+                document.getElementById('btnOrderTypeFoodpanda').classList.remove('border-gray-300', 'bg-white');
+                document.getElementById('btnOrderTypeFoodpanda').classList.add('border-pink-500', 'bg-pink-50');
+                document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-gray-700');
+                document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-pink-600');
             }
         }
     </script>

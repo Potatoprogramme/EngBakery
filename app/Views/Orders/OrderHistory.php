@@ -207,6 +207,7 @@
     
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.ASSET_URL = '<?= base_url() ?>';
         let dataTable = null;
         let currentOrderId = null;
 
@@ -410,13 +411,16 @@
                 const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const timeStr = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
+                const typeIcon = order.order_type === 'foodpanda' 
+                    ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">` 
+                    : '<i class="fas fa-walking mr-1"></i>';
                 const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
 
                 html += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${order.order_number}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass}">${typeName}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass} inline-flex items-center">${typeIcon}${typeName}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 capitalize">${order.payment_method}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -517,7 +521,14 @@
                         $('#detailOrderNumber').text(order.order_number);
                         $('#detailOrderDate').text(orderDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
                         $('#detailOrderTime').text(orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
-                        $('#detailOrderType').text(order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in');
+                        
+                        // Set order type with icon
+                        if (order.order_type === 'foodpanda') {
+                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
+                        } else {
+                            $('#detailOrderType').html('<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>');
+                        }
+                        
                         $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1));
 
                         let itemsHtml = '';

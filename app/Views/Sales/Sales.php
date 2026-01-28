@@ -28,6 +28,10 @@
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-history mr-2"></i>Sales History
                         </a>
+                        <a href="<?= base_url('Sales/RemittanceHistory') ?>" 
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>Remittance History
+                        </a>
                         <button type="button" id="btnPrintRemittance"
                             class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-print mr-2"></i>Print
@@ -48,6 +52,12 @@
                                 <input type="text" id="cashierName" 
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter cashier name">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-600 w-20">EMAIL:</label>
+                                <input type="email" id="cashierEmail" 
+                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
+                                    placeholder="Enter email address">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">DATE:</label>
@@ -376,6 +386,7 @@
             $('#cashOutAmount').val(0);
             $('#cashOutReason').val('');
             $('#cashierName').val('');
+            $('#cashierEmail').val('');
             $('#gcashTotal').val(0);
             $('#cashOnHand').val(0);
             calculateTotalCash();
@@ -414,6 +425,7 @@
         $('#btnSaveRemittance').on('click', function() {
             const remittanceData = {
                 cashier_name: $('#cashierName').val(),
+                cashier_email: $('#cashierEmail').val(),
                 outlet_name: $('#outletName').val(),
                 date: new Date().toISOString().split('T')[0],
                 cash_on_hand: parseFloat($('#cashOnHand').val()) || 0,

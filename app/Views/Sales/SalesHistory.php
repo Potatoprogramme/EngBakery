@@ -122,7 +122,6 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Shift</th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Cashier</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Bakery Sales</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Coffee Sales</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">GCash</th>
@@ -430,7 +429,7 @@
             }
 
             if (!history || history.length === 0) {
-                $('#salesHistoryTableBody').html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No sales history found</p></td></tr>');
+                $('#salesHistoryTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No sales history found</p></td></tr>');
                 return;
             }
 
@@ -448,7 +447,6 @@
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${formatTime(sale.shift_start)} - ${formatTime(sale.shift_end)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.cashier_name || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-amber-600 font-semibold">${formatCurrency(sale.bakery_sales || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-orange-600 font-semibold">${formatCurrency(sale.coffee_sales || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-blue-600 font-semibold">${formatCurrency(sale.gcash_total || 0)}</td>
@@ -523,9 +521,6 @@
                                 </span>
                             </div>
                             <div class="flex items-center gap-2 mt-1 text-xs text-gray-300">
-                                <i class="fas fa-user text-xs"></i>
-                                <span>${sale.cashier_name}</span>
-                                <span class="text-gray-300">|</span>
                                 <i class="fas fa-clock text-xs"></i>
                                 <span>${formatTime(sale.shift_start)} - ${formatTime(sale.shift_end)}</span>
                             </div>

@@ -1,4 +1,7 @@
-<?php $current = strtolower(service('uri')->getSegment(1) ?? ''); ?>
+<?php 
+    $current = strtolower(service('uri')->getSegment(1) ?? ''); 
+    $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
+?>
 <!-- Navbar -->
     <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -103,15 +106,21 @@
                     </button>
                     <ul id="dropdown-sales" class="<?= (strpos($current, 'sales') !== false) ? '' : 'hidden' ?> py-2 space-y-1">
                         <li>
-                            <a href="<?= base_url('Sales/History') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300">
-                                <i class="fas fa-history mr-2 text-gray-500"></i>
+                            <a href="<?= base_url('Sales/History') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300 <?= ($current === 'sales' && $currentSegment2 === 'history') ? 'bg-gray-200 font-semibold' : '' ?>">
+                                <i class="fas fa-history mr-2 <?= ($current === 'sales' && $currentSegment2 === 'history') ? 'text-primary' : 'text-gray-500' ?>"></i>
                                 <span class="text-sm">Sales History</span>
                             </a>
                         </li>
                         <li>
-                            <a href="<?= base_url('Sales') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300">
-                                <i class="fas fa-receipt mr-2 text-gray-500"></i>
+                            <a href="<?= base_url('Sales') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300 <?= ($current === 'sales' && $currentSegment2 === '') ? 'bg-gray-200 font-semibold' : '' ?>">
+                                <i class="fas fa-receipt mr-2 <?= ($current === 'sales' && $currentSegment2 === '') ? 'text-primary' : 'text-gray-500' ?>"></i>
                                 <span class="text-sm">Daily Remittance</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('Sales/RemittanceHistory') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300 <?= ($current === 'sales' && $currentSegment2 === 'remittancehistory') ? 'bg-gray-200 font-semibold' : '' ?>">
+                                <i class="fas fa-file-invoice-dollar mr-2 <?= ($current === 'sales' && $currentSegment2 === 'remittancehistory') ? 'text-primary' : 'text-gray-500' ?>"></i>
+                                <span class="text-sm">Remittance History</span>
                             </a>
                         </li>
                     </ul>
