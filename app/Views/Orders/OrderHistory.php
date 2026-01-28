@@ -75,32 +75,24 @@
             </div>
 
             <!-- Stock Summary Table (Collapsible) -->
-            <div class="mb-4 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="mb-4 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
                 <button id="toggleStockSummary" class="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-box-open text-primary"></i>
-                        <span class="font-semibold text-gray-800">Today's Stock Summary</span>
-                        <span id="stockSummaryBadge" class="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">0 items</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-box-open text-gray-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-800">Today's Stock Summary</span>
+                            <span id="stockSummaryBadge" class="ml-2 px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">0 items</span>
+                        </div>
                     </div>
                     <i id="stockChevron" class="fas fa-chevron-down text-gray-400 transition-transform"></i>
                 </button>
-                <div id="stockSummaryContent" class="hidden border-t border-gray-200">
-                    <div class="p-4 overflow-x-auto max-h-64 overflow-y-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-50 sticky top-0">
-                                <tr>
-                                    <th class="px-4 py-2 text-left text-gray-600 font-medium">Product</th>
-                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Category</th>
-                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Beginning</th>
-                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Sold</th>
-                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Pull Out</th>
-                                    <th class="px-4 py-2 text-center text-gray-600 font-medium">Remaining</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stockSummaryBody">
-                                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Loading stock data...</td></tr>
-                            </tbody>
-                        </table>
+                <div id="stockSummaryContent" class="border-t border-gray-100">
+                    <div class="p-4">
+                        <div id="stockSummaryBody" class="space-y-3">
+                            <div class="text-center text-gray-500 py-8">Loading stock data...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -219,7 +211,12 @@
         let currentOrderId = null;
 
         $(document).ready(function() {
-            loadOrders();
+            // Set today's date in the date filters
+            const today = new Date().toISOString().split('T')[0];
+            $('#filterDateFrom').val(today);
+            $('#filterDateTo').val(today);
+            
+            loadOrders(today, today); // Load today's orders by default
             loadTodaysSummary();
             loadStockSummary();
             initFilters();
@@ -251,54 +248,121 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success && response.data && response.data.length > 0) {
+                        // Separate bread and drinks
+                        const breadItems = response.data.filter(item => item.category === 'bread');
+                        const drinkItems = response.data.filter(item => item.category === 'drinks');
+                        
                         let html = '';
                         let totalProducts = response.data.length;
                         
-                        response.data.forEach(item => {
-                            const beginning = parseInt(item.beginning_stock) || 0;
-                            const sold = beginning - (parseInt(item.ending_stock) || 0) - (parseInt(item.pull_out_quantity) || 0);
-                            const pullOut = parseInt(item.pull_out_quantity) || 0;
-                            const remaining = parseInt(item.ending_stock) || 0;
+                        // Render Bread Section
+                        if (breadItems.length > 0) {
+                            html += `
+                                <div class="mb-4">
+                                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <i class="fas fa-bread-slice text-amber-500"></i> Bread (${breadItems.length})
+                                    </h4>
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            `;
                             
-                            const categoryClass = item.category === 'bread' 
-                                ? 'bg-amber-100 text-amber-800' 
-                                : 'bg-blue-100 text-blue-800';
-                            const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
-                            
-                            // Highlight low stock
-                            const remainingClass = remaining <= 5 ? 'text-red-600 font-bold' : 'text-gray-700';
+                            breadItems.forEach(item => {
+                                const beginning = parseInt(item.beginning_stock) || 0;
+                                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                                const remaining = parseInt(item.ending_stock) || 0;
+                                const sold = beginning - remaining - pullOut;
+                                
+                                const remainingClass = remaining <= 5 ? 'text-red-600' : remaining <= 10 ? 'text-orange-500' : 'text-gray-700';
+                                const stockStatus = remaining <= 5 ? 'Low Stock' : remaining <= 10 ? 'Running Low' : 'In Stock';
+                                const statusClass = remaining <= 5 ? 'bg-red-50 text-red-700' : remaining <= 10 ? 'bg-orange-50 text-orange-700' : 'bg-green-50 text-green-700';
+                                
+                                html += `
+                                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-gray-900 text-sm">${item.product_name}</h5>
+                                                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${statusClass}">${stockStatus}</span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-2 text-center mt-3 pt-3 border-t border-gray-200">
+                                            <div>
+                                                <div class="text-xs text-gray-500">Begin</div>
+                                                <div class="font-semibold text-gray-700">${beginning}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Sold</div>
+                                                <div class="font-semibold text-green-600">${sold > 0 ? sold : 0}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Pull</div>
+                                                <div class="font-semibold text-orange-600">${pullOut}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Left</div>
+                                                <div class="font-semibold ${remainingClass}">${remaining}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
                             
                             html += `
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="px-4 py-2 font-medium text-gray-900">${item.product_name}</td>
-                                    <td class="px-4 py-2 text-center">
-                                        <span class="px-2 py-0.5 text-xs rounded-full ${categoryClass}">${categoryLabel}</span>
-                                    </td>
-                                    <td class="px-4 py-2 text-center text-gray-700">${beginning}</td>
-                                    <td class="px-4 py-2 text-center text-green-600 font-medium">${sold > 0 ? sold : 0}</td>
-                                    <td class="px-4 py-2 text-center text-orange-600">${pullOut}</td>
-                                    <td class="px-4 py-2 text-center ${remainingClass}">${remaining}</td>
-                                </tr>
+                                    </div>
+                                </div>
                             `;
-                        });
+                        }
+                        
+                        // Render Drinks Section
+                        if (drinkItems.length > 0) {
+                            html += `
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <i class="fas fa-mug-hot text-blue-500"></i> Drinks (${drinkItems.length})
+                                    </h4>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            `;
+                            
+                            drinkItems.forEach(item => {
+                                const beginning = parseInt(item.beginning_stock) || 0;
+                                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                                const remaining = parseInt(item.ending_stock) || 0;
+                                const sold = beginning - remaining - pullOut;
+                                
+                                html += `
+                                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
+                                        <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
+                                        <div class="text-xs text-gray-500 mb-1">Sold</div>
+                                        <div class="text-2xl font-bold text-green-600">${sold > 0 ? sold : 0}</div>
+                                    </div>
+                                `;
+                            });
+                            
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
                         
                         $('#stockSummaryBody').html(html);
                         $('#todayStockCount').text(totalProducts);
                         $('#stockSummaryBadge').text(totalProducts + ' items');
                     } else {
-                        $('#stockSummaryBody').html('<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No inventory data for today. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline">Create inventory first</a>.</td></tr>');
+                        $('#stockSummaryBody').html('<div class="text-center text-gray-500 py-8">No inventory data for today. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>');
                         $('#todayStockCount').text('0');
                         $('#stockSummaryBadge').text('No inventory');
                     }
                 },
                 error: function() {
-                    $('#stockSummaryBody').html('<tr><td colspan="6" class="px-4 py-8 text-center text-red-500">Error loading stock data</td></tr>');
+                    $('#stockSummaryBody').html('<div class="text-center text-red-500 py-8">Error loading stock data</div>');
                 }
             });
         }
 
         // Toggle Stock Summary Section
         function initStockSummaryToggle() {
+            // Keep stock summary expanded by default
+            $('#stockSummaryContent').removeClass('hidden');
+            $('#stockChevron').addClass('rotate-180');
+            
             $('#toggleStockSummary').on('click', function() {
                 $('#stockSummaryContent').toggleClass('hidden');
                 $('#stockChevron').toggleClass('rotate-180');
