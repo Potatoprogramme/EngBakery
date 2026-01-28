@@ -15,18 +15,87 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </li>
-                    <li>
-                        <a href="<?= base_url('Order') ?>" class="hover:text-primary">Order</a>
-                    </li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
                     <li class="text-gray-700">Order History</li>
                 </ol>
             </nav>
+
+            <!-- Today's Sales Summary Cards -->
+            <div class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Total Orders Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-receipt text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Orders</p>
+                            <p id="todayTotalOrders" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total Revenue Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-peso-sign text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Revenue</p>
+                            <p id="todayTotalRevenue" class="text-xl font-semibold text-gray-800">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Items Sold Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-shopping-basket text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Items Sold</p>
+                            <p id="todayItemsSold" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stock Summary Card -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-boxes-stacked text-gray-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">In Stock</p>
+                            <p id="todayStockCount" class="text-xl font-semibold text-gray-800">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Summary Table (Collapsible) -->
+            <div class="mb-4 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
+                <button id="toggleStockSummary" class="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 flex items-center justify-center bg-gray-50 rounded-lg">
+                            <i class="fas fa-box-open text-gray-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-800">Today's Stock Summary</span>
+                            <span id="stockSummaryBadge" class="ml-2 px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">0 items</span>
+                        </div>
+                    </div>
+                    <i id="stockChevron" class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                </button>
+                <div id="stockSummaryContent" class="border-t border-gray-100">
+                    <div class="p-4">
+                        <div id="stockSummaryBody" class="space-y-3">
+                            <div class="text-center text-gray-500 py-8">Loading stock data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
@@ -142,10 +211,163 @@
         let currentOrderId = null;
 
         $(document).ready(function() {
-            loadOrders();
+            // Set today's date in the date filters
+            const today = new Date().toISOString().split('T')[0];
+            $('#filterDateFrom').val(today);
+            $('#filterDateTo').val(today);
+            
+            loadOrders(today, today); // Load today's orders by default
+            loadTodaysSummary();
+            loadStockSummary();
             initFilters();
             initOrderDetailsModal();
+            initStockSummaryToggle();
         });
+
+        // Load Today's Sales Summary
+        function loadTodaysSummary() {
+            $.ajax({
+                url: BASE_URL + 'Order/GetTodaysSales',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#todayTotalOrders').text(response.data.total_orders || 0);
+                        $('#todayTotalRevenue').text('₱' + parseFloat(response.data.total_revenue || 0).toFixed(2));
+                        $('#todayItemsSold').text(response.data.total_items_sold || 0);
+                    }
+                }
+            });
+        }
+
+        // Load Stock Summary
+        function loadStockSummary() {
+            $.ajax({
+                url: BASE_URL + 'Order/GetTodaysStockSummary',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        // Separate bread and drinks
+                        const breadItems = response.data.filter(item => item.category === 'bread');
+                        const drinkItems = response.data.filter(item => item.category === 'drinks');
+                        
+                        let html = '';
+                        let totalProducts = response.data.length;
+                        
+                        // Render Bread Section
+                        if (breadItems.length > 0) {
+                            html += `
+                                <div class="mb-4">
+                                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <i class="fas fa-bread-slice text-amber-500"></i> Bread (${breadItems.length})
+                                    </h4>
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            `;
+                            
+                            breadItems.forEach(item => {
+                                const beginning = parseInt(item.beginning_stock) || 0;
+                                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                                const remaining = parseInt(item.ending_stock) || 0;
+                                const sold = beginning - remaining - pullOut;
+                                
+                                const remainingClass = remaining <= 5 ? 'text-red-600' : remaining <= 10 ? 'text-orange-500' : 'text-gray-700';
+                                const stockStatus = remaining <= 5 ? 'Low Stock' : remaining <= 10 ? 'Running Low' : 'In Stock';
+                                const statusClass = remaining <= 5 ? 'bg-red-50 text-red-700' : remaining <= 10 ? 'bg-orange-50 text-orange-700' : 'bg-green-50 text-green-700';
+                                
+                                html += `
+                                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-gray-900 text-sm">${item.product_name}</h5>
+                                                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${statusClass}">${stockStatus}</span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-2 text-center mt-3 pt-3 border-t border-gray-200">
+                                            <div>
+                                                <div class="text-xs text-gray-500">Begin</div>
+                                                <div class="font-semibold text-gray-700">${beginning}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Sold</div>
+                                                <div class="font-semibold text-green-600">${sold > 0 ? sold : 0}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Pull</div>
+                                                <div class="font-semibold text-orange-600">${pullOut}</div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-gray-500">Left</div>
+                                                <div class="font-semibold ${remainingClass}">${remaining}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Render Drinks Section
+                        if (drinkItems.length > 0) {
+                            html += `
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <i class="fas fa-mug-hot text-blue-500"></i> Drinks (${drinkItems.length})
+                                    </h4>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            `;
+                            
+                            drinkItems.forEach(item => {
+                                const beginning = parseInt(item.beginning_stock) || 0;
+                                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                                const remaining = parseInt(item.ending_stock) || 0;
+                                const sold = beginning - remaining - pullOut;
+                                
+                                html += `
+                                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
+                                        <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
+                                        <div class="text-xs text-gray-500 mb-1">Sold</div>
+                                        <div class="text-2xl font-bold text-green-600">${sold > 0 ? sold : 0}</div>
+                                    </div>
+                                `;
+                            });
+                            
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        $('#stockSummaryBody').html(html);
+                        $('#todayStockCount').text(totalProducts);
+                        $('#stockSummaryBadge').text(totalProducts + ' items');
+                    } else {
+                        $('#stockSummaryBody').html('<div class="text-center text-gray-500 py-8">No inventory data for today. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>');
+                        $('#todayStockCount').text('0');
+                        $('#stockSummaryBadge').text('No inventory');
+                    }
+                },
+                error: function() {
+                    $('#stockSummaryBody').html('<div class="text-center text-red-500 py-8">Error loading stock data</div>');
+                }
+            });
+        }
+
+        // Toggle Stock Summary Section
+        function initStockSummaryToggle() {
+            // Keep stock summary expanded by default
+            $('#stockSummaryContent').removeClass('hidden');
+            $('#stockChevron').addClass('rotate-180');
+            
+            $('#toggleStockSummary').on('click', function() {
+                $('#stockSummaryContent').toggleClass('hidden');
+                $('#stockChevron').toggleClass('rotate-180');
+            });
+        }
 
         function loadOrders(dateFrom = null, dateTo = null) {
             let url = BASE_URL + 'Order/GetOrderHistory';

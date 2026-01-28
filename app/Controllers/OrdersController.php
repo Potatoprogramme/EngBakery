@@ -211,4 +211,29 @@ class OrdersController extends BaseController
             ]);
         }
     }
+
+    /**
+     * Get today's stock summary for the Order History page
+     */
+    public function getTodaysStockSummary()
+    {
+        // Get today's inventory
+        $dailyStock = $this->dailyStockModel->getTodaysInventory();
+
+        if (!$dailyStock) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No inventory for today.',
+                'data' => []
+            ]);
+        }
+
+        // Fetch all stock items for today
+        $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $stockItems
+        ]);
+    }
 }

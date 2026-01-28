@@ -58,6 +58,7 @@ $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('GetOrderHistory', 'OrdersController::getOrderHistory');
     $routes->get('GetOrderDetails/(:num)', 'OrdersController::getOrderDetails/$1');
     $routes->get('GetTodaysSales', 'OrdersController::getTodaysSales');
+    $routes->get('GetTodaysStockSummary', 'OrdersController::getTodaysStockSummary');
     $routes->post('VoidOrder/(:num)', 'OrdersController::voidOrder/$1');
 });
 
@@ -78,6 +79,10 @@ $routes->group('DailyStock', function (RouteCollection $routes) {
 
 $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('/', 'SalesController::index');
+    $routes->get('History', 'SalesController::history');
     $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
+    $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
+    $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
+    $routes->post('SaveRemittance', 'SalesController::saveRemittance');
 });
 

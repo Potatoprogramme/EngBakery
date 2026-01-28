@@ -12,6 +12,15 @@ class SalesController extends BaseController
             view('Template/Footer');
     }
 
+    public function history()
+    {
+        return view('Template/Header') .
+            view('Template/SideNav') .
+            view('Template/notification') .
+            view('Sales/SalesHistory') .
+            view('Template/Footer');
+    }
+
     public function getTodaysSales()
     {
         $sales = $this->dailySalesModel->getTodaysSummary();
