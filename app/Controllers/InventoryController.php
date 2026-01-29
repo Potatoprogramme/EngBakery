@@ -39,13 +39,13 @@ class InventoryController extends BaseController
 
         foreach ($daily_stock_items as &$item) {
             // Calculate sales: beginning - ending - pull_out
-            $item['total_sales'] = $this->dailySalesModel
+            $item['total_sales'] = $this->transactionsModel
                 ->selectSum('total_sales')
                 ->where('item_id', $item['item_id'])
                 ->where('date_created', $today)
                 ->first()['total_sales'] ?? 0;
 
-            $item['quantity_sold'] = $this->dailySalesModel
+            $item['quantity_sold'] = $this->transactionsModel
                 ->selectSum('quantity_sold')
                 ->where('item_id', $item['item_id'])
                 ->where('date_created', $today)
