@@ -7,6 +7,10 @@ $(document).ready(function() {
     let dataTable = null;
     let materialNameExists = false;
     let checkNameTimeout = null;
+    let allMaterials = []; // Store all materials for mobile view
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let filteredMaterials = []; // Store filtered materials for search
 
     // Unit conversion mappings (base units: grams, ml, pcs)
     const unitConversions = {
@@ -196,95 +200,243 @@ $(document).ready(function() {
                     dataTable = null;
                 }
 
-                let rows = '';
                 if (response.success && response.data && response.data.length > 0) {
-                    response.data.forEach(function(mat) {
-                        // Label badge colors
-                        const labelColors = {
-                            'drinks': 'bg-blue-100 text-blue-800',
-                            'bread': 'bg-amber-100 text-amber-800',
-                            'general': 'bg-gray-100 text-gray-800'
-                        };
-                        const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
-                        const labelBadge = mat.label ? '<span class="text-xs px-2 py-1 rounded-full ' + labelColor + '">' + mat.label + '</span>' : '-';
-
-                        rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
-                        rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
-                        rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
-                        rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
-                        rows += '<td class="px-6 py-4 text-gray-700">' + mat.material_quantity + '</td>';
-                        rows += '<td class="px-6 py-4 text-gray-700">' + mat.unit + '</td>';
-                        rows += '<td class="px-6 py-4 text-gray-900 font-semibold">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
-                        rows += '<td class="px-6 py-4 ">';
-                        rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                        rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
-                        rows += '</td>';
-                        rows += '</tr>';
-                    });
-
-                    // Update table body
-                    $('#materialsTableBody').html(rows);
-
-                    // Re-initialize DataTable with simple config
-                    const tableElement = document.getElementById('selection-table');
-                    if (tableElement && typeof simpleDatatables !== 'undefined') {
-                        dataTable = new simpleDatatables.DataTable('#selection-table', {
-                            searchable: true,
-                            sortable: true,
-                            perPage: 10
-                        });
-
-                        // Add Tailwind classes for scrolling (only table content scrolls)
-                        const container = document.querySelector('.datatable-container');
-                        if (container) {
-                            container.classList.add('max-h-96', 'overflow-y-auto', 'overflow-x-auto');
-                        }
-
-                        // Add sticky header classes
-                        const thead = document.querySelector('.datatable-table thead');
-                        if (thead) {
-                            thead.classList.add('sticky', 'top-0', 'bg-white', 'z-10');
-                        }
-
-                        // Add sticky first column classes
-                        document.querySelectorAll('.datatable-table thead th:first-child').forEach(th => {
-                            th.classList.add('sticky', 'left-0', 'bg-white', 'z-20');
-                        });
-                        document.querySelectorAll('.datatable-table tbody td:first-child').forEach(td => {
-                            td.classList.add('sticky', 'left-0', 'bg-white', 'z-5');
-                        });
-
-                        // Apply Tailwind responsive classes to datatable elements
-                        applyDatatableStyles();
-                    }
+                    allMaterials = response.data;
+                    filteredMaterials = [...allMaterials];
+                    
+                    // Render desktop table
+                    renderDesktopTable(response.data);
+                    
+                    // Render mobile cards
+                    currentPage = 1;
+                    renderMobileCards();
+                } else {
+                    allMaterials = [];
+                    filteredMaterials = [];
+                    $('#materialsTableBody').html('');
+                    $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No raw materials found</p></div>');
+                    $('#mobilePagination').html('');
                 }
             },
             error: function(xhr, status, error) {
                 console.log('Error loading materials: ' + error);
-                // Still initialize DataTable on error to show controls
+                allMaterials = [];
+                filteredMaterials = [];
                 if (dataTable) {
                     dataTable.destroy();
                     dataTable = null;
                 }
                 $('#materialsTableBody').html('');
-                const tableElement = document.getElementById('selection-table');
-                if (tableElement && typeof simpleDatatables !== 'undefined') {
-                    dataTable = new simpleDatatables.DataTable('#selection-table', {
-                        labels: {
-                            placeholder: "Search materials...",
-                            perPage: "entries per page",
-                            noRows: "No raw material data available",
-                            noResults: "No results match your search",
-                            info: "Showing {start} to {end} of {rows} entries"
-                        },
-                        perPage: 10,
-                        perPageSelect: [5, 10, 25, 50]
-                    });
-                    applyDatatableStyles();
-                }
+                $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-exclamation-triangle text-4xl mb-3"></i><p>Error loading materials</p></div>');
+                $('#mobilePagination').html('');
             }
         });
     }
+
+    // Render Desktop Table
+    function renderDesktopTable(materials) {
+        let rows = '';
+        materials.forEach(function(mat) {
+            // Label badge colors
+            const labelColors = {
+                'drinks': 'bg-blue-100 text-blue-800',
+                'bread': 'bg-amber-100 text-amber-800',
+                'general': 'bg-gray-100 text-gray-800'
+            };
+            const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
+            const labelBadge = mat.label ? '<span class="text-xs px-2 py-1 rounded-full ' + labelColor + '">' + mat.label + '</span>' : '-';
+
+            rows += '<tr class="hover:bg-gray-50 cursor-pointer border-b" data-category="' + (mat.category_id || '') + '">';
+            rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
+            rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
+            rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
+            rows += '<td class="px-6 py-4 text-gray-700">' + mat.material_quantity + '</td>';
+            rows += '<td class="px-6 py-4 text-gray-700">' + mat.unit + '</td>';
+            rows += '<td class="px-6 py-4 text-gray-900 font-semibold">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
+            rows += '<td class="px-6 py-4 ">';
+            rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+            rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+            rows += '</td>';
+            rows += '</tr>';
+        });
+
+        // Update table body
+        $('#materialsTableBody').html(rows);
+
+        // Re-initialize DataTable with simple config
+        const tableElement = document.getElementById('selection-table');
+        if (tableElement && typeof simpleDatatables !== 'undefined') {
+            dataTable = new simpleDatatables.DataTable('#selection-table', {
+                searchable: true,
+                sortable: true,
+                perPage: 10
+            });
+
+            // Add Tailwind classes for scrolling (only table content scrolls)
+            const container = document.querySelector('.datatable-container');
+            if (container) {
+                container.classList.add('max-h-96', 'overflow-y-auto', 'overflow-x-auto');
+            }
+
+            // Add sticky header classes
+            const thead = document.querySelector('.datatable-table thead');
+            if (thead) {
+                thead.classList.add('sticky', 'top-0', 'bg-white', 'z-10');
+            }
+
+            // Add sticky first column classes
+            document.querySelectorAll('.datatable-table thead th:first-child').forEach(th => {
+                th.classList.add('sticky', 'left-0', 'bg-white', 'z-20');
+            });
+            document.querySelectorAll('.datatable-table tbody td:first-child').forEach(td => {
+                td.classList.add('sticky', 'left-0', 'bg-white', 'z-5');
+            });
+
+            // Apply Tailwind responsive classes to datatable elements
+            applyDatatableStyles();
+        }
+    }
+
+    // Render Mobile Cards with Pagination
+    function renderMobileCards() {
+        const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedMaterials = filteredMaterials.slice(startIndex, endIndex);
+
+        if (paginatedMaterials.length === 0) {
+            $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-search text-4xl mb-3"></i><p>No materials found</p></div>');
+            $('#mobilePagination').html('');
+            return;
+        }
+
+        let cards = '';
+        paginatedMaterials.forEach(function(mat) {
+            // Label badge colors
+            const labelColors = {
+                'drinks': 'bg-blue-100 text-blue-800',
+                'bread': 'bg-amber-100 text-amber-800',
+                'general': 'bg-gray-100 text-gray-800'
+            };
+            const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
+            const labelBadge = mat.label ? '<span class="text-xs px-2 py-1 rounded-full ' + labelColor + '">' + mat.label + '</span>' : '';
+
+            cards += `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 text-base">${mat.material_name}</h3>
+                                <p class="text-sm text-gray-500">${mat.category_name || 'Uncategorized'}</p>
+                            </div>
+                            ${labelBadge}
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500">Quantity</p>
+                                <p class="font-semibold text-gray-800">${mat.material_quantity} ${mat.unit}</p>
+                            </div>
+                            <div class="bg-primary/10 rounded-lg p-2">
+                                <p class="text-xs text-gray-500">Cost per Unit</p>
+                                <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-2 border-t border-gray-100">
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit" data-id="${mat.material_id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 btn-delete" data-id="${mat.material_id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        $('#materialsCardsContainer').html(cards);
+        renderMobilePagination(totalPages);
+    }
+
+    // Render Mobile Pagination
+    function renderMobilePagination(totalPages) {
+        if (totalPages <= 1) {
+            $('#mobilePagination').html(`<p class="text-sm text-gray-500">Showing ${filteredMaterials.length} item(s)</p>`);
+            return;
+        }
+
+        let pagination = '';
+        
+        // Previous button
+        pagination += `<button class="px-3 py-2 text-sm font-medium rounded-lg border ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">
+            <i class="fas fa-chevron-left"></i>
+        </button>`;
+
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            pagination += `<button class="px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 hover:bg-gray-50 border" data-page="1">1</button>`;
+            if (startPage > 2) {
+                pagination += `<span class="px-2 py-2 text-gray-400">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pagination += `<button class="px-3 py-2 text-sm font-medium rounded-lg border ${i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}" data-page="${i}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination += `<span class="px-2 py-2 text-gray-400">...</span>`;
+            }
+            pagination += `<button class="px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 hover:bg-gray-50 border" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // Next button
+        pagination += `<button class="px-3 py-2 text-sm font-medium rounded-lg border ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">
+            <i class="fas fa-chevron-right"></i>
+        </button>`;
+
+        $('#mobilePagination').html(pagination);
+    }
+
+    // Handle Mobile Pagination Click
+    $(document).on('click', '#mobilePagination button:not([disabled])', function() {
+        const page = parseInt($(this).data('page'));
+        if (page && page !== currentPage) {
+            currentPage = page;
+            renderMobileCards();
+            // Scroll to top of cards
+            $('html, body').animate({
+                scrollTop: $('#materialsCardsContainer').offset().top - 100
+            }, 300);
+        }
+    });
+
+    // Mobile Search
+    $('#mobileSearch').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase().trim();
+        
+        if (searchTerm === '') {
+            filteredMaterials = [...allMaterials];
+        } else {
+            filteredMaterials = allMaterials.filter(function(mat) {
+                return mat.material_name.toLowerCase().includes(searchTerm) ||
+                       (mat.category_name && mat.category_name.toLowerCase().includes(searchTerm)) ||
+                       (mat.label && mat.label.toLowerCase().includes(searchTerm));
+            });
+        }
+        
+        currentPage = 1;
+        renderMobileCards();
+    });
 
     // Apply Tailwind classes to datatable elements (replaces CSS media queries)
     function applyDatatableStyles() {
@@ -436,6 +588,8 @@ $(document).ready(function() {
     // Apply Filter
     $('#apply-filters').on('click', function() {
         const categoryId = $('#filter-category').val();
+        
+        // Filter desktop table
         $('table tbody tr').each(function() {
             if (categoryId === '' || $(this).data('category') == categoryId) {
                 $(this).show();
@@ -443,11 +597,28 @@ $(document).ready(function() {
                 $(this).hide();
             }
         });
+        
+        // Filter mobile cards
+        if (categoryId === '') {
+            filteredMaterials = [...allMaterials];
+        } else {
+            filteredMaterials = allMaterials.filter(function(mat) {
+                return mat.category_id == categoryId;
+            });
+        }
+        currentPage = 1;
+        renderMobileCards();
     });
 
     // Reset Filter
     $('#reset-filters').on('click', function() {
         $('#filter-category').val('');
         $('table tbody tr').show();
+        
+        // Reset mobile cards
+        filteredMaterials = [...allMaterials];
+        currentPage = 1;
+        $('#mobileSearch').val('');
+        renderMobileCards();
     });
 });
