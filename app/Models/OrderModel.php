@@ -117,7 +117,7 @@ class OrderModel extends Model
      * Process a complete order with items and stock updates
      * Returns order data on success, throws exception on failure
      */
-    public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $dailySalesModel, int $dailyStockId): array
+    public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $transactionsModel, int $dailyStockId): array
     {
         $orderId = $this->createOrder($orderData);
         
@@ -140,8 +140,8 @@ class OrderModel extends Model
                 // Deduct from ending stock
                 $dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
 
-                // Record the sale
-                $dailySalesModel->recordSale(
+                // Record the sale in transactions table
+                $transactionsModel->recordSale(
                     $stockItem['item_id'],
                     intval($item['quantity']),
                     floatval($item['total'])
@@ -157,7 +157,7 @@ class OrderModel extends Model
                 if ($newItemId) {
                     // Now deduct and record the sale
                     $dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
-                    $dailySalesModel->recordSale(
+                    $transactionsModel->recordSale(
                         $newItemId,
                         intval($item['quantity']),
                         floatval($item['total'])

@@ -53,6 +53,6 @@ class MaterialCategoryModel extends Model
 
     public function getAllCategories()
     {
-        return $this->findAll();
+        return $this->orderBy('category_name', 'ASC')->findAll();
     }
 }
