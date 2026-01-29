@@ -14,6 +14,13 @@ $routes->get('/Logout', 'AuthenticationController::logout');
 $routes->get('/Auth/Google', 'AuthenticationController::googleLogin');
 $routes->get('/Auth/Google/Callback', 'AuthenticationController::googleCallback');
 
+$routes->group('User', function (RouteCollection $routes) {
+    $routes->get('Profile', 'UserController::profile');
+    $routes->post('UpdateProfile', 'UserController::updateProfile');
+    $routes->post('ChangePassword', 'UserController::changePassword');
+    $routes->get('GetCurrentUser', 'AuthenticationController::getCurrentUser');
+});
+
 // Main Pages Routes
 $routes->group('Dashboard', function (RouteCollection $routes) {
     $routes->get('/', 'DashboardController::dashboard');

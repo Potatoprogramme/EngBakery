@@ -93,6 +93,26 @@ class OrderModel extends Model
             ->getRowArray();
     }
 
+    public function getTotalSalesByOrderType($orderType)
+    {
+        $today = date('Y-m-d');
+        
+        // Query orders table directly for sales by payment method
+        return $this->builder()
+            ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
+            ->where('orders.date_created', $today)
+            ->where('LOWER(orders.payment_method)', strtolower($orderType))
+            ->groupBy('orders.payment_method')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTodaysOrderCount(): int
+    {
+        $today = date('Y-m-d');
+        return $this->where('date_created', $today)->countAllResults();
+    }
+
     /**
      * Process a complete order with items and stock updates
      * Returns order data on success, throws exception on failure

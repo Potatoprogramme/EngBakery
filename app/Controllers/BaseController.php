@@ -19,6 +19,7 @@ use App\Models\DailyStockItemsModel;
 use App\Models\OrderModel;
 use App\Models\OrderItemModel;
 use App\Models\TransactionsModel;
+use App\Models\UsersModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -52,6 +53,7 @@ abstract class BaseController extends Controller
     protected $orderModel;
     protected $orderItemModel;
     protected $transactionsModel;
+    protected $usersModel;
 
     // Database connection
     protected $db;
@@ -81,6 +83,7 @@ abstract class BaseController extends Controller
         $this->orderModel = new OrderModel();
         $this->orderItemModel = new OrderItemModel();
         $this->transactionsModel = new TransactionsModel();
+        $this->usersModel = new UsersModel();
 
         // Initialize database connection once
         $this->db = \Config\Database::connect();
