@@ -55,7 +55,7 @@
             </div>
 
             <!-- Floating Add Product button for mobile -->
-            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
+            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 md:hidden">
                 <button type="button" id="btnAddMaterialMobile"
                     class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     Add Product
@@ -63,7 +63,7 @@
             </div>
 
             <!-- Desktop Table View -->
-            <div class="hidden sm:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
+            <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 lg:mb-0">
                 <table id="selection-table" class="min-w-full text-sm text-left">
                     <thead>
                         <tr>
@@ -104,9 +104,9 @@
             </div>
 
             <!-- Mobile Card View -->
-            <div class="sm:hidden mb-20">
+            <div class="lg:hidden mb-24">
                 <!-- Search input for mobile -->
-                <div class="mb-4">
+                <div class="mb-3">
                     <div class="relative">
                         <input type="text" id="mobileSearchInput" placeholder="Search products..."
                             class="w-full px-4 py-2.5 pl-10 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
@@ -119,6 +119,11 @@
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-3">
                     <!-- Cards will be loaded via AJAX -->
+                </div>
+
+                <!-- Mobile Pagination -->
+                <div id="mobilePagination" class="mt-4 flex items-center justify-center gap-2">
+                    <!-- Pagination will be generated via JS -->
                 </div>
 
                 <!-- No results message -->
@@ -1257,6 +1262,12 @@
         $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
             let dataTable = null;
+            
+            // Mobile pagination variables
+            let allProducts = [];
+            let filteredProducts = [];
+            let currentPage = 1;
+            const itemsPerPage = 10;
 
             // Load data on page load
             loadMaterials();
@@ -1331,25 +1342,19 @@
             // Mobile search functionality
             $('#mobileSearchInput').on('input', function () {
                 const searchTerm = $(this).val().toLowerCase().trim();
-                let hasResults = false;
 
-                $('.product-card').each(function () {
-                    const productName = $(this).data('name') || '';
-                    const category = $(this).data('category') || '';
-
-                    if (productName.includes(searchTerm) || category.toLowerCase().includes(searchTerm)) {
-                        $(this).removeClass('hidden');
-                        hasResults = true;
-                    } else {
-                        $(this).addClass('hidden');
-                    }
-                });
-
-                if (hasResults || searchTerm === '') {
-                    $('#mobileNoResults').addClass('hidden');
+                if (searchTerm === '') {
+                    filteredProducts = [...allProducts];
                 } else {
-                    $('#mobileNoResults').removeClass('hidden');
+                    filteredProducts = allProducts.filter(function(product) {
+                        const productName = (product.product_name || '').toLowerCase();
+                        const category = (product.category || '').toLowerCase();
+                        return productName.includes(searchTerm) || category.includes(searchTerm);
+                    });
                 }
+                
+                currentPage = 1;
+                renderMobileCards();
             });
 
             // Open Add Product Modal (Desktop & Mobile)
@@ -2471,9 +2476,12 @@
                         }
 
                         let rows = '';
-                        let cards = '';
 
                         if (response.success && response.data && response.data.length > 0) {
+                            // Store all products for mobile pagination
+                            allProducts = response.data;
+                            filteredProducts = [...allProducts];
+                            
                             response.data.forEach(function (product) {
                                 // Desktop table rows
                                 rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
@@ -2487,56 +2495,22 @@
                                 rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 rows += '</td>';
                                 rows += '</tr>';
-
-                                // Mobile card view
-                                const categoryBadge = getCategoryBadge(product.category);
-                                cards += '<div class="product-card bg-white rounded-lg shadow-md border border-gray-100 p-4 cursor-pointer" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-name="' + product.product_name.toLowerCase() + '">';
-                                cards += '  <div class="flex justify-between items-start mb-3">';
-                                cards += '    <div class="flex-1 pr-2">';
-                                cards += '      <h3 class="font-semibold text-gray-800 text-base leading-tight">' + product.product_name + '</h3>';
-                                cards += '      <div class="mt-1">' + categoryBadge + '</div>';
-                                cards += '    </div>';
-                                cards += '    <div class="relative">';
-                                cards += '      <button class="card-menu-btn p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors" data-id="' + product.product_id + '">';
-                                cards += '        <i class="fas fa-ellipsis-v"></i>';
-                                cards += '      </button>';
-                                cards += '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] py-1">';
-                                cards += '        <button class="card-view-btn w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2" data-id="' + product.product_id + '">';
-                                cards += '          <i class="fas fa-eye text-gray-400"></i> View';
-                                cards += '        </button>';
-                                cards += '        <button class="btn-edit w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' + product.product_id + '">';
-                                cards += '          <i class="fas fa-edit"></i> Edit';
-                                cards += '        </button>';
-                                cards += '        <div class="border-t border-gray-100 my-1"></div>';
-                                cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
-                                cards += '          <i class="fas fa-trash"></i> Delete';
-                                cards += '        </button>';
-                                cards += '      </div>';
-                                cards += '    </div>';
-                                cards += '  </div>';
-                                cards += '  <div class="grid grid-cols-3 gap-2 text-center">';
-                                cards += '    <div class="bg-gray-50 rounded-lg p-2">';
-                                cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>';
-                                cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.direct_cost || 0).toFixed(2) + '</p>';
-                                cards += '    </div>';
-                                cards += '    <div class="bg-gray-50 rounded-lg p-2">';
-                                cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Cost</p>';
-                                cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.total_cost || 0).toFixed(2) + '</p>';
-                                cards += '    </div>';
-                                cards += '    <div class="bg-primary/10 rounded-lg p-2">';
-                                cards += '      <p class="text-[10px] text-primary uppercase tracking-wide">Selling Price</p>';
-                                cards += '      <p class="text-sm font-bold text-primary">₱' + parseFloat(product.selling_price || 0).toFixed(2) + '</p>';
-                                cards += '    </div>';
-                                cards += '  </div>';
-                                cards += '</div>';
                             });
+                            
+                            // Render mobile cards with pagination
+                            currentPage = 1;
+                            renderMobileCards();
+                            
                             $('#mobileNoResults').addClass('hidden');
                         } else {
+                            allProducts = [];
+                            filteredProducts = [];
+                            $('#mobileCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No products found</p></div>');
+                            $('#mobilePagination').html('');
                             $('#mobileNoResults').removeClass('hidden');
                         }
 
                         $('#materialsTableBody').html(rows);
-                        $('#mobileCardsContainer').html(cards);
 
                         // Initialize DataTable with custom labels
                         const tableElement = document.getElementById('selection-table');
@@ -2556,12 +2530,16 @@
                     },
                     error: function (xhr, status, error) {
                         console.log('Error loading products: ' + error);
+                        allProducts = [];
+                        filteredProducts = [];
                         // Still initialize DataTable on error to show controls
                         if (dataTable) {
                             dataTable.destroy();
                             dataTable = null;
                         }
                         $('#materialsTableBody').html('');
+                        $('#mobileCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-exclamation-triangle text-4xl mb-3"></i><p>Error loading products</p></div>');
+                        $('#mobilePagination').html('');
                         const tableElement = document.getElementById('selection-table');
                         if (tableElement && typeof simpleDatatables !== 'undefined') {
                             dataTable = new simpleDatatables.DataTable('#selection-table', {
@@ -2579,6 +2557,131 @@
                     }
                 });
             }
+            
+            // Render Mobile Cards with Pagination
+            function renderMobileCards() {
+                const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+                if (paginatedProducts.length === 0) {
+                    $('#mobileCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-search text-4xl mb-3"></i><p>No products found</p></div>');
+                    $('#mobilePagination').html('');
+                    $('#mobileNoResults').addClass('hidden');
+                    return;
+                }
+
+                let cards = '';
+                paginatedProducts.forEach(function (product) {
+                    const categoryBadge = getCategoryBadge(product.category);
+                    cards += '<div class="product-card bg-white rounded-lg shadow-md border border-gray-100 p-4 cursor-pointer" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-name="' + product.product_name.toLowerCase() + '">';
+                    cards += '  <div class="flex justify-between items-start mb-3">';
+                    cards += '    <div class="flex-1 pr-2">';
+                    cards += '      <h3 class="font-semibold text-gray-800 text-base leading-tight">' + product.product_name + '</h3>';
+                    cards += '      <div class="mt-1">' + categoryBadge + '</div>';
+                    cards += '    </div>';
+                    cards += '    <div class="relative">';
+                    cards += '      <button class="card-menu-btn p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors" data-id="' + product.product_id + '">';
+                    cards += '        <i class="fas fa-ellipsis-v"></i>';
+                    cards += '      </button>';
+                    cards += '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] py-1">';
+                    cards += '        <button class="card-view-btn w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                    cards += '          <i class="fas fa-eye text-gray-400"></i> View';
+                    cards += '        </button>';
+                    cards += '        <button class="btn-edit w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                    cards += '          <i class="fas fa-edit"></i> Edit';
+                    cards += '        </button>';
+                    cards += '        <div class="border-t border-gray-100 my-1"></div>';
+                    cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                    cards += '          <i class="fas fa-trash"></i> Delete';
+                    cards += '        </button>';
+                    cards += '      </div>';
+                    cards += '    </div>';
+                    cards += '  </div>';
+                    cards += '  <div class="grid grid-cols-3 gap-2 text-center">';
+                    cards += '    <div class="bg-gray-50 rounded-lg p-2">';
+                    cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>';
+                    cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.direct_cost || 0).toFixed(2) + '</p>';
+                    cards += '    </div>';
+                    cards += '    <div class="bg-gray-50 rounded-lg p-2">';
+                    cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Cost</p>';
+                    cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.total_cost || 0).toFixed(2) + '</p>';
+                    cards += '    </div>';
+                    cards += '    <div class="bg-primary/10 rounded-lg p-2">';
+                    cards += '      <p class="text-[10px] text-primary uppercase tracking-wide">Selling Price</p>';
+                    cards += '      <p class="text-sm font-bold text-primary">₱' + parseFloat(product.selling_price || 0).toFixed(2) + '</p>';
+                    cards += '    </div>';
+                    cards += '  </div>';
+                    cards += '</div>';
+                });
+
+                $('#mobileCardsContainer').html(cards);
+                $('#mobileNoResults').addClass('hidden');
+                renderMobilePagination(totalPages);
+            }
+
+            // Render Mobile Pagination
+            function renderMobilePagination(totalPages) {
+                if (totalPages <= 1) {
+                    $('#mobilePagination').html('<p class="text-sm text-gray-500">Showing ' + filteredProducts.length + ' item(s)</p>');
+                    return;
+                }
+
+                let pagination = '';
+                
+                // Previous button
+                pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="' + (currentPage - 1) + '">';
+                pagination += '<i class="fas fa-chevron-left"></i>';
+                pagination += '</button>';
+
+                // Page numbers
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                if (startPage > 1) {
+                    pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 hover:bg-gray-50 border" data-page="1">1</button>';
+                    if (startPage > 2) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') + '" data-page="' + i + '">' + i + '</button>';
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                    pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 hover:bg-gray-50 border" data-page="' + totalPages + '">' + totalPages + '</button>';
+                }
+
+                // Next button
+                pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="' + (currentPage + 1) + '">';
+                pagination += '<i class="fas fa-chevron-right"></i>';
+                pagination += '</button>';
+
+                $('#mobilePagination').html(pagination);
+            }
+
+            // Handle Mobile Pagination Click
+            $(document).on('click', '#mobilePagination .pagination-btn:not([disabled])', function() {
+                const page = parseInt($(this).data('page'));
+                if (page && page !== currentPage) {
+                    currentPage = page;
+                    renderMobileCards();
+                    // Scroll to top of cards
+                    $('html, body').animate({
+                        scrollTop: $('#mobileCardsContainer').offset().top - 100
+                    }, 300);
+                }
+            });
 
             // Submit Add Product Form via AJAX
             $('#addMaterialForm').on('submit', function (e) {
@@ -2757,31 +2860,28 @@
                     }
                 });
 
-                // Filter mobile cards
-                let hasResults = false;
-                $('.product-card').each(function () {
-                    if (categoryId === '' || $(this).data('category') == categoryId) {
-                        $(this).removeClass('hidden');
-                        hasResults = true;
-                    } else {
-                        $(this).addClass('hidden');
-                    }
-                });
-
-                if (hasResults || categoryId === '') {
-                    $('#mobileNoResults').addClass('hidden');
+                // Filter mobile cards with pagination
+                if (categoryId === '') {
+                    filteredProducts = [...allProducts];
                 } else {
-                    $('#mobileNoResults').removeClass('hidden');
+                    filteredProducts = allProducts.filter(function(product) {
+                        return product.category == categoryId;
+                    });
                 }
+                currentPage = 1;
+                renderMobileCards();
             });
 
             // Reset Filter
             $('#reset-filters').on('click', function () {
                 $('#filter-category').val('');
                 $('table tbody tr').show();
-                $('.product-card').removeClass('hidden');
-                $('#mobileNoResults').addClass('hidden');
+                
+                // Reset mobile cards with pagination
+                filteredProducts = [...allProducts];
+                currentPage = 1;
                 $('#mobileSearchInput').val('');
+                renderMobileCards();
             });
 
             // =====================================================
