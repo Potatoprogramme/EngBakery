@@ -86,7 +86,7 @@ class OrdersController extends BaseController
                 $orderData,
                 $data['items'],
                 $this->dailyStockItemsModel,
-                $this->dailySalesModel,
+                $this->transactionsModel,
                 $dailyStock['daily_stock_id']
             );
 
@@ -156,7 +156,7 @@ class OrdersController extends BaseController
     public function getTodaysSales()
     {
         $orderSales = $this->orderModel->getTodaysSales();
-        $itemSales = $this->dailySalesModel->getTodaysSummary();
+        $itemSales = $this->transactionsModel->getTodaysSummary();
 
         return $this->response->setJSON([
             'success' => true,

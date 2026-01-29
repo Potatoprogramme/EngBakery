@@ -32,7 +32,7 @@ class SalesController extends BaseController
 
     public function getTodaysSales()
     {
-        $sales = $this->dailySalesModel->getTodaysSummary();
+        $sales = $this->transactionsModel->getTodaysSummary();
 
         echo json_encode([
             'success' => true,
