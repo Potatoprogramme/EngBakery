@@ -249,19 +249,20 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success && response.data && response.data.length > 0) {
-                        // Separate bread and drinks
+                        // Separate bakery, drinks, and grocery
                         const breadItems = response.data.filter(item => item.category === 'bread');
                         const drinkItems = response.data.filter(item => item.category === 'drinks');
+                        const groceryItems = response.data.filter(item => item.category === 'grocery');
                         
                         let html = '';
                         let totalProducts = response.data.length;
                         
-                        // Render Bread Section
+                        // Render Bakery Section
                         if (breadItems.length > 0) {
                             html += `
                                 <div class="mb-4">
                                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        <i class="fas fa-bread-slice text-amber-500"></i> Bread (${breadItems.length})
+                                        <i class="fas fa-bread-slice text-amber-500"></i> Bakery (${breadItems.length})
                                     </h4>
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                             `;
@@ -323,6 +324,37 @@
                             `;
                             
                             drinkItems.forEach(item => {
+                                const beginning = parseInt(item.beginning_stock) || 0;
+                                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                                const remaining = parseInt(item.ending_stock) || 0;
+                                const sold = beginning - remaining - pullOut;
+                                
+                                html += `
+                                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
+                                        <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
+                                        <div class="text-xs text-gray-500 mb-1">Sold</div>
+                                        <div class="text-2xl font-bold text-green-600">${sold > 0 ? sold : 0}</div>
+                                    </div>
+                                `;
+                            });
+                            
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Render Grocery Section
+                        if (groceryItems.length > 0) {
+                            html += `
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <i class="fas fa-shopping-basket text-green-500"></i> Grocery (${groceryItems.length})
+                                    </h4>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            `;
+                            
+                            groceryItems.forEach(item => {
                                 const beginning = parseInt(item.beginning_stock) || 0;
                                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                                 const remaining = parseInt(item.ending_stock) || 0;

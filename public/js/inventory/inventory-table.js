@@ -60,11 +60,21 @@ const InventoryTable = {
             : item.selling_price;
         const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
         
-        // Category badge color
-        const categoryClass = item.category === 'bread' 
-            ? 'bg-amber-100 text-amber-800' 
-            : 'bg-blue-100 text-blue-800';
-        const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
+        // Category badge color and label
+        let categoryClass = 'bg-gray-100 text-gray-800';
+        let categoryLabel = 'N/A';
+        if (item.category === 'bread') {
+            categoryClass = 'bg-amber-100 text-amber-800';
+            categoryLabel = 'Bakery';
+        } else if (item.category === 'drinks') {
+            categoryClass = 'bg-blue-100 text-blue-800';
+            categoryLabel = 'Drinks';
+        } else if (item.category === 'grocery') {
+            categoryClass = 'bg-green-100 text-green-800';
+            categoryLabel = 'Grocery';
+        } else if (item.category) {
+            categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
+        }
 
         let row = '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
         row += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';

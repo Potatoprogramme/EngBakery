@@ -9,12 +9,17 @@ class AuthenticationController extends BaseController
     // Google OAuth Configuration
     private const GOOGLE_CLIENT_ID = '89803932415-79qpupmj3ks8g8gnfttnclh688q4dfpk.apps.googleusercontent.com';
     private const GOOGLE_CLIENT_SECRET = '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';
-    
+
     // Authorized users - hardcoded user list with email boundaries
     private const AUTHORIZED_USERS = [
         'engbakerymain@gmail.com',
         // Add more authorized emails here
     ];
+
+    public function registrationPage(): string
+    {
+        return view('RegistrationPage');
+    }
 
     public function loginPage(): string
     {
@@ -42,7 +47,7 @@ class AuthenticationController extends BaseController
         session()->set('oauth_state', $state);
 
         $redirectUri = base_url('Auth/Google/Callback');
-        
+
         $params = [
             'client_id' => self::GOOGLE_CLIENT_ID,
             'redirect_uri' => $redirectUri,
@@ -100,7 +105,6 @@ class AuthenticationController extends BaseController
             if (!$userInfo) {
                 log_message('error', 'Failed to retrieve user information from Google.');
                 return redirect()->to(base_url('login'))->with('error_message', 'Failed to retrieve user information.');
-
             }
 
             // Check if user is authorized
@@ -141,7 +145,7 @@ class AuthenticationController extends BaseController
     private function getAccessToken(string $code): ?array
     {
         $client = \Config\Services::curlRequest();
-        
+
         $response = $client->post('https://oauth2.googleapis.com/token', [
             'form_params' => [
                 'code' => $code,
@@ -168,7 +172,7 @@ class AuthenticationController extends BaseController
     private function getUserInfo(string $accessToken): ?array
     {
         $client = \Config\Services::curlRequest();
-        
+
         $response = $client->get('https://www.googleapis.com/oauth2/v1/userinfo', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
@@ -191,5 +195,37 @@ class AuthenticationController extends BaseController
     private function isUserAuthorized(string $email): bool
     {
         return in_array(strtolower($email), array_map('strtolower', self::AUTHORIZED_USERS));
+    }
+
+    public function getCurrentUser()
+    {
+        // if (session()->get('logged_in')) {
+
+            // $userID = session()->get('id');
+            $userID = 1;
+
+            $getUserInfo = $this->usersModel->find($userID);
+
+            log_message('info', 'Fetched current user info for user ID: ' . $userID);
+            log_message('info', 'User Info: ' . print_r($getUserInfo, true));
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'data' => [
+                    'id' => $userID,
+                    'email' => $getUserInfo['email'],
+                    'name' => $getUserInfo['firstname'] . ' ' . $getUserInfo['middlename'] . ' ' . $getUserInfo['lastname'] . ' ' . $getUserInfo['extension'],
+                    'employee_type' => $getUserInfo['employee_type'],
+                    'picture' => session()->get('picture'),
+                    'login_method' => session()->get('login_method'),
+
+                ],
+            ]);
+        // } else {
+        //     return $this->response->setJSON([
+        //         'status' => 'error',
+        //         'message' => 'No user is currently logged in.',
+        //     ]);
+        // }
     }
 }
