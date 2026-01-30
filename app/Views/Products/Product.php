@@ -203,8 +203,9 @@
                             required>
                             <option value="">Select Category</option>
                             <option value="dough">Dough</option>
-                            <option value="bread">Bread</option>
+                            <option value="bread">Bakery</option>
                             <option value="drinks">Drinks</option>
+                            <option value="grocery">Grocery</option>
                         </select>
                     </div>
                 </div>
@@ -647,8 +648,9 @@
                             required>
                             <option value="">Select Category</option>
                             <option value="dough">Dough</option>
-                            <option value="bread">Bread</option>
+                            <option value="bread">Bakery</option>
                             <option value="drinks">Drinks</option>
+                            <option value="grocery">Grocery</option>
                         </select>
                     </div>
                 </div>
@@ -1294,6 +1296,11 @@
                         textColor = 'text-blue-700';
                         icon = 'fa-mug-hot';
                         break;
+                    case 'grocery':
+                        bgColor = 'bg-green-100';
+                        textColor = 'text-green-700';
+                        icon = 'fa-cart-shopping';
+                        break;
                     default:
                         bgColor = 'bg-gray-100';
                         textColor = 'text-gray-700';
@@ -1903,6 +1910,10 @@
                         bgColor = 'bg-amber-100';
                         textColor = 'text-amber-700';
                         break;
+                    case 'grocery':
+                        bgColor = 'bg-green-100';
+                        textColor = 'text-green-700';
+                        break;
                     case 'general':
                     default:
                         bgColor = 'bg-gray-100';
@@ -2455,8 +2466,10 @@
             // Load Product Categories for Filter dropdown (static enum values)
             function loadFilterCategories() {
                 let options = '<option value="">All Product Categories</option>';
-                options += '<option value="bread">Bread</option>';
+                options += '<option value="bread">Bakery</option>';
+                options += '<option value="dough">Dough</option>';
                 options += '<option value="drinks">Drinks</option>';
+                options += '<option value="grocery">Grocery</option>';
                 $('#filter-category').html(options);
             }
 
@@ -4138,11 +4151,13 @@
                             $('#viewProductName').text(product.product_name);
                             let categoryBadge = '';
                             if (product.category === 'bread') {
-                                categoryBadge = '<i class="fas fa-bread-slice me-1"></i>Bread';
+                                categoryBadge = '<i class="fas fa-bread-slice me-1"></i>Bakery';
                             } else if (product.category === 'dough') {
                                 categoryBadge = '<i class="fas fa-cookie-bite me-1"></i>Dough';
                             } else if (product.category === 'drinks') {
                                 categoryBadge = '<i class="fas fa-coffee me-1"></i>Drinks';
+                            } else if (product.category === 'grocery') {
+                                categoryBadge = '<i class="fas fa-shopping-basket me-1"></i>Grocery';
                             } else {
                                 categoryBadge = '<i class="fas fa-box me-1"></i>' + (product.category || 'Unknown');
                             }

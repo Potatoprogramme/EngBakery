@@ -16,6 +16,11 @@ class AuthenticationController extends BaseController
         // Add more authorized emails here
     ];
 
+    public function registrationPage(): string
+    {
+        return view('RegistrationPage');
+    }
+
     public function loginPage(): string
     {
         return view('LoginPage');

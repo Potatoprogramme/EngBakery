@@ -241,6 +241,7 @@ $(document).ready(function() {
             const labelColors = {
                 'drinks': 'bg-blue-100 text-blue-800',
                 'bread': 'bg-amber-100 text-amber-800',
+                'grocery': 'bg-green-100 text-green-800',
                 'general': 'bg-gray-100 text-gray-800'
             };
             const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
@@ -316,6 +317,7 @@ $(document).ready(function() {
             const labelColors = {
                 'drinks': 'bg-blue-100 text-blue-800',
                 'bread': 'bg-amber-100 text-amber-800',
+                'grocery': 'bg-green-100 text-green-800',
                 'general': 'bg-gray-100 text-gray-800'
             };
             const labelColor = labelColors[mat.label] || 'bg-gray-100 text-gray-800';

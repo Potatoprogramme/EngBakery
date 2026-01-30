@@ -8,6 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 
 // Authentication Routes
+$routes->get('/registration', 'AuthenticationController::registrationPage');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');

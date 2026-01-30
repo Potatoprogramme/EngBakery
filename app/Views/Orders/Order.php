@@ -78,15 +78,19 @@
             <div class="flex gap-2 mb-3">
                 <button type="button" data-tab="breads" onclick="switchTab('breads')"
                     class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
-                    Breads
+                    Bakery
                 </button>
                 <button type="button" data-tab="drinks" onclick="switchTab('drinks')"
                     class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                     Drinks
                 </button>
+                <button type="button" data-tab="grocery" onclick="switchTab('grocery')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                    Grocery
+                </button>
             </div>
 
-            <!-- Tab Content: Breads -->
+            <!-- Tab Content: Bakery -->
             <div id="breads-content" class="tab-content p-3 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <div id="breads-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                     <!-- Products will be loaded dynamically -->
@@ -100,6 +104,17 @@
             <!-- Tab Content: Drinks -->
             <div id="drinks-content" class="tab-content hidden p-3 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <div id="drinks-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                    <!-- Products will be loaded dynamically -->
+                    <div class="col-span-full text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Loading products...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Grocery -->
+            <div id="grocery-content" class="tab-content hidden p-3 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
+                <div id="grocery-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                     <!-- Products will be loaded dynamically -->
                     <div class="col-span-full text-center py-8 text-gray-500">
                         <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>

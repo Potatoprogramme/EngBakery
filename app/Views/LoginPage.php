@@ -105,7 +105,7 @@
                                 Sign in with Google
                             </a>
 
-                            <p class="text-center text-sm text-gray-600">Don't have an account yet? <a href="<?= base_url('register') ?>" class="font-medium text-[#007B4C] hover:underline">Sign up</a></p>
+                            <p class="text-center text-sm text-gray-600">Don't have an account yet? <a href="<?= base_url('registration') ?>" class="font-medium text-[#007B4C] hover:underline">Sign up</a></p>
                         </form>
                     </div>
                 </div>
