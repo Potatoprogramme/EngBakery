@@ -70,7 +70,31 @@
                     Delete
                 </button>
             </div>
-            <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
+            <!-- Mobile Card View -->
+            <div class="sm:hidden mb-20">
+                <!-- Mobile Search -->
+                <div class="mb-3">
+                    <div class="relative">
+                        <input type="text" id="mobileSearchInput" placeholder="Search inventory..." 
+                            class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Mobile Cards Container -->
+                <div id="mobileCardView" class="space-y-3">
+                    <!-- Cards will be loaded via AJAX -->
+                </div>
+
+                <!-- Mobile Pagination -->
+                <div id="mobilePagination" class="flex items-center justify-center gap-1 mt-4 flex-wrap">
+                    <!-- Pagination will be generated via JS -->
+                </div>
+                <p id="mobilePageInfo" class="text-center text-sm text-gray-500 mt-2"></p>
+            </div>
+
+            <!-- Desktop Table View -->
+            <div class="hidden sm:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
                 <table id="selection-table" class="min-w-full text-sm text-left">
                     <thead>
                         <tr>
@@ -598,12 +622,23 @@
             });
         }
 
+        // Mobile pagination variables
+        let allInventoryItems = [];
+        let filteredItems = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
         function loadInventory(items) {
             // Destroy existing DataTable first
             if (dataTable) {
                 dataTable.destroy();
                 dataTable = null;
             }
+
+            // Store items for mobile pagination
+            allInventoryItems = items || [];
+            filteredItems = [...allInventoryItems];
+            currentPage = 1;
 
             let rows = '';
             if (items && items.length > 0) {
@@ -615,19 +650,32 @@
                         : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
 
-                    // Category badge color
-                    const categoryClass = item.category === 'bread'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-blue-100 text-blue-800';
-                    const categoryLabel = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'N/A';
+                    // Category badge color and label
+                    let categoryClass = 'bg-gray-100 text-gray-800';
+                    let categoryLabel = 'N/A';
+                    if (item.category === 'bread') {
+                        categoryClass = 'bg-amber-100 text-amber-800';
+                        categoryLabel = 'Bakery';
+                    } else if (item.category === 'drinks') {
+                        categoryClass = 'bg-blue-100 text-blue-800';
+                        categoryLabel = 'Drinks';
+                    } else if (item.category === 'grocery') {
+                        categoryClass = 'bg-green-100 text-green-800';
+                        categoryLabel = 'Grocery';
+                    } else if (item.category) {
+                        categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
+                    }
 
+                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+
+                    // Desktop table row
                     rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
                     rows += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';
                     rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-4">' + (item.beginning_stock || 0) + '</td>';
                     rows += '<td class="px-6 py-4">' + (item.pull_out_quantity || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">' + (ending_stock = item.beginning_stock - item.pull_out_quantity - item.quantity_sold || 0) + '</td>';
+                    rows += '<td class="px-6 py-4">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-4">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</td>';
                     rows += '<td class="px-6 py-4">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
@@ -640,6 +688,9 @@
             }
 
             $('#materialsTableBody').html(rows);
+            
+            // Render mobile cards with pagination
+            renderMobileCards();
 
             // Initialize DataTable with custom labels - ONLY if we have data
             const tableElement = document.getElementById('selection-table');
@@ -661,12 +712,26 @@
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             const itemId = $(this).data('id');
+            
+            // Try to get data from table row first (desktop)
             const row = $(this).closest('tr');
-
-            // Get current values from the row (correct column indices)
-            const productName = row.find('td:eq(2)').text(); // Column 2 is product name
-            const beginningStock = row.find('td:eq(3)').text(); // Column 3 is beginning stock
-            const pullOutQty = row.find('td:eq(4)').text(); // Column 4 is pull out quantity
+            
+            let productName, beginningStock, pullOutQty;
+            
+            if (row.length > 0) {
+                // Desktop table view
+                productName = row.find('td:eq(2)').text(); // Column 2 is product name
+                beginningStock = row.find('td:eq(3)').text(); // Column 3 is beginning stock
+                pullOutQty = row.find('td:eq(4)').text(); // Column 4 is pull out quantity
+            } else {
+                // Mobile card view - find item from stored data
+                const item = allInventoryItems.find(i => i.item_id == itemId);
+                if (item) {
+                    productName = item.product_name || 'N/A';
+                    beginningStock = item.beginning_stock || 0;
+                    pullOutQty = item.pull_out_quantity || 0;
+                }
+            }
 
             // Store item ID and populate modal
             $('#editItemId').val(itemId);
@@ -792,7 +857,18 @@
 
                     if (response.success && response.data.length > 0) {
                         response.data.forEach(function (product) {
-                            const categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+                            let categoryLabel = 'Unknown';
+                            if (product.category === 'bread') {
+                                categoryLabel = 'Bakery';
+                            } else if (product.category === 'drinks') {
+                                categoryLabel = 'Drinks';
+                            } else if (product.category === 'grocery') {
+                                categoryLabel = 'Grocery';
+                            } else if (product.category === 'dough') {
+                                categoryLabel = 'Dough';
+                            } else if (product.category) {
+                                categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+                            }
                             select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
                         });
                         $('#noProductsMessage').addClass('hidden');
@@ -807,6 +883,182 @@
                 }
             });
         }
+
+        // Mobile Search functionality
+        $('#mobileSearchInput').on('input', function() {
+            const searchTerm = $(this).val().toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredItems = [...allInventoryItems];
+            } else {
+                filteredItems = allInventoryItems.filter(item => {
+                    return (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
+                           (item.category && item.category.toLowerCase().includes(searchTerm));
+                });
+            }
+            
+            currentPage = 1;
+            renderMobileCards();
+        });
+
+        // Render mobile cards with pagination
+        function renderMobileCards() {
+            const totalItems = filteredItems.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const pageItems = filteredItems.slice(startIndex, endIndex);
+
+            let cards = '';
+            if (pageItems.length > 0) {
+                pageItems.forEach(function(item) {
+                    // Use appropriate price based on category
+                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
+                        ? item.selling_price_per_piece
+                        : item.selling_price;
+                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+
+                    // Category badge color and label
+                    let categoryClass = 'bg-gray-100 text-gray-800';
+                    let categoryLabel = 'N/A';
+                    if (item.category === 'bread') {
+                        categoryClass = 'bg-amber-100 text-amber-800';
+                        categoryLabel = 'Bakery';
+                    } else if (item.category === 'drinks') {
+                        categoryClass = 'bg-blue-100 text-blue-800';
+                        categoryLabel = 'Drinks';
+                    } else if (item.category === 'grocery') {
+                        categoryClass = 'bg-green-100 text-green-800';
+                        categoryLabel = 'Grocery';
+                    } else if (item.category) {
+                        categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
+                    }
+
+                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+
+                    cards += '<div class="bg-white rounded-lg shadow-md p-4" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
+                    cards += '  <div class="flex items-start justify-between mb-3">';
+                    cards += '    <div class="flex-1">';
+                    cards += '      <h3 class="font-semibold text-gray-900 text-base">' + (item.product_name || 'N/A') + '</h3>';
+                    cards += '      <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span>';
+                    cards += '    </div>';
+                    cards += '    <span class="text-lg font-bold text-primary">' + formattedPrice + '</span>';
+                    cards += '  </div>';
+                    cards += '  <div class="grid grid-cols-2 gap-2 text-sm mb-3">';
+                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
+                    cards += '      <p class="text-gray-500 text-xs">Beginning</p>';
+                    cards += '      <p class="font-semibold text-gray-900">' + (item.beginning_stock || 0) + '</p>';
+                    cards += '    </div>';
+                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
+                    cards += '      <p class="text-gray-500 text-xs">Pull Out</p>';
+                    cards += '      <p class="font-semibold text-gray-900">' + (item.pull_out_quantity || 0) + '</p>';
+                    cards += '    </div>';
+                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
+                    cards += '      <p class="text-gray-500 text-xs">Ending</p>';
+                    cards += '      <p class="font-semibold text-gray-900">' + ending_stock + '</p>';
+                    cards += '    </div>';
+                    cards += '    <div class="bg-green-50 rounded-md p-2">';
+                    cards += '      <p class="text-green-600 text-xs">Sales</p>';
+                    cards += '      <p class="font-semibold text-green-700">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</p>';
+                    cards += '    </div>';
+                    cards += '  </div>';
+                    cards += '  <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">';
+                    cards += '    <button class="flex items-center justify-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-medium py-3 px-4 rounded-lg border border-amber-200 btn-edit" data-id="' + item.item_id + '">';
+                    cards += '      <i class="fas fa-edit"></i> Edit';
+                    cards += '    </button>';
+                    cards += '    <button class="flex items-center justify-center gap-2 bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium py-3 px-4 rounded-lg border border-red-200 btn-delete" data-id="' + item.item_id + '">';
+                    cards += '      <i class="fas fa-trash"></i> Delete';
+                    cards += '    </button>';
+                    cards += '  </div>';
+                    cards += '</div>';
+                });
+            } else {
+                cards = '<div class="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">No inventory data available</div>';
+            }
+
+            $('#mobileCardView').html(cards);
+            renderMobilePagination(totalPages, totalItems, startIndex, endIndex);
+        }
+
+        // Render mobile pagination
+        function renderMobilePagination(totalPages, totalItems, startIndex, endIndex) {
+            let pagination = '';
+            
+            if (totalPages > 1) {
+                // Previous button
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
+                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                    '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="prev">';
+                pagination += '<i class="fas fa-chevron-left"></i>';
+                pagination += '</button>';
+
+                // Page numbers
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                if (startPage > 1) {
+                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="1">1</button>';
+                    if (startPage > 2) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
+                        (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                        '" data-page="' + i + '">' + i + '</button>';
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="' + totalPages + '">' + totalPages + '</button>';
+                }
+
+                // Next button
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
+                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                    '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="next">';
+                pagination += '<i class="fas fa-chevron-right"></i>';
+                pagination += '</button>';
+            }
+
+            $('#mobilePagination').html(pagination);
+            
+            // Page info
+            if (totalItems > 0) {
+                $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries');
+            } else {
+                $('#mobilePageInfo').text('');
+            }
+        }
+
+        // Mobile pagination click handler
+        $(document).on('click', '#mobilePagination button:not([disabled])', function() {
+            const page = $(this).data('page');
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            
+            if (page === 'prev') {
+                currentPage = Math.max(1, currentPage - 1);
+            } else if (page === 'next') {
+                currentPage = Math.min(totalPages, currentPage + 1);
+            } else {
+                currentPage = parseInt(page);
+            }
+            
+            renderMobileCards();
+            
+            // Scroll to top of cards
+            $('html, body').animate({
+                scrollTop: $('#mobileCardView').offset().top - 100
+            }, 300);
+        });
 
         // Submit Add Product Form
         $('#addProductForm').on('submit', function (e) {

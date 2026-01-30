@@ -59,12 +59,15 @@ async function loadProducts() {
 function renderProducts() {
     const breadsGrid = document.getElementById('breads-grid');
     const drinksGrid = document.getElementById('drinks-grid');
+    const groceryGrid = document.getElementById('grocery-grid');
     
     const breads = productsData.filter(p => p.category === 'bread');
     const drinks = productsData.filter(p => p.category === 'drinks');
+    const grocery = productsData.filter(p => p.category === 'grocery');
     
-    breadsGrid.innerHTML = breads.length > 0 ? breads.map(p => createProductCard(p)).join('') : noProductsHtml('breads');
+    breadsGrid.innerHTML = breads.length > 0 ? breads.map(p => createProductCard(p)).join('') : noProductsHtml('bakery');
     drinksGrid.innerHTML = drinks.length > 0 ? drinks.map(p => createProductCard(p)).join('') : noProductsHtml('drinks');
+    groceryGrid.innerHTML = grocery.length > 0 ? grocery.map(p => createProductCard(p)).join('') : noProductsHtml('grocery');
     
     // Re-attach click handlers to new product cards
     attachProductCardHandlers();
@@ -120,6 +123,7 @@ function showProductError(message) {
     `;
     document.getElementById('breads-grid').innerHTML = errorHtml;
     document.getElementById('drinks-grid').innerHTML = errorHtml;
+    document.getElementById('grocery-grid').innerHTML = errorHtml;
 }
 
 function attachProductCardHandlers() {

@@ -92,4 +92,92 @@ class OrderModel extends Model
             ->get()
             ->getRowArray();
     }
+
+    /**
+     * Process a complete order with items and stock updates
+     * Returns order data on success, throws exception on failure
+     */
+    public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $transactionsModel, int $dailyStockId): array
+    {
+        $orderId = $this->createOrder($orderData);
+        
+        if (!$orderId) {
+            throw new \Exception('Failed to create order.');
+        }
+
+        // Get the order item model
+        $orderItemModel = new \App\Models\OrderItemModel();
+        
+        if (!$orderItemModel->addOrderItems($orderId, $items)) {
+            throw new \Exception('Failed to add order items.');
+        }
+
+        // Update stock and record sales for each item
+        foreach ($items as $item) {
+            $stockItem = $dailyStockItemsModel->getStockItemByProduct($dailyStockId, intval($item['product_id']));
+
+            if ($stockItem) {
+                // Deduct from ending stock
+                $dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+
+                // Record the sale in transactions table
+                $transactionsModel->recordSale(
+                    $stockItem['item_id'],
+                    intval($item['quantity']),
+                    floatval($item['total'])
+                );
+            } else {
+                // Product not in inventory - auto-add it with 0 beginning stock
+                $newItemId = $dailyStockItemsModel->addProductToInventory(
+                    $dailyStockId,
+                    intval($item['product_id']),
+                    0 // beginning_stock = 0
+                );
+                
+                if ($newItemId) {
+                    // Now deduct and record the sale
+                    $dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                    $transactionsModel->recordSale(
+                        $newItemId,
+                        intval($item['quantity']),
+                        floatval($item['total'])
+                    );
+                }
+            }
+        }
+
+        return [
+            'order_id' => $orderId,
+            'order_number' => $this->generateOrderNumber(),
+            'order' => $this->getOrderById($orderId),
+            'items' => $orderItemModel->getOrderItems($orderId)
+        ];
+    }
+
+    /**
+     * Void an order and restore stock
+     */
+    public function voidOrderWithRestore(int $orderId, $orderItemModel, $dailyStockItemsModel, ?int $dailyStockId = null): bool
+    {
+        $order = $this->find($orderId);
+        if (!$order) {
+            throw new \Exception('Order not found.');
+        }
+
+        $orderItems = $orderItemModel->getOrderItems($orderId);
+
+        // Restore stock if we have today's inventory
+        if ($dailyStockId) {
+            foreach ($orderItems as $item) {
+                $stockItem = $dailyStockItemsModel->getStockItemByProduct($dailyStockId, $item['product_id']);
+                if ($stockItem) {
+                    $dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amout']));
+                }
+            }
+        }
+
+        // Delete order items and order
+        $orderItemModel->where('order_id', $orderId)->delete();
+        return $this->delete($orderId);
+    }
 }

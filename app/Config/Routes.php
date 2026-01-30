@@ -8,11 +8,20 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 
 // Authentication Routes
+$routes->get('/registration', 'AuthenticationController::registrationPage');
+$routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');
 $routes->get('/Auth/Google', 'AuthenticationController::googleLogin');
 $routes->get('/Auth/Google/Callback', 'AuthenticationController::googleCallback');
+
+$routes->group('User', function (RouteCollection $routes) {
+    $routes->get('Profile', 'UserController::profile');
+    $routes->post('UpdateProfile', 'UserController::updateProfile');
+    $routes->post('ChangePassword', 'UserController::changePassword');
+    $routes->get('GetCurrentUser', 'AuthenticationController::getCurrentUser');
+});
 
 // Main Pages Routes
 $routes->group('Dashboard', function (RouteCollection $routes) {

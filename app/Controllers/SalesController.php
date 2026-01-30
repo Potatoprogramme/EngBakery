@@ -30,13 +30,28 @@ class SalesController extends BaseController
             view('Template/Footer');
     }
 
-    public function getTodaysSales()
+    public function getTodaysSummary()
     {
-        $sales = $this->transactionsModel->getTodaysSummary();
+        $breadSales = $this->transactionsModel->getTodaysSaleByCategory('Bread');
+        $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('Drinks');
+        $doughSales = $this->transactionsModel->getTodaysSaleByCategory('Dough');
+        $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('Grocery');
+        $gCashSales = $this->orderModel->getTotalSalesByOrderType('gcash');
+        $todaysTotalOrders = $this->orderModel->getTodaysOrderCount();
+        $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
+
 
         echo json_encode([
             'success' => true,
-            'data' => $sales
+            'data' => [
+                'bread_sales' => $breadSales,
+                'drinks_sales' => $drinksSales,
+                'dough_sales' => $doughSales,
+                'grocery_sales' => $grocerySales,
+                'gcash_sales' => $gCashSales,
+                'total_orders' => $todaysTotalOrders,
+                'total_items_sold' => $todaysTotalItemsSold
+            ]
         ]);
     }
 }
