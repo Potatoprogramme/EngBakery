@@ -81,14 +81,59 @@ class OrdersController extends BaseController
                 'order_type' => $data['order_type'] ?? 'walk-in'
             ];
 
-            // Process order using model method (handles items, stock, sales)
-            $result = $this->orderModel->processCompleteOrder(
-                $orderData,
-                $data['items'],
-                $this->dailyStockItemsModel,
-                $this->transactionsModel,
-                $dailyStock['daily_stock_id']
-            );
+            // Create the order
+            $orderId = $this->orderModel->createOrder($orderData);
+            
+            if (!$orderId) {
+                throw new \Exception('Failed to create order.');
+            }
+
+            // Add order items
+            if (!$this->orderItemModel->addOrderItems($orderId, $data['items'])) {
+                throw new \Exception('Failed to add order items.');
+            }
+
+            // Update stock and record sales for each item
+            foreach ($data['items'] as $item) {
+                $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], intval($item['product_id']));
+
+                if ($stockItem) {
+                    // Deduct from ending stock
+                    $this->dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+
+                    // Record the sale in transactions table
+                    $this->transactionsModel->recordSale(
+                        $stockItem['item_id'],
+                        intval($item['quantity']),
+                        floatval($item['total'])
+                    );
+                } else {
+                    // Product not in inventory - auto-add it with 0 beginning stock
+                    $newItemId = $this->dailyStockItemsModel->addProductToInventory(
+                        $dailyStock['daily_stock_id'],
+                        intval($item['product_id']),
+                        0 // beginning_stock = 0
+                    );
+                    
+                    if ($newItemId) {
+                        // Now deduct and record the sale
+                        $this->dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                        $this->transactionsModel->recordSale(
+                            $newItemId,
+                            intval($item['quantity']),
+                            floatval($item['total'])
+                        );
+                    }
+                }
+            }
+
+            // Prepare result
+            $result = [
+                'order_id' => $orderId,
+                'order_number' => $this->orderModel->generateOrderNumber(),
+                'order' => $this->orderModel->getOrderById($orderId),
+                'items' => $this->orderItemModel->getOrderItems($orderId)
+            ];
 
             $this->db->transComplete();
 
@@ -180,17 +225,30 @@ class OrdersController extends BaseController
         $this->db->transStart();
 
         try {
+            // Get the order
+            $order = $this->orderModel->find($orderId);
+            if (!$order) {
+                throw new \Exception('Order not found.');
+            }
+
+            $orderItems = $this->orderItemModel->getOrderItems($orderId);
+
             // Get today's inventory (optional - only restore stock if same day)
             $dailyStock = $this->dailyStockModel->getTodaysInventory();
-            $dailyStockId = $dailyStock ? $dailyStock['daily_stock_id'] : null;
 
-            // Use model method to void order and restore stock
-            $this->orderModel->voidOrderWithRestore(
-                $orderId,
-                $this->orderItemModel,
-                $this->dailyStockItemsModel,
-                $dailyStockId
-            );
+            // Restore stock if we have today's inventory
+            if ($dailyStock) {
+                foreach ($orderItems as $item) {
+                    $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
+                    if ($stockItem) {
+                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amout']));
+                    }
+                }
+            }
+
+            // Delete order items and order
+            $this->orderItemModel->where('order_id', $orderId)->delete();
+            $this->orderModel->delete($orderId);
 
             $this->db->transComplete();
 
