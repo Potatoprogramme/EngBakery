@@ -24,11 +24,11 @@
                         Daily Sales Remittance
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Sales/History') ?>" 
+                        <a href="<?= base_url('Sales/History') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-history mr-2"></i>Sales History
                         </a>
-                        <a href="<?= base_url('Sales/RemittanceHistory') ?>" 
+                        <a href="<?= base_url('Sales/RemittanceHistory') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-file-invoice-dollar mr-2"></i>Remittance History
                         </a>
@@ -49,13 +49,13 @@
                         <div class="space-y-3">
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">NAME:</label>
-                                <input type="text" id="cashierName" 
+                                <input type="text" id="cashierName"
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter cashier name">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">EMAIL:</label>
-                                <input type="email" id="cashierEmail" 
+                                <input type="email" id="cashierEmail"
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter email address">
                             </div>
@@ -67,9 +67,9 @@
                         <div class="space-y-3">
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">OUTLET:</label>
-                                <input type="text" id="outletName" 
+                                <input type="text" id="outletName"
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
-                                    placeholder="Enter outlet name" value="E n' G Bakery">
+                                    placeholder="Enter outlet name" value="Deca Sentrio">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
@@ -86,7 +86,7 @@
                         <h4 class="text-sm font-bold text-gray-700 mb-3 border-b border-gray-200 pb-2">
                             <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>CASH SALES / CHANGE FUND
                         </h4>
-                        
+
                         <!-- Bills Breakdown -->
                         <div class="space-y-1.5">
                             <!-- 1000 -->
@@ -96,7 +96,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill1000">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill1000" min="0" value="0" 
+                                    <input type="number" id="bill1000" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill1000">
                                         <i class="fas fa-plus text-xs"></i>
@@ -111,7 +111,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill500">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill500" min="0" value="0" 
+                                    <input type="number" id="bill500" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill500">
                                         <i class="fas fa-plus text-xs"></i>
@@ -126,7 +126,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill200">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill200" min="0" value="0" 
+                                    <input type="number" id="bill200" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill200">
                                         <i class="fas fa-plus text-xs"></i>
@@ -141,7 +141,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill100">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill100" min="0" value="0" 
+                                    <input type="number" id="bill100" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill100">
                                         <i class="fas fa-plus text-xs"></i>
@@ -156,7 +156,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill50">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill50" min="0" value="0" 
+                                    <input type="number" id="bill50" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill50">
                                         <i class="fas fa-plus text-xs"></i>
@@ -171,7 +171,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill20">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill20" min="0" value="0" 
+                                    <input type="number" id="bill20" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill20">
                                         <i class="fas fa-plus text-xs"></i>
@@ -186,7 +186,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill10">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill10" min="0" value="0" 
+                                    <input type="number" id="bill10" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill10">
                                         <i class="fas fa-plus text-xs"></i>
@@ -201,7 +201,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill5">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill5" min="0" value="0" 
+                                    <input type="number" id="bill5" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill5">
                                         <i class="fas fa-plus text-xs"></i>
@@ -216,7 +216,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill1">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill1" min="0" value="0" 
+                                    <input type="number" id="bill1" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill1">
                                         <i class="fas fa-plus text-xs"></i>
@@ -231,7 +231,7 @@
                                     <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill025">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
-                                    <input type="number" id="bill025" min="0" value="0" 
+                                    <input type="number" id="bill025" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
                                     <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill025">
                                         <i class="fas fa-plus text-xs"></i>
@@ -240,7 +240,7 @@
                                 <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total025">₱0.00</span>
                             </div>
                         </div>
-                        
+
                         <!-- Amount Enclosed -->
                         <div class="mt-3 pt-3 border-t-2 border-green-300 bg-green-50 -mx-4 px-4 -mb-4 pb-3 rounded-b-lg">
                             <div class="flex items-center justify-between">
@@ -370,16 +370,17 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
         input[type=number] {
             -moz-appearance: textfield;
             appearance: textfield;
         }
     </style>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
-        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.BASE_URL = '<?= base_url() ?>';
 
+        console.log('BASE_URL:', BASE_URL);
         // Bill denominations mapping
         const billDenominations = {
             'bill1000': 1000,
@@ -396,17 +397,47 @@
 
         $(document).ready(function() {
             initializeRemittance();
+            console.log('Remittance Slip Initialized');
             loadTodaysSalesData();
+            console.log('Loaded Today\'s Sales Data');
+            loadUserInfo();
+            console.log('Loaded User Info');
             bindBillInputEvents();
+            console.log('Bound Bill Input Events');
             bindBillButtonEvents();
+            console.log('Bound Bill Button Events');
             bindGCashInputEvent();
+            console.log('Bound GCash Input Event');
         });
 
         function initializeRemittance() {
             // Set today's date
             const today = new Date();
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
             $('#remittanceDate').text(today.toLocaleDateString('en-US', options));
+        }
+
+        function loadUserInfo() {
+            $.ajax({
+                url: BASE_URL + 'User/GetCurrentUser',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const user = response.data;
+                        $('#cashierName').val(user.name || '');
+                        $('#cashierEmail').val(user.email || '');
+                        console.log('Loaded user info:', user);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading user info:', error);
+                }
+            });
         }
 
         function loadTodaysSalesData() {
@@ -416,31 +447,54 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
+                        console.log('Sales data response:', response.data);
                         const data = response.data;
-                        
+
                         // Update shift time
                         if (data.shift_start && data.shift_end) {
                             $('#shiftTime').text(formatTime(data.shift_start) + ' - ' + formatTime(data.shift_end));
                         }
-                        
+
+
+
+                        // Example for handling nulls safely
+                        const breadSales = response.data.bread_sales || {};
+                        const drinksSales = response.data.drinks_sales || {};
+                        const doughSales = response.data.dough_sales || {};
+                        const grocerySales = response.data.grocery_sales || {};
+                        const gcashSales = response.data.gcash_sales || {};
+                        const total_orders = response.data.total_orders || 0;
+                        const total_items_sold = response.data.total_items_sold || 0;
+
+                        const breadRevenue = breadSales.total_revenue || 0;
+                        const drinksRevenue = drinksSales.total_revenue || 0;
+                        const doughRevenue = doughSales.total_revenue || 0;
+                        const groceryRevenue = grocerySales.total_revenue || 0;
+                        const gcashRevenue = gcashSales.total_revenue || 0;
+
+                        // Now use breadRevenue, drinksRevenue, etc. safely
+
                         // Update sales by category
-                        $('#bakerySales').text(formatCurrency(data.bakery_sales || 0));
-                        $('#coffeeSales').text(formatCurrency(data.coffee_sales || 0));
-                        $('#grocerySales').text(formatCurrency(data.grocery_sales || 0));
-                        
+                        $('#bakerySales').text(formatCurrency(Number(breadRevenue)));
+                        $('#coffeeSales').text(formatCurrency(Number(drinksRevenue)));
+                        // $('#grocerySales').text(formatCurrency(Number(groceryRevenue)));
+
+                        // const totalSales = breadSales + drinksSales + grocerySales;
+                        const totalSales = Number(breadRevenue) + Number(drinksRevenue);
+
                         // Update total sales in system
-                        $('#systemTotalSales').text(formatCurrency(data.total_sales || 0));
-                        
+                        $('#systemTotalSales').text(formatCurrency(totalSales));
+
                         // Update payment methods - set GCash input value
-                        $('#gcashTotal').val(data.gcash_total || 0);
-                        
+                        $('#gcashTotal').val(gcashRevenue);
+
                         // Update total sales
-                        $('#totalSales').text(formatCurrency(data.total_sales || 0));
-                        
+                        $('#totalSales').text(formatCurrency(totalSales));
+
                         // Update statistics
-                        $('#totalOrders').text(data.total_orders || 0);
-                        $('#totalItemsSold').text(data.total_items_sold || 0);
-                        
+                        $('#totalOrders').text(total_orders);
+                        $('#totalItemsSold').text(total_items_sold);
+
                         // Calculate variance
                         calculateAllTotals();
                     }
@@ -489,11 +543,11 @@
             const denomination = billDenominations[inputId];
             const quantity = parseInt($('#' + inputId).val()) || 0;
             const total = quantity * denomination;
-            
+
             // Update the corresponding total
             const totalId = '#total' + inputId.replace('bill', '');
             $(totalId).text(formatCurrency(total));
-            
+
             // Recalculate all totals
             calculateAllTotals();
         }
@@ -506,13 +560,13 @@
 
         function calculateAmountEnclosed() {
             let totalEnclosed = 0;
-            
+
             // Sum all bill totals
             Object.keys(billDenominations).forEach(function(inputId) {
                 const quantity = parseInt($('#' + inputId).val()) || 0;
                 totalEnclosed += quantity * billDenominations[inputId];
             });
-            
+
             $('#amountEnclosed').text(formatCurrency(totalEnclosed));
             return totalEnclosed;
         }
@@ -521,17 +575,17 @@
             const amountEnclosed = calculateAmountEnclosed();
             const totalSales = parseCurrency($('#systemTotalSales').text());
             const gcash = parseFloat($('#gcashTotal').val()) || 0;
-            
+
             // Expected cash = Total Sales - GCash
             const expectedCash = totalSales - gcash;
             const variance = amountEnclosed - expectedCash;
-            
+
             const varianceEl = $('#cashCountVariance');
             const container = $('#cashCountVarianceContainer');
-            
+
             container.removeClass('bg-red-50 bg-green-50 bg-gray-50');
             varianceEl.removeClass('text-red-600 text-green-600 text-gray-800');
-            
+
             if (variance > 0) {
                 container.addClass('bg-green-50');
                 varianceEl.addClass('text-green-600');
@@ -545,7 +599,7 @@
                 varianceEl.addClass('text-gray-800');
                 varianceEl.text('₱0.00 (Balanced)');
             }
-            
+
             return variance;
         }
 
@@ -560,17 +614,17 @@
             const gcash = parseFloat($('#gcashTotal').val()) || 0;
             const cashOut = parseFloat($('#cashOutAmount').val()) || 0;
             const totalSales = parseCurrency($('#totalSales').text());
-            
+
             const totalRemitted = amountEnclosed + gcash - cashOut;
             const variance = totalRemitted - totalSales;
-            
+
             // Update variance styling
             const container = $('#varianceContainer');
             const varianceEl = $('#variance');
-            
+
             container.removeClass('bg-red-100 bg-green-100 bg-gray-100');
             varianceEl.removeClass('text-red-600 text-green-600 text-primary');
-            
+
             if (variance > 0) {
                 container.addClass('bg-green-100');
                 varianceEl.addClass('text-green-600');
@@ -622,7 +676,7 @@
             // Reset bill inputs
             $('.bill-input').val(0);
             $('.bill-total').text('₱0.00');
-            
+
             // Reset other inputs
             $('#cashOutAmount').val(0);
             $('#cashOutReason').val('');
@@ -630,7 +684,7 @@
             $('#cashierEmail').val('');
             $('#gcashTotal').val(0);
             $('#amountEnclosed').text('₱0.00');
-            
+
             calculateAllTotals();
         });
 
@@ -642,7 +696,7 @@
                 const val = $(this).val() || '0';
                 $(this).replaceWith('<span class="font-semibold">' + val + '</span>');
             });
-            
+
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <!DOCTYPE html>

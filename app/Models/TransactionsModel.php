@@ -34,10 +34,10 @@ class TransactionsModel extends Model
     public function getSalesByDate(string $date): array
     {
         return $this->builder()
-            ->select('daily_sales.*, daily_stock_items.product_id, products.product_name')
-            ->join('daily_stock_items', 'daily_stock_items.item_id = daily_sales.item_id', 'left')
+            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
             ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
-            ->where('daily_sales.date_created', $date)
+            ->where('transactions.date_created', $date)
             ->get()
             ->getResultArray();
     }
@@ -51,5 +51,31 @@ class TransactionsModel extends Model
             ->where('date_created', $today)
             ->get()
             ->getRowArray();
+    }
+
+    public function getTodaysSaleByCategory($category)
+    {
+        $today = date('Y-m-d');
+        return $this->builder()
+            ->select('products.category, SUM(transactions.quantity_sold) AS total_items_sold, SUM(transactions.total_sales) AS total_revenue')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->where('transactions.date_created', $today)
+            ->where('products.category', $category)
+            ->groupBy('products.category')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTodaysTotalItemsSold(): int
+    {
+        $today = date('Y-m-d');
+        $result = $this->builder()
+            ->selectSum('quantity_sold', 'total_items_sold')
+            ->where('date_created', $today)
+            ->get()
+            ->getRowArray();
+
+        return intval($result['total_items_sold'] ?? 0);
     }
 }

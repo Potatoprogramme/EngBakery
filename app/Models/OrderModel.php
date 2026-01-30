@@ -93,11 +93,31 @@ class OrderModel extends Model
             ->getRowArray();
     }
 
+    public function getTotalSalesByOrderType($orderType)
+    {
+        $today = date('Y-m-d');
+        
+        // Query orders table directly for sales by payment method
+        return $this->builder()
+            ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
+            ->where('orders.date_created', $today)
+            ->where('LOWER(orders.payment_method)', strtolower($orderType))
+            ->groupBy('orders.payment_method')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTodaysOrderCount(): int
+    {
+        $today = date('Y-m-d');
+        return $this->where('date_created', $today)->countAllResults();
+    }
+
     /**
      * Process a complete order with items and stock updates
      * Returns order data on success, throws exception on failure
      */
-    public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $dailySalesModel, int $dailyStockId): array
+    public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $transactionsModel, int $dailyStockId): array
     {
         $orderId = $this->createOrder($orderData);
         
@@ -120,8 +140,8 @@ class OrderModel extends Model
                 // Deduct from ending stock
                 $dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
 
-                // Record the sale
-                $dailySalesModel->recordSale(
+                // Record the sale in transactions table
+                $transactionsModel->recordSale(
                     $stockItem['item_id'],
                     intval($item['quantity']),
                     floatval($item['total'])
@@ -137,7 +157,7 @@ class OrderModel extends Model
                 if ($newItemId) {
                     // Now deduct and record the sale
                     $dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
-                    $dailySalesModel->recordSale(
+                    $transactionsModel->recordSale(
                         $newItemId,
                         intval($item['quantity']),
                         floatval($item['total'])
