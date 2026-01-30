@@ -247,7 +247,7 @@ class OrdersController extends BaseController
             }
 
             // Delete order items and order
-            $this->orderItemModel->where('order_id', $orderId)->delete();
+            $this->orderItemModel->deleteByOrderId($orderId);
             $this->orderModel->delete($orderId);
 
             $this->db->transComplete();

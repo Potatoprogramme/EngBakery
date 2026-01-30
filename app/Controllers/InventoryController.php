@@ -37,19 +37,17 @@ class InventoryController extends BaseController
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
 
-        foreach ($daily_stock_items as &$item) {
-            // Calculate sales: beginning - ending - pull_out
-            $item['total_sales'] = $this->transactionsModel
-                ->selectSum('total_sales')
-                ->where('item_id', $item['item_id'])
-                ->where('date_created', $today)
-                ->first()['total_sales'] ?? 0;
+        // Get all sales data in a single batch query instead of N+1 queries
+        $salesDataMap = [];
+        $salesData = $this->transactionsModel->getSalesDataByDate($today);
+        foreach ($salesData as $sale) {
+            $salesDataMap[$sale['item_id']] = $sale;
+        }
 
-            $item['quantity_sold'] = $this->transactionsModel
-                ->selectSum('quantity_sold')
-                ->where('item_id', $item['item_id'])
-                ->where('date_created', $today)
-                ->first()['quantity_sold'] ?? 0;
+        // Enrich stock items with sales data
+        foreach ($daily_stock_items as &$item) {
+            $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
+            $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
         if ($daily_stock_items) {

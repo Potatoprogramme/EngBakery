@@ -41,6 +41,11 @@ class OrderItemModel extends Model
         return $this->insertBatch($insertData) !== false;
     }
 
+    public function deleteByOrderId(int $orderId): bool
+    {
+        return $this->where('order_id', $orderId)->delete() > 0;
+    }
+
     public function getOrderItems(int $orderId): array
     {
         return $this->builder()
