@@ -145,32 +145,34 @@
             </div>
             <!-- Time Input Modal -->
             <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="timeInputModalBackdrop"></div>
-                <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+                <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="timeInputModalBackdrop"></div>
+                <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
                     <button type="button" id="timeInputModalClose"
-                        class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                        <i class="fas fa-xmark"></i>
+                        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times text-lg"></i>
                     </button>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Add Today's Inventory</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
+                    <p class="text-xs text-gray-500 mb-5">Set the operating hours for today.</p>
                     <form id="timeInputForm">
                         <div class="mb-4">
-                            <label for="time_start" class="block mb-2 text-sm font-medium text-gray-700">Start
-                                Time</label>
+                            <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start Time</label>
                             <input type="time" id="time_start" name="time_start" required
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <p class="text-xs text-gray-400 mt-1">Morning (AM)</p>
                         </div>
                         <div class="mb-6">
-                            <label for="time_end" class="block mb-2 text-sm font-medium text-gray-700">End Time</label>
+                            <label for="time_end" class="block mb-1.5 text-sm font-medium text-gray-700">End Time</label>
                             <input type="time" id="time_end" name="time_end" required
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <p class="text-xs text-gray-400 mt-1">Afternoon/Evening (PM)</p>
                         </div>
                         <div class="flex gap-3">
                             <button type="submit"
-                                class="flex-1 text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/40 font-medium rounded-lg text-sm px-5 py-2.5">
+                                class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                                 Create Inventory
                             </button>
                             <button type="button" id="timeInputModalCancel"
-                                class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                                class="flex-1 text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                                 Cancel
                             </button>
                         </div>
@@ -182,43 +184,37 @@
 
     <!-- Edit Inventory Modal -->
     <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="editInventoryModalBackdrop"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="editInventoryModalBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="editInventoryModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
             </button>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Edit Inventory Item</h3>
-
-            <div class="mb-4">
-                <p class="text-sm text-gray-600">Product: <span id="editProductName"
-                        class="font-semibold text-gray-900"></span></p>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Edit Inventory Item</h3>
+            <p class="text-sm text-gray-500 mb-5">Product: <span id="editProductName" class="font-medium text-gray-700"></span></p>
 
             <form id="editInventoryForm">
                 <input type="hidden" id="editItemId" name="item_id">
 
                 <div class="mb-4">
-                    <label for="editBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning
-                        Stock</label>
+                    <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning Stock</label>
                     <input type="number" id="editBeginningStock" name="beginning_stock" required min="0"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
                 <div class="mb-6">
-                    <label for="editPullOutQuantity" class="block mb-2 text-sm font-medium text-gray-700">Pull Out
-                        Quantity</label>
+                    <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
                 <div class="flex gap-3">
                     <button type="submit"
-                        class="flex-1 text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/40 font-medium rounded-lg text-sm px-5 py-2.5">
+                        class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Update Item
                     </button>
                     <button type="button" id="editInventoryModalCancel"
-                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                        class="flex-1 text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Cancel
                     </button>
                 </div>
@@ -228,40 +224,38 @@
 
     <!-- Add Product to Inventory Modal -->
     <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="addProductModalBackdrop"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="addProductModalBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="addProductModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
             </button>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Add Product to Inventory</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-5">Add Product to Inventory</h3>
 
             <form id="addProductForm">
                 <div class="mb-4">
-                    <label for="selectProduct" class="block mb-2 text-sm font-medium text-gray-700">Select
-                        Product</label>
+                    <label for="selectProduct" class="block mb-1.5 text-sm font-medium text-gray-700">Select Product</label>
                     <select id="selectProduct" name="product_id" required
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all">
                         <option value="">-- Select a product --</option>
                     </select>
-                    <p id="noProductsMessage" class="hidden mt-2 text-sm text-gray-500">All products are already in
-                        inventory.</p>
+                    <p id="noProductsMessage" class="hidden mt-2 text-xs text-gray-500">All products are already in inventory.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="addBeginningStock" class="block mb-2 text-sm font-medium text-gray-700">Beginning Stock
-                        (optional)</label>
+                    <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning Stock</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
                 </div>
 
                 <div class="flex gap-3">
                     <button type="submit" id="btnSubmitAddProduct"
-                        class="flex-1 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                        class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Add to Inventory
                     </button>
                     <button type="button" id="addProductModalCancel"
-                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                        class="flex-1 text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Cancel
                     </button>
                 </div>
@@ -368,11 +362,9 @@
             // Open Add Inventory Modal (Desktop & Mobile)
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
                 $('#timeInputModal').removeClass('hidden');
-                // Set default values to current time
-                const now = new Date();
-                const timeStr = now.toTimeString().slice(0, 5);
-                $('#time_start').val(timeStr);
-                $('#time_end').val(timeStr);
+                // Set default values: 08:00 AM for start, 17:00 PM for end
+                $('#time_start').val('08:00');  // 8:00 AM (morning)
+                $('#time_end').val('17:00');    // 5:00 PM (afternoon)
             });
 
             // Close Inventory Modal
@@ -390,11 +382,9 @@
             // Add Today's Inventory Button - Open Modal
             $('#btnAddTodaysInventory').on('click', function () {
                 $('#timeInputModal').removeClass('hidden');
-                // Set default values to current time
-                const now = new Date();
-                const timeStr = now.toTimeString().slice(0, 5);
-                $('#time_start').val(timeStr);
-                $('#time_end').val(timeStr);
+                // Set default values: 08:00 AM for start, 17:00 PM for end
+                $('#time_start').val('08:00');  // 8:00 AM (morning)
+                $('#time_end').val('17:00');    // 5:00 PM (afternoon)
             });
 
             // Close Time Input Modal

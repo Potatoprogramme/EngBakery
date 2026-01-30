@@ -78,4 +78,18 @@ class TransactionsModel extends Model
 
         return intval($result['total_items_sold'] ?? 0);
     }
+
+    /**
+     * Get aggregated sales data for all items on a given date
+     * This eliminates N+1 query problem by fetching all sales in one query
+     */
+    public function getSalesDataByDate(string $date): array
+    {
+        return $this->builder()
+            ->select('item_id, SUM(total_sales) as total_sales, SUM(quantity_sold) as quantity_sold')
+            ->where('date_created', $date)
+            ->groupBy('item_id')
+            ->get()
+            ->getResultArray();
+    }
 }
