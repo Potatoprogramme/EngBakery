@@ -9,6 +9,7 @@ use CodeIgniter\Router\RouteCollection;
 
 // Authentication Routes
 $routes->get('/registration', 'AuthenticationController::registrationPage');
+$routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');

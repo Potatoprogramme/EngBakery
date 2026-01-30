@@ -16,7 +16,31 @@ class UsersModel extends Model
         'firstname',
         'middlename',
         'lastname',
-        'extension',
-        'employee_type'
+        'employee_type',
+        'username',
+        'password',
+        'gender',
+        'birthdate',
+        'phone_number',
+        'approved',
+        'created_at',
     ];
+
+    public function createUser($data)
+    {
+        try {
+            // Password should already be hashed in controller
+            $result = $this->insert($data);
+
+            if ($result === false) {
+                log_message('error', 'Failed to insert user: ' . json_encode($this->errors()));
+                return false;
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            log_message('error', 'Exception creating user: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
