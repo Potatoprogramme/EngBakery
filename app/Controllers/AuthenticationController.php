@@ -18,7 +18,8 @@ class AuthenticationController extends BaseController
 
     public function registrationPage(): string
     {
-        return view('RegistrationPage');
+        return view('Template/Notification') .
+            view('RegistrationPage');
     }
 
     public function loginPage(): string
@@ -201,31 +202,90 @@ class AuthenticationController extends BaseController
     {
         // if (session()->get('logged_in')) {
 
-            // $userID = session()->get('id');
-            $userID = 1;
+        // $userID = session()->get('id');
+        $userID = 1;
 
-            $getUserInfo = $this->usersModel->find($userID);
+        $getUserInfo = $this->usersModel->find($userID);
 
-            log_message('info', 'Fetched current user info for user ID: ' . $userID);
-            log_message('info', 'User Info: ' . print_r($getUserInfo, true));
+        log_message('info', 'Fetched current user info for user ID: ' . $userID);
+        log_message('info', 'User Info: ' . print_r($getUserInfo, true));
 
-            return $this->response->setJSON([
-                'status' => 'success',
-                'data' => [
-                    'id' => $userID,
-                    'email' => $getUserInfo['email'],
-                    'name' => $getUserInfo['firstname'] . ' ' . $getUserInfo['middlename'] . ' ' . $getUserInfo['lastname'] . ' ' . $getUserInfo['extension'],
-                    'employee_type' => $getUserInfo['employee_type'],
-                    'picture' => session()->get('picture'),
-                    'login_method' => session()->get('login_method'),
+        return $this->response->setJSON([
+            'status' => 'success',
+            'data' => [
+                'id' => $userID,
+                'email' => $getUserInfo['email'],
+                'name' => $getUserInfo['firstname'] . ' ' . $getUserInfo['middlename'] . ' ' . $getUserInfo['lastname'] . ' ' . $getUserInfo['extension'],
+                'employee_type' => $getUserInfo['employee_type'],
+                'picture' => session()->get('picture'),
+                'login_method' => session()->get('login_method'),
 
-                ],
-            ]);
+            ],
+        ]);
         // } else {
         //     return $this->response->setJSON([
         //         'status' => 'error',
         //         'message' => 'No user is currently logged in.',
         //     ]);
         // }
+    }
+
+    /**
+     * Handle user registration
+     */
+    public function registerUser()
+    {
+        $data = $this->request->getPOST();
+
+        // Validate input data (you can expand this as needed)
+        if (
+            !$this->validateData($data, [
+                'first_name' => 'required|alpha_space|min_length[2]|max_length[50]',
+                'middle_name' => 'permit_empty|alpha_space|max_length[50]',
+                'last_name' => 'required|alpha_space|min_length[2]|max_length[50]',
+                'birthdate' => 'required|valid_date',
+                'gender' => 'required|in_list[male,female]',
+                'phone' => 'required|numeric|min_length[10]|max_length[15]',
+                'username' => 'required|alpha_numeric_punct|min_length[3]|max_length[50]|is_unique[users.username]',
+                'email' => 'required|valid_email|max_length[100]|is_unique[users.email]',
+                'password' => 'required|min_length[6]|max_length[255]',
+                'confirm_password' => 'required|matches[password]',
+            ])
+        ) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => $this->validator->listErrors(),
+            ]);
+        }
+
+        $postData = $this->validator->getValidated();
+
+        // Prepare user data for insertion
+        $userData = [
+            'email' => $postData['email'],
+            'firstname' => $postData['first_name'],
+            'middlename' => $postData['middle_name'] ?? '',
+            'lastname' => $postData['last_name'],
+            'employee_type' => $postData['employee_type'] ?? 'staff',
+            'username' => $postData['username'],
+            'password' => password_hash($data['password'], PASSWORD_BCRYPT),
+            'gender' => $postData['gender'],
+            'birthdate' => $postData['birthdate'],
+            'phone_number' => $postData['phone'],
+            'approved' => 0, // Default to not approved
+        ];
+
+
+        if (!$this->usersModel->createUser($userData)) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'An error occurred while creating the account. Please try again later.',
+            ]);
+        }
+
+        return $this->response->setStatusCode(201)->setJSON([
+            'success' => true,
+            'message' => 'Account created successfully.',
+        ]);
     }
 }
