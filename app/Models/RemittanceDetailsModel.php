@@ -16,6 +16,7 @@ class RemittanceDetailsModel extends Model
         'shift_start',
         'shift_end',
         'amount_enclosed',
+        'total_online_revenue',
         'cash_out',
         'cashout_reason',
         'bakery_sales',

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controllers;
 
 class SalesController extends BaseController
@@ -115,34 +116,35 @@ class SalesController extends BaseController
         log_message('info', 'Saving remittance details: ' . json_encode($remittanceDetails));
         log_message('info', 'Remittance saved with ID: ' . $remittanceId);
 
+
+
+        log_message('info', json_encode($data['denominations']));
         // Save remittance denominations (if provided)
-        if (!empty($data['denominations']) && is_array($data['denominations'])) {
-            foreach ($data['denominations'] as $denom) {
-                $remittanceDenom = [
-                    'remittance_id' => $remittanceId,
-                    'denomination' => $denom['denomination'] ?? null,
-                    'count' => $denom['count'] ?? 0,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-                $this->remittanceDenominationsModel->insert($remittanceDenom);
-                log_message('info', 'Remittance denomination saved: ' . json_encode($remittanceDenom));
-            }
+        foreach ($data['denominations'] as $denom) {
+            log_message('info', 'Processing denomination: ' . json_encode($denom) . 'with count ' . ($denom['count'] ?? 0));
+            $remittanceDenom = [
+                'remittance_id' => $remittanceId,
+                'denomination' => $denom['denomination'],
+                'count' => $denom['count'] ?? 0,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            $this->remittanceDenominationsModel->insert($remittanceDenom);
+            log_message('info', 'Remittance denomination saved: ' . json_encode($remittanceDenom));
         }
 
-        // Save remittance items (if provided)
-        if (!empty($data['items']) && is_array($data['items'])) {
-            foreach ($data['items'] as $item) {
-                $remittanceItem = [
-                    'remittance_id' => $remittanceId,
-                    'transaction_id' => $item['transaction_id'] ?? null,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-                $this->remittanceItemsModel->insert($remittanceItem);
-                log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
-            }
+        log_message('info', json_encode($data['transaction_ids']));
+        foreach ($data['transaction_ids'] as $item) {
+            
+            $remittanceItem = [
+                'remittance_id' => $remittanceId,
+                'transaction_id' => $item,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            
+            $this->remittanceItemsModel->insert($remittanceItem);
+            log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
-
     }
 }

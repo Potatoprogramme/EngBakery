@@ -709,9 +709,13 @@
         function getDenominationsBreakdown() {
             const breakdown = {};
             Object.keys(billDenominations).forEach(function(inputId) {
-                const quantity = parseInt($('#' + inputId).val()) || 0;
-                if (quantity > 0) {
-                    breakdown[inputId.replace('bill', '')] = quantity;
+                const count = parseInt($('#' + inputId).val()) || 0;
+                const denomination = billDenominations[inputId];
+                if (count > 0) {
+                    breakdown[inputId.replace('bill', '')] = {
+                        count: count,
+                        denomination: denomination
+                    };
                 }
             });
             return breakdown;
@@ -773,7 +777,8 @@
         $('#btnSaveRemittance').on('click', function() {
             const remittanceData = {
                 // remittance_details table
-                cashier_id: $('#cashierName').val(),
+                // cashier_id: $('#cashierName').val(),
+                cashier_id: 1, // Temporary hardcoded for testing
                 cashier_email: $('#cashierEmail').val(),
                 outlet_name: $('#outletName').val(),
                 date: new Date().toISOString().split('T')[0],
