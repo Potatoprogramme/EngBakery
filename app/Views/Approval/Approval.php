@@ -59,13 +59,7 @@
                 <!-- Pending Card 1 -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                Pending
-                            </span>
-                            <span class="text-xs text-gray-400">Jan 30, 2026</span>
-                        </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 mb-3">
                             <div class="w-11 h-11 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span class="text-sm font-semibold text-gray-600">JD</span>
                             </div>
@@ -75,79 +69,11 @@
                             </div>
                             <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Cashier</span>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                            <span><i class="fas fa-store mr-1"></i>Deca Sentrio</span>
-                            <span><i class="fas fa-clock mr-1"></i>Morning Shift</span>
-                        </div>
-                    </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                        <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
-                            Approve
-                        </button>
-                        <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
-                            Reject
-                        </button>
-                        <button type="button" class="btn-view px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pending Card 2 -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                    <div class="p-4">
-                        <div class="flex items-center justify-between mb-3">
+                        <div class="flex mt-3 pt-3 border-t border-gray-100 items-center justify-between mb-3">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
                                 Pending
                             </span>
-                            <span class="text-xs text-gray-400">Jan 29, 2026</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 bg-orange-50 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-semibold text-orange-600">MS</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Maria Santos</h3>
-                                <p class="text-xs text-gray-500 truncate">maria.santos@email.com</p>
-                            </div>
-                            <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Baker</span>
-                        </div>
-                        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                            <span><i class="fas fa-store mr-1"></i>Deca Sentrio</span>
-                            <span><i class="fas fa-clock mr-1"></i>Night Shift</span>
-                        </div>
-                    </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                        <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
-                            Approve
-                        </button>
-                        <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
-                            Reject
-                        </button>
-                        <button type="button" class="btn-view px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pending Card 3 -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                    <div class="p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                Pending
-                            </span>
-                            <span class="text-xs text-gray-400">Jan 28, 2026</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-semibold text-green-600">RC</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Roberto Cruz</h3>
-                                <p class="text-xs text-gray-500 truncate">roberto.cruz@email.com</p>
-                            </div>
-                            <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Staff</span>
+                            <span class="text-xs text-gray-400">Jan 30, 2026</span>
                         </div>
                         <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
                             <span><i class="fas fa-store mr-1"></i>Deca Sentrio</span>
@@ -167,63 +93,74 @@
                     </div>
                 </div>
 
-                <!-- Approved Card -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                Approved
-                            </span>
-                            <span class="text-xs text-gray-400">Jan 25, 2026</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-semibold text-blue-600">AL</span>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-11 h-11 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-sm font-semibold text-gray-600">JD</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Ana Lim</h3>
-                                <p class="text-xs text-gray-500 truncate">ana.lim@email.com</p>
+                                <h3 class="text-sm font-semibold text-gray-900 truncate">John Doe</h3>
+                                <p class="text-xs text-gray-500 truncate">johndoe@email.com</p>
                             </div>
                             <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Cashier</span>
                         </div>
+                        <div class="flex mt-3 pt-3 border-t border-gray-100 items-center justify-between mb-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                Pending
+                            </span>
+                            <span class="text-xs text-gray-400">Jan 30, 2026</span>
+                        </div>
                         <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
                             <span><i class="fas fa-store mr-1"></i>Deca Sentrio</span>
-                            <span class="text-green-600"><i class="fas fa-check mr-1"></i>By Admin</span>
+                            <span><i class="fas fa-clock mr-1"></i>Morning Shift</span>
                         </div>
                     </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
-                        <button type="button" class="btn-view w-full text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            View Details
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
+                        <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
+                            Approve
+                        </button>
+                        <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
+                            Reject
+                        </button>
+                        <button type="button" class="btn-view px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Rejected Card -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                                Rejected
-                            </span>
-                            <span class="text-xs text-gray-400">Jan 20, 2026</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 bg-red-50 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-semibold text-red-500">PG</span>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-11 h-11 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-sm font-semibold text-gray-600">JD</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Pedro Garcia</h3>
-                                <p class="text-xs text-gray-500 truncate">pedro.garcia@email.com</p>
+                                <h3 class="text-sm font-semibold text-gray-900 truncate">John Doe</h3>
+                                <p class="text-xs text-gray-500 truncate">johndoe@email.com</p>
                             </div>
-                            <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Baker</span>
+                            <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Cashier</span>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-red-500">
-                            <i class="fas fa-info-circle mr-1"></i>Incomplete documents
+                        <div class="flex mt-3 pt-3 border-t border-gray-100 items-center justify-between mb-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                Pending
+                            </span>
+                            <span class="text-xs text-gray-400">Jan 30, 2026</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-store mr-1"></i>Deca Sentrio</span>
+                            <span><i class="fas fa-clock mr-1"></i>Morning Shift</span>
                         </div>
                     </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
-                        <button type="button" class="btn-view w-full text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            View Details
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
+                        <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
+                            Approve
+                        </button>
+                        <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
+                            Reject
+                        </button>
+                        <button type="button" class="btn-view px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
