@@ -450,27 +450,27 @@
                 });
             });
 
-            // Delete Inventory
+            // Delete Inventory Item
             $(document).on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
-                if (confirm('Are you sure you want to delete this inventory record?')) {
+                Confirm.delete('Are you sure you want to delete this inventory item?', () => {
                     $.ajax({
                         url: baseUrl + 'Inventory/Delete/' + id,
                         type: 'POST',
                         dataType: 'json',
                         success: function (response) {
                             if (response.success) {
-                                alert('Inventory deleted successfully!');
-                                loadInventory();
+                                showToast('success', 'Inventory item deleted successfully!', 2000);
+                                fetchAllStockitems();
                             } else {
-                                alert('Error: ' + response.message);
+                                showToast('error', 'Error: ' + response.message, 3000);
                             }
                         },
                         error: function (xhr, status, error) {
-                            alert('Error deleting inventory: ' + error);
+                            showToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 3000);
                         }
                     });
-                }
+                });
             });
 
             // Apply Filter
