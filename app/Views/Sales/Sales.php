@@ -73,7 +73,75 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
-                                <span id="shiftTime" class="flex-1 px-2 py-1 text-sm font-semibold text-gray-900 bg-gray-50 rounded">--:-- - --:--</span>
+                                <select id="shift_start" class="w-28 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:border-primary" name="shift_start">
+                                    <option value="00:00">12:00 AM</option>
+                                    <option value="01:00">1:00 AM</option>
+                                    <option value="02:00">2:00 AM</option>
+                                    <option value="03:00">3:00 AM</option>
+                                    <option value="04:00">4:00 AM</option>
+                                    <option value="05:00">5:00 AM</option>
+                                    <option value="06:00">6:00 AM</option>
+                                    <option value="07:00" selected>7:00 AM</option>
+                                    <option value="08:00">8:00 AM</option>
+                                    <option value="09:00">9:00 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="13:00">1:00 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="15:00">3:00 PM</option>
+                                    <option value="16:00">4:00 PM</option>
+                                    <option value="17:00">5:00 PM</option>
+                                    <option value="18:00">6:00 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                    <option value="20:00">8:00 PM</option>
+                                    <option value="21:00">9:00 PM</option>
+                                    <option value="22:00">10:00 PM</option>
+                                    <option value="23:00">11:00 PM</option>
+                                </select>
+
+                                <select id="shiftEnd" class="w-28 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 bg-white rounded ml-2 focus:outline-none focus:border-primary">
+                                    <option value="00:00">12:00 AM</option>
+                                    <option value="01:00">1:00 AM</option>
+                                    <option value="02:00">2:00 AM</option>
+                                    <option value="03:00">3:00 AM</option>
+                                    <option value="04:00">4:00 AM</option>
+                                    <option value="05:00">5:00 AM</option>
+                                    <option value="06:00">6:00 AM</option>
+                                    <option value="07:00">7:00 AM</option>
+                                    <option value="08:00">8:00 AM</option>
+                                    <option value="09:00">9:00 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="13:00">1:00 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="15:00">3:00 PM</option>
+                                    <option value="16:00" selected>4:00 PM</option>
+                                    <option value="17:00">5:00 PM</option>
+                                    <option value="18:00">6:00 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                    <option value="20:00">8:00 PM</option>
+                                    <option value="21:00">9:00 PM</option>
+                                    <option value="22:00">10:00 PM</option>
+                                    <option value="23:00">11:00 PM</option>
+                                </select>
+
+                                <script>
+                                    // update displayed shift range when selects change
+                                    $('#shiftStart, #shiftEnd').on('change', function() {
+                                        const start = $('#shiftStart').val();
+                                        const end = $('#shiftEnd').val();
+                                        $('#shiftTime').text(formatTime(start) + ' - ' + formatTime(end));
+                                    });
+
+                                    // initialize display on load
+                                    $(function(){ 
+                                        const s = $('#shiftStart').val();
+                                        const e = $('#shiftEnd').val();
+                                        $('#shiftTime').text(formatTime(s) + ' - ' + formatTime(e));
+                                    });
+                                </script>
                             </div>
                         </div>
                     </div>
@@ -252,14 +320,6 @@
 
                     <!-- RIGHT COLUMN: Sales Summary -->
                     <div class="space-y-3">
-                        <!-- Total Sales in System -->
-                        <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-gray-600">TOTAL SALES IN SYSTEM:</span>
-                                <span class="text-xl font-bold text-blue-600" id="systemTotalSales">₱0.00</span>
-                            </div>
-                        </div>
-
                         <!-- Payment Methods -->
                         <div class="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
                             <div class="flex items-center justify-between">
@@ -267,7 +327,7 @@
                                     <i class="fas fa-mobile-alt text-blue-600 text-sm"></i>
                                     <span class="text-xs font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="gcashTotal" min="0" step="0.01" placeholder="0.00"
+                                <input type="number" id="totalOnlineRevenue" min="0" step="0.01" placeholder="0.00"
                                     class="w-28 text-right border border-blue-300 rounded px-2 py-1.5 text-sm font-bold text-blue-600 bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600">
                             </div>
                             <div class="flex items-center justify-between">
@@ -326,12 +386,8 @@
                             </div>
                         </div>
 
-                        <!-- Variance Cards -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200" id="cashCountVarianceContainer">
-                                <span class="text-xs font-medium text-gray-600 block">CASH VARIANCE:</span>
-                                <p class="text-lg font-bold" id="cashCountVariance">₱0.00</p>
-                            </div>
+                        <!-- Totals Card -->
+                        <div class="grid grid-cols-1 gap-2">
                             <div class="p-3 bg-primary/10 rounded-lg border border-primary/20">
                                 <span class="text-xs font-medium text-gray-600 block">TOTAL SALES:</span>
                                 <p class="text-lg font-bold text-primary" id="totalSales">₱0.00</p>
@@ -440,6 +496,8 @@
             });
         }
 
+        var allTransactions = [];
+
         function loadTodaysSalesData() {
             $.ajax({
                 url: BASE_URL + 'Sales/GetTodaysSummary',
@@ -455,14 +513,20 @@
                             $('#shiftTime').text(formatTime(data.shift_start) + ' - ' + formatTime(data.shift_end));
                         }
 
-
-
-                        // Example for handling nulls safely
+                        allTransactions = response.data.transaction_ids || [];
+                        
+                        // Extract sales data with default values
                         const breadSales = response.data.bread_sales || {};
                         const drinksSales = response.data.drinks_sales || {};
                         const doughSales = response.data.dough_sales || {};
                         const grocerySales = response.data.grocery_sales || {};
+
+                        // Payment methods
                         const gcashSales = response.data.gcash_sales || {};
+                        const mayaSales = response.data.maya_sales || {};
+                        const creditCardSales = response.data.credit_card_sales || {};
+                        const debitCardSales = response.data.debit_card_sales || {};
+
                         const total_orders = response.data.total_orders || 0;
                         const total_items_sold = response.data.total_items_sold || 0;
 
@@ -470,30 +534,31 @@
                         const drinksRevenue = drinksSales.total_revenue || 0;
                         const doughRevenue = doughSales.total_revenue || 0;
                         const groceryRevenue = grocerySales.total_revenue || 0;
-                        const gcashRevenue = gcashSales.total_revenue || 0;
 
+
+                        const gcashRevenue = gcashSales.total_revenue || 0;
+                        const mayaRevenue = mayaSales.total_revenue || 0;
+                        const creditCardRevenue = creditCardSales.total_revenue || 0;
+                        const debitCardRevenue = debitCardSales.total_revenue || 0;
+
+                        const totalOnlineRevenue = Number(gcashRevenue) + Number(mayaRevenue) + Number(creditCardRevenue) + Number(debitCardRevenue);
                         // Now use breadRevenue, drinksRevenue, etc. safely
 
                         // Update sales by category
                         $('#bakerySales').text(formatCurrency(Number(breadRevenue)));
                         $('#coffeeSales').text(formatCurrency(Number(drinksRevenue)));
-                        // $('#grocerySales').text(formatCurrency(Number(groceryRevenue)));
+                        $('#grocerySales').text(formatCurrency(Number(groceryRevenue)));
 
-                        // const totalSales = breadSales + drinksSales + grocerySales;
-                        const totalSales = Number(breadRevenue) + Number(drinksRevenue);
+                        const totalSales = Number(breadRevenue) + Number(drinksRevenue) + Number(groceryRevenue);
 
-                        // Update total sales in system
-                        $('#systemTotalSales').text(formatCurrency(totalSales));
-
-                        // Update payment methods - set GCash input value
-                        $('#gcashTotal').val(gcashRevenue);
+                        $('#totalOnlineRevenue').val(Number(totalOnlineRevenue).toFixed(2));
 
                         // Update total sales
                         $('#totalSales').text(formatCurrency(totalSales));
 
                         // Update statistics
-                        $('#totalOrders').text(total_orders);
-                        $('#totalItemsSold').text(total_items_sold);
+                        $('#totalOrders').text(formatNumber(total_orders));
+                        $('#totalItemsSold').text(formatNumber(total_items_sold));
 
                         // Calculate variance
                         calculateAllTotals();
@@ -553,7 +618,7 @@
         }
 
         function bindGCashInputEvent() {
-            $('#gcashTotal').on('input', function() {
+            $('#totalOnlineRevenue').on('input', function() {
                 calculateVariance();
             });
         }
@@ -571,51 +636,21 @@
             return totalEnclosed;
         }
 
-        function calculateCashCountVariance() {
-            const amountEnclosed = calculateAmountEnclosed();
-            const totalSales = parseCurrency($('#systemTotalSales').text());
-            const gcash = parseFloat($('#gcashTotal').val()) || 0;
-
-            // Expected cash = Total Sales - GCash
-            const expectedCash = totalSales - gcash;
-            const variance = amountEnclosed - expectedCash;
-
-            const varianceEl = $('#cashCountVariance');
-            const container = $('#cashCountVarianceContainer');
-
-            container.removeClass('bg-red-50 bg-green-50 bg-gray-50');
-            varianceEl.removeClass('text-red-600 text-green-600 text-gray-800');
-
-            if (variance > 0) {
-                container.addClass('bg-green-50');
-                varianceEl.addClass('text-green-600');
-                varianceEl.text('+ ' + formatCurrency(variance) + ' (Over)');
-            } else if (variance < 0) {
-                container.addClass('bg-red-50');
-                varianceEl.addClass('text-red-600');
-                varianceEl.text('- ' + formatCurrency(Math.abs(variance)) + ' (Short)');
-            } else {
-                container.addClass('bg-gray-50');
-                varianceEl.addClass('text-gray-800');
-                varianceEl.text('₱0.00 (Balanced)');
-            }
-
-            return variance;
-        }
+        // NOTE: Cash count variance UI was removed. Amount enclosed is still
+        // calculated and used for overall remittance variance.
 
         function calculateAllTotals() {
             calculateAmountEnclosed();
-            calculateCashCountVariance();
             calculateVariance();
         }
 
         function calculateVariance() {
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
-            const gcash = parseFloat($('#gcashTotal').val()) || 0;
+            const gcash = parseFloat($('#totalOnlineRevenue').val()) || 0;
             const cashOut = parseFloat($('#cashOutAmount').val()) || 0;
             const totalSales = parseCurrency($('#totalSales').text());
 
-            const totalRemitted = amountEnclosed + gcash - cashOut;
+            const totalRemitted = amountEnclosed + gcash + cashOut;
             const variance = totalRemitted - totalSales;
 
             // Update variance styling
@@ -648,7 +683,18 @@
         }
 
         function parseCurrency(str) {
-            return parseFloat(str.replace(/[₱,]/g, '')) || 0;
+            // Be tolerant of malformed currency strings (including mojibake like â±)
+            // Remove everything except digits, minus sign and decimal point.
+            if (!str) return 0;
+            const cleaned = String(str).replace(/[^0-9.-]+/g, '');
+            return parseFloat(cleaned) || 0;
+        }
+
+        function formatNumber(value) {
+            // Generic number formatter for counts (e.g., orders, items)
+            // Keeps integers with thousand separators.
+            const n = Number(value) || 0;
+            return n.toLocaleString('en-US');
         }
 
         function formatTime(timeStr) {
@@ -660,7 +706,7 @@
             return `${hour12}:${minutes} ${ampm}`;
         }
 
-        function getBillsBreakdown() {
+        function getDenominationsBreakdown() {
             const breakdown = {};
             Object.keys(billDenominations).forEach(function(inputId) {
                 const quantity = parseInt($('#' + inputId).val()) || 0;
@@ -682,7 +728,7 @@
             $('#cashOutReason').val('');
             $('#cashierName').val('');
             $('#cashierEmail').val('');
-            $('#gcashTotal').val(0);
+            $('#totalOnlineRevenue').val(0);
             $('#amountEnclosed').text('₱0.00');
 
             calculateAllTotals();
@@ -726,21 +772,29 @@
         // Save remittance
         $('#btnSaveRemittance').on('click', function() {
             const remittanceData = {
-                cashier_name: $('#cashierName').val(),
+                // remittance_details table
+                cashier_id: $('#cashierName').val(),
                 cashier_email: $('#cashierEmail').val(),
                 outlet_name: $('#outletName').val(),
                 date: new Date().toISOString().split('T')[0],
+                shift_time: $('#shiftTime').text(),
+
                 amount_enclosed: parseCurrency($('#amountEnclosed').text()),
-                bills_breakdown: getBillsBreakdown(),
-                gcash_total: parseFloat($('#gcashTotal').val()) || 0,
+                total_online_revenue: parseFloat($('#totalOnlineRevenue').val()) || 0,
                 cash_out_amount: parseFloat($('#cashOutAmount').val()) || 0,
                 cash_out_reason: $('#cashOutReason').val(),
                 bakery_sales: parseCurrency($('#bakerySales').text()),
                 coffee_sales: parseCurrency($('#coffeeSales').text()),
                 grocery_sales: parseCurrency($('#grocerySales').text()),
                 total_sales: parseCurrency($('#totalSales').text()),
-                variance: parseCurrency($('#variance').text().replace(/[+\-()OverShortBalanced ]/g, ''))
+                variance: parseCurrency($('#variance').text().replace(/[+\-()OverShortBalanced ]/g, '')),
+                //remittance_denomination table
+                denominations: getDenominationsBreakdown(),
+                // remittance_items table 
+                transaction_ids: allTransactions 
             };
+
+            console.log('Saving remittance data:', remittanceData);
 
             $.ajax({
                 url: BASE_URL + 'Sales/SaveRemittance',

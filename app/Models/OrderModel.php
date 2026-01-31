@@ -24,10 +24,10 @@ class OrderModel extends Model
     {
         $today = date('Y-m-d');
         $dateCode = date('Ymd');
-        
+
         $todayCount = $this->where('date_created', $today)->countAllResults();
         $sequence = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
-        
+
         return "ORD-{$dateCode}-{$sequence}";
     }
 
@@ -55,17 +55,17 @@ class OrderModel extends Model
         $builder->select('orders.*, 
             CONCAT("ORD-", DATE_FORMAT(orders.date_created, "%Y%m%d"), "-", 
             LPAD((SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id), 3, "0")) as order_number');
-        
+
         if ($dateFrom) {
             $builder->where('date_created >=', $dateFrom);
         }
         if ($dateTo) {
             $builder->where('date_created <=', $dateTo);
         }
-        
+
         $builder->orderBy('date_created', 'DESC');
         $builder->orderBy('time_created', 'DESC');
-        
+
         return $builder->get()->getResultArray();
     }
 
@@ -75,8 +75,8 @@ class OrderModel extends Model
         if ($order) {
             $dateCode = date('Ymd', strtotime($order['date_created']));
             $sequence = $this->where('date_created', $order['date_created'])
-                            ->where('order_id <=', $orderId)
-                            ->countAllResults();
+                ->where('order_id <=', $orderId)
+                ->countAllResults();
             $order['order_number'] = "ORD-{$dateCode}-" . str_pad($sequence, 3, '0', STR_PAD_LEFT);
         }
         return $order;
@@ -93,6 +93,26 @@ class OrderModel extends Model
             ->getRowArray();
     }
 
+    public function getTotalSalesByOrderType($orderType)
+    {
+        $today = date('Y-m-d');
+
+        // Query orders table directly for sales by payment method
+        return $this->builder()
+            ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
+            ->where('orders.date_created', $today)
+            ->where('LOWER(orders.payment_method)', strtolower($orderType))
+            ->groupBy('orders.payment_method')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTodaysOrderCount(): int
+    {
+        $today = date('Y-m-d');
+        return $this->where('date_created', $today)->countAllResults();
+    }
+
     /**
      * Process a complete order with items and stock updates
      * Returns order data on success, throws exception on failure
@@ -100,14 +120,14 @@ class OrderModel extends Model
     public function processCompleteOrder(array $orderData, array $items, $dailyStockItemsModel, $transactionsModel, int $dailyStockId): array
     {
         $orderId = $this->createOrder($orderData);
-        
+
         if (!$orderId) {
             throw new \Exception('Failed to create order.');
         }
 
         // Get the order item model
         $orderItemModel = new \App\Models\OrderItemModel();
-        
+
         if (!$orderItemModel->addOrderItems($orderId, $items)) {
             throw new \Exception('Failed to add order items.');
         }
@@ -133,7 +153,7 @@ class OrderModel extends Model
                     intval($item['product_id']),
                     0 // beginning_stock = 0
                 );
-                
+
                 if ($newItemId) {
                     // Now deduct and record the sale
                     $dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));

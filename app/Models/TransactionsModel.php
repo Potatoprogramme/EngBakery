@@ -67,6 +67,18 @@ class TransactionsModel extends Model
             ->getRowArray();
     }
 
+    public function getTodaysTransactionsIds(): array
+    {
+        $today = date('Y-m-d');
+        $results = $this->builder()
+            ->select('sale_id')
+            ->where('date_created', $today)
+            ->get()
+            ->getResultArray();
+
+        return array_column($results, 'sale_id');
+    }
+
     public function getTodaysTotalItemsSold(): int
     {
         $today = date('Y-m-d');

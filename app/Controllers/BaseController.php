@@ -20,6 +20,9 @@ use App\Models\OrderModel;
 use App\Models\OrderItemModel;
 use App\Models\TransactionsModel;
 use App\Models\UsersModel;
+use App\Models\RemittanceDetailsModel;
+use App\Models\RemittanceItemsModel;
+use App\Models\RemittanceDenominationsModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -54,6 +57,9 @@ abstract class BaseController extends Controller
     protected $orderItemModel;
     protected $transactionsModel;
     protected $usersModel;
+    protected $remittanceDetailsModel;
+    protected $remittanceItemsModel;
+    protected $remittanceDenominationsModel;
 
     // Database connection
     protected $db;
@@ -84,6 +90,9 @@ abstract class BaseController extends Controller
         $this->orderItemModel = new OrderItemModel();
         $this->transactionsModel = new TransactionsModel();
         $this->usersModel = new UsersModel();
+        $this->remittanceDetailsModel = new RemittanceDetailsModel();
+        $this->remittanceItemsModel = new RemittanceItemsModel();
+        $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
 
         // Initialize database connection once
         $this->db = \Config\Database::connect();

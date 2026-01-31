@@ -200,26 +200,40 @@ class AuthenticationController extends BaseController
 
     public function getCurrentUser()
     {
-        // if (session()->get('logged_in')) {
-
-        // $userID = session()->get('id');
-        $userID = 1;
+        // Prefer session-based user id when available; otherwise fallback to 1 for dev
+        $userID = session()->get('id') ?? 1;
 
         $getUserInfo = $this->usersModel->find($userID);
 
         log_message('info', 'Fetched current user info for user ID: ' . $userID);
         log_message('info', 'User Info: ' . print_r($getUserInfo, true));
 
+        // Defensive check: return a proper error response if user not found
+        if (empty($getUserInfo) || !is_array($getUserInfo)) {
+            log_message('warning', 'User not found for ID: ' . $userID);
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 'error',
+                'message' => 'User not found',
+            ]);
+        }
+
+        // Safely build name components
+        $nameParts = array_filter([
+            $getUserInfo['firstname'] ?? '',
+            $getUserInfo['middlename'] ?? '',
+            $getUserInfo['lastname'] ?? '',
+            $getUserInfo['extension'] ?? '',
+        ]);
+
         return $this->response->setJSON([
             'status' => 'success',
             'data' => [
                 'id' => $userID,
-                'email' => $getUserInfo['email'],
-                'name' => $getUserInfo['firstname'] . ' ' . $getUserInfo['middlename'] . ' ' . $getUserInfo['lastname'] . ' ' . $getUserInfo['extension'],
-                'employee_type' => $getUserInfo['employee_type'],
+                'email' => $getUserInfo['email'] ?? '',
+                'name' => trim(implode(' ', $nameParts)),
+                'employee_type' => $getUserInfo['employee_type'] ?? '',
                 'picture' => session()->get('picture'),
                 'login_method' => session()->get('login_method'),
-
             ],
         ]);
         // } else {
