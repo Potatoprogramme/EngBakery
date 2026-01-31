@@ -312,4 +312,113 @@ class InventoryController extends BaseController
             ]);
         }
     }
+
+    /**
+     * Inventory History Page
+     */
+    public function inventoryHistory(): string
+    {
+        return view('Template/Header') .
+            view('Template/SideNav') .
+            view('Template/Notification') .
+            view('Inventory/InventoryHistory') .
+            view('Template/Footer');
+    }
+
+    /**
+     * Fetch inventory history with optional date filters
+     */
+    public function fetchInventoryHistory()
+    {
+        $dateFrom = $this->request->getGet('date_from');
+        $dateTo = $this->request->getGet('date_to');
+
+        $inventoryHistory = $this->dailyStockModel->getInventoryHistory($dateFrom, $dateTo);
+
+        // Enrich each inventory record with summary data
+        foreach ($inventoryHistory as &$inventory) {
+            $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($inventory['daily_stock_id']);
+            
+            // Get sales data for this specific date from transactions table
+            $salesData = $this->transactionsModel->getSalesDataByDate($inventory['inventory_date']);
+            $salesDataMap = [];
+            foreach ($salesData as $sale) {
+                $salesDataMap[$sale['item_id']] = $sale;
+            }
+            
+            $totalItems = count($stockItems);
+            $totalBeginning = 0;
+            $totalEnding = 0;
+            $totalPullOut = 0;
+            $totalSales = 0;
+            
+            foreach ($stockItems as $item) {
+                $totalBeginning += intval($item['beginning_stock'] ?? 0);
+                $totalEnding += intval($item['ending_stock'] ?? 0);
+                $totalPullOut += intval($item['pull_out_quantity'] ?? 0);
+                // Get sales from transactions table for this item
+                $totalSales += floatval($salesDataMap[$item['item_id']]['total_sales'] ?? 0);
+            }
+            
+            $inventory['total_items'] = $totalItems;
+            $inventory['total_beginning'] = $totalBeginning;
+            $inventory['total_ending'] = $totalEnding;
+            $inventory['total_pull_out'] = $totalPullOut;
+            $inventory['total_sold'] = $totalBeginning - $totalEnding - $totalPullOut;
+            $inventory['total_sales'] = $totalSales;
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $inventoryHistory
+        ]);
+    }
+
+    /**
+     * Fetch inventory details for a specific date
+     */
+    public function fetchInventoryByDate()
+    {
+        $date = $this->request->getGet('date');
+        
+        if (!$date) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Date is required'
+            ]);
+        }
+
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $date)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No inventory found for this date.',
+                'data' => []
+            ]);
+        }
+
+        $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
+
+        // Get sales data for that date
+        $salesData = $this->transactionsModel->getSalesDataByDate($date);
+        $salesMap = [];
+        foreach ($salesData as $sale) {
+            $salesMap[$sale['item_id']] = $sale;
+        }
+
+        // Enrich stock items with sales data
+        foreach ($stockItems as &$item) {
+            $item['total_sales'] = $salesMap[$item['item_id']]['total_sales'] ?? 0;
+            $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'inventory' => $dailyStock,
+                'items' => $stockItems
+            ]
+        ]);
+    }
 }

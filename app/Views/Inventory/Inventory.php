@@ -20,6 +20,10 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
                     <div class="flex flex-wrap gap-2">
+                        <a href="<?= base_url('Inventory/History') ?>"
+                            class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            <i class="fas fa-history mr-2"></i> History
+                        </a>
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden sm:inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
