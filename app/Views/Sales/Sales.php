@@ -50,82 +50,90 @@
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">NAME:</label>
                                 <input type="text" id="cashierName"
-                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
+                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter cashier name">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">EMAIL:</label>
                                 <input type="email" id="cashierEmail"
-                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
+                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter email address">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">DATE:</label>
-                                <span id="remittanceDate" class="flex-1 px-2 py-1 text-sm font-semibold text-gray-900 bg-gray-50 rounded"></span>
+                                <span id="remittanceDate" class="flex-1 px-2 py-1 text-sm font-semibold rounded text-gray-900 bg-gray-50 rounded"></span>
                             </div>
                         </div>
                         <div class="space-y-3">
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">OUTLET:</label>
                                 <input type="text" id="outletName"
-                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:border-primary"
+                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter outlet name" value="Deca Sentrio">
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
-                                <select id="shift_start" class="w-28 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:border-primary" name="shift_start">
-                                    <option value="00:00">12:00 AM</option>
-                                    <option value="01:00">1:00 AM</option>
-                                    <option value="02:00">2:00 AM</option>
-                                    <option value="03:00">3:00 AM</option>
-                                    <option value="04:00">4:00 AM</option>
-                                    <option value="05:00">5:00 AM</option>
-                                    <option value="06:00">6:00 AM</option>
-                                    <option value="07:00" selected>7:00 AM</option>
-                                    <option value="08:00">8:00 AM</option>
-                                    <option value="09:00">9:00 AM</option>
-                                    <option value="10:00">10:00 AM</option>
-                                    <option value="11:00">11:00 AM</option>
-                                    <option value="12:00">12:00 PM</option>
-                                    <option value="13:00">1:00 PM</option>
-                                    <option value="14:00">2:00 PM</option>
-                                    <option value="15:00">3:00 PM</option>
-                                    <option value="16:00">4:00 PM</option>
-                                    <option value="17:00">5:00 PM</option>
-                                    <option value="18:00">6:00 PM</option>
-                                    <option value="19:00">7:00 PM</option>
-                                    <option value="20:00">8:00 PM</option>
-                                    <option value="21:00">9:00 PM</option>
-                                    <option value="22:00">10:00 PM</option>
-                                    <option value="23:00">11:00 PM</option>
-                                </select>
-
-                                <select id="shiftEnd" class="w-28 border-b border-gray-300 px-2 py-1 text-sm font-semibold text-gray-900 bg-white rounded ml-2 focus:outline-none focus:border-primary">
-                                    <option value="00:00">12:00 AM</option>
-                                    <option value="01:00">1:00 AM</option>
-                                    <option value="02:00">2:00 AM</option>
-                                    <option value="03:00">3:00 AM</option>
-                                    <option value="04:00">4:00 AM</option>
-                                    <option value="05:00">5:00 AM</option>
-                                    <option value="06:00">6:00 AM</option>
-                                    <option value="07:00">7:00 AM</option>
-                                    <option value="08:00">8:00 AM</option>
-                                    <option value="09:00">9:00 AM</option>
-                                    <option value="10:00">10:00 AM</option>
-                                    <option value="11:00">11:00 AM</option>
-                                    <option value="12:00">12:00 PM</option>
-                                    <option value="13:00">1:00 PM</option>
-                                    <option value="14:00">2:00 PM</option>
-                                    <option value="15:00">3:00 PM</option>
-                                    <option value="16:00" selected>4:00 PM</option>
-                                    <option value="17:00">5:00 PM</option>
-                                    <option value="18:00">6:00 PM</option>
-                                    <option value="19:00">7:00 PM</option>
-                                    <option value="20:00">8:00 PM</option>
-                                    <option value="21:00">9:00 PM</option>
-                                    <option value="22:00">10:00 PM</option>
-                                    <option value="23:00">11:00 PM</option>
-                                </select>
+                                <div class="flex-1 flex items-center gap-1 sm:gap-2">
+                                    <div class="flex flex-col flex-1 min-w-0">
+                                        <span class="text-[10px] text-gray-400 mb-0.5">Start</span>
+                                        <select id="shift_start" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" name="shift_start">
+                                            <option value="00:00">12:00 AM</option>
+                                            <option value="01:00">1:00 AM</option>
+                                            <option value="02:00">2:00 AM</option>
+                                            <option value="03:00">3:00 AM</option>
+                                            <option value="04:00">4:00 AM</option>
+                                            <option value="05:00">5:00 AM</option>
+                                            <option value="06:00">6:00 AM</option>
+                                            <option value="07:00" selected>7:00 AM</option>
+                                            <option value="08:00">8:00 AM</option>
+                                            <option value="09:00">9:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="13:00">1:00 PM</option>
+                                            <option value="14:00">2:00 PM</option>
+                                            <option value="15:00">3:00 PM</option>
+                                            <option value="16:00">4:00 PM</option>
+                                            <option value="17:00">5:00 PM</option>
+                                            <option value="18:00">6:00 PM</option>
+                                            <option value="19:00">7:00 PM</option>
+                                            <option value="20:00">8:00 PM</option>
+                                            <option value="21:00">9:00 PM</option>
+                                            <option value="22:00">10:00 PM</option>
+                                            <option value="23:00">11:00 PM</option>
+                                        </select>
+                                    </div>
+                                    <span class="text-gray-400 font-bold text-sm mt-4">-</span>
+                                    <div class="flex flex-col flex-1 min-w-0">
+                                        <span class="text-[10px] text-gray-400 mb-0.5">End</span>
+                                        <select id="shiftEnd" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                                            <option value="00:00">12:00 AM</option>
+                                            <option value="01:00">1:00 AM</option>
+                                            <option value="02:00">2:00 AM</option>
+                                            <option value="03:00">3:00 AM</option>
+                                            <option value="04:00">4:00 AM</option>
+                                            <option value="05:00">5:00 AM</option>
+                                            <option value="06:00">6:00 AM</option>
+                                            <option value="07:00">7:00 AM</option>
+                                            <option value="08:00">8:00 AM</option>
+                                            <option value="09:00">9:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="13:00">1:00 PM</option>
+                                            <option value="14:00">2:00 PM</option>
+                                            <option value="15:00">3:00 PM</option>
+                                            <option value="16:00" selected>4:00 PM</option>
+                                            <option value="17:00">5:00 PM</option>
+                                            <option value="18:00">6:00 PM</option>
+                                            <option value="19:00">7:00 PM</option>
+                                            <option value="20:00">8:00 PM</option>
+                                            <option value="21:00">9:00 PM</option>
+                                            <option value="22:00">10:00 PM</option>
+                                            <option value="23:00">11:00 PM</option>
+                                        </select>
+                                    </div>
+                                </div>
 
                                 <script>
                                     // update displayed shift range when selects change
@@ -321,25 +329,25 @@
                     <!-- RIGHT COLUMN: Sales Summary -->
                     <div class="space-y-3">
                         <!-- Payment Methods -->
-                        <div class="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
-                            <div class="flex items-center justify-between">
+                        <div class="p-3 sm:p-4 bg-white rounded-lg border border-gray-200 space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <i class="fas fa-mobile-alt text-blue-600 text-sm"></i>
-                                    <span class="text-xs font-medium text-gray-700">Online Payment:</span>
+                                    <i class="fas fa-mobile-alt text-blue-600 text-base"></i>
+                                    <span class="text-sm font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="totalOnlineRevenue" min="0" step="0.01" placeholder="0.00"
-                                    class="w-28 text-right border border-blue-300 rounded px-2 py-1.5 text-sm font-bold text-blue-600 bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600">
+                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00"
+                                    class="w-full sm:w-40 lg:w-48 text-right border border-blue-300 rounded-lg px-2 py-1.5 text-base font-bold text-blue-600 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <i class="fas fa-hand-holding-usd text-gray-600 text-sm"></i>
-                                    <span class="text-xs font-medium text-gray-700">CASH OUT:</span>
+                                    <i class="fas fa-hand-holding-usd text-gray-600 text-base"></i>
+                                    <span class="text-sm font-medium text-gray-700">CASH OUT:</span>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <input type="number" id="cashOutAmount" min="0" step="0.01" placeholder="0.00"
-                                        class="w-20 text-right border border-gray-200 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <input type="number" id="cashOutAmount" min="0" placeholder="0.00"
+                                        class="w-1/2 sm:w-28 lg:w-36 text-right border border-gray-300 rounded-lg px-2 py-1.5 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary">
                                     <input type="text" id="cashOutReason" placeholder="Reason"
-                                        class="w-24 border border-gray-200 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary focus:border-primary">
+                                        class="w-1/2 sm:w-32 lg:w-40 border border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
                                 </div>
                             </div>
                         </div>
@@ -551,7 +559,12 @@
 
                         const totalSales = Number(breadRevenue) + Number(drinksRevenue) + Number(groceryRevenue);
 
-                        $('#totalOnlineRevenue').val(Number(totalOnlineRevenue).toFixed(2));
+                        // Only set value if there's actual online revenue, otherwise leave empty for placeholder
+                        if (totalOnlineRevenue > 0) {
+                            $('#totalOnlineRevenue').val(Number(totalOnlineRevenue).toFixed(2));
+                        } else {
+                            $('#totalOnlineRevenue').val('');
+                        }
 
                         // Update total sales
                         $('#totalSales').text(formatCurrency(totalSales));

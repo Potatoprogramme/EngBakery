@@ -100,3 +100,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
 });
 
+$routes->group('Approval', function (RouteCollection $routes) {
+    $routes->get('/', 'ApprovalController::index');
+});
+
