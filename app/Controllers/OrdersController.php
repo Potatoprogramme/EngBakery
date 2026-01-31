@@ -95,20 +95,28 @@ class OrdersController extends BaseController
 
             // Update stock and record sales for each item
             foreach ($data['items'] as $item) {
+                // Get product category to check if it's a drink (no stock tracking for drinks)
+                $product = $this->productModel->find(intval($item['product_id']));
+                $isDrink = $product && $product['category'] === 'drinks';
+                
                 $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], intval($item['product_id']));
 
                 if ($stockItem) {
-                    // Deduct from ending stock
-                    $this->dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+                    // Only deduct stock for non-drink items
+                    if (!$isDrink) {
+                        $this->dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+                    }
 
-                    // Record the sale in transactions table
+                    // Record the sale in transactions table (for all items including drinks)
                     $this->transactionsModel->recordSale(
                         $stockItem['item_id'],
                         intval($item['quantity']),
                         floatval($item['total'])
                     );
                 } else {
-                    // Product not in inventory - auto-add it with 0 beginning stock
+                    // Product not in inventory - auto-add it
+                    // For drinks: add with 0 beginning stock (no tracking)
+                    // For others: add with 0 beginning stock
                     $newItemId = $this->dailyStockItemsModel->addProductToInventory(
                         $dailyStock['daily_stock_id'],
                         intval($item['product_id']),
@@ -116,8 +124,12 @@ class OrdersController extends BaseController
                     );
                     
                     if ($newItemId) {
-                        // Now deduct and record the sale
-                        $this->dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                        // Only deduct for non-drink items
+                        if (!$isDrink) {
+                            $this->dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                        }
+                        
+                        // Record sale for all items
                         $this->transactionsModel->recordSale(
                             $newItemId,
                             intval($item['quantity']),
@@ -288,6 +300,20 @@ class OrdersController extends BaseController
 
         // Fetch all stock items for today
         $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
+
+        // Get sales data from transactions table
+        $today = date('Y-m-d');
+        $salesData = $this->transactionsModel->getSalesDataByDate($today);
+        $salesMap = [];
+        foreach ($salesData as $sale) {
+            $salesMap[$sale['item_id']] = $sale;
+        }
+
+        // Enrich stock items with actual sales data (for drinks especially)
+        foreach ($stockItems as &$item) {
+            $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
+            $item['total_sales'] = $salesMap[$item['item_id']]['total_sales'] ?? 0;
+        }
 
         return $this->response->setJSON([
             'success' => true,

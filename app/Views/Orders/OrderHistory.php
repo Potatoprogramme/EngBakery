@@ -324,16 +324,14 @@
                             `;
                             
                             drinkItems.forEach(item => {
-                                const beginning = parseInt(item.beginning_stock) || 0;
-                                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                                const remaining = parseInt(item.ending_stock) || 0;
-                                const sold = beginning - remaining - pullOut;
+                                // For drinks, use quantity_sold from transactions (not stock calculation)
+                                const sold = parseInt(item.quantity_sold) || 0;
                                 
                                 html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
                                         <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
                                         <div class="text-xs text-gray-500 mb-1">Sold</div>
-                                        <div class="text-2xl font-bold text-green-600">${sold > 0 ? sold : 0}</div>
+                                        <div class="text-2xl font-bold text-green-600">${sold}</div>
                                     </div>
                                 `;
                             });

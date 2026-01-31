@@ -106,11 +106,11 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // fetch ALL products (bread AND drinks) for inventory tracking
-            $productIds = $this->productModel->where('category', 'bread')->findColumn("product_id");
+            // fetch ALL products for inventory tracking
+            $productIds = $this->productModel->findColumn("product_id");
 
             // insert all products into daily stock items model
-            if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+            if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => 'Today\'s inventory added successfully.'
@@ -280,6 +280,35 @@ class InventoryController extends BaseController
                 'success' => false,
                 'message' => 'Failed to update inventory item',
                 'errors' => $this->dailyStockItemsModel->errors()
+            ]);
+        }
+    }
+
+    /**
+     * Delete a single inventory item
+     */
+    public function deleteStockItem($item_id)
+    {
+        // Get the item to verify it exists
+        $item = $this->dailyStockItemsModel->find($item_id);
+
+        if (!$item) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory item not found'
+            ]);
+        }
+
+        // Delete the item
+        if ($this->dailyStockItemsModel->delete($item_id)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory item deleted successfully'
+            ]);
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to delete inventory item'
             ]);
         }
     }
