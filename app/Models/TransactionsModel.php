@@ -11,6 +11,7 @@ class TransactionsModel extends Model
     protected $returnType = 'array';
     protected $allowedFields = [
         'item_id',
+        'order_id',
         'quantity_sold',
         'total_sales',
         'date_created',
@@ -18,10 +19,11 @@ class TransactionsModel extends Model
     ];
     protected $useTimestamps = false;
 
-    public function recordSale(int $itemId, int $quantity, float $total): bool
+    public function recordSale(int $itemId, int $quantity, float $total, ?int $orderId = null): bool
     {
         $data = [
             'item_id' => $itemId,
+            'order_id' => $orderId,
             'quantity_sold' => $quantity,
             'total_sales' => $total,
             'date_created' => date('Y-m-d'),
