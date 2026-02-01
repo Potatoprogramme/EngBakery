@@ -16,5 +16,4 @@ class RemittanceItemsModel extends Model
         'transaction_id',
         'created_at'
     ];
-    
 }

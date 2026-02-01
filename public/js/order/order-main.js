@@ -77,7 +77,10 @@ function createProductCard(product) {
     const price = parseFloat(product.price) || 0;
     const category = product.category || 'bread';
     const stock = parseInt(product.available_stock) || 0;
-    const isOutOfStock = stock <= 0;
+    
+    // Drinks don't track stock - always available
+    const isDrink = category === 'drinks';
+    const isOutOfStock = !isDrink && stock <= 0;
     
     if (isOutOfStock) {
         return `
@@ -89,6 +92,11 @@ function createProductCard(product) {
         `;
     }
     
+    // Stock display: drinks show "Available", others show count
+    const stockDisplay = isDrink 
+        ? '<p class="text-[10px] text-blue-600 mt-1">Available</p>'
+        : `<p class="text-[10px] text-green-600 mt-1">${stock} left</p>`;
+    
     return `
         <button type="button" class="product-card bg-white p-2 border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary hover:bg-primary/5 active:scale-95 transition-all text-center select-none" 
             data-product-id="${product.product_id}"
@@ -98,7 +106,7 @@ function createProductCard(product) {
             data-product-stock="${stock}">
             <p class="text-xs font-semibold text-gray-800 truncate">${product.product_name}</p>
             <p class="text-lg font-bold text-primary mt-1">P${price.toFixed(2)}</p>
-            <p class="text-[10px] text-green-600 mt-1">${stock} left</p>
+            ${stockDisplay}
         </button>
     `;
 }

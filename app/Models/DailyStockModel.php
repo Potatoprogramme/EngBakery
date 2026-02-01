@@ -51,4 +51,29 @@ class DailyStockModel extends Model
     {
         return $this->where('inventory_date', date('Y-m-d'))->first();
     }
+
+    /**
+     * Get inventory history with optional date filters
+     */
+    public function getInventoryHistory(?string $dateFrom = null, ?string $dateTo = null): array
+    {
+        $builder = $this->orderBy('inventory_date', 'DESC');
+
+        if ($dateFrom) {
+            $builder->where('inventory_date >=', $dateFrom);
+        }
+        if ($dateTo) {
+            $builder->where('inventory_date <=', $dateTo);
+        }
+
+        return $builder->findAll();
+    }
+
+    /**
+     * Get inventory by ID
+     */
+    public function getInventoryById(int $id): ?array
+    {
+        return $this->find($id);
+    }
 }

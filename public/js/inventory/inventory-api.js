@@ -1,5 +1,5 @@
 /**
- * Inventory API Module
+ * Inventory API Module refactored
  * Handles all AJAX calls for inventory operations
  */
 

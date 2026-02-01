@@ -50,11 +50,15 @@ $routes->group('Products', function (RouteCollection $routes) {
 
 $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
+    $routes->get('History', 'InventoryController::inventoryHistory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
+    $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
+    $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');
     $routes->post('DeleteTodaysInventory', 'InventoryController::deleteTodaysInventory');
     $routes->post('UpdateStockItem/(:num)', 'InventoryController::updateStockItem/$1');
+    $routes->post('Delete/(:num)', 'InventoryController::deleteStockItem/$1');
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
     $routes->post('AddProductToInventory', 'InventoryController::addProductToInventory');
 });
@@ -94,5 +98,9 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
     $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
+});
+
+$routes->group('Approval', function (RouteCollection $routes) {
+    $routes->get('/', 'ApprovalController::index');
 });
 

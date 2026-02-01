@@ -15,8 +15,8 @@ class RemittanceDetailsModel extends Model
         'remittance_date',
         'shift_start',
         'shift_end',
-        'cash_on_hand',
         'amount_enclosed',
+        'total_online_revenue',
         'cash_out',
         'cashout_reason',
         'bakery_sales',
@@ -24,21 +24,4 @@ class RemittanceDetailsModel extends Model
         'total_sales', 
         'overage_shortage',
     ];
-
-    public function saveRemittance($data)
-    {
-        try {
-            $this->insert($data);
-            return [
-                'success' => true,
-                'message' => 'Remittance details saved successfully.'
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Error saving remittance details: ' . $e->getMessage()
-            ];
-        }
-    }
-
 }

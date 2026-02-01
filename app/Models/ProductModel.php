@@ -33,7 +33,7 @@ class ProductModel extends Model
         return $this->db->query("
             SELECT p.product_id, p.category, p.product_name, p.product_description,
                    CASE 
-                       WHEN p.category = 'bread' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
+                       WHEN p.category = 'bakery' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
                        ELSE pc.selling_price 
                    END as price,
                    pc.selling_price, pc.selling_price_per_piece, pc.selling_price_per_tray,

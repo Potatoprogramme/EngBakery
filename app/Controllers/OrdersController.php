@@ -81,14 +81,71 @@ class OrdersController extends BaseController
                 'order_type' => $data['order_type'] ?? 'walk-in'
             ];
 
-            // Process order using model method (handles items, stock, sales)
-            $result = $this->orderModel->processCompleteOrder(
-                $orderData,
-                $data['items'],
-                $this->dailyStockItemsModel,
-                $this->transactionsModel,
-                $dailyStock['daily_stock_id']
-            );
+            // Create the order
+            $orderId = $this->orderModel->createOrder($orderData);
+            
+            if (!$orderId) {
+                throw new \Exception('Failed to create order.');
+            }
+
+            // Add order items
+            if (!$this->orderItemModel->addOrderItems($orderId, $data['items'])) {
+                throw new \Exception('Failed to add order items.');
+            }
+
+            // Update stock and record sales for each item
+            foreach ($data['items'] as $item) {
+                // Get product category to check if it's a drink (no stock tracking for drinks)
+                $product = $this->productModel->find(intval($item['product_id']));
+                $isDrink = $product && $product['category'] === 'drinks';
+                
+                $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], intval($item['product_id']));
+
+                if ($stockItem) {
+                    // Only deduct stock for non-drink items
+                    if (!$isDrink) {
+                        $this->dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+                    }
+
+                    // Record the sale in transactions table (for all items including drinks)
+                    $this->transactionsModel->recordSale(
+                        $stockItem['item_id'],
+                        intval($item['quantity']),
+                        floatval($item['total'])
+                    );
+                } else {
+                    // Product not in inventory - auto-add it
+                    // For drinks: add with 0 beginning stock (no tracking)
+                    // For others: add with 0 beginning stock
+                    $newItemId = $this->dailyStockItemsModel->addProductToInventory(
+                        $dailyStock['daily_stock_id'],
+                        intval($item['product_id']),
+                        0 // beginning_stock = 0
+                    );
+                    
+                    if ($newItemId) {
+                        // Only deduct for non-drink items
+                        if (!$isDrink) {
+                            $this->dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
+                        }
+                        
+                        // Record sale for all items
+                        $this->transactionsModel->recordSale(
+                            $newItemId,
+                            intval($item['quantity']),
+                            floatval($item['total'])
+                        );
+                    }
+                }
+            }
+
+            // Prepare result
+            $result = [
+                'order_id' => $orderId,
+                'order_number' => $this->orderModel->generateOrderNumber(),
+                'order' => $this->orderModel->getOrderById($orderId),
+                'items' => $this->orderItemModel->getOrderItems($orderId)
+            ];
 
             $this->db->transComplete();
 
@@ -180,17 +237,30 @@ class OrdersController extends BaseController
         $this->db->transStart();
 
         try {
+            // Get the order
+            $order = $this->orderModel->find($orderId);
+            if (!$order) {
+                throw new \Exception('Order not found.');
+            }
+
+            $orderItems = $this->orderItemModel->getOrderItems($orderId);
+
             // Get today's inventory (optional - only restore stock if same day)
             $dailyStock = $this->dailyStockModel->getTodaysInventory();
-            $dailyStockId = $dailyStock ? $dailyStock['daily_stock_id'] : null;
 
-            // Use model method to void order and restore stock
-            $this->orderModel->voidOrderWithRestore(
-                $orderId,
-                $this->orderItemModel,
-                $this->dailyStockItemsModel,
-                $dailyStockId
-            );
+            // Restore stock if we have today's inventory
+            if ($dailyStock) {
+                foreach ($orderItems as $item) {
+                    $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
+                    if ($stockItem) {
+                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amout']));
+                    }
+                }
+            }
+
+            // Delete order items and order
+            $this->orderItemModel->deleteByOrderId($orderId);
+            $this->orderModel->delete($orderId);
 
             $this->db->transComplete();
 
@@ -230,6 +300,20 @@ class OrdersController extends BaseController
 
         // Fetch all stock items for today
         $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
+
+        // Get sales data from transactions table
+        $today = date('Y-m-d');
+        $salesData = $this->transactionsModel->getSalesDataByDate($today);
+        $salesMap = [];
+        foreach ($salesData as $sale) {
+            $salesMap[$sale['item_id']] = $sale;
+        }
+
+        // Enrich stock items with actual sales data (for drinks especially)
+        foreach ($stockItems as &$item) {
+            $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
+            $item['total_sales'] = $salesMap[$item['item_id']]['total_sales'] ?? 0;
+        }
 
         return $this->response->setJSON([
             'success' => true,

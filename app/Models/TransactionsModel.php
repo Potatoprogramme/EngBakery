@@ -67,6 +67,18 @@ class TransactionsModel extends Model
             ->getRowArray();
     }
 
+    public function getTodaysTransactionsIds(): array
+    {
+        $today = date('Y-m-d');
+        $results = $this->builder()
+            ->select('sale_id')
+            ->where('date_created', $today)
+            ->get()
+            ->getResultArray();
+
+        return array_column($results, 'sale_id');
+    }
+
     public function getTodaysTotalItemsSold(): int
     {
         $today = date('Y-m-d');
@@ -77,5 +89,19 @@ class TransactionsModel extends Model
             ->getRowArray();
 
         return intval($result['total_items_sold'] ?? 0);
+    }
+
+    /**
+     * Get aggregated sales data for all items on a given date
+     * This eliminates N+1 query problem by fetching all sales in one query
+     */
+    public function getSalesDataByDate(string $date): array
+    {
+        return $this->builder()
+            ->select('item_id, SUM(total_sales) as total_sales, SUM(quantity_sold) as quantity_sold')
+            ->where('date_created', $date)
+            ->groupBy('item_id')
+            ->get()
+            ->getResultArray();
     }
 }

@@ -37,19 +37,17 @@ class InventoryController extends BaseController
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
 
-        foreach ($daily_stock_items as &$item) {
-            // Calculate sales: beginning - ending - pull_out
-            $item['total_sales'] = $this->transactionsModel
-                ->selectSum('total_sales')
-                ->where('item_id', $item['item_id'])
-                ->where('date_created', $today)
-                ->first()['total_sales'] ?? 0;
+        // Get all sales data in a single batch query instead of N+1 queries
+        $salesDataMap = [];
+        $salesData = $this->transactionsModel->getSalesDataByDate($today);
+        foreach ($salesData as $sale) {
+            $salesDataMap[$sale['item_id']] = $sale;
+        }
 
-            $item['quantity_sold'] = $this->transactionsModel
-                ->selectSum('quantity_sold')
-                ->where('item_id', $item['item_id'])
-                ->where('date_created', $today)
-                ->first()['quantity_sold'] ?? 0;
+        // Enrich stock items with sales data
+        foreach ($daily_stock_items as &$item) {
+            $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
+            $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
         if ($daily_stock_items) {
@@ -108,11 +106,11 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // fetch ALL products (bread AND drinks) for inventory tracking
-            $productIds = $this->productModel->where('category', 'bread')->findColumn("product_id");
+            // fetch ALL products for inventory tracking
+            $productIds = $this->productModel->findColumn("product_id");
 
             // insert all products into daily stock items model
-            if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+            if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => 'Today\'s inventory added successfully.'
@@ -284,5 +282,143 @@ class InventoryController extends BaseController
                 'errors' => $this->dailyStockItemsModel->errors()
             ]);
         }
+    }
+
+    /**
+     * Delete a single inventory item
+     */
+    public function deleteStockItem($item_id)
+    {
+        // Get the item to verify it exists
+        $item = $this->dailyStockItemsModel->find($item_id);
+
+        if (!$item) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory item not found'
+            ]);
+        }
+
+        // Delete the item
+        if ($this->dailyStockItemsModel->delete($item_id)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory item deleted successfully'
+            ]);
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to delete inventory item'
+            ]);
+        }
+    }
+
+    /**
+     * Inventory History Page
+     */
+    public function inventoryHistory(): string
+    {
+        return view('Template/Header') .
+            view('Template/SideNav') .
+            view('Template/Notification') .
+            view('Inventory/InventoryHistory') .
+            view('Template/Footer');
+    }
+
+    /**
+     * Fetch inventory history with optional date filters
+     */
+    public function fetchInventoryHistory()
+    {
+        $dateFrom = $this->request->getGet('date_from');
+        $dateTo = $this->request->getGet('date_to');
+
+        $inventoryHistory = $this->dailyStockModel->getInventoryHistory($dateFrom, $dateTo);
+
+        // Enrich each inventory record with summary data
+        foreach ($inventoryHistory as &$inventory) {
+            $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($inventory['daily_stock_id']);
+            
+            // Get sales data for this specific date from transactions table
+            $salesData = $this->transactionsModel->getSalesDataByDate($inventory['inventory_date']);
+            $salesDataMap = [];
+            foreach ($salesData as $sale) {
+                $salesDataMap[$sale['item_id']] = $sale;
+            }
+            
+            $totalItems = count($stockItems);
+            $totalBeginning = 0;
+            $totalEnding = 0;
+            $totalPullOut = 0;
+            $totalSales = 0;
+            
+            foreach ($stockItems as $item) {
+                $totalBeginning += intval($item['beginning_stock'] ?? 0);
+                $totalEnding += intval($item['ending_stock'] ?? 0);
+                $totalPullOut += intval($item['pull_out_quantity'] ?? 0);
+                // Get sales from transactions table for this item
+                $totalSales += floatval($salesDataMap[$item['item_id']]['total_sales'] ?? 0);
+            }
+            
+            $inventory['total_items'] = $totalItems;
+            $inventory['total_beginning'] = $totalBeginning;
+            $inventory['total_ending'] = $totalEnding;
+            $inventory['total_pull_out'] = $totalPullOut;
+            $inventory['total_sold'] = $totalBeginning - $totalEnding - $totalPullOut;
+            $inventory['total_sales'] = $totalSales;
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $inventoryHistory
+        ]);
+    }
+
+    /**
+     * Fetch inventory details for a specific date
+     */
+    public function fetchInventoryByDate()
+    {
+        $date = $this->request->getGet('date');
+        
+        if (!$date) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Date is required'
+            ]);
+        }
+
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $date)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No inventory found for this date.',
+                'data' => []
+            ]);
+        }
+
+        $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
+
+        // Get sales data for that date
+        $salesData = $this->transactionsModel->getSalesDataByDate($date);
+        $salesMap = [];
+        foreach ($salesData as $sale) {
+            $salesMap[$sale['item_id']] = $sale;
+        }
+
+        // Enrich stock items with sales data
+        foreach ($stockItems as &$item) {
+            $item['total_sales'] = $salesMap[$item['item_id']]['total_sales'] ?? 0;
+            $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'inventory' => $dailyStock,
+                'items' => $stockItems
+            ]
+        ]);
     }
 }
