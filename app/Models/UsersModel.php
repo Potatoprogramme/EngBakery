@@ -43,4 +43,23 @@ class UsersModel extends Model
             return false;
         }
     }
+
+    public function checkUserExists($user_id)
+    {
+        return $this->find($user_id) !== null;
+    }
+
+    public function getPendingUsers()
+    {
+        return $this->where('approved', 0)->findAll();
+    }
+    public function getUserDetails($user_id)
+    {
+        return $this->select('user_id, email, firstname, middlename, lastname, employee_type, username, gender, birthdate, phone_number, approved, created_at')
+            ->find($user_id);
+    }
+    public function removeUser($user_id)
+    {
+        return $this->delete($user_id);
+    }
 }

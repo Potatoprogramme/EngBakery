@@ -102,5 +102,9 @@ $routes->group('Sales', function (RouteCollection $routes) {
 
 $routes->group('Approval', function (RouteCollection $routes) {
     $routes->get('/', 'ApprovalController::index');
+    $routes->post('ApproveUser', 'ApprovalController::approveUser');
+    $routes->get('GetPendingUsers', 'ApprovalController::getPendingUsers');
+    $routes->post('ViewEmpDetails', 'ApprovalController::viewEmpDetails');
+    $routes->post('RejectUser', 'ApprovalController::rejectUser');
 });
 
