@@ -104,4 +104,34 @@ class TransactionsModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    /** 
+     * GetSales Properly
+     */
+    public function getSalesHistory()
+    {
+        return $this->builder()
+            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->orderBy('transactions.date_created', 'DESC')
+            ->orderBy('transactions.time_created', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getSalesHistoryByDateRange($dateFrom, $dateTo)
+    {
+        return $this->builder()
+            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->where('transactions.date_created >=', $dateFrom)
+            ->where('transactions.date_created <=', $dateTo)
+            ->orderBy('transactions.date_created', 'DESC')
+            ->orderBy('transactions.time_created', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
 }

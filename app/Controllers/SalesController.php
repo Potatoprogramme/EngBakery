@@ -16,7 +16,7 @@ class SalesController extends BaseController
             'is_logged_in' => $session->get('is_logged_in'),
         ];
     }
-    
+
     public function index()
     {
         $data = $this->getSessionData();
@@ -130,13 +130,13 @@ class SalesController extends BaseController
 
         // Get cashier id - use session if available, otherwise use provided value or default to 1
         $cashierId = session()->get('id') ?? ($data['cashier_id'] ?? 1);
-        
+
         // Verify that cashier exists in users table
         $cashierUser = $this->usersModel->find((int) $cashierId);
         if (empty($cashierUser)) {
             // In development, create a default user if none exists
             log_message('warning', 'Cashier user not found for id: ' . $cashierId . '. Creating default user.');
-            
+
             // Check if ANY user exists
             $anyUser = $this->usersModel->first();
             if (empty($anyUser)) {
@@ -166,7 +166,7 @@ class SalesController extends BaseController
         // Prepare remittance details with safe array access
         $variance = $data['variance'] ?? 0;
         $isShort = $variance < 0 ? 1 : 0;
-        
+
         $remittanceDetails = [
             'cashier' => (int) $cashierId,
             'outlet_name' => $data['outlet_name'] ?? '',
@@ -205,7 +205,7 @@ class SalesController extends BaseController
                 // Handle both object and array formats
                 $denomValue = is_array($denom) ? ($denom['denomination'] ?? 0) : (isset($denom->denomination) ? $denom->denomination : 0);
                 $countValue = is_array($denom) ? ($denom['count'] ?? $denom['quantity'] ?? 0) : (isset($denom->count) ? $denom->count : (isset($denom->quantity) ? $denom->quantity : 0));
-                
+
                 if ($countValue > 0) {
                     log_message('info', 'Processing denomination: ' . $denomValue . ' with count ' . $countValue);
                     $remittanceDenom = [
@@ -223,7 +223,7 @@ class SalesController extends BaseController
         // Save transaction IDs linked to this remittance
         $transactionIds = $data['transaction_ids'] ?? [];
         log_message('info', 'Transaction IDs: ' . json_encode($transactionIds));
-        
+
         if (is_array($transactionIds) && count($transactionIds) > 0) {
             foreach ($transactionIds as $item) {
                 if (!empty($item)) {
@@ -232,7 +232,7 @@ class SalesController extends BaseController
                         'transaction_id' => $item,
                         'created_at' => date('Y-m-d H:i:s')
                     ];
-                    
+
                     $this->remittanceItemsModel->insert($remittanceItem);
                     log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
                 }
@@ -250,55 +250,66 @@ class SalesController extends BaseController
         $dateFrom = $this->request->getGet('date_from');
         $dateTo = $this->request->getGet('date_to');
 
-        // Default to last 30 days if no dates provided
-        if (!$dateTo) {
-            $dateTo = date('Y-m-d');
-        }
-        if (!$dateFrom) {
-            $dateFrom = date('Y-m-d', strtotime('-30 days'));
+        if (empty($dateFrom) || empty($dateTo)) {
+            return $salesData = $this->transactionsModel->getSalesHistory();
         }
 
-        // Fetch remittance records with cashier info
-        $salesHistory = $this->db->query("
-            SELECT 
-                rd.remittance_id,
-                rd.remittance_date as date,
-                rd.shift_start,
-                rd.shift_end,
-                rd.bakery_sales,
-                rd.coffee_sales,
-                rd.total_sales,
-                rd.amount_enclosed as cash_total,
-                0 as gcash_total,
-                rd.overage_shortage as variance,
-                rd.cash_out,
-                rd.cashout_reason,
-                u.firstname,
-                u.lastname,
-                CONCAT(u.firstname, ' ', u.lastname) as cashier_name,
-                'E n'' G Bakery' as outlet_name
-            FROM remittance_details rd
-            LEFT JOIN users u ON rd.cashier = u.user_id
-            WHERE rd.remittance_date BETWEEN ? AND ?
-            ORDER BY rd.remittance_date DESC, rd.shift_start DESC
-        ", [$dateFrom, $dateTo])->getResultArray();
+        $salesData = $this->transactionsModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
 
-        // Calculate order count and grocery sales for each record
-        foreach ($salesHistory as &$sale) {
-            // Get order count for that date
-            $orderCount = $this->db->query("
-                SELECT COUNT(*) as count FROM orders 
-                WHERE date_created = ?
-            ", [$sale['date']])->getRow();
-            $sale['order_count'] = $orderCount ? $orderCount->count : 0;
-
-            // Calculate grocery sales (total - bakery - coffee)
-            $sale['grocery_sales'] = max(0, ($sale['total_sales'] ?? 0) - ($sale['bakery_sales'] ?? 0) - ($sale['coffee_sales'] ?? 0));
+        if (empty($salesData)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [],
+                'message' => 'No sales found for the selected date range'
+            ]);
         }
 
         return $this->response->setJSON([
             'success' => true,
-            'data' => $salesHistory
+            'data' => $salesData
+        ]);
+    }
+
+
+    /**
+     * Get Sales Details for summary cards
+     */
+    public function getSummaryDetails()
+    {
+        $dateFrom = $this->request->getGet('date_from');
+        $dateTo = $this->request->getGet('date_to');
+
+        if (empty($dateFrom) || empty($dateTo)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Date range is required'
+            ]);
+        }
+
+        // Get total sales and order count
+        $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
+        $totalOrders = $this->orderModel->getOrderCountByDateRange($dateFrom, $dateTo);
+
+        // Get sales by payment method
+        $cashSales = $this->orderModel->getSalesByPaymentMethod('cash', $dateFrom, $dateTo);
+        $gcashSales = $this->orderModel->getSalesByPaymentMethod('gcash', $dateFrom, $dateTo);
+
+        // Get sales by category
+        $bakerySales = $this->orderModel->getSalesByCategory('bakery', $dateFrom, $dateTo);
+        $coffeeSales = $this->orderModel->getSalesByCategory('drinks', $dateFrom, $dateTo);
+        $grocerySales = $this->orderModel->getSalesByCategory('grocery', $dateFrom, $dateTo);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'total_sales' => floatval($totalSales),
+                'total_orders' => intval($totalOrders),
+                'cash_sales' => floatval($cashSales),
+                'gcash_sales' => floatval($gcashSales),
+                'bakery_sales' => floatval($bakerySales),
+                'coffee_sales' => floatval($coffeeSales),
+                'grocery_sales' => floatval($grocerySales)
+            ]
         ]);
     }
 
@@ -308,24 +319,24 @@ class SalesController extends BaseController
     public function getTodaysSales()
     {
         $today = date('Y-m-d');
-        
+
         // Get sales by category from transactions (returns array with total_revenue)
         $bakeryResult = $this->transactionsModel->getTodaysSaleByCategory('bakery');
         $drinksResult = $this->transactionsModel->getTodaysSaleByCategory('drinks');
         $groceryResult = $this->transactionsModel->getTodaysSaleByCategory('grocery');
-        
+
         // Extract numeric values
         $bakerySales = floatval($bakeryResult['total_revenue'] ?? 0);
         $drinksSales = floatval($drinksResult['total_revenue'] ?? 0);
         $grocerySales = floatval($groceryResult['total_revenue'] ?? 0);
-        
+
         // Get payment method totals
         $cashSales = $this->orderModel->getTodaysSalesByPaymentMethod('cash');
         $gcashSales = $this->orderModel->getTodaysSalesByPaymentMethod('gcash');
-        
+
         // Get order stats
         $totalOrders = $this->orderModel->getTodaysOrderCount();
-        
+
         // Calculate total sales
         $totalSales = $bakerySales + $drinksSales + $grocerySales;
 
