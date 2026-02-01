@@ -49,9 +49,41 @@ class OrderItemModel extends Model
     public function getOrderItems(int $orderId): array
     {
         return $this->builder()
-            ->select('order_item_id.*, products.product_name, products.category')
-            ->join('products', 'products.product_id = order_item_id.product_id', 'left')
+            ->select('order_items.*, products.product_name, products.category')
+            ->join('products', 'products.product_id = order_items.product_id', 'left')
             ->where('order_id', $orderId)
+            ->get()
+            ->getResultArray();
+    }
+
+    /**
+     * Get all sales (order items) with product and order info
+     */
+    public function getSalesHistory(): array
+    {
+        return $this->builder()
+            ->select('order_items.order_item_id, order_items.order_id, order_items.amout as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
+            ->join('products', 'products.product_id = order_items.product_id', 'left')
+            ->join('orders', 'orders.order_id = order_items.order_id', 'left')
+            ->orderBy('order_items.date_created', 'DESC')
+            ->orderBy('order_items.time_created', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    /**
+     * Get sales (order items) by date range
+     */
+    public function getSalesHistoryByDateRange(string $dateFrom, string $dateTo): array
+    {
+        return $this->builder()
+            ->select('order_items.order_item_id, order_items.order_id, order_items.amout as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
+            ->join('products', 'products.product_id = order_items.product_id', 'left')
+            ->join('orders', 'orders.order_id = order_items.order_id', 'left')
+            ->where('order_items.date_created >=', $dateFrom)
+            ->where('order_items.date_created <=', $dateTo)
+            ->orderBy('order_items.date_created', 'DESC')
+            ->orderBy('order_items.time_created', 'DESC')
             ->get()
             ->getResultArray();
     }
