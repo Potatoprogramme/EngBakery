@@ -262,7 +262,7 @@ class AuthenticationController extends BaseController
         ]);
 
         return $this->response->setJSON([
-            'status' => 'success',
+            'success' => true,
             'data' => [
                 'id' => $userID,
                 'email' => $getUserInfo['email'] ?? '',

@@ -250,7 +250,7 @@
                 success: function(response) {
                     if (response.success && response.data && response.data.length > 0) {
                         // Separate bakery, drinks, and grocery
-                        const breadItems = response.data.filter(item => item.category === 'bread');
+                        const breadItems = response.data.filter(item => item.category === 'bakery');
                         const drinkItems = response.data.filter(item => item.category === 'drinks');
                         const groceryItems = response.data.filter(item => item.category === 'grocery');
                         
