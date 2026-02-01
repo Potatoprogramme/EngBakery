@@ -4,6 +4,19 @@ namespace App\Controllers;
 
 class ProductsController extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+    
     public function test(): string
     {
         return  view('Template/Header').
@@ -15,11 +28,12 @@ class ProductsController extends BaseController
 
     public function products(): string
     {
-        return  view('Template/Header').
-                view('Template/SideNav') . 
-                view('Template/notification') .
-                view('Products/Product') .
-                view('Template/Footer');
+        $data = $this->getSessionData();
+        return  view('Template/Header', $data).
+                view('Template/SideNav', $data) . 
+                view('Template/notification', $data) .
+                view('Products/Product', $data) .
+                view('Template/Footer', $data);
     }
 
     public function addProduct()

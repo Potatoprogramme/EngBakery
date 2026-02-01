@@ -4,21 +4,36 @@ namespace App\Controllers;
 
 class InventoryController extends BaseController
 {
+     private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+
     public function inventory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/Notification') .
-            view('Inventory/Inventory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Inventory/Inventory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function addInventory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Inventory/AddInventory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Inventory/AddInventory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function fetchTodaysInventory()
@@ -318,11 +333,13 @@ class InventoryController extends BaseController
      */
     public function inventoryHistory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/Notification') .
-            view('Inventory/InventoryHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Inventory/InventoryHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     /**

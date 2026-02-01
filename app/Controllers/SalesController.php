@@ -4,31 +4,47 @@ namespace App\Controllers;
 
 class SalesController extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+    
     public function index()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/Sales') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/Sales', $data) .
+            view('Template/Footer', $data);
     }
 
     public function history()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/SalesHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/SalesHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function remittanceHistory()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/RemittanceHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/RemittanceHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function getRemittanceHistory()
