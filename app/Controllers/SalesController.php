@@ -4,31 +4,79 @@ namespace App\Controllers;
 
 class SalesController extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+    
     public function index()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/Sales') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/Sales', $data) .
+            view('Template/Footer', $data);
     }
 
     public function history()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/SalesHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/SalesHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function remittanceHistory()
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/notification') .
-            view('Sales/RemittanceHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Sales/RemittanceHistory', $data) .
+            view('Template/Footer', $data);
+    }
+
+    public function getRemittanceHistory()
+    {
+        $remittances = $this->remittanceDetailsModel->getAllRemittances();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $remittances
+        ]);
+    }
+
+    public function getRemittanceDetails($remittanceId)
+    {
+        $remittanceDetails = $this->remittanceDetailsModel->getRemittanceDetails((int) $remittanceId);
+        $remittanceDenominations = $this->remittanceDenominationsModel->getDenominationsBreakdown((int) $remittanceId);
+
+
+        if ($remittanceDetails === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Remittance not found'
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'details' => $remittanceDetails,
+                'denominations' => $remittanceDenominations
+            ]
+        ]);
     }
 
     public function printRemittance()
@@ -115,20 +163,25 @@ class SalesController extends BaseController
             }
         }
 
-      
+        // Prepare remittance details with safe array access
+        $variance = $data['variance'] ?? 0;
+        $isShort = $variance < 0 ? 1 : 0;
+        
         $remittanceDetails = [
             'cashier' => (int) $cashierId,
+            'outlet_name' => $data['outlet_name'] ?? '',
             'remittance_date' => $data['date'] ?? date('Y-m-d'),
-            'shift_start' => date('H:i:s'), // Current time as shift start
-            'shift_end' => date('H:i:s'),   // Will be updated when shift ends
-            'cash_on_hand' => 0, // Starting cash
+            'shift_start' => $data['shift_start'] ?? '00:00:00',
+            'shift_end' => $data['shift_end'] ?? '00:00:00',
             'amount_enclosed' => $data['amount_enclosed'] ?? 0,
             'cash_out' => $data['cash_out_amount'] ?? 0,
             'cashout_reason' => $data['cash_out_reason'] ?? '',
             'bakery_sales' => $data['bakery_sales'] ?? 0,
             'coffee_sales' => $data['coffee_sales'] ?? 0,
+            'grocery_sales' => $data['grocery_sales'] ?? 0,
             'total_sales' => $data['total_sales'] ?? 0,
-            'overage_shortage' => $data['variance'] ?? 0
+            'variance_amount' => abs($variance),
+            'is_short' => $isShort
         ];
 
         $remittanceId = $this->remittanceDetailsModel->insert($remittanceDetails);
@@ -151,14 +204,14 @@ class SalesController extends BaseController
             foreach ($denominations as $key => $denom) {
                 // Handle both object and array formats
                 $denomValue = is_array($denom) ? ($denom['denomination'] ?? 0) : (isset($denom->denomination) ? $denom->denomination : 0);
-                $countValue = is_array($denom) ? ($denom['count'] ?? 0) : (isset($denom->count) ? $denom->count : 0);
+                $countValue = is_array($denom) ? ($denom['count'] ?? $denom['quantity'] ?? 0) : (isset($denom->count) ? $denom->count : (isset($denom->quantity) ? $denom->quantity : 0));
                 
                 if ($countValue > 0) {
                     log_message('info', 'Processing denomination: ' . $denomValue . ' with count ' . $countValue);
                     $remittanceDenom = [
                         'remittance_id' => $remittanceId,
                         'denomination' => $denomValue,
-                        'count' => $countValue,
+                        'quantity' => $countValue,
                         'created_at' => date('Y-m-d H:i:s')
                     ];
                     $this->remittanceDenominationsModel->insert($remittanceDenom);

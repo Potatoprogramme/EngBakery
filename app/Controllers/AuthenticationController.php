@@ -10,12 +10,6 @@ class AuthenticationController extends BaseController
     private const GOOGLE_CLIENT_ID = '89803932415-79qpupmj3ks8g8gnfttnclh688q4dfpk.apps.googleusercontent.com';
     private const GOOGLE_CLIENT_SECRET = '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';
 
-    // Authorized users - hardcoded user list with email boundaries
-    private const AUTHORIZED_USERS = [
-        'engbakerymain@gmail.com',
-        // Add more authorized emails here
-    ];
-
     public function registrationPage(): string
     {
         return view('Template/Notification') .
@@ -35,8 +29,35 @@ class AuthenticationController extends BaseController
 
     public function manualLogin(): ResponseInterface
     {
-        // Placeholder for manual login logic
-        return redirect()->to(base_url('login'))->with('error_message', 'Manual login is not implemented yet.');
+        $username = $this->request->getPost('username');
+        $password = $this->request->getPost('password');
+
+        $userInfo = $this->usersModel->findByUsername($username);
+        if ($userInfo && password_verify($password, $userInfo['password'])) {
+            if (!$userInfo['approved']) {
+                log_message('warning', 'Unapproved user login attempt: ' . $username);
+                return redirect()->to(base_url('login'))->with('error_message', 'Your account is not approved yet. Please contact the administrator.');
+            }
+
+            // Set user session
+            $userData = [
+                'id' => $userInfo['user_id'],
+                'email' => $userInfo['email'],
+                'username' => $userInfo['username'],
+                'employee_type' => $userInfo['employee_type'],
+                'name' => trim($userInfo['firstname'] . ' ' . $userInfo['middlename'] . ' ' . $userInfo['lastname']),
+                'is_logged_in' => true,
+                'login_method' => 'manual',
+            ];
+
+            session()->set($userData);
+
+            log_message('info', 'User Data: ' . print_r($userData, true));
+            return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
+        } else {
+            log_message('warning', 'Failed login attempt for username: ' . $username);
+            return redirect()->to(base_url('login'))->with('error_message', 'Invalid username or password.');
+        }
     }
 
     /**
@@ -101,26 +122,35 @@ class AuthenticationController extends BaseController
             }
 
             // Get user info from Google
-            $userInfo = $this->getUserInfo($tokenData['access_token']);
+            $userInfoFromGoogle = $this->getUserInfo($tokenData['access_token']);
+            $userInfoFromGoogle['approved'] = $this->usersModel->checkApprovedUserByEmail($userInfoFromGoogle['email']);
+            $checkIfUserExists = $this->usersModel->where('email', $userInfoFromGoogle['email'])->first();
 
-            if (!$userInfo) {
+            if (!$userInfoFromGoogle) {
                 log_message('error', 'Failed to retrieve user information from Google.');
                 return redirect()->to(base_url('login'))->with('error_message', 'Failed to retrieve user information.');
             }
 
+            if (!$userInfoFromGoogle['approved'] && $checkIfUserExists) {
+                log_message('warning', 'Unapproved user login attempt: ' . $userInfoFromGoogle['email']);
+                return redirect()->to(base_url('login'))->with('error_message', 'Your account is not approved yet. Please contact the administrator.');
+            }
+
             // Check if user is authorized
-            if (!$this->isUserAuthorized($userInfo['email'])) {
-                log_message('error', 'Unauthorized access attempt by email: ' . $userInfo['email']);
+            if (!$this->isUserAuthorized($userInfoFromGoogle['email'])) {
+                log_message('error', 'Unauthorized access attempt by email: ' . $userInfoFromGoogle['email']);
                 return redirect()->to(base_url('login'))->with('error_message', 'Your email address is not authorized to access this application.');
             }
 
+            $userInformation = $this->usersModel->where('email', $userInfoFromGoogle['email'])->first();
             // Set user session
             $userData = [
-                'id' => $userInfo['id'],
-                'email' => $userInfo['email'],
-                'name' => $userInfo['name'] ?? '',
-                'picture' => $userInfo['picture'] ?? '',
-                'logged_in' => true,
+                'id' => $userInformation['user_id'],
+                'email' => $userInformation['email'],
+                'username' => $userInformation['username'],
+                'employee_type' => $userInformation['employee_type'],
+                'name' => $userInformation['firstname'] . ' ' . $userInformation['middlename'] . ' '. $userInformation['lastname'] ?? '',
+                'is_logged_in' => true,
                 'login_method' => 'google',
             ];
 
@@ -129,11 +159,12 @@ class AuthenticationController extends BaseController
             // Clear OAuth state
             session()->remove('oauth_state');
 
-            log_message('info', 'User logged in successfully via Google: ' . $userInfo['email']);
+            log_message('info', 'User Data: ' . print_r($userData, true));
+            log_message('info', 'User logged in successfully via Google: ' . $userInformation['email']);
             return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in with Google.');
         } catch (\Exception $e) {
             log_message('error', 'Google OAuth Error: ' . $e->getMessage());
-            return redirect()->to(base_url('login'))->with('error_message', 'An error occurred during authentication. Please try again.');
+            return redirect()->to(base_url('login'))->with('error_message', $e->getMessage());
         }
     }
 
@@ -195,7 +226,12 @@ class AuthenticationController extends BaseController
      */
     private function isUserAuthorized(string $email): bool
     {
-        return in_array(strtolower($email), array_map('strtolower', self::AUTHORIZED_USERS));
+        $authorizedUsers = $this->usersModel->getAuthorizedUsers();
+
+        $authorizedEmails = array_map(fn($user) => $user['email'], $authorizedUsers);
+
+        log_message('info', 'Fetched authorized users: ' . print_r($authorizedEmails, true));
+        return in_array(strtolower($email), array_map('strtolower', $authorizedEmails));
     }
 
     public function getCurrentUser()
@@ -232,16 +268,9 @@ class AuthenticationController extends BaseController
                 'email' => $getUserInfo['email'] ?? '',
                 'name' => trim(implode(' ', $nameParts)),
                 'employee_type' => $getUserInfo['employee_type'] ?? '',
-                'picture' => session()->get('picture'),
                 'login_method' => session()->get('login_method'),
             ],
         ]);
-        // } else {
-        //     return $this->response->setJSON([
-        //         'status' => 'error',
-        //         'message' => 'No user is currently logged in.',
-        //     ]);
-        // }
     }
 
     /**

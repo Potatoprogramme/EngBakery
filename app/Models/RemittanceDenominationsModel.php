@@ -16,4 +16,11 @@ class RemittanceDenominationsModel extends Model
         'quantity',
         'cash_on_hand',
     ];
+
+    public function getDenominationsBreakdown(int $remittanceId): array
+    {
+        return $this->where('remittance_id', $remittanceId)
+            ->orderBy('denomination', 'DESC')
+            ->findAll();
+    }
 }

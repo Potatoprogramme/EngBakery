@@ -18,7 +18,7 @@
                     <li class="text-gray-700">Remittance History</li>
                 </ol>
             </nav>
-            
+
             <!-- Header Card -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
@@ -26,14 +26,14 @@
                         Remittance History
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Sales') ?>" 
+                        <a href="<?= base_url('Sales') ?>"
                             class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Today's Remittance
                         </a>
                     </div>
                 </div>
                 <div class="border-t border-gray-200 my-4"></div>
-                
+
                 <!-- Filters -->
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
@@ -73,9 +73,6 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Cashier</th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Cash On Hand</th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">GCash</th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Cash Out</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Total Sales</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Total Remitted</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Variance</th>
@@ -199,361 +196,54 @@
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         let dataTable = null;
+        let remittanceData = []; // Store fetched data for filtering
 
-        // Sample Data for Remittance History
-        const remittanceData = [
-            {
-                id: 1,
-                date: '2026-01-28',
-                cashier_name: 'Ana Reyes',
-                cashier_email: 'ana.reyes@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5750,
-                gcash_total: 1320,
-                cash_out_amount: 150,
-                cash_out_reason: 'Delivery fee payment',
-                total_sales: 6920,
-                total_remitted: 6920,
-                variance: 0,
-                submitted_at: '2026-01-28 14:35:00'
-            },
-            {
-                id: 2,
-                date: '2026-01-27',
-                cashier_name: 'Raymond De. Cayao',
-                cashier_email: 'raymond.cayao@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4500,
-                gcash_total: 276,
-                cash_out_amount: 200,
-                cash_out_reason: 'Change fund for tomorrow',
-                total_sales: 5245,
-                total_remitted: 4576,
-                variance: -469,
-                submitted_at: '2026-01-27 14:30:00'
-            },
-            {
-                id: 3,
-                date: '2026-01-26',
-                cashier_name: 'Maria Santos',
-                cashier_email: 'maria.santos@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 3890,
-                gcash_total: 1560,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 5450,
-                total_remitted: 5450,
-                variance: 0,
-                submitted_at: '2026-01-26 22:15:00'
-            },
-            {
-                id: 4,
-                date: '2026-01-26',
-                cashier_name: 'Pedro Garcia',
-                cashier_email: 'pedro.garcia@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5200,
-                gcash_total: 450,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 5650,
-                total_remitted: 5650,
-                variance: 0,
-                submitted_at: '2026-01-26 14:15:00'
-            },
-            {
-                id: 5,
-                date: '2026-01-25',
-                cashier_name: 'Juan Dela Cruz',
-                cashier_email: 'juan.delacruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 3600,
-                gcash_total: 890,
-                cash_out_amount: 50,
-                cash_out_reason: 'Emergency supplies',
-                total_sales: 4490,
-                total_remitted: 4440,
-                variance: -50,
-                submitted_at: '2026-01-25 22:05:00'
-            },
-            {
-                id: 6,
-                date: '2026-01-25',
-                cashier_name: 'Lisa Mae Cruz',
-                cashier_email: 'lisa.cruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4890,
-                gcash_total: 760,
-                cash_out_amount: 75,
-                cash_out_reason: 'Office supplies',
-                total_sales: 5575,
-                total_remitted: 5575,
-                variance: 0,
-                submitted_at: '2026-01-25 14:12:00'
-            },
-            {
-                id: 7,
-                date: '2026-01-24',
-                cashier_name: 'Raymond De. Cayao',
-                cashier_email: 'raymond.cayao@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5850,
-                gcash_total: 1250,
-                cash_out_amount: 50,
-                cash_out_reason: 'Minor expense',
-                total_sales: 7050,
-                total_remitted: 7050,
-                variance: 0,
-                submitted_at: '2026-01-24 14:20:00'
-            },
-            {
-                id: 8,
-                date: '2026-01-23',
-                cashier_name: 'Ana Reyes',
-                cashier_email: 'ana.reyes@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 3250,
-                gcash_total: 1820,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 5070,
-                total_remitted: 5070,
-                variance: 0,
-                submitted_at: '2026-01-23 22:08:00'
-            },
-            {
-                id: 9,
-                date: '2026-01-23',
-                cashier_name: 'Maria Santos',
-                cashier_email: 'maria.santos@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4550,
-                gcash_total: 570,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 5070,
-                total_remitted: 5120,
-                variance: 50,
-                submitted_at: '2026-01-23 14:10:00'
-            },
-            {
-                id: 10,
-                date: '2026-01-22',
-                cashier_name: 'Pedro Garcia',
-                cashier_email: 'pedro.garcia@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 4900,
-                gcash_total: 1890,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 6790,
-                total_remitted: 6790,
-                variance: 0,
-                submitted_at: '2026-01-22 22:00:00'
-            },
-            {
-                id: 11,
-                date: '2026-01-22',
-                cashier_name: 'Juan Dela Cruz',
-                cashier_email: 'juan.delacruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4320,
-                gcash_total: 980,
-                cash_out_amount: 120,
-                cash_out_reason: 'Cleaning supplies',
-                total_sales: 5180,
-                total_remitted: 5180,
-                variance: 0,
-                submitted_at: '2026-01-22 14:18:00'
-            },
-            {
-                id: 12,
-                date: '2026-01-21',
-                cashier_name: 'Maria Santos',
-                cashier_email: 'maria.santos@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 6100,
-                gcash_total: 2350,
-                cash_out_amount: 100,
-                cash_out_reason: 'Supplies purchase',
-                total_sales: 8350,
-                total_remitted: 8350,
-                variance: 0,
-                submitted_at: '2026-01-21 14:25:00'
-            },
-            {
-                id: 13,
-                date: '2026-01-20',
-                cashier_name: 'Lisa Mae Cruz',
-                cashier_email: 'lisa.cruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 3890,
-                gcash_total: 1240,
-                cash_out_amount: 25,
-                cash_out_reason: 'Taxi fare',
-                total_sales: 5105,
-                total_remitted: 5105,
-                variance: 0,
-                submitted_at: '2026-01-20 22:10:00'
-            },
-            {
-                id: 14,
-                date: '2026-01-20',
-                cashier_name: 'Raymond De. Cayao',
-                cashier_email: 'raymond.cayao@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5680,
-                gcash_total: 670,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 6350,
-                total_remitted: 6350,
-                variance: 0,
-                submitted_at: '2026-01-20 14:05:00'
-            },
-            {
-                id: 15,
-                date: '2026-01-19',
-                cashier_name: 'Ana Reyes',
-                cashier_email: 'ana.reyes@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 4120,
-                gcash_total: 1580,
-                cash_out_amount: 80,
-                cash_out_reason: 'Maintenance fee',
-                total_sales: 5620,
-                total_remitted: 5620,
-                variance: 0,
-                submitted_at: '2026-01-19 22:15:00'
-            },
-            {
-                id: 16,
-                date: '2026-01-19',
-                cashier_name: 'Pedro Garcia',
-                cashier_email: 'pedro.garcia@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4750,
-                gcash_total: 825,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 5575,
-                total_remitted: 5575,
-                variance: 0,
-                submitted_at: '2026-01-19 14:22:00'
-            },
-            {
-                id: 17,
-                date: '2026-01-18',
-                cashier_name: 'Maria Santos',
-                cashier_email: 'maria.santos@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5320,
-                gcash_total: 1180,
-                cash_out_amount: 150,
-                cash_out_reason: 'Ingredient purchase',
-                total_sales: 6350,
-                total_remitted: 6350,
-                variance: 0,
-                submitted_at: '2026-01-18 14:28:00'
-            },
-            {
-                id: 18,
-                date: '2026-01-17',
-                cashier_name: 'Juan Dela Cruz',
-                cashier_email: 'juan.delacruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cash_on_hand: 3590,
-                gcash_total: 960,
-                cash_out_amount: 30,
-                cash_out_reason: 'Delivery charge',
-                total_sales: 4520,
-                total_remitted: 4520,
-                variance: 0,
-                submitted_at: '2026-01-17 22:12:00'
-            },
-            {
-                id: 19,
-                date: '2026-01-16',
-                cashier_name: 'Lisa Mae Cruz',
-                cashier_email: 'lisa.cruz@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 4890,
-                gcash_total: 1340,
-                cash_out_amount: 75,
-                cash_out_reason: 'Equipment repair',
-                total_sales: 6155,
-                total_remitted: 6155,
-                variance: 0,
-                submitted_at: '2026-01-16 14:35:00'
-            },
-            {
-                id: 20,
-                date: '2026-01-15',
-                cashier_name: 'Raymond De. Cayao',
-                cashier_email: 'raymond.cayao@engbakery.com',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cash_on_hand: 5480,
-                gcash_total: 720,
-                cash_out_amount: 0,
-                cash_out_reason: '',
-                total_sales: 6200,
-                total_remitted: 6200,
-                variance: 0,
-                submitted_at: '2026-01-15 14:15:00'
-            }
-        ];
+        function getAllRemittances() {
+            $.ajax({
+                url: BASE_URL + 'Sales/GetRemittanceHistory',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        remittanceData = response.data; // Store data
+                        renderRemittanceHistory(response.data);
+                        initFilters(); // Initialize filters after data is loaded
+                        console.log('Remittance data fetched:', response.data);
+                    } else {
+                        showToast('error', 'Failed to fetch remittance history');
+                    }
+                },
+                error: function() {
+                    showToast('error', 'An error occurred while fetching remittance history');
+                }
+            });
+        }
+
+        function getRemittanceDetails(remittanceId) {
+            $.ajax({
+                url: BASE_URL + 'Sales/GetRemittanceDetails/' + remittanceId,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        renderRemittanceDetails(response.data);
+                        console.log('Remittance details fetched:', response.data);
+                    } else {
+                        showToast('error', 'Failed to fetch remittance details');
+                    }
+                },
+                error: function() {
+                    showToast('error', 'An error occurred while fetching remittance details');
+                }
+            });
+        }
 
         $(document).ready(function() {
-            initFilters();
-            renderRemittanceHistory(remittanceData);
-            initDetailsModal();
+            getAllRemittances();
+            initModalHandlers();
         });
 
         function initFilters() {
@@ -561,7 +251,7 @@
             const today = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
-            
+
             $('#filterDateTo').val(today.toISOString().split('T')[0]);
             $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
 
@@ -575,14 +265,14 @@
                 const dateFrom = new Date($('#filterDateFrom').val());
                 const dateTo = new Date($('#filterDateTo').val());
                 const cashier = $('#filterCashier').val();
-                
+
                 const filtered = remittanceData.filter(remittance => {
                     const remittanceDate = new Date(remittance.date);
                     const dateMatch = remittanceDate >= dateFrom && remittanceDate <= dateTo;
                     const cashierMatch = !cashier || remittance.cashier_name === cashier;
                     return dateMatch && cashierMatch;
                 });
-                
+
                 renderRemittanceHistory(filtered);
                 showToast('success', 'Filters applied');
             });
@@ -591,7 +281,7 @@
                 const today = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(today.getDate() - 30);
-                
+
                 $('#filterDateTo').val(today.toISOString().split('T')[0]);
                 $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
                 $('#filterCashier').val('');
@@ -608,6 +298,62 @@
             renderMobileCards(history);
         }
 
+        function renderRemittanceDetails(data) {
+            const details = data.details;
+            const denominations = data.denominations;
+            
+            $('#detailDate').text(new Date(details.remittance_date).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            }));
+            $('#detailCashier').text(details.cashier_name || '-');
+            $('#detailCashierEmail').text(details.cashier_email || '-');
+            $('#detailOutlet').text(details.outlet_name || '-');
+            $('#detailShift').text(`${formatTime(details.shift_start)} - ${formatTime(details.shift_end)}`);
+            $('#detailSubmittedAt').text(details.created_at ? new Date(details.created_at).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : '-');
+            $('#detailCashOnHand').text(formatCurrency(details.amount_enclosed || 0));
+            $('#detailGcash').text(formatCurrency(details.total_online_revenue || 0));
+            $('#detailCashOut').text(parseFloat(details.cash_out) > 0 ? '-' + formatCurrency(details.cash_out) : '₱0.00');
+            $('#detailTotalRemitted').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
+            $('#detailTotalSales').text(formatCurrency(details.total_sales || 0));
+            $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
+
+            // Use variance_amount and is_short from database
+            const varianceAmount = parseFloat(details.variance_amount) || 0;
+            const isShort = parseInt(details.is_short) === 1;
+            const variance = isShort ? -varianceAmount : varianceAmount;
+            const varianceText = isShort ? '-' + formatCurrency(varianceAmount) + ' (Short)' : '+' + formatCurrency(varianceAmount) + ' (Over)';
+            if (varianceAmount === 0) {
+                $('#detailVariance').text('₱0.00 (Balanced)');
+            } else {
+                $('#detailVariance').text(varianceText);
+            }
+            const varianceContainer = $('#detailVarianceContainer');
+            varianceContainer.removeClass('bg-green-100 bg-red-100 bg-gray-100 text-green-800 text-red-800');
+            if (varianceAmount === 0) {
+                varianceContainer.addClass('bg-gray-100');
+            } else if (isShort) {
+                varianceContainer.addClass('bg-red-100 text-red-800');
+            } else {
+                varianceContainer.addClass('bg-green-100 text-green-800');
+            }
+
+            if (parseFloat(details.cash_out) > 0 && details.cashout_reason) {
+                $('#cashOutReasonContainer').show();
+                $('#detailCashOutReason').text(details.cashout_reason);
+            } else {
+                $('#cashOutReasonContainer').hide();
+                $('#detailCashOutReason').text('-');
+            }
+        }
+
         function renderDesktopTable(history) {
             if (dataTable) {
                 dataTable.destroy();
@@ -615,29 +361,36 @@
             }
 
             if (!history || history.length === 0) {
-                $('#remittanceHistoryTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-file-invoice-dollar text-4xl mb-3"></i><p>No remittance history found</p></td></tr>');
+                $('#remittanceHistoryTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-file-invoice-dollar text-4xl mb-3"></i><p>No remittance history found</p></td></tr>');
                 return;
             }
 
             let html = '';
             history.forEach((remittance, index) => {
-                const date = new Date(remittance.date);
-                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                
-                const varianceClass = parseFloat(remittance.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
-                const varianceText = parseFloat(remittance.variance) >= 0 
-                    ? '+' + formatCurrency(remittance.variance) 
-                    : '-' + formatCurrency(Math.abs(remittance.variance));
+                const date = new Date(remittance.remittance_date);
+                const dateStr = date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                // Use variance_amount and is_short from database
+                const varianceAmount = parseFloat(remittance.variance_amount) || 0;
+                const isShort = parseInt(remittance.is_short) === 1;
+                const varianceClass = isShort ? 'text-red-600 bg-red-100' : 'text-green-600 bg-green-100';
+                let varianceText;
+                if (varianceAmount === 0) {
+                    varianceText = '₱0.00';
+                } else {
+                    varianceText = isShort ? '-' + formatCurrency(varianceAmount) : '+' + formatCurrency(varianceAmount);
+                }
 
                 html += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${remittance.cashier_name || '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">${formatCurrency(remittance.cash_on_hand || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-blue-600 font-semibold">${formatCurrency(remittance.gcash_total || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-red-600 font-semibold">${remittance.cash_out_amount > 0 ? '-' + formatCurrency(remittance.cash_out_amount) : '₱0.00'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-semibold">${formatCurrency(remittance.total_sales || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(remittance.total_remitted || 0)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>
                         </td>
@@ -667,7 +420,9 @@
             // Re-bind click events after DataTable renders
             $('#remittanceHistoryTable').on('click', '.btn-view-details', function() {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const remittanceId = history[index].id || history[index].remittance_id;
+                getRemittanceDetails(remittanceId);
+                $('#remittanceDetailsModal').removeClass('hidden');
             });
         }
 
@@ -684,14 +439,24 @@
 
             let html = '';
             history.forEach((remittance, index) => {
-                const date = new Date(remittance.date);
-                const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                
-                const varianceClass = parseFloat(remittance.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
-                const varianceIcon = parseFloat(remittance.variance) >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-                const varianceText = parseFloat(remittance.variance) >= 0 
-                    ? '+' + formatCurrency(remittance.variance)
-                    : '-' + formatCurrency(Math.abs(remittance.variance));
+                const date = new Date(remittance.remittance_date);
+                const dateStr = date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                // Use variance_amount and is_short from database
+                const varianceAmount = parseFloat(remittance.variance_amount) || 0;
+                const isShort = parseInt(remittance.is_short) === 1;
+                const varianceClass = isShort ? 'text-red-600 bg-red-100' : 'text-green-600 bg-green-100';
+                const varianceIcon = isShort ? 'fa-arrow-down' : 'fa-arrow-up';
+                let varianceText;
+                if (varianceAmount === 0) {
+                    varianceText = '₱0.00';
+                } else {
+                    varianceText = isShort ? '-' + formatCurrency(varianceAmount) : '+' + formatCurrency(varianceAmount);
+                }
 
                 html += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
@@ -722,17 +487,17 @@
                                 <div class="text-center p-2 bg-green-50 rounded-lg">
                                     <i class="fas fa-money-bill-wave text-green-500 text-sm"></i>
                                     <p class="text-xs text-gray-500 mt-1">Cash</p>
-                                    <p class="font-bold text-green-600 text-sm">${formatCurrency(remittance.cash_on_hand)}</p>
+                                    <p class="font-bold text-green-600 text-sm">${formatCurrency(remittance.amount_enclosed || 0)}</p>
                                 </div>
                                 <div class="text-center p-2 bg-blue-50 rounded-lg">
                                     <i class="fas fa-mobile-alt text-blue-500 text-sm"></i>
-                                    <p class="text-xs text-gray-500 mt-1">GCash</p>
-                                    <p class="font-bold text-blue-600 text-sm">${formatCurrency(remittance.gcash_total)}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Online</p>
+                                    <p class="font-bold text-blue-600 text-sm">${formatCurrency(remittance.total_online_revenue || 0)}</p>
                                 </div>
                                 <div class="text-center p-2 bg-red-50 rounded-lg">
                                     <i class="fas fa-hand-holding-usd text-red-500 text-sm"></i>
                                     <p class="text-xs text-gray-500 mt-1">Cash Out</p>
-                                    <p class="font-bold text-red-600 text-sm">${remittance.cash_out_amount > 0 ? '-' + formatCurrency(remittance.cash_out_amount) : '₱0.00'}</p>
+                                    <p class="font-bold text-red-600 text-sm">${remittance.cash_out > 0 ? formatCurrency(remittance.cash_out) : '₱0.00'}</p>
                                 </div>
                             </div>
                             
@@ -740,11 +505,11 @@
                             <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
                                 <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                                     <span class="text-gray-600"><i class="fas fa-chart-line text-primary mr-1"></i>Sales</span>
-                                    <span class="font-semibold text-gray-700">${formatCurrency(remittance.total_sales)}</span>
+                                    <span class="font-semibold text-gray-700">${formatCurrency(remittance.total_sales || 0)}</span>
                                 </div>
                                 <div class="flex items-center justify-between p-2 bg-primary/10 rounded">
                                     <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-primary mr-1"></i>Remitted</span>
-                                    <span class="font-semibold text-primary">${formatCurrency(remittance.total_remitted)}</span>
+                                    <span class="font-semibold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</span>
                                 </div>
                             </div>
                             
@@ -752,7 +517,7 @@
                             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
                                     <p class="text-xs text-gray-500">Total Remitted</p>
-                                    <p class="text-xl font-bold text-primary">${formatCurrency(remittance.total_remitted)}</p>
+                                    <p class="text-xl font-bold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</p>
                                 </div>
                                 <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
                                     <i class="fas fa-eye mr-1"></i>View
@@ -768,18 +533,23 @@
             // Bind click events for mobile cards
             $('.btn-view-details-mobile').on('click', function() {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const remittanceId = history[index].id || history[index].remittance_id;
+                getRemittanceDetails(remittanceId);
+                $('#remittanceDetailsModal').removeClass('hidden');
             });
         }
 
         function updateSummaryCards(history) {
-            let totalRemitted = 0, remittanceCount = 0, cashRemitted = 0, gcashRemitted = 0;
-            
+            let totalRemitted = 0,
+                remittanceCount = 0,
+                cashRemitted = 0,
+                gcashRemitted = 0;
+
             history.forEach(remittance => {
-                totalRemitted += remittance.total_remitted || 0;
+                totalRemitted += Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0);
                 remittanceCount++;
-                cashRemitted += remittance.cash_on_hand || 0;
-                gcashRemitted += remittance.gcash_total || 0;
+                cashRemitted += Number(remittance.amount_enclosed || 0);
+                gcashRemitted += Number(remittance.total_online_revenue || 0);
             });
 
             $('#summaryTotalRemitted').text(formatCurrency(totalRemitted));
@@ -788,9 +558,11 @@
             $('#summaryGcashRemitted').text(formatCurrency(gcashRemitted));
         }
 
-        function initDetailsModal() {
+        function initModalHandlers() {
             $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#remittanceDetailsModal').addClass('hidden'));
-            $('#remittanceDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#remittanceDetailsModal').addClass('hidden'); });
+            $('#remittanceDetailsModal').on('click', e => {
+                if (e.target === e.currentTarget) $('#remittanceDetailsModal').addClass('hidden');
+            });
 
             $('#btnPrintDetails').on('click', function() {
                 const content = $('#remittanceDetailsModal .p-6').first().clone();
@@ -817,100 +589,52 @@
             });
         }
 
-        function openDetailsModal(remittance) {
-            if (!remittance) return;
-
-            const date = new Date(remittance.date);
-            const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-            $('#detailDate').text(dateStr);
-            $('#detailCashier').text(remittance.cashier_name || '-');
-            $('#detailCashierEmail').text(remittance.cashier_email || '-');
-            $('#detailOutlet').text(remittance.outlet_name || 'E n\' G Bakery');
-            $('#detailShift').text(formatTime(remittance.shift_start) + ' - ' + formatTime(remittance.shift_end));
-            
-            // Format submitted time
-            if (remittance.submitted_at) {
-                const submittedDate = new Date(remittance.submitted_at);
-                $('#detailSubmittedAt').text(submittedDate.toLocaleString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                }));
-            } else {
-                $('#detailSubmittedAt').text('-');
-            }
-
-            // Remittance breakdown
-            $('#detailCashOnHand').text(formatCurrency(remittance.cash_on_hand || 0));
-            $('#detailGcash').text(formatCurrency(remittance.gcash_total || 0));
-            $('#detailCashOut').text(remittance.cash_out_amount > 0 ? '-' + formatCurrency(remittance.cash_out_amount) : '₱0.00');
-            $('#detailTotalRemitted').text(formatCurrency(remittance.total_remitted || 0));
-
-            // Sales vs Remittance
-            $('#detailTotalSales').text(formatCurrency(remittance.total_sales || 0));
-            $('#detailTotalRemittedCompare').text(formatCurrency(remittance.total_remitted || 0));
-
-            // Cash out reason
-            if (remittance.cash_out_amount > 0 && remittance.cash_out_reason) {
-                $('#cashOutReasonContainer').show();
-                $('#detailCashOutReason').text(remittance.cash_out_reason);
-            } else {
-                $('#cashOutReasonContainer').hide();
-            }
-            
-            // Variance
-            const variance = parseFloat(remittance.variance) || 0;
-            const container = $('#detailVarianceContainer');
-            const varianceEl = $('#detailVariance');
-            
-            if (variance > 0) {
-                container.removeClass('bg-red-100').addClass('bg-green-100');
-                varianceEl.removeClass('text-red-600').addClass('text-green-600');
-                varianceEl.text('+' + formatCurrency(variance) + ' (Over)');
-            } else if (variance < 0) {
-                container.removeClass('bg-green-100').addClass('bg-red-100');
-                varianceEl.removeClass('text-green-600').addClass('text-red-600');
-                varianceEl.text('-' + formatCurrency(Math.abs(variance)) + ' (Short)');
-            } else {
-                container.removeClass('bg-red-100 bg-green-100').addClass('bg-gray-100');
-                varianceEl.removeClass('text-red-600 text-green-600').addClass('text-gray-800');
-                varianceEl.text('₱0.00 (Balanced)');
-            }
-
-            $('#remittanceDetailsModal').removeClass('hidden');
-        }
-
         function exportToCsv() {
             if (!remittanceData || remittanceData.length === 0) {
                 showToast('warning', 'No data to export');
                 return;
             }
 
-            const headers = ['Date', 'Cashier', 'Email', 'Shift', 'Cash On Hand', 'GCash', 'Cash Out', 'Cash Out Reason', 'Total Sales', 'Total Remitted', 'Variance'];
-            const rows = remittanceData.map(remittance => [
-                remittance.date,
-                remittance.cashier_name || '',
-                remittance.cashier_email || '',
-                (remittance.shift_start || '') + ' - ' + (remittance.shift_end || ''),
-                remittance.cash_on_hand || 0,
-                remittance.gcash_total || 0,
-                remittance.cash_out_amount || 0,
-                remittance.cash_out_reason || '',
-                remittance.total_sales || 0,
-                remittance.total_remitted || 0,
-                remittance.variance || 0
-            ]);
+            const headers = [
+                'Date',
+                'Cashier',
+                'Email',
+                'Shift',
+                'Cash On Hand',
+                'Online Payments',
+                'Cash Out',
+                'Cash Out Reason',
+                'Total Sales',
+                'Total Remitted',
+                'Variance'
+            ];
+            const rows = remittanceData.map(remittance => {
+                const varianceAmount = parseFloat(remittance.variance_amount) || 0;
+                const isShort = parseInt(remittance.is_short) === 1;
+                const variance = isShort ? -varianceAmount : varianceAmount;
+                return [
+                    remittance.remittance_date,
+                    remittance.cashier_name || '',
+                    remittance.cashier_email || '',
+                    (remittance.shift_start || '') + ' - ' + (remittance.shift_end || ''),
+                    remittance.amount_enclosed || 0,
+                    remittance.total_online_revenue || 0,
+                    remittance.cash_out || 0,
+                    remittance.cashout_reason || '',
+                    remittance.total_sales || 0,
+                    Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0),
+                    variance
+                ];
+            });
 
             let csv = headers.join(',') + '\n';
             rows.forEach(row => {
                 csv += row.map(cell => `"${cell}"`).join(',') + '\n';
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
+            const blob = new Blob([csv], {
+                type: 'text/csv'
+            });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;

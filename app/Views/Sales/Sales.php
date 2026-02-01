@@ -69,14 +69,14 @@
                                 <label class="text-sm font-medium text-gray-600 w-20">OUTLET:</label>
                                 <input type="text" id="outletName"
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
-                                    placeholder="Enter outlet name" value="Deca Sentrio">
+                                    placeholder="Enter outlet name" value="Deca Sentrio" readonly>
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
                                 <div class="flex-1 flex items-center gap-1 sm:gap-2">
                                     <div class="flex flex-col flex-1 min-w-0">
                                         <span class="text-[10px] text-gray-400 mb-0.5">Start</span>
-                                        <select id="shift_start" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" name="shift_start">
+                                        <select id="shiftStart" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" name="shift_start">
                                             <option value="00:00">12:00 AM</option>
                                             <option value="01:00">1:00 AM</option>
                                             <option value="02:00">2:00 AM</option>
@@ -134,22 +134,6 @@
                                         </select>
                                     </div>
                                 </div>
-
-                                <script>
-                                    // update displayed shift range when selects change
-                                    $('#shiftStart, #shiftEnd').on('change', function() {
-                                        const start = $('#shiftStart').val();
-                                        const end = $('#shiftEnd').val();
-                                        $('#shiftTime').text(formatTime(start) + ' - ' + formatTime(end));
-                                    });
-
-                                    // initialize display on load
-                                    $(function(){ 
-                                        const s = $('#shiftStart').val();
-                                        const e = $('#shiftEnd').val();
-                                        $('#shiftTime').text(formatTime(s) + ' - ' + formatTime(e));
-                                    });
-                                </script>
                             </div>
                         </div>
                     </div>
@@ -517,12 +501,6 @@
                 success: function(response) {
                     if (response.success) {
                         console.log('Sales data response:', response.data);
-                        const data = response.data;
-
-                        // Update shift time
-                        if (data.shift_start && data.shift_end) {
-                            $('#shiftTime').text(formatTime(data.shift_start) + ' - ' + formatTime(data.shift_end));
-                        }
 
                         allTransactions = response.data.transaction_ids || [];
                         
@@ -729,7 +707,7 @@
                 const denomination = billDenominations[inputId];
                 if (count > 0) {
                     breakdown[inputId.replace('bill', '')] = {
-                        count: count,
+                        quantity: count,
                         denomination: denomination
                     };
                 }
@@ -911,24 +889,39 @@
 
         // Save remittance
         $('#btnSaveRemittance').on('click', function() {
+            // Calculate variance properly with sign
+            const amountEnclosed = parseCurrency($('#amountEnclosed').text());
+            const totalOnlineRevenue = parseFloat($('#totalOnlineRevenue').val()) || 0;
+            const cashOutAmount = parseFloat($('#cashOutAmount').val()) || 0;
+            const totalSales = parseCurrency($('#totalSales').text());
+            const totalRemitted = amountEnclosed + totalOnlineRevenue + cashOutAmount;
+            const variance = totalRemitted - totalSales;
+
+            // Get shift times from select elements (add :00 for seconds)
+            const shiftStart = $('#shiftStart').val() + ':00';
+            const shiftEnd = $('#shiftEnd').val() + ':00';
+
             const remittanceData = {
                 // remittance_details table
                 // cashier_id: $('#cashierName').val(),
                 cashier_id: 1, // Temporary hardcoded for testing
-                cashier_email: $('#cashierEmail').val(),
                 outlet_name: $('#outletName').val(),
-                date: new Date().toISOString().split('T')[0],
-                shift_time: $('#shiftTime').text(),
-
-                amount_enclosed: parseCurrency($('#amountEnclosed').text()),
-                total_online_revenue: parseFloat($('#totalOnlineRevenue').val()) || 0,
-                cash_out_amount: parseFloat($('#cashOutAmount').val()) || 0,
+                date: (function() {
+                    const d = new Date();
+                    const p = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+                })(),
+                shift_start: shiftStart,
+                shift_end: shiftEnd,
+                amount_enclosed: amountEnclosed,
+                total_online_revenue: totalOnlineRevenue,
+                cash_out_amount: cashOutAmount,
                 cash_out_reason: $('#cashOutReason').val(),
                 bakery_sales: parseCurrency($('#bakerySales').text()),
                 coffee_sales: parseCurrency($('#coffeeSales').text()),
                 grocery_sales: parseCurrency($('#grocerySales').text()),
-                total_sales: parseCurrency($('#totalSales').text()),
-                variance: parseCurrency($('#variance').text().replace(/[+\-()OverShortBalanced ]/g, '')),
+                total_sales: totalSales,
+                variance: variance,
                 //remittance_denomination table
                 denominations: getDenominationsBreakdown(),
                 // remittance_items table 

@@ -28,42 +28,60 @@ class DashboardController extends BaseController
         $this->dailyStockItemsModel = new DailyStockItemsModel();
     }
 
-    public function dashboard(): string
+    private function getSessionData()
     {
-        $data = $this->getDashboardData();
-        
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+
+    public function dashboard()
+    {
+        $sessionData = $this->getSessionData();
+        $data = array_merge($sessionData, $this->getDashboardData());
+
+        if (!isset($data['is_logged_in']) || !$data['is_logged_in']) {
+            return redirect()->to(base_url('login'))->with('error_message', 'Please log in to access the dashboard.');
+        }
+
         return view('Template/Header') .
-               view('Template/SideNav') .
-               view('Dashboard', $data) .
-               view('Template/Footer');
+            view('Template/SideNav', $data) .
+            view('Dashboard', $data) .
+            view('Template/Footer');
     }
 
     private function getDashboardData(): array
     {
         $today = date('Y-m-d');
-        
+
         // Today's Sales Summary
         $todaysSales = $this->orderModel->getTodaysSales();
         $todaysOrderCount = $this->orderModel->getTodaysOrderCount();
         $todaysItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
-        
+
         // Sales by Category
         $bakerySales = $this->transactionsModel->getTodaysSaleByCategory('bread');
         $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
         $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
-        
+
         // Payment Methods
         $cashSales = $this->orderModel->getTotalSalesByOrderType('cash');
         $gcashSales = $this->orderModel->getTotalSalesByOrderType('gcash');
         $mayaSales = $this->orderModel->getTotalSalesByOrderType('maya');
-        
+
         // Inventory Status
         $inventoryToday = $this->dailyStockModel->checkInventoryExists($today);
         $inventoryItems = [];
         $totalBeginningStock = 0;
         $totalEndingStock = 0;
         $lowStockProducts = [];
-        
+
         if ($inventoryToday) {
             $inventoryItems = $this->dailyStockItemsModel->fetchAllStockItems($inventoryToday['daily_stock_id']);
             foreach ($inventoryItems as $item) {
@@ -75,22 +93,22 @@ class DashboardController extends BaseController
                 }
             }
         }
-        
+
         // Total counts
         $totalProducts = $this->productModel->countAll();
         $totalRawMaterials = $this->rawMaterialsModel->countAll();
-        
+
         // Product counts by category
         $productsByCategory = $this->db->query("
             SELECT category, COUNT(*) as count 
             FROM products 
             GROUP BY category
         ")->getResultArray();
-        
+
         // Recent orders (last 5)
         $recentOrders = $this->orderModel->getOrderHistory(null, null);
         $recentOrders = array_slice($recentOrders, 0, 5);
-        
+
         // Best selling products today
         $bestSellers = $this->db->query("
             SELECT p.product_name, p.category, SUM(t.quantity_sold) as total_sold, SUM(t.total_sales) as revenue
@@ -102,7 +120,7 @@ class DashboardController extends BaseController
             ORDER BY total_sold DESC
             LIMIT 5
         ", [$today])->getResultArray();
-        
+
         // Weekly sales trend (last 7 days)
         $weeklyTrend = $this->db->query("
             SELECT date_created, 
@@ -113,7 +131,7 @@ class DashboardController extends BaseController
             GROUP BY date_created
             ORDER BY date_created ASC
         ", [$today])->getResultArray();
-        
+
         return [
             'todaysSales' => floatval($todaysSales['total_sales'] ?? 0),
             'todaysOrderCount' => $todaysOrderCount,

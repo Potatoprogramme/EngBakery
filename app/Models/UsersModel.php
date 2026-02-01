@@ -49,6 +49,16 @@ class UsersModel extends Model
         return $this->find($user_id) !== null;
     }
 
+    public function checkApprovedUserByEmail($email)
+    {
+        return $this->where('email', $email)->where('approved', 1)->first() !== null;
+    }
+
+    public function findByUsername($username)
+    {
+        return $this->where('username', $username)->first();
+    }
+
     public function getPendingUsers()
     {
         return $this->where('approved', 0)->findAll();
@@ -61,5 +71,10 @@ class UsersModel extends Model
     public function removeUser($user_id)
     {
         return $this->delete($user_id);
+    }
+
+    public function getAuthorizedUsers()
+    {
+        return $this->select('email')->findAll();
     }
 }
