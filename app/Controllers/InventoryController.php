@@ -4,21 +4,36 @@ namespace App\Controllers;
 
 class InventoryController extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+
     public function inventory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/Notification') .
-            view('Inventory/Inventory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Inventory/Inventory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function addInventory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Inventory/AddInventory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Inventory/AddInventory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function fetchTodaysInventory()
@@ -107,7 +122,7 @@ class InventoryController extends BaseController
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
             // fetch ALL products for inventory tracking
-            $productIds = $this->productModel->findColumn("product_id");
+            $productIds = $this->productModel->where('category', 'bakery')->findColumn("product_id");
 
             // insert all products into daily stock items model
             if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
@@ -318,11 +333,13 @@ class InventoryController extends BaseController
      */
     public function inventoryHistory(): string
     {
-        return view('Template/Header') .
-            view('Template/SideNav') .
-            view('Template/Notification') .
-            view('Inventory/InventoryHistory') .
-            view('Template/Footer');
+        $data = $this->getSessionData();
+
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Inventory/InventoryHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     /**
@@ -338,20 +355,20 @@ class InventoryController extends BaseController
         // Enrich each inventory record with summary data
         foreach ($inventoryHistory as &$inventory) {
             $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($inventory['daily_stock_id']);
-            
+
             // Get sales data for this specific date from transactions table
             $salesData = $this->transactionsModel->getSalesDataByDate($inventory['inventory_date']);
             $salesDataMap = [];
             foreach ($salesData as $sale) {
                 $salesDataMap[$sale['item_id']] = $sale;
             }
-            
+
             $totalItems = count($stockItems);
             $totalBeginning = 0;
             $totalEnding = 0;
             $totalPullOut = 0;
             $totalSales = 0;
-            
+
             foreach ($stockItems as $item) {
                 $totalBeginning += intval($item['beginning_stock'] ?? 0);
                 $totalEnding += intval($item['ending_stock'] ?? 0);
@@ -359,7 +376,7 @@ class InventoryController extends BaseController
                 // Get sales from transactions table for this item
                 $totalSales += floatval($salesDataMap[$item['item_id']]['total_sales'] ?? 0);
             }
-            
+
             $inventory['total_items'] = $totalItems;
             $inventory['total_beginning'] = $totalBeginning;
             $inventory['total_ending'] = $totalEnding;
@@ -380,7 +397,7 @@ class InventoryController extends BaseController
     public function fetchInventoryByDate()
     {
         $date = $this->request->getGet('date');
-        
+
         if (!$date) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,

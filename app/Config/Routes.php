@@ -91,13 +91,18 @@ $routes->group('DailyStock', function (RouteCollection $routes) {
 });
 
 $routes->group('Sales', function (RouteCollection $routes) {
+    // Routes for Today's Sales
     $routes->get('/', 'SalesController::index');
-    $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
-    $routes->get('History', 'SalesController::history');
     $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
     $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
-    $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
+    // Routes for Sales History
+    $routes->get('History', 'SalesController::history');
+    $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
+    // Routes for Remittance History
+    $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
+    $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');
+    $routes->get('GetRemittanceDetails/(:num)', 'SalesController::getRemittanceDetails/$1');
 });
 
 $routes->group('Approval', function (RouteCollection $routes) {

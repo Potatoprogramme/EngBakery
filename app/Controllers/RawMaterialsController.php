@@ -4,13 +4,28 @@ namespace App\Controllers;
 
 class RawMaterialsController extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+
     public function rawMaterial(): string
     {
-        return  view('Template/Header').
-                view('Template/SideNav') . 
-                view('Template/notification') .
-                view('RawMaterials/RawMaterial') .
-                view('Template/Footer');
+        $data = $this->getSessionData();
+
+        return  view('Template/Header', $data).
+                view('Template/SideNav', $data) . 
+                view('Template/notification', $data) .
+                view('RawMaterials/RawMaterial', $data) .
+                view('Template/Footer', $data);
     }
 
     /**
