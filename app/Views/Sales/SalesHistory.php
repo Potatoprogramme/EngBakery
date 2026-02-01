@@ -60,14 +60,14 @@
                 </div>
             </div>
 
-            <!-- Summary Cards -->
+            <!-- Summary Cards - Row 1: Main Stats -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
                 <!-- Total Sales Card -->
                 <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-primary">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs sm:text-sm font-medium text-gray-500">Total Sales</p>
-                            <p class="text-lg sm:text-2xl font-bold text-primary" id="summaryTotalSales">₱52,450.00</p>
+                            <p class="text-lg sm:text-2xl font-bold text-primary" id="summaryTotalSales">₱0.00</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-primary/10 rounded-full hidden sm:block">
                             <i class="fas fa-peso-sign text-primary text-xl"></i>
@@ -80,7 +80,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs sm:text-sm font-medium text-gray-500">Total Orders</p>
-                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalOrders">847</p>
+                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalOrders">0</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-blue-100 rounded-full hidden sm:block">
                             <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
@@ -93,7 +93,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs sm:text-sm font-medium text-gray-500">Cash Sales</p>
-                            <p class="text-lg sm:text-2xl font-bold text-green-600" id="summaryCashSales">₱41,725.00</p>
+                            <p class="text-lg sm:text-2xl font-bold text-green-600" id="summaryCashSales">₱0.00</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-green-100 rounded-full hidden sm:block">
                             <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
@@ -106,10 +106,52 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs sm:text-sm font-medium text-gray-500">GCash Sales</p>
-                            <p class="text-lg sm:text-2xl font-bold text-blue-500" id="summaryGcashSales">₱10,725.00</p>
+                            <p class="text-lg sm:text-2xl font-bold text-blue-500" id="summaryGcashSales">₱0.00</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-blue-50 rounded-full hidden sm:block">
                             <i class="fas fa-mobile-alt text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards - Row 2: Category Breakdown -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
+                <!-- Bakery Sales Card -->
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-amber-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Bakery Sales</p>
+                            <p class="text-lg sm:text-2xl font-bold text-amber-600" id="summaryBakerySales">₱0.00</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-amber-100 rounded-full hidden sm:block">
+                            <i class="fas fa-bread-slice text-amber-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coffee/Drinks Sales Card -->
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Coffee/Drinks</p>
+                            <p class="text-lg sm:text-2xl font-bold text-orange-600" id="summaryCoffeeSales">₱0.00</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-orange-100 rounded-full hidden sm:block">
+                            <i class="fas fa-mug-hot text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grocery Sales Card -->
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Grocery Sales</p>
+                            <p class="text-lg sm:text-2xl font-bold text-emerald-600" id="summaryGrocerySales">₱0.00</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-emerald-100 rounded-full hidden sm:block">
+                            <i class="fas fa-shopping-basket text-emerald-600 text-xl"></i>
                         </div>
                     </div>
                 </div>
@@ -124,6 +166,7 @@
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Shift</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Bakery Sales</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Coffee Sales</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Grocery Sales</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">GCash</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Cash</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Total Sales</th>
@@ -244,135 +287,107 @@
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         let dataTable = null;
-
-        // Sample Data
-        const salesData = [
-            {
-                date: '2026-01-26',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cashier_name: 'Raymond De. Cayao',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 4730,
-                coffee_sales: 415,
-                grocery_sales: 100,
-                gcash_total: 276,
-                cash_total: 4473,
-                total_sales: 5245,
-                order_count: 127,
-                variance: 94,
-                bills: { '1000': 2, '500': 3, '100': 10, '50': 1, '10': 2, '1': 3 },
-                total_cash_enclosed: 4473
-            },
-            {
-                date: '2026-01-25',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cashier_name: 'Maria Santos',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 5120,
-                coffee_sales: 380,
-                grocery_sales: 150,
-                gcash_total: 450,
-                cash_total: 5200,
-                total_sales: 5650,
-                order_count: 142,
-                variance: 0,
-                bills: { '1000': 3, '500': 2, '200': 1, '100': 15, '50': 2, '20': 5 },
-                total_cash_enclosed: 5200
-            },
-            {
-                date: '2026-01-24',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cashier_name: 'Juan Dela Cruz',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 3890,
-                coffee_sales: 520,
-                grocery_sales: 80,
-                gcash_total: 890,
-                cash_total: 3600,
-                total_sales: 4490,
-                order_count: 98,
-                variance: -50,
-                bills: { '1000': 2, '500': 2, '100': 8, '50': 4, '20': 5 },
-                total_cash_enclosed: 3550
-            },
-            {
-                date: '2026-01-23',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cashier_name: 'Raymond De. Cayao',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 6200,
-                coffee_sales: 650,
-                grocery_sales: 200,
-                gcash_total: 1250,
-                cash_total: 5800,
-                total_sales: 7050,
-                order_count: 168,
-                variance: 25,
-                bills: { '1000': 4, '500': 2, '100': 12, '50': 6, '20': 2, '10': 3 },
-                total_cash_enclosed: 5825
-            },
-            {
-                date: '2026-01-22',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cashier_name: 'Ana Reyes',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 4560,
-                coffee_sales: 390,
-                grocery_sales: 120,
-                gcash_total: 570,
-                cash_total: 4500,
-                total_sales: 5070,
-                order_count: 115,
-                variance: 0,
-                bills: { '1000': 3, '500': 2, '100': 10, '50': 2, '20': 2, '5': 4 },
-                total_cash_enclosed: 4500
-            },
-            {
-                date: '2026-01-21',
-                shift_start: '14:00',
-                shift_end: '22:00',
-                cashier_name: 'Pedro Garcia',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 5890,
-                coffee_sales: 720,
-                grocery_sales: 180,
-                gcash_total: 1890,
-                cash_total: 4900,
-                total_sales: 6790,
-                order_count: 156,
-                variance: -15,
-                bills: { '1000': 3, '500': 3, '100': 6, '50': 4, '20': 3, '10': 2, '5': 1 },
-                total_cash_enclosed: 4885
-            },
-            {
-                date: '2026-01-20',
-                shift_start: '06:00',
-                shift_end: '14:00',
-                cashier_name: 'Maria Santos',
-                outlet_name: 'E n\' G Bakery - Deca Seutrio',
-                bakery_sales: 7250,
-                coffee_sales: 850,
-                grocery_sales: 250,
-                gcash_total: 2350,
-                cash_total: 6000,
-                total_sales: 8350,
-                order_count: 195,
-                variance: 50,
-                bills: { '1000': 5, '500': 1, '100': 8, '50': 4, '20': 1, '10': 5 },
-                total_cash_enclosed: 6050
-            }
-        ];
+        let salesData = []; // Will be populated from API
+        let todaysSales = null; // Today's sales before remittance
 
         $(document).ready(function() {
             initFilters();
-            renderSalesHistory(salesData);
+            loadSalesHistory();
             initDetailsModal();
         });
+
+        /**
+         * Load sales history from API
+         */
+        function loadSalesHistory() {
+            const dateFrom = $('#filterDateFrom').val();
+            const dateTo = $('#filterDateTo').val();
+
+            // Show loading state
+            $('#salesHistoryTableBody').html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-4xl mb-3"></i><p>Loading sales history...</p></td></tr>');
+            $('#salesHistoryCards').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-spinner fa-spin text-4xl mb-3"></i><p>Loading...</p></div>');
+
+            // Fetch sales history from API
+            $.ajax({
+                url: BASE_URL + 'Sales/GetSalesHistory',
+                type: 'GET',
+                data: { date_from: dateFrom, date_to: dateTo },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        salesData = response.data || [];
+                        
+                        // Also fetch today's sales to show before remittance
+                        fetchTodaysSales(function() {
+                            renderSalesHistory(salesData);
+                        });
+                    } else {
+                        showToast('error', response.message || 'Failed to load sales history');
+                        salesData = [];
+                        renderSalesHistory([]);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading sales history:', error);
+                    showToast('error', 'Failed to load sales history');
+                    salesData = [];
+                    renderSalesHistory([]);
+                }
+            });
+        }
+
+        /**
+         * Fetch today's sales (before remittance is done)
+         */
+        function fetchTodaysSales(callback) {
+            $.ajax({
+                url: BASE_URL + 'Sales/GetTodaysSales',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data) {
+                        todaysSales = response.data;
+                        // Only add today's sales to list if no remittance has been done yet
+                        if (!todaysSales.has_remittance && todaysSales.total_sales > 0) {
+                            // Check if today's date is within filter range
+                            const today = new Date(todaysSales.date);
+                            const dateFrom = new Date($('#filterDateFrom').val());
+                            const dateTo = new Date($('#filterDateTo').val());
+                            
+                            if (today >= dateFrom && today <= dateTo) {
+                                // Add today's sales as pending at the top
+                                const todayEntry = {
+                                    date: todaysSales.date,
+                                    shift_start: 'N/A',
+                                    shift_end: 'N/A',
+                                    cashier_name: 'Current Session',
+                                    outlet_name: 'E n\' G Bakery',
+                                    bakery_sales: todaysSales.bakery_sales || 0,
+                                    coffee_sales: todaysSales.coffee_sales || 0,
+                                    grocery_sales: todaysSales.grocery_sales || 0,
+                                    gcash_total: todaysSales.gcash_total || 0,
+                                    cash_total: todaysSales.cash_total || 0,
+                                    total_sales: todaysSales.total_sales || 0,
+                                    order_count: todaysSales.order_count || 0,
+                                    variance: 0,
+                                    is_pending: true // Flag to show this is not yet remitted
+                                };
+                                
+                                // Add to beginning of array if not already there
+                                const existingIndex = salesData.findIndex(s => s.date === todayEntry.date);
+                                if (existingIndex === -1) {
+                                    salesData.unshift(todayEntry);
+                                }
+                            }
+                        }
+                    }
+                    if (callback) callback();
+                },
+                error: function() {
+                    if (callback) callback();
+                }
+            });
+        }
 
         function initFilters() {
             // Set default date range (last 30 days)
@@ -384,16 +399,8 @@
             $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
 
             $('#btnApplyFilters').on('click', function() {
-                // Filter sample data by date range
-                const dateFrom = new Date($('#filterDateFrom').val());
-                const dateTo = new Date($('#filterDateTo').val());
-                
-                const filtered = salesData.filter(sale => {
-                    const saleDate = new Date(sale.date);
-                    return saleDate >= dateFrom && saleDate <= dateTo;
-                });
-                
-                renderSalesHistory(filtered);
+                // Reload data from API with new date filters
+                loadSalesHistory();
                 showToast('success', 'Filters applied');
             });
 
@@ -404,7 +411,7 @@
                 
                 $('#filterDateTo').val(today.toISOString().split('T')[0]);
                 $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
-                renderSalesHistory(salesData);
+                loadSalesHistory();
                 showToast('info', 'Filters reset');
             });
 
@@ -429,7 +436,7 @@
             }
 
             if (!history || history.length === 0) {
-                $('#salesHistoryTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No sales history found</p></td></tr>');
+                $('#salesHistoryTableBody').html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No sales history found</p></td></tr>');
                 return;
             }
 
@@ -438,23 +445,37 @@
                 const date = new Date(sale.date);
                 const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 
-                const varianceClass = parseFloat(sale.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
-                const varianceText = parseFloat(sale.variance) >= 0 
-                    ? '+' + formatCurrency(sale.variance) 
-                    : '-' + formatCurrency(Math.abs(sale.variance));
+                // Check if this is pending (today's sales before remittance)
+                const isPending = sale.is_pending || false;
+                const rowClass = isPending ? 'border-b hover:bg-yellow-50 bg-yellow-50/50' : 'border-b hover:bg-gray-50';
+                
+                let varianceHtml = '';
+                if (isPending) {
+                    varianceHtml = '<span class="px-2 py-1 rounded-full text-xs font-medium text-yellow-600 bg-yellow-100"><i class="fas fa-clock mr-1"></i>Pending</span>';
+                } else {
+                    const varianceClass = parseFloat(sale.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
+                    const varianceText = parseFloat(sale.variance) >= 0 
+                        ? '+' + formatCurrency(sale.variance) 
+                        : '-' + formatCurrency(Math.abs(sale.variance));
+                    varianceHtml = `<span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>`;
+                }
+
+                const shiftText = isPending ? '<span class="text-yellow-600"><i class="fas fa-hourglass-half mr-1"></i>In Progress</span>' : formatTime(sale.shift_start) + ' - ' + formatTime(sale.shift_end);
 
                 html += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${formatTime(sale.shift_start)} - ${formatTime(sale.shift_end)}</td>
+                    <tr class="${rowClass}">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                            ${dateStr}
+                            ${isPending ? '<span class="ml-2 px-2 py-0.5 text-xs bg-yellow-200 text-yellow-800 rounded">Today</span>' : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${shiftText}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-amber-600 font-semibold">${formatCurrency(sale.bakery_sales || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-orange-600 font-semibold">${formatCurrency(sale.coffee_sales || 0)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-emerald-600 font-semibold">${formatCurrency(sale.grocery_sales || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-blue-600 font-semibold">${formatCurrency(sale.gcash_total || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">${formatCurrency(sale.cash_total || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total_sales || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">${varianceHtml}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
                                 <i class="fas fa-eye"></i>
@@ -501,28 +522,39 @@
                 const date = new Date(sale.date);
                 const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 
-                const varianceClass = parseFloat(sale.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
-                const varianceIcon = parseFloat(sale.variance) >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-                const varianceText = parseFloat(sale.variance) >= 0 
-                    ? '+' + formatCurrency(sale.variance)
-                    : '-' + formatCurrency(Math.abs(sale.variance));
+                const isPending = sale.is_pending || false;
+                const cardBorderClass = isPending ? 'border-yellow-400 border-2' : 'border-gray-300';
+                const headerClass = isPending ? 'bg-yellow-500' : 'bg-primary/90';
+                
+                let varianceHtml = '';
+                if (isPending) {
+                    varianceHtml = '<span class="px-2 py-1 rounded-full text-xs font-medium text-yellow-800 bg-yellow-200"><i class="fas fa-clock mr-1"></i>Pending</span>';
+                } else {
+                    const varianceClass = parseFloat(sale.variance) >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
+                    const varianceIcon = parseFloat(sale.variance) >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                    const varianceText = parseFloat(sale.variance) >= 0 
+                        ? '+' + formatCurrency(sale.variance)
+                        : '-' + formatCurrency(Math.abs(sale.variance));
+                    varianceHtml = `<span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}"><i class="fas ${varianceIcon} mr-1"></i>${varianceText}</span>`;
+                }
+
+                const shiftText = isPending ? '<i class="fas fa-hourglass-half mr-1"></i>In Progress' : formatTime(sale.shift_start) + ' - ' + formatTime(sale.shift_end);
 
                 html += `
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden ${cardBorderClass}">
                         <!-- Card Header -->
-                        <div class="bg-primary/90 px-4 py-3 border-b border-gray-300">
+                        <div class="${headerClass} px-4 py-3 border-b border-gray-300">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-calendar text-white"></i>
                                     <span class="font-bold text-white">${dateStr}</span>
+                                    ${isPending ? '<span class="ml-1 px-2 py-0.5 text-xs bg-white text-yellow-600 rounded font-medium">Today</span>' : ''}
                                 </div>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">
-                                    <i class="fas ${varianceIcon} mr-1"></i>${varianceText}
-                                </span>
+                                ${varianceHtml}
                             </div>
-                            <div class="flex items-center gap-2 mt-1 text-xs text-gray-300">
+                            <div class="flex items-center gap-2 mt-1 text-xs text-gray-200">
                                 <i class="fas fa-clock text-xs"></i>
-                                <span>${formatTime(sale.shift_start)} - ${formatTime(sale.shift_end)}</span>
+                                <span>${shiftText}</span>
                             </div>
                         </div>
                         
@@ -585,18 +617,25 @@
 
         function updateSummaryCards(history) {
             let totalSales = 0, totalOrders = 0, cashSales = 0, gcashSales = 0;
+            let bakerySales = 0, coffeeSales = 0, grocerySales = 0;
             
             history.forEach(sale => {
                 totalSales += sale.total_sales || 0;
                 totalOrders += sale.order_count || 0;
                 cashSales += sale.cash_total || 0;
                 gcashSales += sale.gcash_total || 0;
+                bakerySales += sale.bakery_sales || 0;
+                coffeeSales += sale.coffee_sales || 0;
+                grocerySales += sale.grocery_sales || 0;
             });
 
             $('#summaryTotalSales').text(formatCurrency(totalSales));
             $('#summaryTotalOrders').text(totalOrders);
             $('#summaryCashSales').text(formatCurrency(cashSales));
             $('#summaryGcashSales').text(formatCurrency(gcashSales));
+            $('#summaryBakerySales').text(formatCurrency(bakerySales));
+            $('#summaryCoffeeSales').text(formatCurrency(coffeeSales));
+            $('#summaryGrocerySales').text(formatCurrency(grocerySales));
         }
 
         function initDetailsModal() {

@@ -114,6 +114,23 @@ class OrderModel extends Model
     }
 
     /**
+     * Get today's total sales by payment method
+     */
+    public function getTodaysSalesByPaymentMethod(string $paymentMethod): float
+    {
+        $today = date('Y-m-d');
+        
+        $result = $this->builder()
+            ->selectSum('total_payment_due', 'total')
+            ->where('date_created', $today)
+            ->where('LOWER(payment_method)', strtolower($paymentMethod))
+            ->get()
+            ->getRowArray();
+        
+        return floatval($result['total'] ?? 0);
+    }
+
+    /**
      * Process a complete order with items and stock updates
      * Returns order data on success, throws exception on failure
      */

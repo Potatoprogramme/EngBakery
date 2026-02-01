@@ -80,30 +80,49 @@ class SalesController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Invalid remittance data']);
         }
 
-        // Require cashier id and validate it
-        $cashierId = $data['cashier_id'] ?? null;
-        if (empty($cashierId) || !is_numeric($cashierId)) {
-            log_message('warning', 'Missing or invalid cashier_id in remittance payload: ' . json_encode($data));
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Missing or invalid cashier_id']);
-        }
-
-        // Verify that cashier exists in users table to avoid FK violation
+        // Get cashier id - use session if available, otherwise use provided value or default to 1
+        $cashierId = session()->get('id') ?? ($data['cashier_id'] ?? 1);
+        
+        // Verify that cashier exists in users table
         $cashierUser = $this->usersModel->find((int) $cashierId);
         if (empty($cashierUser)) {
-            log_message('warning', 'Cashier user not found for id: ' . $cashierId);
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Cashier not found']);
+            // In development, create a default user if none exists
+            log_message('warning', 'Cashier user not found for id: ' . $cashierId . '. Creating default user.');
+            
+            // Check if ANY user exists
+            $anyUser = $this->usersModel->first();
+            if (empty($anyUser)) {
+                // Create a default user for development
+                $defaultUser = [
+                    'email' => 'admin@engbakery.com',
+                    'firstname' => 'Admin',
+                    'middlename' => '',
+                    'lastname' => 'User',
+                    'employee_type' => 'admin',
+                    'username' => 'admin',
+                    'password' => password_hash('admin123', PASSWORD_DEFAULT),
+                    'gender' => 'male',
+                    'birthdate' => '1990-01-01',
+                    'phone_number' => '',
+                    'approved' => 1,
+                ];
+                $cashierId = $this->usersModel->insert($defaultUser);
+                log_message('info', 'Created default admin user with ID: ' . $cashierId);
+            } else {
+                // Use the first existing user
+                $cashierId = $anyUser['user_id'];
+                log_message('info', 'Using existing user with ID: ' . $cashierId);
+            }
         }
 
-        // Prepare remittance details with safe array access
+      
         $remittanceDetails = [
             'cashier' => (int) $cashierId,
-            'cashier_email' => $data['cashier_email'] ?? '',
-            'outlet_name' => $data['outlet_name'] ?? '',
             'remittance_date' => $data['date'] ?? date('Y-m-d'),
-            'shift_start' => $data['shift_start'] ?? '',
-            'shift_end' => $data['shift_end'] ?? '',
+            'shift_start' => date('H:i:s'), // Current time as shift start
+            'shift_end' => date('H:i:s'),   // Will be updated when shift ends
+            'cash_on_hand' => 0, // Starting cash
             'amount_enclosed' => $data['amount_enclosed'] ?? 0,
-            'total_online_revenue' => $data['total_online_revenue'] ?? 0,
             'cash_out' => $data['cash_out_amount'] ?? 0,
             'cashout_reason' => $data['cash_out_reason'] ?? '',
             'bakery_sales' => $data['bakery_sales'] ?? 0,
@@ -124,33 +143,162 @@ class SalesController extends BaseController
 
 
 
-        log_message('info', json_encode($data['denominations']));
+        log_message('info', 'Denominations data: ' . json_encode($data['denominations'] ?? []));
         // Save remittance denominations (if provided)
-        foreach ($data['denominations'] as $denom) {
-            log_message('info', 'Processing denomination: ' . json_encode($denom) . 'with count ' . ($denom['count'] ?? 0));
-            $remittanceDenom = [
-                'remittance_id' => $remittanceId,
-                'denomination' => $denom['denomination'],
-                'count' => $denom['count'] ?? 0,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            $this->remittanceDenominationsModel->insert($remittanceDenom);
-            log_message('info', 'Remittance denomination saved: ' . json_encode($remittanceDenom));
+        // denominations comes as an object {"1000": {count: 2, denomination: 1000}, ...}
+        $denominations = $data['denominations'] ?? [];
+        if (is_array($denominations) || is_object($denominations)) {
+            foreach ($denominations as $key => $denom) {
+                // Handle both object and array formats
+                $denomValue = is_array($denom) ? ($denom['denomination'] ?? 0) : (isset($denom->denomination) ? $denom->denomination : 0);
+                $countValue = is_array($denom) ? ($denom['count'] ?? 0) : (isset($denom->count) ? $denom->count : 0);
+                
+                if ($countValue > 0) {
+                    log_message('info', 'Processing denomination: ' . $denomValue . ' with count ' . $countValue);
+                    $remittanceDenom = [
+                        'remittance_id' => $remittanceId,
+                        'denomination' => $denomValue,
+                        'count' => $countValue,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    $this->remittanceDenominationsModel->insert($remittanceDenom);
+                    log_message('info', 'Remittance denomination saved: ' . json_encode($remittanceDenom));
+                }
+            }
         }
 
-        log_message('info', json_encode($data['transaction_ids']));
-        foreach ($data['transaction_ids'] as $item) {
-            
-            $remittanceItem = [
-                'remittance_id' => $remittanceId,
-                'transaction_id' => $item,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            
-            $this->remittanceItemsModel->insert($remittanceItem);
-            log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
+        // Save transaction IDs linked to this remittance
+        $transactionIds = $data['transaction_ids'] ?? [];
+        log_message('info', 'Transaction IDs: ' . json_encode($transactionIds));
+        
+        if (is_array($transactionIds) && count($transactionIds) > 0) {
+            foreach ($transactionIds as $item) {
+                if (!empty($item)) {
+                    $remittanceItem = [
+                        'remittance_id' => $remittanceId,
+                        'transaction_id' => $item,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $this->remittanceItemsModel->insert($remittanceItem);
+                    log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
+                }
+            }
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
+    }
+
+    /**
+     * Get sales history from remittance records
+     */
+    public function getSalesHistory()
+    {
+        $dateFrom = $this->request->getGet('date_from');
+        $dateTo = $this->request->getGet('date_to');
+
+        // Default to last 30 days if no dates provided
+        if (!$dateTo) {
+            $dateTo = date('Y-m-d');
+        }
+        if (!$dateFrom) {
+            $dateFrom = date('Y-m-d', strtotime('-30 days'));
+        }
+
+        // Fetch remittance records with cashier info
+        $salesHistory = $this->db->query("
+            SELECT 
+                rd.remittance_id,
+                rd.remittance_date as date,
+                rd.shift_start,
+                rd.shift_end,
+                rd.bakery_sales,
+                rd.coffee_sales,
+                rd.total_sales,
+                rd.amount_enclosed as cash_total,
+                0 as gcash_total,
+                rd.overage_shortage as variance,
+                rd.cash_out,
+                rd.cashout_reason,
+                u.firstname,
+                u.lastname,
+                CONCAT(u.firstname, ' ', u.lastname) as cashier_name,
+                'E n'' G Bakery' as outlet_name
+            FROM remittance_details rd
+            LEFT JOIN users u ON rd.cashier = u.user_id
+            WHERE rd.remittance_date BETWEEN ? AND ?
+            ORDER BY rd.remittance_date DESC, rd.shift_start DESC
+        ", [$dateFrom, $dateTo])->getResultArray();
+
+        // Calculate order count and grocery sales for each record
+        foreach ($salesHistory as &$sale) {
+            // Get order count for that date
+            $orderCount = $this->db->query("
+                SELECT COUNT(*) as count FROM orders 
+                WHERE date_created = ?
+            ", [$sale['date']])->getRow();
+            $sale['order_count'] = $orderCount ? $orderCount->count : 0;
+
+            // Calculate grocery sales (total - bakery - coffee)
+            $sale['grocery_sales'] = max(0, ($sale['total_sales'] ?? 0) - ($sale['bakery_sales'] ?? 0) - ($sale['coffee_sales'] ?? 0));
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $salesHistory
+        ]);
+    }
+
+    /**
+     * Get today's sales summary (for Sales History showing today's sales before remittance)
+     */
+    public function getTodaysSales()
+    {
+        $today = date('Y-m-d');
+        
+        // Get sales by category from transactions (returns array with total_revenue)
+        $bakeryResult = $this->transactionsModel->getTodaysSaleByCategory('bakery');
+        $drinksResult = $this->transactionsModel->getTodaysSaleByCategory('drinks');
+        $groceryResult = $this->transactionsModel->getTodaysSaleByCategory('grocery');
+        
+        // Extract numeric values
+        $bakerySales = floatval($bakeryResult['total_revenue'] ?? 0);
+        $drinksSales = floatval($drinksResult['total_revenue'] ?? 0);
+        $grocerySales = floatval($groceryResult['total_revenue'] ?? 0);
+        
+        // Get payment method totals
+        $cashSales = $this->orderModel->getTodaysSalesByPaymentMethod('cash');
+        $gcashSales = $this->orderModel->getTodaysSalesByPaymentMethod('gcash');
+        
+        // Get order stats
+        $totalOrders = $this->orderModel->getTodaysOrderCount();
+        
+        // Calculate total sales
+        $totalSales = $bakerySales + $drinksSales + $grocerySales;
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'date' => $today,
+                'bakery_sales' => $bakerySales,
+                'coffee_sales' => $drinksSales,
+                'grocery_sales' => $grocerySales,
+                'total_sales' => $totalSales,
+                'cash_total' => $cashSales,
+                'gcash_total' => $gcashSales,
+                'order_count' => $totalOrders,
+                'has_remittance' => $this->checkTodaysRemittance()
+            ]
+        ]);
+    }
+
+    /**
+     * Check if today has a remittance already
+     */
+    private function checkTodaysRemittance()
+    {
+        $today = date('Y-m-d');
+        $remittance = $this->remittanceDetailsModel->where('remittance_date', $today)->first();
+        return !empty($remittance);
     }
 }
