@@ -31,6 +31,38 @@ class SalesController extends BaseController
             view('Template/Footer');
     }
 
+    public function getRemittanceHistory()
+    {
+        $remittances = $this->remittanceDetailsModel->getAllRemittances();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $remittances
+        ]);
+    }
+
+    public function getRemittanceDetails($remittanceId)
+    {
+        $remittanceDetails = $this->remittanceDetailsModel->getRemittanceDetails((int) $remittanceId);
+        $remittanceDenominations = $this->remittanceDenominationsModel->getDenominationsBreakdown((int) $remittanceId);
+
+
+        if ($remittanceDetails === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Remittance not found'
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'details' => $remittanceDetails,
+                'denominations' => $remittanceDenominations
+            ]
+        ]);
+    }
+
     public function getTodaysSummary()
     {
         $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
@@ -89,21 +121,25 @@ class SalesController extends BaseController
         }
 
         // Prepare remittance details with safe array access
+        $variance = $data['variance'] ?? 0;
+        $isShort = $variance < 0 ? 1 : 0;
+        
         $remittanceDetails = [
             'cashier' => (int) $cashierId,
-            'cashier_email' => $data['cashier_email'] ?? '',
             'outlet_name' => $data['outlet_name'] ?? '',
             'remittance_date' => $data['date'] ?? date('Y-m-d'),
-            'shift_start' => $data['shift_start'] ?? '',
-            'shift_end' => $data['shift_end'] ?? '',
+            'shift_start' => $data['shift_start'] ?? '00:00:00',
+            'shift_end' => $data['shift_end'] ?? '00:00:00',
             'amount_enclosed' => $data['amount_enclosed'] ?? 0,
             'total_online_revenue' => $data['total_online_revenue'] ?? 0,
             'cash_out' => $data['cash_out_amount'] ?? 0,
             'cashout_reason' => $data['cash_out_reason'] ?? '',
             'bakery_sales' => $data['bakery_sales'] ?? 0,
             'coffee_sales' => $data['coffee_sales'] ?? 0,
+            'grocery_sales' => $data['grocery_sales'] ?? 0,
             'total_sales' => $data['total_sales'] ?? 0,
-            'overage_shortage' => $data['variance'] ?? 0
+            'variance_amount' => abs($variance),
+            'is_short' => $isShort
         ];
 
         $remittanceId = $this->remittanceDetailsModel->insert($remittanceDetails);
@@ -125,7 +161,7 @@ class SalesController extends BaseController
             $remittanceDenom = [
                 'remittance_id' => $remittanceId,
                 'denomination' => $denom['denomination'],
-                'count' => $denom['count'] ?? 0,
+                'quantity' => $denom['quantity'] ?? 0,
                 'created_at' => date('Y-m-d H:i:s')
             ];
             $this->remittanceDenominationsModel->insert($remittanceDenom);

@@ -49,13 +49,24 @@ class ProductsController extends BaseController
                 ]);
             }
             
-            // Check for ingredients
+            // Check for ingredients (not required for grocery category)
             $ingredients = $data['ingredients'] ?? [];
-            if (empty($ingredients)) {
+            if (empty($ingredients) && strtolower($category) !== 'grocery') {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'At least one ingredient is required.',
                 ]);
+            }
+            
+            // For grocery category, validate direct_cost
+            if (strtolower($category) === 'grocery') {
+                $directCost = floatval($data['direct_cost'] ?? 0);
+                if ($directCost <= 0) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Product price is required for grocery items.',
+                    ]);
+                }
             }
             
             // Check if product name already exists

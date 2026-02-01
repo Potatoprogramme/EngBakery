@@ -307,6 +307,27 @@
 
                 <!-- STEP 3: Costing -->
                 <div id="addStep3" class="step-content hidden">
+                    <!-- Grocery Product Price Section (only shown for grocery category) -->
+                    <div id="groceryPriceSection" class="hidden mb-4 p-4 bg-white border-2 border-green-200 rounded-lg shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                                    <i class="fas fa-tag text-green-600 me-1"></i> Product Price
+                                </h4>
+                                <p class="text-xs text-gray-500">Enter the purchase/acquisition cost of this grocery item.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label for="groceryDirectCost" class="text-sm font-medium text-gray-700">Product Price (Direct Cost) <span class="text-red-500">*</span></label>
+                            <div class="flex w-full sm:w-48">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <input type="number" id="groceryDirectCost"
+                                    class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-green-500 font-semibold text-green-700"
+                                    placeholder="0.00" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Costing Container -->
                     <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -318,7 +339,7 @@
                                     to
                                     see totals instantly.</p>
                             </div>
-                            <div class="text-left sm:text-right">
+                            <div id="totalCostSection" class="text-left sm:text-right" >
                                 <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
                                 <div id="totalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
                             </div>
@@ -339,7 +360,7 @@
                                 </div>
                             </div>
 
-                            <div
+                            <div id="overheadCostSection"
                                 class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <span class="text-sm text-gray-600">Overhead Cost</span>
@@ -475,7 +496,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 border-t border-gray-200 pt-4 space-y-3">
+                        <div id="profitMarginSection" class="mt-4 border-t border-gray-200 pt-4 space-y-3">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
@@ -979,7 +1000,43 @@
             function updateUIBasedOnCategory() {
                 const category = $('#category_id').val();
 
-                if (category === 'drinks') {
+                // Update grocery flag and total steps
+                isGroceryCategory = (category === 'grocery');
+                totalSteps = isGroceryCategory ? 2 : 3;
+
+                if (category === 'grocery') {
+                    // Hide combined recipes and yield computation for grocery
+                    $('.combined-recipe-toggle-wrapper').addClass('hidden');
+                    $('#enableCombinedRecipes').prop('checked', false);
+                    $('#combinedRecipeSection').addClass('hidden');
+                    $('#combinedCostCard').addClass('hidden');
+                    $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+                    $('#yieldComputationSection').addClass('hidden');
+                    $('#totalCostSection').addClass('hidden');
+                    $('#directCostCard').addClass('hidden');
+                    $('#profitMarginSection').removeClass('mt-4 border-t border-gray-200 pt-4');
+
+                    // Hide yield-related sections for grocery
+                    $('#perTraySection').addClass('hidden');
+                    $('#perPieceSection').addClass('hidden');
+
+                    // Show grocery-specific Product Price input
+                    $('#groceryPriceSection').removeClass('hidden');
+
+                    // Hide overhead cost section for grocery
+                    $('#overheadCostSection').addClass('hidden');
+                    $('#overheadCost').val(0); // Reset overhead to 0
+
+                    // Hide per tray/piece selling price rows for grocery
+                    $('#sellingPricePerTrayRow').addClass('hidden');
+                    $('#sellingPricePerPieceRow').addClass('hidden');
+
+                    // Show all unit options for grocery
+                    $('#ingredient_unit option').show();
+
+                    // Update step display for grocery (2 steps)
+                    updateStepDisplay();
+                } else if (category === 'drinks') {
                     // Hide combined recipes and yield computation for drinks
                     $('.combined-recipe-toggle-wrapper').addClass('hidden');
                     $('#enableCombinedRecipes').prop('checked', false);
@@ -990,14 +1047,24 @@
 
                     // Show per tray section and enable pieces input for drinks
                     $('#perTraySection').removeClass('hidden');
+                    $('#perPieceSection').removeClass('hidden');
                     $('#piecesPerYield').prop('disabled', false);
 
                     // Enable Grams per Tray/Piece inputs for drinks
                     $('#gramsPerTray').prop('disabled', false);
                     $('#gramsPerPiece').prop('disabled', false);
 
+                    // Hide grocery-specific section
+                    $('#groceryPriceSection').addClass('hidden');
+
+                    // Show overhead cost section for drinks
+                    $('#overheadCostSection').removeClass('hidden');
+
                     // Show all unit options for drinks
                     $('#ingredient_unit option').show();
+
+                    // Update step display for non-grocery (3 steps)
+                    updateStepDisplay();
                 } else if (category === 'bakery' || category === 'dough') {
                     if (category === 'bakery') {
                         // Show combined recipes section for bakery only
@@ -1007,6 +1074,7 @@
 
                         // Show per tray section and enable pieces input for bakery
                         $('#perTraySection').removeClass('hidden');
+                        $('#perPieceSection').removeClass('hidden');
                         $('#piecesPerYield').prop('disabled', false);
 
                         // Disable Grams per Tray/Piece inputs for bakery (they should not be editable)
@@ -1024,6 +1092,7 @@
 
                         // Hide per tray section for dough and make pieces readonly (calculated automatically)
                         $('#perTraySection').addClass('hidden');
+                        $('#perPieceSection').removeClass('hidden');
                         $('#piecesPerYield').prop('disabled', true);
                         $('#traysPerYield').val(0);
                         $('#gramsPerTray').val(0);
@@ -1033,10 +1102,19 @@
                         $('#perPieceSection').addClass('col-span-2');
                     }
 
+                    // Hide grocery-specific section
+                    $('#groceryPriceSection').addClass('hidden');
+
+                    // Show overhead cost section for bakery/dough
+                    $('#overheadCostSection').removeClass('hidden');
+
                     // Hide all units except grams for bakery and dough
                     $('#ingredient_unit option').hide();
                     $('#ingredient_unit option[value="grams"]').show();
                     $('#ingredient_unit').val('grams');
+
+                    // Update step display for non-grocery (3 steps)
+                    updateStepDisplay();
                 } else {
                     // Default state when no category selected
                     $('#combinedRecipeSection').addClass('hidden');
@@ -1046,11 +1124,18 @@
 
                     // Show per tray section and enable pieces input by default
                     $('#perTraySection').removeClass('hidden');
+                    $('#perPieceSection').removeClass('hidden');
                     $('#piecesPerYield').prop('disabled', false);
 
                     // Enable Grams per Tray/Piece inputs by default
                     $('#gramsPerTray').prop('disabled', false);
                     $('#gramsPerPiece').prop('disabled', false);
+
+                    // Hide grocery-specific section
+                    $('#groceryPriceSection').addClass('hidden');
+
+                    // Show overhead cost section by default
+                    $('#overheadCostSection').removeClass('hidden');
                 }
             }
 
@@ -1082,6 +1167,12 @@
                 currentLabelRestriction = null;
                 addPreviousCategory = ''; // Reset the previous category tracker
 
+                // Reset grocery-specific fields
+                isGroceryCategory = false;
+                totalSteps = 3;
+                $('#groceryDirectCost').val(0);
+                $('#groceryPriceSection').addClass('hidden');
+
                 // Reset search inputs
                 $('#ingredient_search').val('');
                 $('#ingredient_id').val('');
@@ -1100,6 +1191,11 @@
                 $('.combined-recipe-container').removeClass('hidden');
                 $('#ingredient_unit option').show();
 
+                // Reset stepper indicators for 3-step mode
+                $('#step2Indicator').parent().removeClass('hidden');
+                $('#connector2').removeClass('hidden');
+                $('#step3Indicator').html('3');
+
                 // Reset mode/title/button
                 $('#product_mode').val('add');
                 $('#product_id').val('');
@@ -1115,59 +1211,120 @@
             // STEP NAVIGATION LOGIC
             // =====================================================
             let currentAddStep = 1;
-            const totalSteps = 3;
+            let totalSteps = 3; // Default to 3 steps, will change to 2 for grocery
+            let isGroceryCategory = false; // Track if grocery category is selected
 
             // Update step display based on current step
             function updateStepDisplay() {
                 // Hide all step content
                 $('#addStep1, #addStep2, #addStep3').addClass('hidden');
 
-                // Show current step content
-                $('#addStep' + currentAddStep).removeClass('hidden');
-
-                // Update stepper indicators
-                for (let i = 1; i <= totalSteps; i++) {
-                    const indicator = $('#step' + i + 'Indicator');
-                    const label = $('#step' + i + 'Label');
-
-                    if (i < currentAddStep) {
-                        // Completed step - solid primary background with checkmark
-                        indicator.removeClass('border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
-                            .addClass('bg-primary text-white border-0');
-                        indicator.html('<i class="fas fa-check"></i>');
-                        label.removeClass('text-gray-400 text-primary').addClass('text-primary');
-                    } else if (i === currentAddStep) {
-                        // Current step - bordered circle with shaded background
-                        indicator.removeClass('border-gray-300 bg-primary text-white border-0 text-gray-400')
-                            .addClass('border-2 border-primary bg-primary/10 text-primary');
-                        indicator.html(i);
-                        label.removeClass('text-gray-400').addClass('text-primary');
-                    } else {
-                        // Future step - gray border and text
-                        indicator.removeClass('border-primary bg-primary/10 bg-primary text-white text-primary border-0')
-                            .addClass('border-2 border-gray-300 text-gray-400');
-                        indicator.html(i);
-                        label.removeClass('text-primary').addClass('text-gray-400');
+                // For grocery category: map step 2 to costing (addStep3)
+                if (isGroceryCategory) {
+                    if (currentAddStep === 1) {
+                        $('#addStep1').removeClass('hidden');
+                    } else if (currentAddStep === 2) {
+                        $('#addStep3').removeClass('hidden'); // Show costing directly
                     }
+                } else {
+                    // Show current step content
+                    $('#addStep' + currentAddStep).removeClass('hidden');
                 }
 
-                // Update connector colors
-                $('#connector1').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 1 ? 'bg-primary' : 'bg-gray-300');
-                $('#connector2').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 2 ? 'bg-primary' : 'bg-gray-300');
+                // Update stepper indicators based on grocery mode
+                if (isGroceryCategory) {
+                    // For grocery: 2-step display (Product Info -> Costing)
+                    // Hide step 2 indicator and connector2
+                    $('#step2Indicator').parent().addClass('hidden');
+                    $('#connector2').addClass('hidden');
+                    
+                    // Update step 1 indicator
+                    const step1Indicator = $('#step1Indicator');
+                    const step1Label = $('#step1Label');
+                    if (currentAddStep === 1) {
+                        step1Indicator.removeClass('border-gray-300 bg-primary text-white border-0 text-gray-400')
+                            .addClass('border-2 border-primary bg-primary/10 text-primary');
+                        step1Indicator.html('1');
+                        step1Label.removeClass('text-gray-400').addClass('text-primary');
+                    } else {
+                        step1Indicator.removeClass('border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
+                            .addClass('bg-primary text-white border-0');
+                        step1Indicator.html('<i class="fas fa-check"></i>');
+                        step1Label.removeClass('text-gray-400 text-primary').addClass('text-primary');
+                    }
+                    
+                    // Update step 3 indicator (now becomes step 2 visually)
+                    const step3Indicator = $('#step3Indicator');
+                    const step3Label = $('#step3Label');
+                    if (currentAddStep === 2) {
+                        step3Indicator.removeClass('border-gray-300 bg-primary text-white border-0 text-gray-400')
+                            .addClass('border-2 border-primary bg-primary/10 text-primary');
+                        step3Indicator.html('2');
+                        step3Label.removeClass('text-gray-400').addClass('text-primary');
+                    } else {
+                        step3Indicator.removeClass('border-primary bg-primary/10 bg-primary text-white text-primary border-0')
+                            .addClass('border-2 border-gray-300 text-gray-400');
+                        step3Indicator.html('2');
+                        step3Label.removeClass('text-primary').addClass('text-gray-400');
+                    }
+                    
+                    // Update connector1 for grocery
+                    $('#connector1').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 1 ? 'bg-primary' : 'bg-gray-300');
+                } else {
+                    // Normal 3-step display
+                    // Show step 2 indicator and connector2
+                    $('#step2Indicator').parent().removeClass('hidden');
+                    $('#connector2').removeClass('hidden');
+                    
+                    // Reset step 3 indicator to show "3"
+                    const step3Indicator = $('#step3Indicator');
+                    
+                    // Update stepper indicators
+                    for (let i = 1; i <= 3; i++) {
+                        const indicator = $('#step' + i + 'Indicator');
+                        const label = $('#step' + i + 'Label');
 
-                // Update button visibility
+                        if (i < currentAddStep) {
+                            // Completed step - solid primary background with checkmark
+                            indicator.removeClass('border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
+                                .addClass('bg-primary text-white border-0');
+                            indicator.html('<i class="fas fa-check"></i>');
+                            label.removeClass('text-gray-400 text-primary').addClass('text-primary');
+                        } else if (i === currentAddStep) {
+                            // Current step - bordered circle with shaded background
+                            indicator.removeClass('border-gray-300 bg-primary text-white border-0 text-gray-400')
+                                .addClass('border-2 border-primary bg-primary/10 text-primary');
+                            indicator.html(i);
+                            label.removeClass('text-gray-400').addClass('text-primary');
+                        } else {
+                            // Future step - gray border and text
+                            indicator.removeClass('border-primary bg-primary/10 bg-primary text-white text-primary border-0')
+                                .addClass('border-2 border-gray-300 text-gray-400');
+                            indicator.html(i);
+                            label.removeClass('text-primary').addClass('text-gray-400');
+                        }
+                    }
+
+                    // Update connector colors
+                    $('#connector1').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 1 ? 'bg-primary' : 'bg-gray-300');
+                    $('#connector2').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 2 ? 'bg-primary' : 'bg-gray-300');
+                }
+
+                // Update button visibility based on grocery mode
+                const maxStep = isGroceryCategory ? 2 : 3;
+                
                 if (currentAddStep === 1) {
                     $('#btnBackStep').addClass('hidden');
                     $('#btnNextStep').removeClass('hidden');
                     $('#btnSaveMaterial').addClass('hidden');
-                } else if (currentAddStep === 2) {
-                    $('#btnBackStep').removeClass('hidden');
-                    $('#btnNextStep').removeClass('hidden');
-                    $('#btnSaveMaterial').addClass('hidden');
-                } else if (currentAddStep === 3) {
+                } else if (currentAddStep === maxStep) {
                     $('#btnBackStep').removeClass('hidden');
                     $('#btnNextStep').addClass('hidden');
                     $('#btnSaveMaterial').removeClass('hidden');
+                } else {
+                    $('#btnBackStep').removeClass('hidden');
+                    $('#btnNextStep').removeClass('hidden');
+                    $('#btnSaveMaterial').addClass('hidden');
                 }
             }
 
@@ -1190,14 +1347,16 @@
                     }
                 }
 
-                if (currentAddStep === 2) {
+                // Skip ingredients validation for grocery (step 2 is costing for grocery)
+                if (currentAddStep === 2 && !isGroceryCategory) {
                     if (ingredientsList.length === 0) {
                         Toast.warning('Please add at least one ingredient.');
                         return;
                     }
                 }
 
-                if (currentAddStep < totalSteps) {
+                const maxStep = isGroceryCategory ? 2 : 3;
+                if (currentAddStep < maxStep) {
                     currentAddStep++;
                     updateStepDisplay();
 
@@ -1477,7 +1636,16 @@
 
             // Update Costing Display
             function updateCostingDisplay(changedField = null) {
-                const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+                const currentCategory = $('#category_id').val();
+                
+                // For grocery category, use the grocery direct cost input
+                let directCost;
+                if (currentCategory === 'grocery') {
+                    directCost = parseFloat($('#groceryDirectCost').val()) || 0;
+                } else {
+                    directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+                }
+                
                 const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
                 const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
                 // Combined cost is NOT added to totalCost for per-unit pricing - it's calculated per piece separately
@@ -1488,9 +1656,6 @@
                 const targetProfit = totalCostWithCombined / ((100 - profitMargin) / 100);
                 const profitAmount = targetProfit - totalCostWithCombined;
                 const sellingPrice = targetProfit;
-
-                // Get current category to determine if yield computation should be shown
-                const currentCategory = $('#category_id').val();
 
                 // Show yield computation section based on category (bakery or dough categories)
                 // Yield computation is only available for bakery and dough categories
@@ -1720,6 +1885,11 @@
 
             // Recalculate on overhead/profit/yield change
             $('#overheadCost, #profitMargin').on('input', function () {
+                updateCostingDisplay();
+            });
+
+            // Handle grocery direct cost input change
+            $('#groceryDirectCost').on('input', function () {
                 updateCostingDisplay();
             });
 
@@ -2180,8 +2350,17 @@
             $('#addMaterialForm').on('submit', function (e) {
                 e.preventDefault();
 
+                const category = $('#category_id').val();
+                const isGrocery = (category === 'grocery');
+
                 // Calculate costs before submission
-                const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+                let directCost;
+                if (isGrocery) {
+                    directCost = parseFloat($('#groceryDirectCost').val()) || 0;
+                } else {
+                    directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
+                }
+                
                 const combinedRecipeCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
                 const overheadPercentage = parseFloat($('#overheadCost').val()) || 0;
                 const overheadCost = directCost * (overheadPercentage / 100);
@@ -2190,31 +2369,39 @@
                 const profitMargin = parseFloat($('#profitMargin').val()) || 0;
                 const profitAmount = totalCost * (profitMargin / 100);
 
-                // Calculate yield info
-                // Check if all ingredients are in grams or ml (ml can be treated as grams for yield calculation)
-                const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => allowedUnitsForYield.includes(item.unit.toLowerCase()));
-                const yieldGrams = allIngredientsInGrams ? ingredientsList.reduce((sum, item) => sum + item.quantity, 0) : 0;
-                const traysPerYield = parseInt($('#traysPerYield').val()) || 0;
-                const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
-                const gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
-                const gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
+                // Calculate yield info (not applicable for grocery)
+                let yieldGrams = 0;
+                let traysPerYield = 0;
+                let piecesPerYield = 0;
+                let gramsPerTray = 0;
+                let gramsPerPiece = 0;
+
+                if (!isGrocery) {
+                    // Check if all ingredients are in grams or ml (ml can be treated as grams for yield calculation)
+                    const allowedUnitsForYield = ['grams', 'ml', 'g'];
+                    const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => allowedUnitsForYield.includes(item.unit.toLowerCase()));
+                    yieldGrams = allIngredientsInGrams ? ingredientsList.reduce((sum, item) => sum + item.quantity, 0) : 0;
+                    traysPerYield = parseInt($('#traysPerYield').val()) || 0;
+                    piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
+                    gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
+                    gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
+                }
 
                 const formData = {
                     product_name: $('#material_name').val(),
-                    category: $('#category_id').val(),
+                    category: category,
                     overhead_cost_percentage: overheadPercentage,
                     profit_margin_percentage: profitMargin,
-                    // Ingredients array
-                    ingredients: ingredientsList.map(item => ({
+                    // Ingredients array (empty for grocery)
+                    ingredients: isGrocery ? [] : ingredientsList.map(item => ({
                         material_id: item.id,
                         quantity: item.quantity,
                         unit: item.unit,
                         cost_per_unit: item.costPerUnit,
                         total_cost: item.totalCost
                     })),
-                    // Combined recipes array
-                    combined_recipes: combinedRecipesList.map(item => ({
+                    // Combined recipes array (empty for grocery)
+                    combined_recipes: isGrocery ? [] : combinedRecipesList.map(item => ({
                         id: item.id,
                         source_product_id: item.id,
                         grams_per_piece: item.gramsPerPiece,
@@ -2223,15 +2410,15 @@
                     })),
                     // Costing data
                     direct_cost: directCost,
-                    combined_recipe_cost: combinedRecipeCost,
+                    combined_recipe_cost: isGrocery ? 0 : combinedRecipeCost,
                     overhead_cost_amount: overheadCost,
                     total_cost: totalCost,
                     profit_amount: profitAmount,
                     // Selling prices
                     selling_price_overall: parseFloat($('#sellingPriceOverall').val()) || (totalCost + profitAmount),
-                    selling_price_per_tray: parseFloat($('#sellingPricePerTray').val()) || 0,
-                    selling_price_per_piece: parseFloat($('#sellingPricePerPiece').val()) || 0,
-                    // Yield data
+                    selling_price_per_tray: isGrocery ? 0 : (parseFloat($('#sellingPricePerTray').val()) || 0),
+                    selling_price_per_piece: isGrocery ? 0 : (parseFloat($('#sellingPricePerPiece').val()) || 0),
+                    // Yield data (not applicable for grocery)
                     yield_grams: yieldGrams,
                     trays_per_yield: traysPerYield,
                     pieces_per_yield: piecesPerYield,
@@ -2248,9 +2435,18 @@
                     Toast.error('Product category is required.');
                     return;
                 }
-                if (formData.ingredients.length === 0) {
-                    Toast.error('Please add at least one ingredient.');
-                    return;
+                
+                // For grocery, validate direct cost; for others, validate ingredients
+                if (isGrocery) {
+                    if (directCost <= 0) {
+                        Toast.error('Please enter a valid product price.');
+                        return;
+                    }
+                } else {
+                    if (formData.ingredients.length === 0) {
+                        Toast.error('Please add at least one ingredient.');
+                        return;
+                    }
                 }
 
                 // Determine mode (add or edit) and set product_id for edit
@@ -2400,6 +2596,16 @@
                                 $('#material_name').val(product.product_name);
                                 $('#category_id').val(product.category);
                                 addPreviousCategory = product.category;
+
+                                // Check if this is a grocery product
+                                const isGroceryProduct = (product.category === 'grocery');
+                                isGroceryCategory = isGroceryProduct;
+                                totalSteps = isGroceryProduct ? 2 : 3;
+
+                                // For grocery products, set the direct cost input
+                                if (isGroceryProduct) {
+                                    $('#groceryDirectCost').val(product.direct_cost || 0);
+                                }
 
                                 $('#overheadCost').val(product.overhead_cost_percentage || 0);
                                 $('#profitMargin').val(product.profit_margin_percentage || 30);

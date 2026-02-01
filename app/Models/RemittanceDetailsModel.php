@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use CodeIgniter\Model;
@@ -12,6 +13,7 @@ class RemittanceDetailsModel extends Model
 
     protected $allowedFields = [
         'cashier',
+        'outlet_name',
         'remittance_date',
         'shift_start',
         'shift_end',
@@ -21,7 +23,25 @@ class RemittanceDetailsModel extends Model
         'cashout_reason',
         'bakery_sales',
         'coffee_sales',
-        'total_sales', 
-        'overage_shortage',
+        'grocery_sales',
+        'total_sales',
+        'variance_amount',
+        'is_short',
     ];
+
+    public function getAllRemittances(): array
+    {
+        return $this->select("remittance_details.*, CONCAT(users.firstname, ' ', COALESCE(users.middlename, ''), ' ', users.lastname) AS cashier_name")
+            ->join('users', 'users.user_id = remittance_details.cashier', 'left')
+            ->orderBy('remittance_date', 'DESC')
+            ->findAll();
+    }
+
+    public function getRemittanceDetails(int $remittanceId): ?array
+    {
+        return $this->select('remittance_details.*, CONCAT(users.firstname, \' \', COALESCE(users.middlename, \'\'), \' \', users.lastname) AS cashier_name, users.email AS cashier_email')
+            ->join('users', 'users.user_id = remittance_details.cashier', 'left')
+            ->where('remittance_details.remittance_id', $remittanceId)
+            ->first();
+    }
 }
