@@ -4,22 +4,36 @@ namespace App\Controllers;
 
 class OrdersController extends BaseController
 {
+     private function getSessionData()
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
     public function order(): string
     {
-        return  view('Template/Header').
-                view('Template/SideNav') . 
-                view('Template/notification') .
-                view('Orders/Order') .
-                view('Template/Footer');
+        $data = $this->getSessionData();
+        return  view('Template/Header', $data).
+                view('Template/SideNav', $data) . 
+                view('Template/notification', $data) .
+                view('Orders/Order', $data) .
+                view('Template/Footer', $data);
     }
 
     public function orderHistory(): string
     {
-        return  view('Template/Header').
-                view('Template/SideNav') . 
-                view('Template/notification') .
-                view('Orders/OrderHistory') .
-                view('Template/Footer');
+        $data = $this->getSessionData();
+        return  view('Template/Header', $data).
+                view('Template/SideNav', $data) . 
+                view('Template/notification', $data) .
+                view('Orders/OrderHistory', $data) .
+                view('Template/Footer', $data);
     }
 
     public function getProducts()
