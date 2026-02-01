@@ -8,6 +8,9 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <!-- JQUERY AND TAILWIND CDN -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,6 +32,7 @@
 </head>
 
 <body>
+    
     <section class="min-h-screen flex items-center bg-[#b2d7c9] py-8">
         <div class="w-full max-w-3xl mx-auto px-4 sm:px-6">
             <div class="bg-white rounded-lg shadow-lg overflow-hidden p-6 sm:p-8">
@@ -211,20 +215,20 @@
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        showToast('success', response.message, 2000);
+                        Toast.success(response.message);
                         setTimeout(function () {
                             window.location.href = '<?= base_url('login') ?>';
                         }, 2000);
                     } else {
                         // Registration failed, display error message
-                        showToast('error', response.message, 2000);
+                        Toast.error(response.message);
                         // Reset button
                         $btn.prop('disabled', false).html(originalText);
                         isSubmitting = false;
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error creating account: ' + (xhr.responseJSON?.message || error), 2000);
+                    Toast.error('Error creating account: ' + (xhr.responseJSON?.message || error));
                     console.log(xhr);
                     // Reset button
                     $btn.prop('disabled', false).html(originalText);
