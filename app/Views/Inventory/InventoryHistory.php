@@ -103,8 +103,8 @@
                 </div>
             </div>
 
-            <!-- History Table -->
-            <div class="p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
+            <!-- History Table - Desktop View -->
+            <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <!-- DataTable controls (top) remain here, outside scroll -->
                 <div class="datatable-top">
                     <!-- ...existing code for dropdown and search... -->
@@ -132,6 +132,15 @@
                 <!-- DataTable controls (bottom) remain here, outside scroll -->
                 <div class="datatable-bottom">
                     <!-- ...existing code for info and pagination... -->
+                </div>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="lg:hidden space-y-3 mb-20" id="historyCards">
+                <!-- Cards will be populated by JS -->
+                <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    <p class="mt-2">Loading history...</p>
                 </div>
             </div>
         </div>
@@ -238,6 +247,7 @@
                 return;
             }
             
+            // Render Desktop Table
             let tableHtml = '';
             const todayStr = new Date().toISOString().split('T')[0];
             
@@ -263,6 +273,86 @@
             });
             
             $('#historyTableBody').html(tableHtml);
+            
+            // Render Mobile Cards
+            renderMobileCards();
+        }
+
+        function renderMobileCards() {
+            if (historyData.length === 0) {
+                $('#historyCards').html(`
+                    <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-3"></i>
+                        <p>No inventory records found</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let cardsHtml = '';
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            historyData.forEach(inv => {
+                const isToday = inv.inventory_date === todayStr;
+                const totalSales = parseFloat(inv.total_sales) || 0;
+                const date = new Date(inv.inventory_date);
+                const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                cardsHtml += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                        <!-- Card Header -->
+                        <div class="bg-primary/90 px-4 py-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar text-white"></i>
+                                    <span class="font-bold text-white">${dateStr}</span>
+                                    ${isToday ? '<span class="px-2 py-0.5 text-xs font-medium bg-white text-primary rounded-full">Today</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-xs text-gray-200">
+                                <i class="fas fa-clock text-xs"></i>
+                                <span>${formatTime(inv.time_start)} - ${formatTime(inv.time_end)}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Body -->
+                        <div class="p-4">
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-4 gap-2 mb-3">
+                                <div class="text-center p-2 bg-blue-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Begin</p>
+                                    <p class="font-bold text-blue-600">${inv.total_beginning || 0}</p>
+                                </div>
+                                <div class="text-center p-2 bg-green-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Sold</p>
+                                    <p class="font-bold text-green-600">${inv.total_sold || 0}</p>
+                                </div>
+                                <div class="text-center p-2 bg-amber-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Pull Out</p>
+                                    <p class="font-bold text-amber-600">${inv.total_pull_out || 0}</p>
+                                </div>
+                                <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Ending</p>
+                                    <p class="font-bold text-gray-700">${inv.total_ending || 0}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <div>
+                                    <p class="text-xs text-gray-500">${inv.total_items || 0} Products</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">Total Sales</p>
+                                    <p class="text-xl font-bold text-primary">₱${totalSales.toFixed(2)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#historyCards').html(cardsHtml);
         }
 
         function initDataTable() {
@@ -294,6 +384,12 @@
                         <p>${message}</p>
                     </td>
                 </tr>
+            `);
+            $('#historyCards').html(`
+                <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-3"></i>
+                    <p>${message}</p>
+                </div>
             `);
         }
 

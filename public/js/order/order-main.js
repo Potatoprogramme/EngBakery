@@ -9,7 +9,7 @@
 let productsData = [];
 let currentProductPrice = 0;
 let currentProductId = null;
-let currentProductCategory = 'bread';
+let currentProductCategory = 'bakery';
 let currentEditIndex = -1;
 let currentEditPrice = 0;
 let currentStep = 1;
@@ -61,7 +61,7 @@ function renderProducts() {
     const drinksGrid = document.getElementById('drinks-grid');
     const groceryGrid = document.getElementById('grocery-grid');
     
-    const breads = productsData.filter(p => p.category === 'bread');
+    const breads = productsData.filter(p => p.category === 'bakery');
     const drinks = productsData.filter(p => p.category === 'drinks');
     const grocery = productsData.filter(p => p.category === 'grocery');
     
@@ -75,7 +75,7 @@ function renderProducts() {
 
 function createProductCard(product) {
     const price = parseFloat(product.price) || 0;
-    const category = product.category || 'bread';
+    const category = product.category || 'bakery';
     const stock = parseInt(product.available_stock) || 0;
     
     // Drinks don't track stock - always available
@@ -140,7 +140,7 @@ function attachProductCardHandlers() {
             const productId = this.getAttribute('data-product-id');
             const productName = this.getAttribute('data-product-name');
             const price = parseFloat(this.getAttribute('data-product-price'));
-            const category = this.getAttribute('data-product-category') || 'bread';
+            const category = this.getAttribute('data-product-category') || 'bakery';
             
             currentProductId = productId;
             currentProductPrice = price;

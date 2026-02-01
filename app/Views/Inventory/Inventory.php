@@ -98,54 +98,138 @@
             </div>
 
             <!-- Desktop Table View -->
-            <div class="hidden sm:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
-                <table id="selection-table" class="min-w-full text-sm text-left">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Category
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    SRP
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Items/Particulars
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Beginning Total
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Pull Out Total
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Ending Total
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">
-                                    Sales
-                                </span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">Actions</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="materialsTableBody">
-                        <!-- Data will be loaded via AJAX -->
-                    </tbody>
-                </table>
+            <div class="hidden sm:block space-y-6 mb-20 sm:mb-0">
+                
+                <!-- Bakery Section -->
+                <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                    <div class="px-4 py-3 bg-amber-50/50 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-bread-slice text-amber-500 text-sm"></i>
+                            <h3 class="text-sm font-medium text-gray-700">Bakery Products</h3>
+                            <span id="bakeryCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 rounded">0 items</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="bakeryTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bakeryTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalSales">₱0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Drinks Section -->
+                <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                    <div class="px-4 py-3 bg-blue-50/50 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-mug-hot text-blue-500 text-sm"></i>
+                            <h3 class="text-sm font-medium text-gray-700">Drinks</h3>
+                            <span id="drinksCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">0 items</span>
+                        </div>
+                        <p class="text-[11px] text-gray-500 mt-1">Drinks do not require stock tracking</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="drinksTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drinksTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalSales">₱0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Grocery Section -->
+                <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                    <div class="px-4 py-3 bg-emerald-50/50 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shopping-basket text-emerald-500 text-sm"></i>
+                            <h3 class="text-sm font-medium text-gray-700">Grocery Items</h3>
+                            <span id="groceryCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">0 items</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="groceryTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groceryTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalSales">₱0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Grand Total Summary -->
+                <div class="bg-gray-800 rounded border border-gray-700 px-5 py-4">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex items-center gap-3">
+                            <div>
+                                <p class="text-xs text-gray-400">Items Sold Today</p>
+                                <p class="text-xl font-semibold text-white" id="grandTotalQty">0</p>
+                            </div>
+                        </div>
+                        <div class="h-8 w-px bg-gray-600 hidden sm:block"></div>
+                        <div class="flex items-center gap-3">
+                            <div>
+                                <p class="text-xs text-gray-400">Total Sales</p>
+                                <p class="text-xl font-semibold text-white" id="grandTotalSales">₱0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Time Input Modal -->
             <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -349,7 +433,6 @@
     </style>
 
     <script>
-        let dataTable = null;
         $(document).ready(function () {
             const baseUrl = '<?= site_url() ?>';
 
@@ -623,118 +706,173 @@
         const itemsPerPage = 10;
 
         function loadInventory(items) {
-            // Destroy existing DataTable first
-            if (dataTable) {
-                dataTable.destroy();
-                dataTable = null;
-            }
-
             // Store items for mobile pagination
             allInventoryItems = items || [];
             filteredItems = [...allInventoryItems];
             currentPage = 1;
 
+            // Separate items by category
+            const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
+            const drinksItems = items ? items.filter(i => i.category === 'drinks') : [];
+            const groceryItems = items ? items.filter(i => i.category === 'grocery') : [];
+
+            // Render each category table
+            renderBakeryTable(bakeryItems);
+            renderDrinksTable(drinksItems);
+            renderGroceryTable(groceryItems);
+            
+            // Update totals
+            updateGrandTotals(items || []);
+            
+            // Render mobile cards with pagination
+            renderMobileCards();
+        }
+
+        function renderBakeryTable(items) {
             let rows = '';
+            let totalQty = 0;
+            let totalSales = 0;
+
             if (items && items.length > 0) {
-                items.forEach(function (item) {
-
-                    // Use appropriate price based on category
-                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
-                        ? item.selling_price_per_piece
-                        : item.selling_price;
+                items.forEach(function(item) {
+                    const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-
-                    // Category badge color and label
-                    let categoryClass = 'bg-gray-100 text-gray-800';
-                    let categoryLabel = 'N/A';
-                    if (item.category === 'bread') {
-                        categoryClass = 'bg-amber-100 text-amber-800';
-                        categoryLabel = 'Bakery';
-                    } else if (item.category === 'drinks') {
-                        categoryClass = 'bg-blue-100 text-blue-800';
-                        categoryLabel = 'Drinks';
-                    } else if (item.category === 'grocery') {
-                        categoryClass = 'bg-green-100 text-green-800';
-                        categoryLabel = 'Grocery';
-                    } else if (item.category) {
-                        categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
-                    }
-
                     const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+                    const qtySold = item.quantity_sold || 0;
+                    const sales = parseFloat(item.total_sales) || 0;
+                    
+                    totalQty += qtySold;
+                    totalSales += sales;
 
-                    // Desktop table row
-                    rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
-                    rows += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';
-                    rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';
-                    rows += '<td class="px-6 py-4">' + (item.beginning_stock || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">' + (item.pull_out_quantity || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">' + ending_stock + '</td>';
-                    rows += '<td class="px-6 py-4">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</td>';
-                    rows += '<td class="px-6 py-4">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.beginning_stock || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.pull_out_quantity || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
+                    rows += '<td class="px-6 py-3">';
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>';
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
             }
 
-            $('#materialsTableBody').html(rows);
-            
-            // Render mobile cards with pagination
-            renderMobileCards();
+            $('#bakeryTableBody').html(rows);
+            $('#bakeryCount').text(items.length + ' items');
+            $('#bakeryTotalQty').text(totalQty);
+            $('#bakeryTotalSales').text('₱' + totalSales.toFixed(2));
+        }
 
-            // Initialize DataTable with custom labels - ONLY if we have data
-            const tableElement = document.getElementById('selection-table');
-            if (tableElement && typeof simpleDatatables !== 'undefined' && items && items.length > 0) {
-                dataTable = new simpleDatatables.DataTable('#selection-table', {
-                    labels: {
-                        placeholder: "Search inventory...",
-                        perPage: "entries per page",
-                        noRows: "No inventory data available",
-                        noResults: "No results match your search",
-                        info: "Showing {start} to {end} of {rows} entries"
-                    },
-                    perPage: 10,
-                    perPageSelect: [5, 10, 25, 50]
+        function renderDrinksTable(items) {
+            let rows = '';
+            let totalQty = 0;
+            let totalSales = 0;
+
+            if (items && items.length > 0) {
+                items.forEach(function(item) {
+                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                    const qtySold = item.quantity_sold || 0;
+                    const sales = parseFloat(item.total_sales) || 0;
+                    
+                    totalQty += qtySold;
+                    totalSales += sales;
+
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
+                    rows += '<td class="px-6 py-3">';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</td>';
+                    rows += '</tr>';
                 });
+            } else {
+                rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
             }
+
+            $('#drinksTableBody').html(rows);
+            $('#drinksCount').text(items.length + ' items');
+            $('#drinksTotalQty').text(totalQty);
+            $('#drinksTotalSales').text('₱' + totalSales.toFixed(2));
+        }
+
+        function renderGroceryTable(items) {
+            let rows = '';
+            let totalQty = 0;
+            let totalSales = 0;
+
+            if (items && items.length > 0) {
+                items.forEach(function(item) {
+                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+                    const qtySold = item.quantity_sold || 0;
+                    const sales = parseFloat(item.total_sales) || 0;
+                    
+                    totalQty += qtySold;
+                    totalSales += sales;
+
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.beginning_stock || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.pull_out_quantity || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
+                    rows += '<td class="px-6 py-3">';
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</td>';
+                    rows += '</tr>';
+                });
+            } else {
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+            }
+
+            $('#groceryTableBody').html(rows);
+            $('#groceryCount').text(items.length + ' items');
+            $('#groceryTotalQty').text(totalQty);
+            $('#groceryTotalSales').text('₱' + totalSales.toFixed(2));
+        }
+
+        function updateGrandTotals(items) {
+            let grandQty = 0;
+            let grandSales = 0;
+
+            items.forEach(function(item) {
+                grandQty += item.quantity_sold || 0;
+                grandSales += parseFloat(item.total_sales) || 0;
+            });
+
+            $('#grandTotalQty').text(grandQty);
+            $('#grandTotalSales').text('₱' + grandSales.toFixed(2));
         }
 
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             const itemId = $(this).data('id');
             
-            // Try to get data from table row first (desktop)
-            const row = $(this).closest('tr');
+            // Always get data from stored items array (more reliable)
+            const item = allInventoryItems.find(i => i.item_id == itemId);
             
-            let productName, beginningStock, pullOutQty;
-            
-            if (row.length > 0) {
-                // Desktop table view
-                productName = row.find('td:eq(2)').text(); // Column 2 is product name
-                beginningStock = row.find('td:eq(3)').text(); // Column 3 is beginning stock
-                pullOutQty = row.find('td:eq(4)').text(); // Column 4 is pull out quantity
+            if (item) {
+                // Store item ID and populate modal
+                $('#editItemId').val(itemId);
+                $('#editProductName').text(item.product_name || 'N/A');
+                $('#editBeginningStock').val(item.beginning_stock || 0);
+                $('#editPullOutQuantity').val(item.pull_out_quantity || 0);
+
+                // Show modal
+                $('#editInventoryModal').removeClass('hidden');
             } else {
-                // Mobile card view - find item from stored data
-                const item = allInventoryItems.find(i => i.item_id == itemId);
-                if (item) {
-                    productName = item.product_name || 'N/A';
-                    beginningStock = item.beginning_stock || 0;
-                    pullOutQty = item.pull_out_quantity || 0;
-                }
+                showToast('error', 'Could not find item data', 2000);
             }
-
-            // Store item ID and populate modal
-            $('#editItemId').val(itemId);
-            $('#editProductName').text(productName);
-            $('#editBeginningStock').val(beginningStock);
-            $('#editPullOutQuantity').val(pullOutQty);
-
-            // Show modal
-            $('#editInventoryModal').removeClass('hidden');
         });
 
         // Close Edit Modal
@@ -852,7 +990,7 @@
                     if (response.success && response.data.length > 0) {
                         response.data.forEach(function (product) {
                             let categoryLabel = 'Unknown';
-                            if (product.category === 'bread') {
+                            if (product.category === 'bakery') {
                                 categoryLabel = 'Bakery';
                             } else if (product.category === 'drinks') {
                                 categoryLabel = 'Drinks';
@@ -895,83 +1033,114 @@
             renderMobileCards();
         });
 
-        // Render mobile cards with pagination
+        // Render mobile cards with pagination - grouped by category
         function renderMobileCards() {
-            const totalItems = filteredItems.length;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-            const pageItems = filteredItems.slice(startIndex, endIndex);
+            const bakeryItems = filteredItems.filter(i => i.category === 'bakery');
+            const drinksItems = filteredItems.filter(i => i.category === 'drinks');
+            const groceryItems = filteredItems.filter(i => i.category === 'grocery');
 
             let cards = '';
-            if (pageItems.length > 0) {
-                pageItems.forEach(function(item) {
-                    // Use appropriate price based on category
-                    const price = item.category === 'bread' && item.selling_price_per_piece > 0
-                        ? item.selling_price_per_piece
-                        : item.selling_price;
-                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
 
-                    // Category badge color and label
-                    let categoryClass = 'bg-gray-100 text-gray-800';
-                    let categoryLabel = 'N/A';
-                    if (item.category === 'bread') {
-                        categoryClass = 'bg-amber-100 text-amber-800';
-                        categoryLabel = 'Bakery';
-                    } else if (item.category === 'drinks') {
-                        categoryClass = 'bg-blue-100 text-blue-800';
-                        categoryLabel = 'Drinks';
-                    } else if (item.category === 'grocery') {
-                        categoryClass = 'bg-green-100 text-green-800';
-                        categoryLabel = 'Grocery';
-                    } else if (item.category) {
-                        categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
-                    }
-
-                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
-
-                    cards += '<div class="bg-white rounded-lg shadow-md p-4" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
-                    cards += '  <div class="flex items-start justify-between mb-3">';
-                    cards += '    <div class="flex-1">';
-                    cards += '      <h3 class="font-semibold text-gray-900 text-base">' + (item.product_name || 'N/A') + '</h3>';
-                    cards += '      <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span>';
-                    cards += '    </div>';
-                    cards += '    <span class="text-lg font-bold text-primary">' + formattedPrice + '</span>';
-                    cards += '  </div>';
-                    cards += '  <div class="grid grid-cols-2 gap-2 text-sm mb-3">';
-                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
-                    cards += '      <p class="text-gray-500 text-xs">Beginning</p>';
-                    cards += '      <p class="font-semibold text-gray-900">' + (item.beginning_stock || 0) + '</p>';
-                    cards += '    </div>';
-                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
-                    cards += '      <p class="text-gray-500 text-xs">Pull Out</p>';
-                    cards += '      <p class="font-semibold text-gray-900">' + (item.pull_out_quantity || 0) + '</p>';
-                    cards += '    </div>';
-                    cards += '    <div class="bg-gray-50 rounded-md p-2">';
-                    cards += '      <p class="text-gray-500 text-xs">Ending</p>';
-                    cards += '      <p class="font-semibold text-gray-900">' + ending_stock + '</p>';
-                    cards += '    </div>';
-                    cards += '    <div class="bg-green-50 rounded-md p-2">';
-                    cards += '      <p class="text-green-600 text-xs">Sales</p>';
-                    cards += '      <p class="font-semibold text-green-700">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</p>';
-                    cards += '    </div>';
-                    cards += '  </div>';
-                    cards += '  <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">';
-                    cards += '    <button class="flex items-center justify-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-medium py-3 px-4 rounded-lg border border-amber-200 btn-edit" data-id="' + item.item_id + '">';
-                    cards += '      <i class="fas fa-edit"></i> Edit';
-                    cards += '    </button>';
-                    cards += '    <button class="flex items-center justify-center gap-2 bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium py-3 px-4 rounded-lg border border-red-200 btn-delete" data-id="' + item.item_id + '">';
-                    cards += '      <i class="fas fa-trash"></i> Delete';
-                    cards += '    </button>';
-                    cards += '  </div>';
-                    cards += '</div>';
+            // Bakery Section
+            if (bakeryItems.length > 0) {
+                cards += '<div class="mb-4">';
+                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
+                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Bakery</span>';
+                cards += '<span class="text-xs text-gray-400">(' + bakeryItems.length + ')</span>';
+                cards += '</div>';
+                cards += '<div class="space-y-2">';
+                bakeryItems.forEach(function(item) {
+                    cards += renderMobileCard(item, 'bakery');
                 });
-            } else {
-                cards = '<div class="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">No inventory data available</div>';
+                cards += '</div>';
+                cards += '</div>';
+            }
+
+            // Drinks Section
+            if (drinksItems.length > 0) {
+                cards += '<div class="mb-4">';
+                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
+                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Drinks</span>';
+                cards += '<span class="text-xs text-gray-400">(' + drinksItems.length + ')</span>';
+                cards += '</div>';
+                cards += '<div class="space-y-2">';
+                drinksItems.forEach(function(item) {
+                    cards += renderMobileCard(item, 'drinks');
+                });
+                cards += '</div>';
+                cards += '</div>';
+            }
+
+            // Grocery Section  
+            if (groceryItems.length > 0) {
+                cards += '<div class="mb-4">';
+                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
+                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Grocery</span>';
+                cards += '<span class="text-xs text-gray-400">(' + groceryItems.length + ')</span>';
+                cards += '</div>';
+                cards += '<div class="space-y-2">';
+                groceryItems.forEach(function(item) {
+                    cards += renderMobileCard(item, 'grocery');
+                });
+                cards += '</div>';
+                cards += '</div>';
+            }
+
+            if (filteredItems.length === 0) {
+                cards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No inventory data</div>';
             }
 
             $('#mobileCardView').html(cards);
-            renderMobilePagination(totalPages, totalItems, startIndex, endIndex);
+            $('#mobilePagination').html('');
+            $('#mobilePageInfo').text('');
+        }
+
+        function renderMobileCard(item, category) {
+            const price = category === 'bakery' && item.selling_price_per_piece > 0
+                ? item.selling_price_per_piece
+                : item.selling_price;
+            const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+            const isDrink = category === 'drinks';
+            const ending_stock = isDrink ? null : (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+            
+            let borderColor = 'border-gray-200';
+            if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
+            else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
+            else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
+
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '">';
+            card += '  <div class="flex items-center justify-between mb-2">';
+            card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + '</span>';
+            card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
+            card += '  </div>';
+            
+            if (isDrink) {
+                card += '  <div class="flex items-center justify-between text-xs text-gray-500 mb-2">';
+                card += '    <span>Qty: <span class="text-gray-700 font-medium">' + (item.quantity_sold || 0) + '</span></span>';
+                card += '    <span>Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
+                card += '  </div>';
+            } else {
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+                card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
+                card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+                card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
+                card += '  </div>';
+            }
+            
+            card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
+            if (!isDrink) {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
+                card += '      <i class="fas fa-edit mr-1"></i>Edit';
+                card += '    </button>';
+            }
+            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
+            card += '      <i class="fas fa-trash mr-1"></i>Delete';
+            card += '    </button>';
+            card += '  </div>';
+            card += '</div>';
+
+            return card;
         }
 
         // Render mobile pagination
