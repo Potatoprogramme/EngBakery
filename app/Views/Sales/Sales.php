@@ -411,6 +411,9 @@
         </div>
     </div>
 
+    <!-- Hidden Print Frame -->
+    <iframe id="printFrame" name="printFrame" style="position:absolute;top:-9999px;left:-9999px;width:0;height:0;border:none;"></iframe>
+
     <style>
         /* Hide number input spinners */
         input[type=number]::-webkit-inner-spin-button,
@@ -729,39 +732,159 @@
             calculateAllTotals();
         });
 
-        // Print functionality
+        // Print functionality - Opens dedicated print layout
+        // Print functionality - Uses hidden iframe
         $('#btnPrintRemittance').on('click', function() {
-            const content = $('#remittanceSlip').clone();
-            // Remove input elements and replace with values for printing
-            content.find('input').each(function() {
-                const val = $(this).val() || '0';
-                $(this).replaceWith('<span class="font-semibold">' + val + '</span>');
+            // Collect denominations data
+            const denomsHtml = {};
+            Object.keys(billDenominations).forEach(function(inputId) {
+                const count = parseInt($('#' + inputId).val()) || 0;
+                const denomination = billDenominations[inputId];
+                const total = count * denomination;
+                const denomKey = inputId.replace('bill', '');
+                denomsHtml[denomKey] = {
+                    count: count > 0 ? count : '',
+                    total: count > 0 ? formatCurrency(total) : ''
+                };
             });
 
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Cashier's Remittance Slip</title>
-                    <script src="https://cdn.tailwindcss.com"><\/script>
-                    <style>
-                        @media print {
-                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                            .no-print { display: none !important; }
-                        }
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                    </style>
-                </head>
-                <body>
-                    ${content.html()}
-                    <script>
-                        setTimeout(() => { window.print(); window.close(); }, 500);
-                    <\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
+            // Build the print HTML
+            const printHtml = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Cashier's Remittance Slip</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    @page { size: 4in 6in; margin: 0; }
+                    @media print {
+                        html, body { width: 4in; height: 6in; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .slip-container { border: none; }
+                    }
+                    body { font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; width: 4in; height: 6in; padding: 0.1in; background: #fff; }
+                    .slip-container { width: 100%; height: 100%; border: 1.5px solid #000; }
+                    .slip-header { text-align: center; font-weight: bold; font-size: 11pt; padding: 6px 0; border-bottom: 1px solid #000; }
+                    
+                    /* Info table for aligned columns */
+                    .info-table { width: 100%; border-collapse: collapse; }
+                    .info-table td { border: 1px solid #000; border-top: none; padding: 2px 4px; height: 18px; font-size: 9pt; }
+                    .info-table .label-col { font-weight: bold; width: 15%; white-space: nowrap; }
+                    .info-table .value-col { width: 35%; }
+                    
+                    .section-header { text-align: center; font-weight: bold; font-size: 9pt; padding: 4px 0; border-bottom: 1px solid #000; background: #f5f5f5; }
+                    .bills-table { width: 100%; border-collapse: collapse; }
+                    .bills-table th, .bills-table td { border: 1px solid #000; padding: 1px 4px; text-align: center; height: 16px; font-size: 8.5pt; }
+                    .bills-table th { background: #f0f0f0; font-weight: bold; }
+                    .bills-table .denom-col { width: 22%; text-align: left; font-weight: bold; }
+                    .bills-table .count-col { width: 20%; }
+                    .bills-table .equals-col { width: 8%; }
+                    .bills-table .total-col { width: 25%; text-align: right; padding-right: 6px; }
+                    
+                    /* Summary table */
+                    .summary-table { width: 100%; border-collapse: collapse; }
+                    .summary-table td { border: 1px solid #000; padding: 2px 4px; height: 18px; font-size: 9pt; }
+                    .summary-table .sum-label { font-weight: bold; width: 25%; }
+                    .summary-table .sum-value { width: 25%; text-align: right; }
+                    .summary-table .total-row td { background: #f0f0f0; }
+                    .summary-table .variance-row td { font-weight: bold; }
+                    
+                    .total-row { background: #f0f0f0; }
+                    .variance-row .summary-label, .variance-row .summary-value { font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div class="slip-container">
+                    <div class="slip-header">CASHIER'S REMITTANCE SLIP</div>
+                    
+                    <!-- Info section with aligned columns -->
+                    <table class="info-table">
+                        <tr>
+                            <td class="label-col">NAMES:</td>
+                            <td class="value-col" colspan="3">${$('#cashierName').val() || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">DATE:</td>
+                            <td class="value-col">${$('#remittanceDate').text() || ''}</td>
+                            <td class="label-col">OUTLET:</td>
+                            <td class="value-col">${$('#outletName').val() || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">SHIFT:</td>
+                            <td class="value-col">${$('#shiftTime').text().split('-')[0]?.trim() || ''}</td>
+                            <td class="label-col">TO:</td>
+                            <td class="value-col">${$('#shiftTime').text().split('-')[1]?.trim() || ''}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="section-header">CASH SALES/CHANGE FUND</div>
+                    <table class="bills-table">
+                        <thead><tr><th class="denom-col">BILLS/COINS</th><th class="count-col"></th><th class="equals-col">=</th><th class="total-col"></th></tr></thead>
+                        <tbody>
+                            <tr><td class="denom-col">1000x</td><td class="count-col">${denomsHtml['1000'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['1000'].total}</td></tr>
+                            <tr><td class="denom-col">500x</td><td class="count-col">${denomsHtml['500'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['500'].total}</td></tr>
+                            <tr><td class="denom-col">200x</td><td class="count-col">${denomsHtml['200'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['200'].total}</td></tr>
+                            <tr><td class="denom-col">100x</td><td class="count-col">${denomsHtml['100'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['100'].total}</td></tr>
+                            <tr><td class="denom-col">50x</td><td class="count-col">${denomsHtml['50'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['50'].total}</td></tr>
+                            <tr><td class="denom-col">20x</td><td class="count-col">${denomsHtml['20'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['20'].total}</td></tr>
+                            <tr><td class="denom-col">10x</td><td class="count-col">${denomsHtml['10'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['10'].total}</td></tr>
+                            <tr><td class="denom-col">5x</td><td class="count-col">${denomsHtml['5'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['5'].total}</td></tr>
+                            <tr><td class="denom-col">1x</td><td class="count-col">${denomsHtml['1'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['1'].total}</td></tr>
+                            <tr><td class="denom-col">.25x</td><td class="count-col">${denomsHtml['025'].count}</td><td class="equals-col">=</td><td class="total-col">${denomsHtml['025'].total}</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Summary section with aligned columns -->
+                    <table class="summary-table">
+                        <tr class="total-row">
+                            <td class="sum-label" colspan="2">TOTAL AMOUNT ENCLOSED:</td>
+                            <td class="sum-value" colspan="2">${$('#amountEnclosed').text() || '₱0.00'}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label" colspan="2">ONLINE PAYMENT:</td>
+                            <td class="sum-value" colspan="2">${formatCurrency(parseFloat($('#totalOnlineRevenue').val()) || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label">CASH OUT:</td>
+                            <td class="sum-value">${formatCurrency(parseFloat($('#cashOutAmount').val()) || 0)}</td>
+                            <td class="sum-value" colspan="2" style="text-align:left;font-size:8pt;">${$('#cashOutReason').val() || ''}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label">BAKERY:</td>
+                            <td class="sum-value">${$('#bakerySales').text() || '₱0.00'}</td>
+                            <td class="sum-label">GROCERY:</td>
+                            <td class="sum-value">${$('#grocerySales').text() || '₱0.00'}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label" colspan="2">COFFEE:</td>
+                            <td class="sum-value" colspan="2">${$('#coffeeSales').text() || '₱0.00'}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="sum-label" colspan="2">TOTAL SALES:</td>
+                            <td class="sum-value" colspan="2">${$('#totalSales').text() || '₱0.00'}</td>
+                        </tr>
+                        <tr class="variance-row">
+                            <td class="sum-label" colspan="2">OVERAGE/SHORTAGE:</td>
+                            <td class="sum-value" colspan="2">${$('#variance').text() || '₱0.00'}</td>
+                        </tr>
+                    </table>
+                </div>
+            </body>
+            </html>`;
+
+            // Write to hidden iframe and print
+            const printFrame = document.getElementById('printFrame');
+            const frameDoc = printFrame.contentWindow || printFrame.contentDocument.document || printFrame.contentDocument;
+            
+            frameDoc.document.open();
+            frameDoc.document.write(printHtml);
+            frameDoc.document.close();
+
+            // Wait for content to load then print
+            setTimeout(function() {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 250);
         });
 
         // Save remittance
