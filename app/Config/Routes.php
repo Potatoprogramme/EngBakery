@@ -99,6 +99,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     // Routes for Sales History
     $routes->get('History', 'SalesController::history');
     $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
+    $routes->get('GetSummaryDetails', 'SalesController::getSummaryDetails'); // fetch information for the summary cards
     // Routes for Remittance History
     $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
     $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');
