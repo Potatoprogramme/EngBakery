@@ -31,6 +31,12 @@ class SalesController extends BaseController
             view('Template/Footer');
     }
 
+    public function printRemittance()
+    {
+        // Return only the print layout without header/sidebar
+        return view('Sales/RemittancePrint');
+    }
+
     public function getTodaysSummary()
     {
         $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
