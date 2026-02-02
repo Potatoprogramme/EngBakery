@@ -169,12 +169,12 @@
             <table id="salesHistoryTable" class="min-w-full text-sm text-left text-gray-500">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 whitespace-nowrap">Sale ID</th>
+                        <th scope="col" class="px-6 py-3 whitespace-nowrap">Order #</th>
                         <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
                         <th scope="col" class="px-6 py-3 whitespace-nowrap">Time</th>
                         <th scope="col" class="px-6 py-3 whitespace-nowrap">Product</th>
                         <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Quantity</th>
-                        <th scope="col" class="px-6 py-3 whitespace-nowrap">Total Sales</th>
+                        <th scope="col" class="px-6 py-3 whitespace-nowrap">Total</th>
                         <th scope="col" class="px-6 py-3 whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
@@ -445,12 +445,12 @@
 
                 html += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${sale.sale_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#${sale.order_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${timeStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity_sold}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total_sales || 0)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name || 'Unknown'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
                                 <i class="fas fa-eye"></i>
@@ -505,7 +505,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-receipt text-white"></i>
-                            <span class="font-bold text-white">Sale #${sale.sale_id}</span>
+                            <span class="font-bold text-white">Order #${sale.order_id}</span>
                         </div>
                         <span class="text-xs text-gray-200">${dateStr}</span>
                     </div>
@@ -520,18 +520,18 @@
                     <!-- Product Info -->
                     <div class="mb-3">
                         <p class="text-xs text-gray-500 mb-1">Product</p>
-                        <p class="font-semibold text-gray-900">${sale.product_name}</p>
+                        <p class="font-semibold text-gray-900">${sale.product_name || 'Unknown'}</p>
                     </div>
                     
                     <!-- Quantity & Total -->
                     <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-boxes text-blue-500 mr-1"></i>Quantity</span>
-                            <span class="font-semibold text-gray-900">${sale.quantity_sold}</span>
+                            <span class="font-semibold text-gray-900">${sale.quantity}</span>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-green-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-peso-sign text-green-500 mr-1"></i>Total</span>
-                            <span class="font-semibold text-green-600">${formatCurrency(sale.total_sales)}</span>
+                            <span class="font-semibold text-green-600">${formatCurrency(sale.total)}</span>
                         </div>
                     </div>
                     
@@ -539,7 +539,7 @@
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                         <div>
                             <p class="text-xs text-gray-500">Total Amount</p>
-                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total_sales)}</p>
+                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total)}</p>
                         </div>
                         <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
                             <i class="fas fa-eye mr-1"></i>View

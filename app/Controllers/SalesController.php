@@ -243,7 +243,7 @@ class SalesController extends BaseController
     }
 
     /**
-     * Get sales history from remittance records
+     * Get sales history from order items (actual sales records)
      */
     public function getSalesHistory()
     {
@@ -251,10 +251,10 @@ class SalesController extends BaseController
         $dateTo = $this->request->getGet('date_to');
 
         if (empty($dateFrom) || empty($dateTo)) {
-            return $salesData = $this->transactionsModel->getSalesHistory();
+            $salesData = $this->orderItemModel->getSalesHistory();
+        } else {
+            $salesData = $this->orderItemModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
         }
-
-        $salesData = $this->transactionsModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
 
         if (empty($salesData)) {
             return $this->response->setJSON([
