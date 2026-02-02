@@ -131,6 +131,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Order Number</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Date & Time</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Cashier</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Type</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Payment</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Amount</th>
@@ -431,7 +432,7 @@
             }
 
             if (!orders || orders.length === 0) {
-                $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
+                $('#ordersTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
                 return;
             }
 
@@ -445,11 +446,19 @@
                     ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">` 
                     : '<i class="fas fa-walking mr-1"></i>';
                 const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
+                const cashierName = order.cashier_name || 'Unknown';
+                
+                // Format: yyyy-mm-dd - order id
+                const year = order.date_created.substring(0, 4);
+                const month = order.date_created.substring(5, 7);
+                const day = order.date_created.substring(8, 10);
+                const formattedOrderNumber = `${year}-${month}-${day} - ${order.order_id}`;
 
                 html += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${order.order_number}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 font-mono text-sm">${formattedOrderNumber}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">${cashierName}</td>
                         <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass} inline-flex items-center">${typeIcon}${typeName}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 capitalize">${order.payment_method}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
