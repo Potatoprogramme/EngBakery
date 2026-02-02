@@ -4,22 +4,12 @@ namespace App\Controllers;
 
 class InventoryController extends BaseController
 {
-    private function getSessionData()
-    {
-        $session = session();
-        return [
-            'user_id' => $session->get('id'),
-            'email' => $session->get('email'),
-            'username' => $session->get('username'),
-            'employee_type' => $session->get('employee_type'),
-            'name' => $session->get('name'),
-            'is_logged_in' => $session->get('is_logged_in'),
-        ];
-    }
-
     public function inventory(): string
     {
         $data = $this->getSessionData();
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
+        }
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Template/Notification', $data) .
@@ -30,6 +20,9 @@ class InventoryController extends BaseController
     public function addInventory(): string
     {
         $data = $this->getSessionData();
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
+        }
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Inventory/AddInventory', $data) .
@@ -334,6 +327,9 @@ class InventoryController extends BaseController
     public function inventoryHistory(): string
     {
         $data = $this->getSessionData();
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
+        }
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
