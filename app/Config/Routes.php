@@ -100,6 +100,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('History', 'SalesController::history');
     $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
     $routes->get('GetSummaryDetails', 'SalesController::getSummaryDetails'); // fetch information for the summary cards
+    $routes->post('GetTransactionDetails', 'SalesController::getTransactionDetails'); // fetch detailed sales data for a transaction id
     // Routes for Remittance History
     $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
     $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');

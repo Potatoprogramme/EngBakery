@@ -195,19 +195,22 @@
     <div id="salesDetailsModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div
-            class="relative w-full max-w-2xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
+            class="relative w-full max-w-2xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-hidden flex flex-col">
+            <!-- Sticky Header -->
+            <div class="sticky top-0 bg-white z-10 p-6 border-b border-gray-200">
+                <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-xl font-bold text-gray-800">Sales Details</h3>
                         <p class="text-sm text-gray-500" id="detailDate">-</p>
                     </div>
                     <button type="button" id="btnCloseDetailsModal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
+            </div>
 
-                <!-- Detail Content -->
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-6">
                 <div class="space-y-4">
                     <!-- Cashier Info -->
                     <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
@@ -220,37 +223,55 @@
                             <p class="font-semibold text-gray-800" id="detailOutlet">-</p>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500">Shift:</span>
-                            <p class="font-semibold text-gray-800" id="detailShift">-</p>
-                        </div>
-                        <div>
-                            <span class="text-sm text-gray-500">Total Orders:</span>
+                            <span class="text-sm text-gray-500">Order ID:</span>
                             <p class="font-semibold text-gray-800" id="detailOrderCount">0</p>
                         </div>
                     </div>
 
                     <!-- Sales Breakdown -->
                     <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-gray-700 mb-3">Sales Breakdown</h4>
+                        <h4 class="font-semibold text-gray-700 mb-3">Order Summary</h4>
                         <div class="space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-gray-600"><i
-                                        class="fas fa-bread-slice text-amber-500 mr-2"></i>Bakery:</span>
-                                <span class="font-semibold" id="detailBakery">₱0.00</span>
+                                        class="fas fa-shopping-bag text-blue-500 mr-2"></i>Products:</span>
+                                <span class="font-semibold text-sm" id="detailBakery">-</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600"><i
-                                        class="fas fa-mug-hot text-orange-500 mr-2"></i>Coffee/Drinks:</span>
-                                <span class="font-semibold" id="detailCoffee">₱0.00</span>
+                                <span class="text-gray-600"><i class="fas fa-boxes text-orange-500 mr-2"></i>Total
+                                    Quantity:</span>
+                                <span class="font-semibold" id="detailCoffee">0</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600"><i
-                                        class="fas fa-shopping-basket text-green-500 mr-2"></i>Grocery:</span>
-                                <span class="font-semibold" id="detailGrocery">₱0.00</span>
+                                <span class="text-gray-600"><i class="fas fa-list text-green-500 mr-2"></i>Total
+                                    Items:</span>
+                                <span class="font-semibold" id="detailGrocery">0</span>
                             </div>
                             <div class="flex justify-between border-t pt-2 mt-2">
                                 <span class="font-bold text-gray-800">Total Sales:</span>
                                 <span class="font-bold text-primary text-lg" id="detailTotalSales">₱0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Distribution (Category Breakdown) -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">Order Distribution</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between py-2">
+                                <span class="text-gray-600"><i
+                                        class="fas fa-bread-slice text-amber-500 mr-2"></i>Bakery:</span>
+                                <span class="font-semibold text-gray-800" id="detailBakeryAmount">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-t border-gray-100">
+                                <span class="text-gray-600"><i
+                                        class="fas fa-mug-hot text-orange-500 mr-2"></i>Coffee/Drinks:</span>
+                                <span class="font-semibold text-gray-800" id="detailCoffeeAmount">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-t border-gray-100">
+                                <span class="text-gray-600"><i
+                                        class="fas fa-shopping-basket text-green-500 mr-2"></i>Grocery:</span>
+                                <span class="font-semibold text-gray-800" id="detailGroceryAmount">₱0.00</span>
                             </div>
                         </div>
                     </div>
@@ -281,21 +302,22 @@
                     </div>
                 </div>
             </div>
-            <div class="px-6 pb-6 flex gap-2">
-                <button type="button" id="btnPrintDetails"
-                    class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
-                    <i class="fas fa-print mr-2"></i>Print
-                </button>
-                <button type="button" id="btnCloseModal"
-                    class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">
-                    Close
-                </button>
+
+            <!-- Sticky Footer -->
+            <div class="sticky bottom-0 bg-white z-10 px-6 pb-6 pt-4 border-t border-gray-200">
+                <div class="flex gap-2">
+                    <button type="button" id="btnPrintDetails"
+                        class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                    <button type="button" id="btnCloseModal"
+                        class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
 
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
@@ -391,6 +413,29 @@
             });
         }
 
+        function getTransactionDetails(orderId) {
+            console.log('Loading transaction details...');
+            $.ajax({
+                url: BASE_URL + 'Sales/GetTransactionDetails',
+                type: 'POST',
+                data: JSON.stringify({ order_id: orderId }),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        console.log('Transaction details loaded:', response.data);
+                        openDetailsModal(response.data);
+                    } else {
+                        showToast('error', response.message || 'Failed to load transaction details');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error loading transaction details:', xhr);
+                    showToast('error', 'Failed to load transaction details');
+                }
+            });
+        }
+
         function initFilters() {
             // Set default date range (today only)
             const today = new Date();
@@ -442,22 +487,23 @@
                 const date = new Date(sale.date_created);
                 const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const timeStr = formatTime(sale.time_created);
+                const orderNumber = `${sale.date_created}-${sale.order_id}`;
 
                 html += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#${sale.order_id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${timeStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name || 'Unknown'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${orderNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${timeStr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name || 'Unknown'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity_sold}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total_sales || 0)}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
             });
 
             $('#salesHistoryTableBody').html(html);
@@ -477,7 +523,8 @@
             // Re-bind click events after DataTable renders
             $('#salesHistoryTable').on('click', '.btn-view-details', function () {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const orderId = history[index].order_id;
+                getTransactionDetails(orderId);
             });
         }
 
@@ -497,6 +544,7 @@
                 const date = new Date(sale.date_created);
                 const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const timeStr = formatTime(sale.time_created);
+                const orderNumber = `${sale.date_created}-${sale.order_id}`;
 
                 html += `
             <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
@@ -505,7 +553,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-receipt text-white"></i>
-                            <span class="font-bold text-white">Order #${sale.order_id}</span>
+                            <span class="font-bold text-white">Order #${orderNumber}</span>
                         </div>
                         <span class="text-xs text-gray-200">${dateStr}</span>
                     </div>
@@ -527,11 +575,11 @@
                     <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-boxes text-blue-500 mr-1"></i>Quantity</span>
-                            <span class="font-semibold text-gray-900">${sale.quantity}</span>
+                            <span class="font-semibold text-gray-900">${sale.quantity_sold}</span>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-green-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-peso-sign text-green-500 mr-1"></i>Total</span>
-                            <span class="font-semibold text-green-600">${formatCurrency(sale.total)}</span>
+                            <span class="font-semibold text-green-600">${formatCurrency(sale.total_sales)}</span>
                         </div>
                     </div>
                     
@@ -539,7 +587,7 @@
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                         <div>
                             <p class="text-xs text-gray-500">Total Amount</p>
-                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total)}</p>
+                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total_sales)}</p>
                         </div>
                         <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
                             <i class="fas fa-eye mr-1"></i>View
@@ -555,7 +603,8 @@
             // Bind click events for mobile cards
             $('.btn-view-details-mobile').on('click', function () {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const orderId = history[index].order_id;
+                getTransactionDetails(orderId);
             });
         }
 
@@ -577,69 +626,264 @@
             $('#salesDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#salesDetailsModal').addClass('hidden'); });
 
             $('#btnPrintDetails').on('click', function () {
-                const content = $('#salesDetailsModal .p-6').first().clone();
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Sales Details</title>
-                        <script src="https://cdn.tailwindcss.com"><\/script>
-                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-                        <style>
-                            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                        </style>
-                    </head>
-                    <body>
-                        ${content.html()}
-                        <script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
+                printOrderDetails();
             });
         }
+        function printOrderDetails() {
+            const orderNumber = $('#detailOrderCount').text();
+            const orderDate = $('#detailDate').text();
+            const cashier = $('#detailCashier').text();
+            const outlet = $('#detailOutlet').text();
 
-        function openDetailsModal(sale) {
-            if (!sale) return;
+            const products = $('#detailBakery').text();
+            const totalQuantity = $('#detailCoffee').text();
+            const totalItems = $('#detailGrocery').text();
+            const totalSales = $('#detailTotalSales').text();
 
-            const date = new Date(sale.date);
+            const bakeryAmount = $('#detailBakeryAmount').text();
+            const coffeeAmount = $('#detailCoffeeAmount').text();
+            const groceryAmount = $('#detailGroceryAmount').text();
+
+            const cashAmount = $('#detailCash').text();
+            const gcashAmount = $('#detailGcash').text();
+
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Sales Details - ${orderNumber}</title>
+                            <style>
+                                @media print {
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                    @page { margin: 20mm; }
+                                }
+                                * { margin: 0; padding: 0; box-sizing: border-box; }
+                                body { 
+                                    font-family: 'Arial', sans-serif; 
+                                    padding: 20px;
+                                    line-height: 1.6;
+                                    color: #333;
+                                }
+                                .header {
+                                    text-align: center;
+                                    margin-bottom: 30px;
+                                    padding-bottom: 20px;
+                                    border-bottom: 3px solid #333;
+                                }
+                                .header h1 {
+                                    font-size: 24px;
+                                    margin-bottom: 5px;
+                                    color: #1a1a1a;
+                                }
+                                .header p {
+                                    color: #666;
+                                    font-size: 14px;
+                                }
+                                .info-section {
+                                    background: #f5f5f5;
+                                    padding: 15px;
+                                    margin-bottom: 20px;
+                                    border-radius: 5px;
+                                }
+                                .info-row {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 8px;
+                                }
+                                .info-label {
+                                    font-weight: bold;
+                                    color: #555;
+                                }
+                                .info-value {
+                                    color: #1a1a1a;
+                                }
+                                .section {
+                                    margin-bottom: 25px;
+                                }
+                                .section-title {
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    color: #1a1a1a;
+                                    margin-bottom: 12px;
+                                    padding-bottom: 8px;
+                                    border-bottom: 2px solid #ddd;
+                                }
+                                .detail-row {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 10px 0;
+                                    border-bottom: 1px solid #eee;
+                                }
+                                .detail-row:last-child {
+                                    border-bottom: none;
+                                }
+                                .detail-label {
+                                    color: #555;
+                                }
+                                .detail-value {
+                                    font-weight: 600;
+                                    color: #1a1a1a;
+                                }
+                                .total-row {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 15px 0;
+                                    margin-top: 15px;
+                                    border-top: 3px solid #333;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                }
+                                .footer {
+                                    margin-top: 40px;
+                                    padding-top: 20px;
+                                    border-top: 2px solid #ddd;
+                                    text-align: center;
+                                    color: #666;
+                                    font-size: 12px;
+                                }
+                                .print-date {
+                                    margin-top: 10px;
+                                    font-style: italic;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>E n' G Bakery</h1>
+                                <p>${outlet}</p>
+                                <p>Sales Details Report</p>
+                            </div>
+
+                            <div class="info-section">
+                                <div class="info-row">
+                                    <span class="info-label">Order Number:</span>
+                                    <span class="info-value">${orderNumber}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Date & Time:</span>
+                                    <span class="info-value">${orderDate}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Cashier:</span>
+                                    <span class="info-value">${cashier}</span>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">Order Summary</div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Products:</span>
+                                    <span class="detail-value">${products}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Total Quantity:</span>
+                                    <span class="detail-value">${totalQuantity}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Total Items:</span>
+                                    <span class="detail-value">${totalItems}</span>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">Order Distribution</div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Bakery:</span>
+                                    <span class="detail-value">${bakeryAmount}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Coffee/Drinks:</span>
+                                    <span class="detail-value">${coffeeAmount}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Grocery:</span>
+                                    <span class="detail-value">${groceryAmount}</span>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">Payment Methods</div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Cash:</span>
+                                    <span class="detail-value">${cashAmount}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">GCash:</span>
+                                    <span class="detail-value">${gcashAmount}</span>
+                                </div>
+                            </div>
+
+                            <div class="total-row">
+                                <span>TOTAL SALES:</span>
+                                <span>${totalSales}</span>
+                            </div>
+
+                            <div class="footer">
+                                <p>Thank you for your business!</p>
+                                <p class="print-date">Printed on: ${new Date().toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</p>
+                            </div>
+
+                            <script>
+                                window.onload = function() {
+                                    setTimeout(function() {
+                                        window.print();
+                                        setTimeout(function() {
+                                            window.close();
+                                        }, 100);
+                                    }, 500);
+                                };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+            printWindow.document.close();
+        }
+        function openDetailsModal(order) {
+            if (!order) return;
+
+            const date = new Date(order.date_created);
             const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const timeStr = formatTime(order.time_created);
+            const orderNumber = `${order.date_created}-${order.order_id}`;
 
-            $('#detailDate').text(dateStr);
-            $('#detailCashier').text(sale.cashier_name || '-');
-            $('#detailOutlet').text(sale.outlet_name || 'E n\' G Bakery');
-            $('#detailShift').text(formatTime(sale.shift_start) + ' - ' + formatTime(sale.shift_end));
-            $('#detailOrderCount').text(sale.order_count || 0);
+            // Header Info
+            $('#detailDate').text(`${dateStr} at ${timeStr}`);
+            $('#detailCashier').text(order.cashier_name || '-');
+            $('#detailOutlet').text('DECA SENTRIO');
+            $('#detailOrderCount').text('Order #' + orderNumber);
 
-            $('#detailBakery').text(formatCurrency(sale.bakery_sales || 0));
-            $('#detailCoffee').text(formatCurrency(sale.coffee_sales || 0));
-            $('#detailGrocery').text(formatCurrency(sale.grocery_sales || 0));
-            $('#detailTotalSales').text(formatCurrency(sale.total_sales || 0));
+            // Order Summary - Build product list from order_items
+            const productNames = order.order_items ? order.order_items.map(item => item.product_name).join(', ') : 'Unknown';
+            const totalQuantity = order.order_items ? order.order_items.reduce((sum, item) => sum + parseInt(item.amount || 0), 0) : 0;
+            const totalItems = order.order_items ? order.order_items.length : 0;
 
-            $('#detailCash').text(formatCurrency(sale.cash_total || 0));
-            $('#detailGcash').text(formatCurrency(sale.gcash_total || 0));
-            $('#detailTotalEnclosed').text(formatCurrency(sale.total_cash_enclosed || 0));
+            $('#detailBakery').text(productNames);
+            $('#detailCoffee').text(totalQuantity);
+            $('#detailGrocery').text(totalItems);
+            $('#detailTotalSales').text(formatCurrency(order.total_payment_due || 0));
 
-            // Variance
-            const variance = parseFloat(sale.variance) || 0;
-            const container = $('#detailVarianceContainer');
-            const varianceEl = $('#detailVariance');
+            // Order Distribution by Category
+            $('#detailBakeryAmount').text(formatCurrency(order.bakery_sales || 0));
+            $('#detailCoffeeAmount').text(formatCurrency(order.coffee_sales || 0));
+            $('#detailGroceryAmount').text(formatCurrency(order.grocery_sales || 0));
 
-            if (variance > 0) {
-                container.removeClass('bg-red-100').addClass('bg-green-100');
-                varianceEl.removeClass('text-red-600').addClass('text-green-600');
-                varianceEl.text('+' + formatCurrency(variance) + ' (Over)');
-            } else if (variance < 0) {
-                container.removeClass('bg-green-100').addClass('bg-red-100');
-                varianceEl.removeClass('text-green-600').addClass('text-red-600');
-                varianceEl.text('-' + formatCurrency(Math.abs(variance)) + ' (Short)');
-            } else {
-                container.removeClass('bg-red-100 bg-green-100').addClass('bg-gray-100');
-                varianceEl.removeClass('text-red-600 text-green-600').addClass('text-gray-800');
-                varianceEl.text('₱0.00 (Balanced)');
-            }
+            // Payment methods - based on payment_method field
+            const cashTotal = order.payment_method === 'cash' ? (order.total_payment_due || 0) : 0;
+            const gcashTotal = order.payment_method === 'gcash' ? (order.total_payment_due || 0) : 0;
+
+            $('#detailCash').text(formatCurrency(cashTotal));
+            $('#detailGcash').text(formatCurrency(gcashTotal));
+
+            // Hide variance section
+            $('#detailVarianceContainer').hide();
 
             $('#salesDetailsModal').removeClass('hidden');
         }

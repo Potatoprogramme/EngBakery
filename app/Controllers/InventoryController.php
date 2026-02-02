@@ -115,7 +115,7 @@ class InventoryController extends BaseController
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
             // fetch ALL products for inventory tracking
-            $productIds = $this->productModel->findColumn("product_id");
+            $productIds = $this->productModel->where('category !=', 'dough')->findColumn("product_id");
 
             // insert all products into daily stock items model
             if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {

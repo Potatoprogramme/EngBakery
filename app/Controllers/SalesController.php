@@ -244,6 +244,7 @@ class SalesController extends BaseController
 
     /**
      * Get sales history from order items (actual sales records)
+     * BLAME -> Julius Caesar
      */
     public function getSalesHistory()
     {
@@ -251,9 +252,9 @@ class SalesController extends BaseController
         $dateTo = $this->request->getGet('date_to');
 
         if (empty($dateFrom) || empty($dateTo)) {
-            $salesData = $this->orderItemModel->getSalesHistory();
+            $salesData = $this->transactionsModel->getSalesHistory();
         } else {
-            $salesData = $this->orderItemModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
+            $salesData = $this->transactionsModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
         }
 
         if (empty($salesData)) {
@@ -273,6 +274,7 @@ class SalesController extends BaseController
 
     /**
      * Get Sales Details for summary cards
+     * Blame -> Julius Caesar
      */
     public function getSummaryDetails()
     {
@@ -310,6 +312,63 @@ class SalesController extends BaseController
                 'coffee_sales' => floatval($coffeeSales),
                 'grocery_sales' => floatval($grocerySales)
             ]
+        ]);
+    }
+
+    /** 
+     * Get Sales Details for Order Id
+     * Blame -> Julius Caesar
+     */
+    public function getTransactionDetails()
+    {
+        $data = $this->request->getJSON(true);
+
+        $orderId = $data['order_id'] ?? null;
+
+        $transac_details = $this->orderModel->getTransactionDetailsByOrderId($orderId);
+
+        if (empty($transac_details)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Order not found'
+            ]);
+        }
+        $orderItems = $this->orderItemModel->getOrderItems($orderId);
+
+        // Calculate category totals
+        $bakerySales = 0;
+        $coffeeSales = 0;
+        $grocerySales = 0;
+
+        foreach ($orderItems as &$item) {
+            // Calculate item total if not already present
+            if (!isset($item['total_cost_of_item'])) {
+                $item['total_cost_of_item'] = floatval($item['quantity']) * floatval($item['price']);
+            }
+
+            // Sum up category totals based on product category
+            switch (strtolower($item['category'])) {
+                case 'bakery':
+                    $bakerySales += floatval($item['total_cost_of_item']);
+                    break;
+                case 'drinks':
+                    $coffeeSales += floatval($item['total_cost_of_item']);
+                    break;
+                case 'grocery':
+                    $grocerySales += floatval($item['total_cost_of_item']);
+                    break;
+            }
+        }
+
+        // Add order items and category totals to transaction details
+        $transac_details['order_items'] = $orderItems;
+        $transac_details['bakery_sales'] = $bakerySales;
+        $transac_details['coffee_sales'] = $coffeeSales;
+        $transac_details['grocery_sales'] = $grocerySales;
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $transac_details
         ]);
     }
 

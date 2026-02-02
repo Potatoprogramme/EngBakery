@@ -110,30 +110,39 @@ class TransactionsModel extends Model
     /** 
      * GetSales Properly
      */
-    public function getSalesHistory()
+    public function getSalesByCategory($category, $dateFrom, $dateTo)
     {
-        return $this->builder()
-            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+        $result = $this->builder()
+            ->select('SUM(transactions.total_sales) as total_revenue')
             ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
             ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
-            ->orderBy('transactions.date_created', 'DESC')
-            ->orderBy('transactions.time_created', 'DESC')
+            ->where('products.category', $category)
+            ->where('transactions.date_created >=', $dateFrom)
+            ->where('transactions.date_created <=', $dateTo)
             ->get()
-            ->getResultArray();
+            ->getRowArray();
+
+        return $result['total_revenue'] ?? 0;
     }
 
     public function getSalesHistoryByDateRange($dateFrom, $dateTo)
     {
         return $this->builder()
-            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->select('transactions.order_id, 
+                  MIN(transactions.sale_id) as sale_id,
+                  GROUP_CONCAT(DISTINCT products.product_name SEPARATOR ", ") as product_name,
+                  SUM(transactions.quantity_sold) as quantity_sold, 
+                  SUM(transactions.total_sales) as total_sales, 
+                  transactions.date_created, 
+                  transactions.time_created')
             ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
             ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
             ->where('transactions.date_created >=', $dateFrom)
             ->where('transactions.date_created <=', $dateTo)
+            ->groupBy('transactions.order_id')
             ->orderBy('transactions.date_created', 'DESC')
             ->orderBy('transactions.time_created', 'DESC')
             ->get()
             ->getResultArray();
     }
-
 }
