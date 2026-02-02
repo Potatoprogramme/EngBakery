@@ -11,6 +11,7 @@ class TransactionsModel extends Model
     protected $returnType = 'array';
     protected $allowedFields = [
         'item_id',
+        'order_id',
         'quantity_sold',
         'total_sales',
         'date_created',
@@ -18,10 +19,11 @@ class TransactionsModel extends Model
     ];
     protected $useTimestamps = false;
 
-    public function recordSale(int $itemId, int $quantity, float $total): bool
+    public function recordSale(int $itemId, int $quantity, float $total, ?int $orderId = null): bool
     {
         $data = [
             'item_id' => $itemId,
+            'order_id' => $orderId,
             'quantity_sold' => $quantity,
             'total_sales' => $total,
             'date_created' => date('Y-m-d'),
@@ -104,4 +106,34 @@ class TransactionsModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    /** 
+     * GetSales Properly
+     */
+    public function getSalesHistory()
+    {
+        return $this->builder()
+            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->orderBy('transactions.date_created', 'DESC')
+            ->orderBy('transactions.time_created', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getSalesHistoryByDateRange($dateFrom, $dateTo)
+    {
+        return $this->builder()
+            ->select('transactions.*, daily_stock_items.product_id, products.product_name')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->where('transactions.date_created >=', $dateFrom)
+            ->where('transactions.date_created <=', $dateTo)
+            ->orderBy('transactions.date_created', 'DESC')
+            ->orderBy('transactions.time_created', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
 }
