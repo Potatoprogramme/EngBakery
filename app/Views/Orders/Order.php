@@ -430,8 +430,8 @@
                             <i class="fas fa-check text-3xl"></i>
                         </div>
                         <h4 class="text-xl font-bold text-gray-800 mb-2">Order Complete!</h4>
-                        <p class="text-sm text-gray-500 mb-1">Order Number:</p>
-                        <p class="text-2xl font-bold text-primary mb-4" id="orderNumber">ORD-000000-000</p>
+                        <p class="text-sm text-gray-500 mb-1">Order ID:</p>
+                        <p class="text-2xl font-bold text-primary mb-4" id="orderNumber">0000-00-00 - 0</p>
                         <div class="p-3 border border-gray-200 rounded-md bg-gray-50 mb-4 text-left">
                             <div class="flex justify-between text-sm mb-2">
                                 <span class="text-gray-600">Total:</span>
