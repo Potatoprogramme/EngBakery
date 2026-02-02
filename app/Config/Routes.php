@@ -115,3 +115,12 @@ $routes->group('Approval', function (RouteCollection $routes) {
     $routes->post('RejectUser', 'ApprovalController::rejectUser');
 });
 
+$routes->group('ManageEmployee', function (RouteCollection $routes) {
+    $routes->get('/', 'ManageEmployeeController::index');
+    $routes->get('Approval', 'ApprovalController::index');
+});
+
+$routes->group('DeliveryLog', function (RouteCollection $routes) {
+    $routes->get('/', 'DeliveryLogController::index');
+});
+

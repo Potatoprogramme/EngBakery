@@ -20,15 +20,6 @@
                 </div>
                 <div class="flex items-center">
                     <div class="flex items-center gap-2 sm:gap-3 ms-3">
-                        <!-- Notification Bell -->
-                        <a href="<?= base_url('Approval') ?>" class="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors" title="Pending Approvals">
-                            <span class="sr-only">View notifications</span>
-                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            <!-- Notification Badge -->
-                            <span id="notificationBadge" class="absolute top-0.5 right-0.5 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">3</span>
-                        </a>
                         <!-- Profile Dropdown -->
                         <div>
                             <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300" aria-expanded="false" data-dropdown-toggle="dropdown-user">
@@ -62,8 +53,8 @@
 
     <!-- Sidebar -->
     <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-60 h-screen pt-[70px] sm:pt-[60px] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
-        <div class="h-full px-3 pb-4 overflow-y-auto bg-white">
-            <ul class="space-y-2 font-medium">
+        <div class="h-full px-3 pb-4 overflow-y-auto bg-white flex flex-col">
+            <ul class="space-y-2 font-medium flex-1">
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <a href="<?= base_url('Dashboard') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'dashboard') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'dashboard') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -94,14 +85,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'inventory') ? 'text-white' : '' ?>">Inventory</span>
-                    </a>
-                </li>
-                <li class="pt-2 mt-2 border-t border-gray-100 <?= (session('employee_type') !== 'admin') ? 'hidden' : '' ?>">
-                    <a href="<?= base_url('Approval') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'approval') ? 'bg-primary' : '' ?>">
-                        <svg class="w-6 h-6 <?= ($current === 'approval') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'approval') ? 'text-white' : '' ?>">Approval</span>
                     </a>
                 </li>
                 <li class="pt-2 mt-2 border-t border-gray-100">
@@ -152,5 +135,17 @@
                     </a>
                 </li>
             </ul>
+            
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
+            <!-- Manage Employee at bottom -->
+            <div class="pt-2 mt-auto border-t border-gray-100">
+                <a href="<?= base_url('ManageEmployee') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'manageemployee') ? 'bg-primary' : '' ?>">
+                    <svg class="w-6 h-6 <?= ($current === 'manageemployee') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'manageemployee') ? 'text-white' : '' ?>">Manage Employee</span>
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
     </aside>

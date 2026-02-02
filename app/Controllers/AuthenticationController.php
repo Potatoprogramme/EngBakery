@@ -12,8 +12,8 @@ class AuthenticationController extends BaseController
 
     public function registrationPage(): string
     {
-        return view('Template/Notification') .
-            view('RegistrationPage');
+        return  view('Template/Notification') .
+                view('RegistrationPage');
     }
 
     public function loginPage(): string

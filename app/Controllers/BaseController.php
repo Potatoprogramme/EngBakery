@@ -93,11 +93,95 @@ abstract class BaseController extends Controller
         $this->remittanceDetailsModel = new RemittanceDetailsModel();
         $this->remittanceItemsModel = new RemittanceItemsModel();
         $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
-
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 
 
         // $this->session = service('session');
     }
+
+    /**
+     * Get session data for current user
+     * @return array
+     */
+    protected function getSessionData(): array
+    {
+        $session = session();
+        return [
+            'user_id' => $session->get('id'),
+            'email' => $session->get('email'),
+            'username' => $session->get('username'),
+            'employee_type' => $session->get('employee_type'),
+            'name' => $session->get('name'),
+            'is_logged_in' => $session->get('is_logged_in'),
+        ];
+    }
+
+    /**
+     * Check if user is logged in
+     * @return bool
+     */
+    protected function isLoggedIn(): bool
+    {
+        return session()->get('is_logged_in') === true;
+    }
+
+    /**
+     * Check if user is staff
+     * @return bool
+     */
+    protected function isStaff(): bool
+    {
+        return session()->get('employee_type') === 'staff';
+    }
+
+    /**
+     * Check if user is admin
+     * @return bool
+     */
+    protected function isAdmin(): bool
+    {
+        return session()->get('employee_type') === 'admin';
+    }
+
+    /**
+     * Redirect if user is not logged in
+     * @param string $message Optional error message
+     * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not logged in, false otherwise
+     */
+    protected function redirectIfNotLoggedIn(string $message = 'Please log in to access this page.')
+    {
+        if (!$this->isLoggedIn()) {
+            return redirect()->to(base_url('login'))->with('error_message', $message);
+        }
+        return false;
+    }
+
+    /**
+     * Redirect if user is not admin
+     * @param string $message Optional error message
+     * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not admin, false otherwise
+     */
+    protected function redirectIfNotAdmin(string $message = 'Access denied. Admin privileges required.')
+    {
+        if (!$this->isAdmin()) {
+            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
+        }
+        return false;
+    }
+
+    /**
+     * Redirect if user is not staff
+     * @param string $message Optional error message
+     * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not staff, false otherwise
+     */
+    protected function redirectIfNotStaff(string $message = 'Access denied. Staff privileges required.')
+    {
+        if (!$this->isStaff()) {
+            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
+        }
+        return false;
+    }
+
+    
 }

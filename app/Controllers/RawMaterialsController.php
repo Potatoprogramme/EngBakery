@@ -4,19 +4,6 @@ namespace App\Controllers;
 
 class RawMaterialsController extends BaseController
 {
-    private function getSessionData()
-    {
-        $session = session();
-        return [
-            'user_id' => $session->get('id'),
-            'email' => $session->get('email'),
-            'username' => $session->get('username'),
-            'employee_type' => $session->get('employee_type'),
-            'name' => $session->get('name'),
-            'is_logged_in' => $session->get('is_logged_in'),
-        ];
-    }
-
     public function rawMaterial(): string
     {
         $data = $this->getSessionData();

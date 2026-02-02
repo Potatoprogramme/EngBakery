@@ -4,18 +4,6 @@ namespace App\Controllers;
 
 class OrdersController extends BaseController
 {
-     private function getSessionData()
-    {
-        $session = session();
-        return [
-            'user_id' => $session->get('id'),
-            'email' => $session->get('email'),
-            'username' => $session->get('username'),
-            'employee_type' => $session->get('employee_type'),
-            'name' => $session->get('name'),
-            'is_logged_in' => $session->get('is_logged_in'),
-        ];
-    }
     public function order(): string
     {
         $data = $this->getSessionData();
@@ -86,13 +74,20 @@ class OrdersController extends BaseController
         $this->db->transStart();
 
         try {
-            // Prepare order data
+            // Prepare order data with cashier info from session
+            $sessionData = $this->getSessionData();
+            $cashierName = $sessionData['name'] ?? session()->get('name') ?? 'Unknown';
+            
+            // Log the cashier name for debugging
+            log_message('info', 'Processing payment - Cashier: ' . $cashierName . ' | Session data: ' . print_r($sessionData, true));
+            
             $orderData = [
                 'total_payment_due' => $data['total_payment_due'],
                 'amount_received' => $data['amount_received'],
                 'amount_change' => floatval($data['amount_received']) - floatval($data['total_payment_due']),
                 'payment_method' => $data['payment_method'] ?? 'cash',
-                'order_type' => $data['order_type'] ?? 'walk-in'
+                'order_type' => $data['order_type'] ?? 'walk-in',
+                'cashier_name' => $cashierName
             ];
 
             // Create the order
@@ -155,10 +150,11 @@ class OrdersController extends BaseController
                 }
             }
 
-            // Prepare result
+            // Prepare result - format order number as yyyy-mm-dd - order_id
+            $formattedOrderNumber = date('Y-m-d') . ' - ' . $orderId;
             $result = [
                 'order_id' => $orderId,
-                'order_number' => $this->orderModel->generateOrderNumber(),
+                'order_number' => $formattedOrderNumber,
                 'order' => $this->orderModel->getOrderById($orderId),
                 'items' => $this->orderItemModel->getOrderItems($orderId)
             ];

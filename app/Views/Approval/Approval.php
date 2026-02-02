@@ -27,7 +27,7 @@
                     <span
                         class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
                         <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-                        <span id="pendingCount">0</span> Pending
+                        <span id="pendingCount">0</span>&nbsp;Pending
                     </span>
                 </div>
             </div>
