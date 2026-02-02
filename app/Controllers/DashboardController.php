@@ -28,29 +28,16 @@ class DashboardController extends BaseController
         $this->dailyStockItemsModel = new DailyStockItemsModel();
     }
 
-    private function getSessionData()
-    {
-        $session = session();
-        return [
-            'user_id' => $session->get('id'),
-            'email' => $session->get('email'),
-            'username' => $session->get('username'),
-            'employee_type' => $session->get('employee_type'),
-            'name' => $session->get('name'),
-            'is_logged_in' => $session->get('is_logged_in'),
-        ];
-    }
-
     public function dashboard()
     {
         $sessionData = $this->getSessionData();
         $data = array_merge($sessionData, $this->getDashboardData());
 
-        if (!isset($data['is_logged_in']) || !$data['is_logged_in']) {
-            return redirect()->to(base_url('login'))->with('error_message', 'Please log in to access the dashboard.');
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
         }
 
-        return view('Template/Header') .
+        return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Dashboard', $data) .
             view('Template/Footer');
