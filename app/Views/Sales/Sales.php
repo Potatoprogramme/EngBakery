@@ -811,9 +811,9 @@
                         </tr>
                         <tr>
                             <td class="label-col">SHIFT:</td>
-                            <td class="value-col">${$('#shiftTime').text().split('-')[0]?.trim() || ''}</td>
+                            <td class="value-col"> ${formatTime($('#shiftStart').val())}</td>
                             <td class="label-col">TO:</td>
-                            <td class="value-col">${$('#shiftTime').text().split('-')[1]?.trim() || ''}</td>
+                            <td class="value-col"> ${formatTime($('#shiftEnd').val())}</td>
                         </tr>
                     </table>
                     

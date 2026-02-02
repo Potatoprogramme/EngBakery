@@ -126,9 +126,27 @@
                             <span class="text-sm text-gray-500">Shift:</span>
                             <p class="font-semibold text-gray-800" id="detailShift">-</p>
                         </div>
-                        <div class="col-span-2">
-                            <span class="text-sm text-gray-500">Submitted:</span>
-                            <p class="font-semibold text-gray-800" id="detailSubmittedAt">-</p>
+                    </div>
+
+
+                    <!-- Denomination Breakdown Table -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">Cash Denomination Breakdown</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-700">Denomination</th>
+                                        <th class="px-3 py-2 text-center font-semibold text-gray-700">Quantity</th>
+                                        <th class="px-3 py-2 text-right font-semibold text-gray-700">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="denominationTableBody">
+                                    <tr>
+                                        <td colspan="3" class="px-3 py-2 text-center text-gray-500">No denominations recorded</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -151,6 +169,29 @@
                             <div class="flex justify-between border-t pt-2 mt-2">
                                 <span class="font-bold text-gray-800">Total Remitted:</span>
                                 <span class="font-bold text-primary text-lg" id="detailTotalRemitted">₱0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Breakdown -->
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">Sales by Category</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600"><i class="fas fa-money-bill text-green-500 mr-2"></i>Bakery/Bread:</span>
+                                <span class="font-semibold" id="detailBakerySales">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600"><i class="fas fa-mobile-alt text-blue-500 mr-2"></i>Coffee/Drinks:</span>
+                                <span class="font-semibold" id="detailCoffeeSales">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-gray-500 mr-2"></i>Grocery:</span>
+                                <span class="font-semibold" id="detailGrocerySales">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-2 mt-2">
+                                <span class="font-bold text-gray-800">Total Sales:</span>
+                                <span class="font-bold text-primary text-lg" id="detailTotalSales">₱0.00</span>
                             </div>
                         </div>
                     </div>
@@ -200,6 +241,7 @@
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         let dataTable = null;
         let remittanceData = []; // Store fetched data for filtering
+        let currentRemittanceDetails = null; // Store current remittance details for printing
 
         function getAllRemittances() {
             $.ajax({
@@ -299,9 +341,12 @@
         }
 
         function renderRemittanceDetails(data) {
+            // Store current details for printing
+            currentRemittanceDetails = data;
+
             const details = data.details;
             const denominations = data.denominations;
-            
+
             $('#detailDate').text(new Date(details.remittance_date).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
@@ -324,6 +369,33 @@
             $('#detailTotalRemitted').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
             $('#detailTotalSales').text(formatCurrency(details.total_sales || 0));
             $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
+
+            // Populate sales by category
+            $('#detailBakerySales').text(formatCurrency(details.bakery_sales || 0));
+            $('#detailCoffeeSales').text(formatCurrency(details.coffee_sales || 0));
+            $('#detailDoughSales').text(formatCurrency(details.dough_sales || 0));
+            $('#detailGrocerySales').text(formatCurrency(details.grocery_sales || 0));
+
+            // Populate denomination breakdown table
+            if (denominations && denominations.length > 0) {
+                let denominationHtml = '';
+                denominations.forEach(denom => {
+                    const quantity = parseInt(denom.quantity) || 0;
+                    const total = parseFloat(denom.cash_on_hand) || 0;
+                    const denomLabel = parseFloat(denom.denomination) === 0.25 ? '₱0.25' : '₱' + parseFloat(denom.denomination).toLocaleString('en-PH');
+
+                    denominationHtml += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-3 py-2 font-medium text-gray-700">${denomLabel}</td>
+                            <td class="px-3 py-2 text-center text-gray-700">${quantity}</td>
+                            <td class="px-3 py-2 text-right font-semibold text-gray-800">${formatCurrency(total)}</td>
+                        </tr>
+                    `;
+                });
+                $('#denominationTableBody').html(denominationHtml);
+            } else {
+                $('#denominationTableBody').html('<tr><td colspan="3" class="px-3 py-2 text-center text-gray-500">No denominations recorded</td></tr>');
+            }
 
             // Use variance_amount and is_short from database
             const varianceAmount = parseFloat(details.variance_amount) || 0;
@@ -565,28 +637,240 @@
             });
 
             $('#btnPrintDetails').on('click', function() {
-                const content = $('#remittanceDetailsModal .p-6').first().clone();
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Remittance Details</title>
-                        <script src="https://cdn.tailwindcss.com"><\/script>
-                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-                        <style>
-                            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                        </style>
-                    </head>
-                    <body>
-                        ${content.html()}
-                        <script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
+                printRemittanceSlip();
             });
+        }
+
+        function printRemittanceSlip() {
+            if (!currentRemittanceDetails) {
+                showToast('error', 'No remittance data available');
+                return;
+            }
+
+            // Get current detail data from modal and stored details
+            const cashierName = $('#detailCashier').text();
+            const remittanceDate = $('#detailDate').text();
+            const outletName = $('#detailOutlet').text();
+            const shiftText = $('#detailShift').text();
+            const [shiftStart, shiftEnd] = shiftText.split(' - ').map(t => t.trim());
+
+            const amountEnclosed = $('#detailCashOnHand').text();
+            const onlinePayment = $('#detailGcash').text();
+            const cashOut = $('#detailCashOut').text();
+            const bakerySales = $('#detailTotalSales').text(); // Using total sales for bakery display
+            const grocerySales = '₱0.00';
+            const coffeeSales = '₱0.00';
+            const totalSales = $('#detailTotalSales').text();
+            const variance = $('#detailVariance').text();
+
+            // Build denominations table rows from stored data
+            const denominations = currentRemittanceDetails.denominations || [];
+            const denominationMap = {};
+
+            // Create a map of denomination to quantity and total
+            denominations.forEach(denom => {
+                const denomValue = parseFloat(denom.denomination);
+                denominationMap[denomValue] = {
+                    quantity: parseInt(denom.quantity) || 0,
+                    total: parseFloat(denom.cash_on_hand) || 0
+                };
+            });
+
+            // Define all denominations in order
+            const allDenominations = [{
+                    value: 1000,
+                    label: '1000x'
+                },
+                {
+                    value: 500,
+                    label: '500x'
+                },
+                {
+                    value: 200,
+                    label: '200x'
+                },
+                {
+                    value: 100,
+                    label: '100x'
+                },
+                {
+                    value: 50,
+                    label: '50x'
+                },
+                {
+                    value: 20,
+                    label: '20x'
+                },
+                {
+                    value: 10,
+                    label: '10x'
+                },
+                {
+                    value: 5,
+                    label: '5x'
+                },
+                {
+                    value: 1,
+                    label: '1x'
+                },
+                {
+                    value: 0.25,
+                    label: '.25x'
+                }
+            ];
+
+            // Build denomination rows
+            let denominationRows = '';
+            allDenominations.forEach(denom => {
+                const data = denominationMap[denom.value];
+                const quantity = data ? data.quantity : 0;
+                const total = data ? data.total : 0;
+                const quantityText = quantity > 0 ? quantity : '';
+                const totalText = total > 0 ? formatCurrency(total) : '';
+
+                denominationRows += `<tr><td class="denom-col">${denom.label}</td><td class="count-col">${quantityText}</td><td class="equals-col">=</td><td class="total-col">${totalText}</td></tr>`;
+            });
+
+            // Build the print HTML using the same template as Sales.php
+            const printHtml = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Cashier's Remittance Slip</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    @page { size: 4in 6in; margin: 0; }
+                    @media print {
+                        html, body { width: 4in; height: 6in; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .slip-container { border: none; }
+                    }
+                    body { font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; width: 4in; height: 6in; padding: 0.1in; background: #fff; }
+                    .slip-container { width: 100%; height: 100%; border: 1.5px solid #000; }
+                    .slip-header { text-align: center; font-weight: bold; font-size: 11pt; padding: 6px 0; border-bottom: 1px solid #000; }
+                    
+                    /* Info table for aligned columns */
+                    .info-table { width: 100%; border-collapse: collapse; }
+                    .info-table td { border: 1px solid #000; border-top: none; padding: 2px 4px; height: 18px; font-size: 9pt; }
+                    .info-table .label-col { font-weight: bold; width: 15%; white-space: nowrap; }
+                    .info-table .value-col { width: 35%; }
+                    
+                    .section-header { text-align: center; font-weight: bold; font-size: 9pt; padding: 4px 0; border-bottom: 1px solid #000; background: #f5f5f5; }
+                    .bills-table { width: 100%; border-collapse: collapse; }
+                    .bills-table th, .bills-table td { border: 1px solid #000; padding: 1px 4px; text-align: center; height: 16px; font-size: 8.5pt; }
+                    .bills-table th { background: #f0f0f0; font-weight: bold; }
+                    .bills-table .denom-col { width: 22%; text-align: left; font-weight: bold; }
+                    .bills-table .count-col { width: 20%; }
+                    .bills-table .equals-col { width: 8%; }
+                    .bills-table .total-col { width: 25%; text-align: right; padding-right: 6px; }
+                    
+                    /* Summary table */
+                    .summary-table { width: 100%; border-collapse: collapse; }
+                    .summary-table td { border: 1px solid #000; padding: 2px 4px; height: 18px; font-size: 9pt; }
+                    .summary-table .sum-label { font-weight: bold; width: 25%; }
+                    .summary-table .sum-value { width: 25%; text-align: right; }
+                    .summary-table .total-row td { background: #f0f0f0; }
+                    .summary-table .variance-row td { font-weight: bold; }
+                    
+                    .total-row { background: #f0f0f0; }
+                    .variance-row .summary-label, .variance-row .summary-value { font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div class="slip-container">
+                    <div class="slip-header">CASHIER'S REMITTANCE SLIP</div>
+                    
+                    <!-- Info section with aligned columns -->
+                    <table class="info-table">
+                        <tr>
+                            <td class="label-col">NAMES:</td>
+                            <td class="value-col" colspan="3">${cashierName}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">DATE:</td>
+                            <td class="value-col">${remittanceDate}</td>
+                            <td class="label-col">OUTLET:</td>
+                            <td class="value-col">${outletName}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">SHIFT:</td>
+                            <td class="value-col"> ${shiftStart}</td>
+                            <td class="label-col">TO:</td>
+                            <td class="value-col"> ${shiftEnd}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="section-header">CASH SALES/CHANGE FUND</div>
+                    <table class="bills-table">
+                        <thead><tr><th class="denom-col">BILLS/COINS</th><th class="count-col"></th><th class="equals-col">=</th><th class="total-col"></th></tr></thead>
+                        <tbody>
+                            ${denominationRows}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Summary section with aligned columns -->
+                    <table class="summary-table">
+                        <tr class="total-row">
+                            <td class="sum-label" colspan="2">TOTAL AMOUNT ENCLOSED:</td>
+                            <td class="sum-value" colspan="2">${amountEnclosed}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label" colspan="2">ONLINE PAYMENT:</td>
+                            <td class="sum-value" colspan="2">${onlinePayment}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label">CASH OUT:</td>
+                            <td class="sum-value">${cashOut}</td>
+                            <td class="sum-value" colspan="2" style="text-align:left;font-size:8pt;">${$('#detailCashOutReason').text()}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label">BAKERY:</td>
+                            <td class="sum-value">${bakerySales}</td>
+                            <td class="sum-label">GROCERY:</td>
+                            <td class="sum-value">${grocerySales}</td>
+                        </tr>
+                        <tr>
+                            <td class="sum-label" colspan="2">COFFEE:</td>
+                            <td class="sum-value" colspan="2">${coffeeSales}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="sum-label" colspan="2">TOTAL SALES:</td>
+                            <td class="sum-value" colspan="2">${totalSales}</td>
+                        </tr>
+                        <tr class="variance-row">
+                            <td class="sum-label" colspan="2">OVERAGE/SHORTAGE:</td>
+                            <td class="sum-value" colspan="2">${variance}</td>
+                        </tr>
+                    </table>
+                </div>
+            </body>
+            </html>`;
+
+            // Write to hidden iframe and print
+            if (!document.getElementById('printFrame')) {
+                const iframe = document.createElement('iframe');
+                iframe.id = 'printFrame';
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-9999px';
+                iframe.style.left = '-9999px';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                document.body.appendChild(iframe);
+            }
+
+            const printFrame = document.getElementById('printFrame');
+            const frameDoc = printFrame.contentWindow || printFrame.contentDocument.document || printFrame.contentDocument;
+
+            frameDoc.document.open();
+            frameDoc.document.write(printHtml);
+            frameDoc.document.close();
+
+            // Wait for content to load then print
+            setTimeout(function() {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            }, 250);
         }
 
         function exportToCsv() {
