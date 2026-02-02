@@ -137,13 +137,13 @@
             </ul>
             
             <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
-            <!-- Approval at bottom -->
+            <!-- Manage Employee at bottom -->
             <div class="pt-2 mt-auto border-t border-gray-100">
-                <a href="<?= base_url('Approval') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'approval') ? 'bg-primary' : '' ?>">
-                    <svg class="w-6 h-6 <?= ($current === 'approval') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <a href="<?= base_url('ManageEmployee') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'manageemployee') ? 'bg-primary' : '' ?>">
+                    <svg class="w-6 h-6 <?= ($current === 'manageemployee') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'approval') ? 'text-white' : '' ?>">Approval</span>
+                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'manageemployee') ? 'text-white' : '' ?>">Manage Employee</span>
                 </a>
             </div>
             <?php endif; ?>
