@@ -219,10 +219,10 @@
                             <span class="text-sm text-gray-500">Outlet:</span>
                             <p class="font-semibold text-gray-800" id="detailOutlet">-</p>
                         </div>
-                        <div>
+                        <!-- <div>
                             <span class="text-sm text-gray-500">Shift:</span>
                             <p class="font-semibold text-gray-800" id="detailShift">-</p>
-                        </div>
+                        </div> -->
                         <div>
                             <span class="text-sm text-gray-500">Total Orders:</span>
                             <p class="font-semibold text-gray-800" id="detailOrderCount">0</p>
@@ -391,6 +391,29 @@
             });
         }
 
+        function getTransactionDetails(orderId) {
+            console.log('Loading transaction details...');
+            $.ajax({
+                url: BASE_URL + 'Sales/GetTransactionDetails',
+                type: 'POST',
+                data: JSON.stringify({ order_id: orderId }),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        console.log('Transaction details loaded:', response.data);
+                        openDetailsModal(response.data);
+                    } else {
+                        showToast('error', response.message || 'Failed to load transaction details');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error loading transaction details:', xhr);
+                    showToast('error', 'Failed to load transaction details');
+                }
+            });
+        }
+
         function initFilters() {
             // Set default date range (today only)
             const today = new Date();
@@ -442,22 +465,23 @@
                 const date = new Date(sale.date_created);
                 const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const timeStr = formatTime(sale.time_created);
+                const orderNumber = `${sale.date_created}-${sale.order_id}`;
 
                 html += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#${sale.order_id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${timeStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name || 'Unknown'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${orderNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${timeStr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-700">${sale.product_name || 'Unknown'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-700">${sale.quantity_sold}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(sale.total_sales || 0)}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
             });
 
             $('#salesHistoryTableBody').html(html);
@@ -477,7 +501,8 @@
             // Re-bind click events after DataTable renders
             $('#salesHistoryTable').on('click', '.btn-view-details', function () {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const orderId = history[index].order_id;
+                getTransactionDetails(orderId);
             });
         }
 
@@ -497,6 +522,7 @@
                 const date = new Date(sale.date_created);
                 const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const timeStr = formatTime(sale.time_created);
+                const orderNumber = `${sale.date_created}-${sale.order_id}`;
 
                 html += `
             <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
@@ -505,7 +531,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-receipt text-white"></i>
-                            <span class="font-bold text-white">Order #${sale.order_id}</span>
+                            <span class="font-bold text-white">Order #${orderNumber}</span>
                         </div>
                         <span class="text-xs text-gray-200">${dateStr}</span>
                     </div>
@@ -527,11 +553,11 @@
                     <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-boxes text-blue-500 mr-1"></i>Quantity</span>
-                            <span class="font-semibold text-gray-900">${sale.quantity}</span>
+                            <span class="font-semibold text-gray-900">${sale.quantity_sold}</span>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-green-50 rounded">
                             <span class="text-gray-600"><i class="fas fa-peso-sign text-green-500 mr-1"></i>Total</span>
-                            <span class="font-semibold text-green-600">${formatCurrency(sale.total)}</span>
+                            <span class="font-semibold text-green-600">${formatCurrency(sale.total_sales)}</span>
                         </div>
                     </div>
                     
@@ -539,7 +565,7 @@
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                         <div>
                             <p class="text-xs text-gray-500">Total Amount</p>
-                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total)}</p>
+                            <p class="text-xl font-bold text-primary">${formatCurrency(sale.total_sales)}</p>
                         </div>
                         <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
                             <i class="fas fa-eye mr-1"></i>View
@@ -555,7 +581,8 @@
             // Bind click events for mobile cards
             $('.btn-view-details-mobile').on('click', function () {
                 const index = $(this).data('index');
-                openDetailsModal(history[index]);
+                const orderId = history[index].order_id;
+                getTransactionDetails(orderId);
             });
         }
 
@@ -601,45 +628,32 @@
             });
         }
 
-        function openDetailsModal(sale) {
-            if (!sale) return;
+        function openDetailsModal(order) {
+            if (!order) return;
 
-            const date = new Date(sale.date);
+            const date = new Date(order.date_created);
             const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const timeStr = formatTime(order.time_created);
+            const orderNumber = `${order.date_created}-${order.order_id}`;
 
-            $('#detailDate').text(dateStr);
-            $('#detailCashier').text(sale.cashier_name || '-');
-            $('#detailOutlet').text(sale.outlet_name || 'E n\' G Bakery');
-            $('#detailShift').text(formatTime(sale.shift_start) + ' - ' + formatTime(sale.shift_end));
-            $('#detailOrderCount').text(sale.order_count || 0);
+            $('#detailDate').text(`${dateStr} at ${timeStr}`);
+            $('#detailCashier').text(order.cashier_name || '-');
+            $('#detailOutlet').text(order.outlet_name || 'DECA SENTRIO');
+            $('#detailShift').text('-');
+            $('#detailOrderCount').text('Order #' + orderNumber);
 
-            $('#detailBakery').text(formatCurrency(sale.bakery_sales || 0));
-            $('#detailCoffee').text(formatCurrency(sale.coffee_sales || 0));
-            $('#detailGrocery').text(formatCurrency(sale.grocery_sales || 0));
-            $('#detailTotalSales').text(formatCurrency(sale.total_sales || 0));
+            // Product details (grouped products)
+            $('#detailBakery').text(`Products: ${order.product_name || 'Unknown'}`);
+            $('#detailCoffee').text(`Total Quantity: ${order.quantity_sold || 0}`);
+            $('#detailGrocery').text(`Items: ${(order.product_name || '').split(', ').length}`);
+            $('#detailTotalSales').text(formatCurrency(order.total_sales || 0));
 
-            $('#detailCash').text(formatCurrency(sale.cash_total || 0));
-            $('#detailGcash').text(formatCurrency(sale.gcash_total || 0));
-            $('#detailTotalEnclosed').text(formatCurrency(sale.total_cash_enclosed || 0));
+            // Payment methods
+            $('#detailCash').text(formatCurrency(order.cash_total || 0));
+            $('#detailGcash').text(formatCurrency(order.gcash_total || 0));
 
-            // Variance
-            const variance = parseFloat(sale.variance) || 0;
-            const container = $('#detailVarianceContainer');
-            const varianceEl = $('#detailVariance');
-
-            if (variance > 0) {
-                container.removeClass('bg-red-100').addClass('bg-green-100');
-                varianceEl.removeClass('text-red-600').addClass('text-green-600');
-                varianceEl.text('+' + formatCurrency(variance) + ' (Over)');
-            } else if (variance < 0) {
-                container.removeClass('bg-green-100').addClass('bg-red-100');
-                varianceEl.removeClass('text-green-600').addClass('text-red-600');
-                varianceEl.text('-' + formatCurrency(Math.abs(variance)) + ' (Short)');
-            } else {
-                container.removeClass('bg-red-100 bg-green-100').addClass('bg-gray-100');
-                varianceEl.removeClass('text-red-600 text-green-600').addClass('text-gray-800');
-                varianceEl.text('₱0.00 (Balanced)');
-            }
+            // Hide variance section
+            $('#detailVarianceContainer').hide();
 
             $('#salesDetailsModal').removeClass('hidden');
         }

@@ -265,4 +265,27 @@ class OrderModel extends Model
             ->getRowArray();
         return $result['total_revenue'] ?? 0;
     }
+
+    /** 
+     * Getting Transaction Info using the order id
+     * Blame -> Julius Caesar
+     */
+    public function getTransactionDetailsByOrderId(int $orderId)
+    {
+        return $this->select('orders.order_id, 
+                          orders.total_payment_due, 
+                          orders.payment_method,
+                          orders.date_created,
+                          orders.time_created,
+                          GROUP_CONCAT(DISTINCT products.product_name SEPARATOR ", ") as product_names,
+                          SUM(order_items.amount) as total_quantity,
+                          SUM(transactions.total_sales) as total_sales')
+            ->join('order_items', 'orders.order_id = order_items.order_id', 'left')
+            ->join('transactions', 'order_items.order_item_id = transactions.order_id', 'left')
+            ->join('daily_stock_items', 'transactions.item_id = daily_stock_items.item_id', 'left')
+            ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
+            ->where('orders.order_id', $orderId)
+            ->groupBy('orders.order_id')
+            ->first();
+    }
 }

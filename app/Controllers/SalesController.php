@@ -244,6 +244,7 @@ class SalesController extends BaseController
 
     /**
      * Get sales history from order items (actual sales records)
+     * BLAME -> Julius Caesar
      */
     public function getSalesHistory()
     {
@@ -251,9 +252,9 @@ class SalesController extends BaseController
         $dateTo = $this->request->getGet('date_to');
 
         if (empty($dateFrom) || empty($dateTo)) {
-            $salesData = $this->orderItemModel->getSalesHistory();
+            $salesData = $this->transactionsModel->getSalesHistory();
         } else {
-            $salesData = $this->orderItemModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
+            $salesData = $this->transactionsModel->getSalesHistoryByDateRange($dateFrom, $dateTo);
         }
 
         if (empty($salesData)) {
@@ -273,6 +274,7 @@ class SalesController extends BaseController
 
     /**
      * Get Sales Details for summary cards
+     * Blame -> Julius Caesar
      */
     public function getSummaryDetails()
     {
@@ -310,6 +312,24 @@ class SalesController extends BaseController
                 'coffee_sales' => floatval($coffeeSales),
                 'grocery_sales' => floatval($grocerySales)
             ]
+        ]);
+    }
+
+    /** 
+     * Get Sales Details for Order Id
+     * Blame -> Julius Caesar
+     */
+    public function getTransactionDetails()
+    {
+        $data = $this->request->getJSON(true);
+
+        $orderId = $data['order_id'] ?? null;
+
+        $transac_details = $this->orderModel->getTransactionDetailsByOrderId($orderId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $transac_details
         ]);
     }
 
