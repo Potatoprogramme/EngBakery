@@ -125,7 +125,8 @@ class OrdersController extends BaseController
                     $this->transactionsModel->recordSale(
                         $stockItem['item_id'],
                         intval($item['quantity']),
-                        floatval($item['total'])
+                        floatval($item['total']),
+                        $orderId
                     );
                 } else {
                     // Product not in inventory - auto-add it
@@ -147,7 +148,8 @@ class OrdersController extends BaseController
                         $this->transactionsModel->recordSale(
                             $newItemId,
                             intval($item['quantity']),
-                            floatval($item['total'])
+                            floatval($item['total']),
+                            $orderId
                         );
                     }
                 }

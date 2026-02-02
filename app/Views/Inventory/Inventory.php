@@ -119,7 +119,6 @@
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -130,7 +129,6 @@
                                 <tr>
                                     <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalSales">₱0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -155,7 +153,6 @@
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -166,7 +163,6 @@
                                 <tr>
                                     <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalSales">₱0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -193,7 +189,6 @@
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -204,7 +199,6 @@
                                 <tr>
                                     <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalSales">₱0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -212,24 +206,6 @@
                     </div>
                 </div>
 
-                <!-- Grand Total Summary -->
-                <div class="bg-gray-800 rounded border border-gray-700 px-5 py-4">
-                    <div class="flex items-center justify-between flex-wrap gap-4">
-                        <div class="flex items-center gap-3">
-                            <div>
-                                <p class="text-xs text-gray-400">Items Sold Today</p>
-                                <p class="text-xl font-semibold text-white" id="grandTotalQty">0</p>
-                            </div>
-                        </div>
-                        <div class="h-8 w-px bg-gray-600 hidden sm:block"></div>
-                        <div class="flex items-center gap-3">
-                            <div>
-                                <p class="text-xs text-gray-400">Total Sales</p>
-                                <p class="text-xl font-semibold text-white" id="grandTotalSales">₱0.00</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- Time Input Modal -->
             <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -731,18 +707,17 @@
         function renderBakeryTable(items) {
             let rows = '';
             let totalQty = 0;
-            let totalSales = 0;
 
             if (items && items.length > 0) {
                 items.forEach(function(item) {
                     const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
-                    const qtySold = item.quantity_sold || 0;
-                    const sales = parseFloat(item.total_sales) || 0;
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const qtySold = parseInt(item.quantity_sold) || 0;
+                    const ending_stock = beginning - pullOut - qtySold;
                     
                     totalQty += qtySold;
-                    totalSales += sales;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
@@ -751,7 +726,6 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.pull_out_quantity || 0) + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
                     rows += '<td class="px-6 py-3">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
@@ -759,72 +733,64 @@
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
+                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
             }
 
             $('#bakeryTableBody').html(rows);
             $('#bakeryCount').text(items.length + ' items');
             $('#bakeryTotalQty').text(totalQty);
-            $('#bakeryTotalSales').text('₱' + totalSales.toFixed(2));
         }
 
         function renderDrinksTable(items) {
             let rows = '';
             let totalQty = 0;
-            let totalSales = 0;
 
             if (items && items.length > 0) {
                 items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
-                    const qtySold = item.quantity_sold || 0;
-                    const sales = parseFloat(item.total_sales) || 0;
+                    const qtySold = parseInt(item.quantity_sold) || 0;
                     
                     totalQty += qtySold;
-                    totalSales += sales;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
                     rows += '<td class="px-6 py-3">';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+                rows = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
             }
 
             $('#drinksTableBody').html(rows);
             $('#drinksCount').text(items.length + ' items');
             $('#drinksTotalQty').text(totalQty);
-            $('#drinksTotalSales').text('₱' + totalSales.toFixed(2));
         }
 
         function renderGroceryTable(items) {
             let rows = '';
             let totalQty = 0;
-            let totalSales = 0;
 
             if (items && items.length > 0) {
                 items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
-                    const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
-                    const qtySold = item.quantity_sold || 0;
-                    const sales = parseFloat(item.total_sales) || 0;
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const qtySold = parseInt(item.quantity_sold) || 0;
+                    const ending_stock = beginning - pullOut - qtySold;
                     
                     totalQty += qtySold;
-                    totalSales += sales;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.beginning_stock || 0) + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.pull_out_quantity || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm font-medium text-gray-800">₱' + sales.toFixed(2) + '</td>';
                     rows += '<td class="px-6 py-3">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
@@ -832,26 +798,22 @@
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
             }
 
             $('#groceryTableBody').html(rows);
             $('#groceryCount').text(items.length + ' items');
             $('#groceryTotalQty').text(totalQty);
-            $('#groceryTotalSales').text('₱' + totalSales.toFixed(2));
         }
 
         function updateGrandTotals(items) {
             let grandQty = 0;
-            let grandSales = 0;
 
             items.forEach(function(item) {
-                grandQty += item.quantity_sold || 0;
-                grandSales += parseFloat(item.total_sales) || 0;
+                grandQty += parseInt(item.quantity_sold) || 0;
             });
 
             $('#grandTotalQty').text(grandQty);
-            $('#grandTotalSales').text('₱' + grandSales.toFixed(2));
         }
 
         // Edit Inventory Item - Open Modal
