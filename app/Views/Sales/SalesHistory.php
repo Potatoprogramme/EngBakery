@@ -318,8 +318,6 @@
             </div>
         </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
 
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
@@ -824,13 +822,13 @@
                             <div class="footer">
                                 <p>Thank you for your business!</p>
                                 <p class="print-date">Printed on: ${new Date().toLocaleString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}</p>
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</p>
                             </div>
 
                             <script>
