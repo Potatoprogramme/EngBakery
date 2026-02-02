@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 class InventoryController extends BaseController
 {
-    public function inventory(): string
+    public function inventory()
     {
         $data = $this->getSessionData();
         if ($redirect = $this->redirectIfNotLoggedIn()) {
@@ -17,7 +17,7 @@ class InventoryController extends BaseController
             view('Template/Footer', $data);
     }
 
-    public function addInventory(): string
+    public function addInventory()
     {
         $data = $this->getSessionData();
         if ($redirect = $this->redirectIfNotLoggedIn()) {
@@ -324,7 +324,7 @@ class InventoryController extends BaseController
     /**
      * Inventory History Page
      */
-    public function inventoryHistory(): string
+    public function inventoryHistory()
     {
         $data = $this->getSessionData();
         if ($redirect = $this->redirectIfNotLoggedIn()) {
