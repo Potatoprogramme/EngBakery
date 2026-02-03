@@ -43,7 +43,7 @@
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-green-600 font-medium">
-                            <i class="fas fa-shopping-cart mr-1"></i><?= $todaysOrderCount ?> <?= $todaysOrderCount == 1 ? 'order' : 'orders' ?>
+                            <i class="fas fa-arrow-trend-up mr-1"></i>Revenue today
                         </span>
                     </div>
                 </div>
@@ -66,38 +66,39 @@
                     </div>
                 </div>
 
-                <!-- Products -->
+                <!-- Orders Today -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Products</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($totalProducts) ?></p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Orders Today</p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($todaysOrderCount) ?></p>
                         </div>
                         <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-bread-slice text-amber-600 text-base sm:text-xl"></i>
+                            <i class="fas fa-receipt text-amber-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-amber-600 font-medium">
-                            <i class="fas fa-tags mr-1"></i>Active items
+                            <i class="fas fa-clock mr-1"></i>Completed
                         </span>
                     </div>
                 </div>
 
-                <!-- Raw Materials -->
+                <!-- Avg Order Value -->
+                <?php $avgOrderValue = $todaysOrderCount > 0 ? $todaysSales / $todaysOrderCount : 0; ?>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Raw Materials</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($totalRawMaterials) ?></p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Avg Order Value</p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">₱<?= number_format($avgOrderValue, 2) ?></p>
                         </div>
                         <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-cubes text-purple-600 text-base sm:text-xl"></i>
+                            <i class="fas fa-chart-pie text-purple-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-purple-600 font-medium">
-                            <i class="fas fa-warehouse mr-1"></i>In inventory
+                            <i class="fas fa-trending-up mr-1"></i>Per transaction
                         </span>
                     </div>
                 </div>
@@ -490,6 +491,52 @@
                         <p class="text-xs sm:text-sm text-gray-500">No sales data available</p>
                     </div>
                 <?php endif; ?>
+            </div>
+
+            <!-- System Overview -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 mb-4 sm:mb-6">
+                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <i class="fas fa-database text-gray-500 mr-2"></i>
+                    System Overview
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-bread-slice text-amber-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Products</p>
+                            <p class="text-lg font-bold text-gray-900"><?= number_format($totalProducts) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-cubes text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Raw Materials</p>
+                            <p class="text-lg font-bold text-gray-900"><?= number_format($totalRawMaterials) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Low Stock</p>
+                            <p class="text-lg font-bold <?= count($lowStockProducts) > 0 ? 'text-red-600' : 'text-gray-900' ?>"><?= count($lowStockProducts) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-calendar-check text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Inventory</p>
+                            <p class="text-lg font-bold <?= $inventoryExists ? 'text-green-600' : 'text-red-600' ?>"><?= $inventoryExists ? 'Done' : 'Pending' ?></p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Quick Actions - Mobile Friendly Grid -->
