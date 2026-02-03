@@ -122,6 +122,8 @@ $routes->group('ManageEmployee', function (RouteCollection $routes) {
     $routes->get('/', 'ManageEmployeeController::index');
     $routes->get('GetEmployees', 'ManageEmployeeController::getEmployees');
     $routes->get('Approval', 'ApprovalController::index');
+    $routes->post('DeleteUser', 'ManageEmployeeController::deleteUser');
+    $routes->post('ChangeUserRole', 'ManageEmployeeController::changeUserRole');
 });
 
 $routes->group('DeliveryLog', function (RouteCollection $routes) {
