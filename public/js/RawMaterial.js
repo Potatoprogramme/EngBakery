@@ -478,8 +478,15 @@ $(document).ready(function() {
     }
 
     // Submit Add/Edit Material Form via AJAX
+    let isSubmitting = false; // Prevent double submission
+    
     $('#addMaterialForm').on('submit', function(e) {
         e.preventDefault();
+
+        // Prevent double submission
+        if (isSubmitting) {
+            return;
+        }
 
         // Check if material name already exists
         if (materialNameExists) {
@@ -503,6 +510,10 @@ $(document).ready(function() {
             endpoint = 'RawMaterials/UpdateRawMaterial';
         }
 
+        // Set submitting flag and disable button
+        isSubmitting = true;
+        $('#btnSaveMaterial').prop('disabled', true).text('Saving...');
+
         $.ajax({
             url: baseUrl + endpoint,
             type: 'POST',
@@ -520,6 +531,11 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 Toast.error('Error saving material: ' + error);
+            },
+            complete: function() {
+                // Reset submitting flag and button
+                isSubmitting = false;
+                $('#btnSaveMaterial').prop('disabled', false).text(materialId ? 'Update' : 'Save');
             }
         });
     });
