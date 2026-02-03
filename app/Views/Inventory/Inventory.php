@@ -209,7 +209,7 @@
             </div>
             <!-- Time Input Modal -->
             <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="timeInputModalBackdrop"></div>
+                <div class="fixed inset-0 bg-black/40" id="timeInputModalBackdrop"></div>
                 <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
                     <button type="button" id="timeInputModalClose"
                         class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
@@ -248,7 +248,7 @@
 
     <!-- Edit Inventory Modal -->
     <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="editInventoryModalBackdrop"></div>
+        <div class="fixed inset-0 bg-black/40" id="editInventoryModalBackdrop"></div>
         <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="editInventoryModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
@@ -288,7 +288,7 @@
 
     <!-- Add Product to Inventory Modal -->
     <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" id="addProductModalBackdrop"></div>
+        <div class="fixed inset-0 bg-black/40 " id="addProductModalBackdrop"></div>
         <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="addProductModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
@@ -353,8 +353,15 @@
         </div>
     </div>
     <script>
+        // Track if inventory exists for today
+        let inventoryExistsToday = false;
+
         // Delete Modal Script
         $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+            if (!inventoryExistsToday) {
+                showToast('warning', 'No inventory exists for today to delete.', 2000);
+                return;
+            }
             $('#deleteConfirmModal').removeClass('hidden');
         });
 
@@ -582,15 +589,18 @@
                 success: function (response) {
                     // Destroy existing DataTable first
                     if (response.success) {
+                        inventoryExistsToday = true;
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
                     } else {
+                        inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
                     }
                 },
                 error: function (xhr, status, error) {
+                    inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
                 }
             });
@@ -902,6 +912,7 @@
                 data: JSON.stringify({ date: today }),
                 success: function (response) {
                     if (response.success) {
+                        inventoryExistsToday = false;
                         showToast('success', response.message, 2000);
                         // Clear the table
                         $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');

@@ -19,7 +19,7 @@ class ApprovalController extends BaseController
         return view('Template/Header', $data)
             . view('Template/SideNav', $data)
             . view('Template/Notification', $data)
-            . view('Approval/Approval', $data)
+            . view('ManageEmployee/Approval', $data)
             . view('Template/Footer', $data);
     }
 
