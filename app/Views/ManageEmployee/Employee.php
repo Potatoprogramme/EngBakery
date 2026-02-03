@@ -25,7 +25,7 @@
                         <p class="text-sm text-gray-500 mt-0.5">Manage employees, roles, and approval requests</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="<?= base_url('ManageEmployee/Approval') ?>" 
+                        <a href="<?= base_url('ManageEmployee/Approval') ?>"
                             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-secondary transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -123,174 +123,18 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="employeeTableBody">
-                            <!-- Static Employee Data -->
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <span class="text-sm font-semibold text-primary">JD</span>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">John Doe</div>
-                                            <div class="text-sm text-gray-500">@johndoe</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">johndoe@email.com</div>
-                                    <div class="text-sm text-gray-500">09123456789</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        Admin
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 15, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <span class="text-sm font-semibold text-primary">MS</span>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Maria Santos</div>
-                                            <div class="text-sm text-gray-500">@mariasantos</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">maria.santos@email.com</div>
-                                    <div class="text-sm text-gray-500">09234567890</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        Cashier
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Feb 20, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <span class="text-sm font-semibold text-primary">PR</span>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Pedro Reyes</div>
-                                            <div class="text-sm text-gray-500">@pedroreyes</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">pedro.reyes@email.com</div>
-                                    <div class="text-sm text-gray-500">09345678901</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        Staff
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mar 10, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <span class="text-sm font-semibold text-primary">AG</span>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Ana Garcia</div>
-                                            <div class="text-sm text-gray-500">@anagarcia</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">ana.garcia@email.com</div>
-                                    <div class="text-sm text-gray-500">09456789012</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        Cashier
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 5, 2025</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <span class="text-sm font-semibold text-primary">RC</span>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Roberto Cruz</div>
-                                            <div class="text-sm text-gray-500">@robertocruz</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">roberto.cruz@email.com</div>
-                                    <div class="text-sm text-gray-500">09567890123</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                        Owner
-                                    </span>
-                                </td>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 1, 2024</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+
                         </tbody>
+                        <!-- Empty State (hidden by default) -->
+                        <div id="emptyState" class="hidden">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
+                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-user-check text-2xl text-gray-300"></i>
+                                </div>
+                                <h3 class="text-base font-medium text-gray-900 mb-1">No Employees Found</h3>
+                                <p class="text-gray-500 text-sm">All registration requests have been processed.</p>
+                            </div>
+                        </div>
                     </table>
                 </div>
                 <!-- Pagination -->
@@ -515,7 +359,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-3 p-4 md:p-5 border-t border-gray-200">
-                    <button type="button" 
+                    <button type="button"
                         class="btn-role flex-1 inline-flex justify-center items-center text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/30 font-medium rounded-lg text-sm px-5 py-2.5">
                         <i class="fas fa-edit mr-2"></i> Change Employee Role
                     </button>
@@ -530,8 +374,190 @@
 
     <script>
         window.BASE_URL = '<?= base_url() ?>';
+        
+        // Current logged-in user info
+        const currentUser = {
+            id: '<?= $user_id ?>',
+            employeeType: '<?= $employee_type ?>'
+        };
 
-        $(document).ready(function () {
+        $(document).ready(function() {
+            fetchEmployees();
+
+            // Helper function to get initials from name
+            function getInitials(firstname, lastname) {
+                const first = firstname ? firstname.charAt(0).toUpperCase() : '';
+                const last = lastname ? lastname.charAt(0).toUpperCase() : '';
+                return first + last;
+            }
+
+            // Helper function to format date
+            function formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+
+            // Helper function to capitalize role
+            function capitalizeRole(role) {
+                if (!role) return 'N/A';
+                return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+            }
+
+            // Helper function to check if current user can delete target user
+            function canDeleteUser(targetEmployeeType) {
+                const targetType = targetEmployeeType ? targetEmployeeType.toLowerCase() : '';
+                const currentType = currentUser.employeeType ? currentUser.employeeType.toLowerCase() : '';
+
+                // Admin: cannot delete co-admin and owner, but can delete staff
+                if (currentType === 'admin') {
+                    return targetType === 'staff' || targetType === 'cashier';
+                }
+                
+                // Owner: cannot delete co-owner, but can delete admin/staff
+                if (currentType === 'owner') {
+                    return targetType !== 'owner';
+                }
+
+                // Default: cannot delete anyone
+                return false;
+            }
+
+            function fetchEmployees() {
+                $.ajax({
+                    url: `${BASE_URL}/ManageEmployee/GetEmployees`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Filter out the current logged-in user from the list
+                            // Also hide owners from admin view
+                            let users = response.data.filter(user => user.user_id != currentUser.id);
+                            
+                            if (currentUser.employeeType.toLowerCase() === 'admin') {
+                                users = users.filter(user => user.employee_type && user.employee_type.toLowerCase() !== 'owner');
+                            }
+
+                            if (users.length === 0) {
+                                $('#emptyState').removeClass('hidden');
+                                $('#employeeTableBody').empty();
+                            } else {
+                                $('#employeeTableBody').empty();
+                                $('#emptyState').addClass('hidden');
+
+                                users.forEach(function(user) {
+                                    const initials = getInitials(user.firstname, user.lastname);
+                                    const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
+                                    const formattedDate = formatDate(user.created_at);
+                                    const role = capitalizeRole(user.employee_type);
+                                    const canDelete = canDeleteUser(user.employee_type);
+
+                                    const rowHTML = `
+                                    <tr class="hover:bg-gray-50" data-user-id="${user.user_id}">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                                    <span class="text-sm font-semibold text-primary">${initials}</span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">${fullName}</div>
+                                                    <div class="text-sm text-gray-500">@${user.username || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
+                                            <div class="text-sm text-gray-500">${user.phone_number || 'N/A'}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                                ${role}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View"
+                                                    data-user-id="${user.user_id}"
+                                                    data-firstname="${user.firstname || ''}"
+                                                    data-middlename="${user.middlename || ''}"
+                                                    data-lastname="${user.lastname || ''}"
+                                                    data-email="${user.email || ''}"
+                                                    data-username="${user.username || ''}"
+                                                    data-phone="${user.phone_number || ''}"
+                                                    data-role="${user.employee_type || ''}"
+                                                    data-gender="${user.gender || ''}"
+                                                    data-birthdate="${user.birthdate || ''}"
+                                                    data-joined="${user.created_at || ''}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                ${canDelete ? `
+                                                <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete"
+                                                    data-user-id="${user.user_id}"
+                                                    data-name="${fullName}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                ` : ''}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                                    $('#employeeTableBody').append(rowHTML);
+                                });
+
+                                attachEventHandlers();
+                            }
+                        } else {
+                            Toast.error(response.message || 'Failed to load employees');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching employees:', error);
+                        Toast.error('Failed to load employees. Please try again.');
+                    }
+                });
+            }
+
+            function attachEventHandlers() {
+                // View/Edit button handler
+                $('.btn-edit').off('click').on('click', function() {
+                    const btn = $(this);
+                    const firstname = btn.data('firstname');
+                    const middlename = btn.data('middlename');
+                    const lastname = btn.data('lastname');
+                    const fullName = `${firstname} ${middlename || ''} ${lastname}`.trim();
+                    const initials = getInitials(firstname, lastname);
+
+                    $('#viewInitials').text(initials);
+                    $('#viewName').text(fullName);
+                    $('#viewEmail').text(btn.data('email') || 'N/A');
+                    $('#viewUsername').text('@' + (btn.data('username') || 'N/A'));
+                    $('#viewPhone').text(btn.data('phone') || 'N/A');
+                    $('#viewRole').text(capitalizeRole(btn.data('role')));
+                    $('#viewGender').text(btn.data('gender') || 'N/A');
+                    $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
+                    $('#viewJoined').text(formatDate(btn.data('joined')));
+
+                    // Store user_id for role change
+                    $('#viewEditModal').data('user-id', btn.data('user-id'));
+
+                    $('#viewEditModal').removeClass('hidden').addClass('flex');
+                });
+
+                // Delete button handler
+                $('.btn-delete').off('click').on('click', function() {
+                    const btn = $(this);
+                    const userId = btn.data('user-id');
+                    const employeeName = btn.data('name');
+
+                    Confirm.delete(`Are you sure you want to delete ${employeeName}? This action cannot be undone.`, function() {
+                        // Add delete logic here when backend is implemented
+                        console.log('Deleting employee:', employeeName, 'ID:', userId);
+                        Toast.success('Employee deleted successfully.');
+                    });
+                });
+            }
             // Search functionality (client-side for static data)
             $('#searchInput').on('keyup', function() {
                 const searchTerm = $(this).val().toLowerCase();
@@ -567,22 +593,7 @@
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
             });
 
-            // Delete Employee
-            $('.btn-delete').on('click', function() {
-                const employeeName = $(this).closest('tr, .bg-white').find('.text-sm.font-medium.text-gray-900, .text-sm.font-semibold.text-gray-900').first().text();
-                
-                Confirm.delete(`Are you sure you want to delete ${employeeName}? This action cannot be undone.`, function() {
-                    // Add delete logic here when backend is implemented
-                    console.log('Deleting employee:', employeeName);
-                    Toast.success('Employee deleted successfully.');
-                });
-            });
-
-            // View/Edit Modal handlers
-            $('.btn-edit').on('click', function() {
-                $('#viewEditModal').removeClass('hidden').addClass('flex');
-            });
-
+            // View/Edit Modal close handlers
             $('#closeViewEditModal, #closeViewBtn, #viewEditModalBackdrop').on('click', function() {
                 $('#viewEditModal').removeClass('flex').addClass('hidden');
             });
