@@ -37,7 +37,6 @@
                         <option value="general">General (All Products)</option>
                         <option value="bread">Bakery Only</option>
                         <option value="drinks">Drinks Only</option>
-                        <option value="grocery">Grocery Only</option>
                     </select>
                     <p class="text-xs text-gray-500 mt-1">Used to filter materials per product type</p>
                 </div>

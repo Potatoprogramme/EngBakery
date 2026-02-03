@@ -363,7 +363,8 @@ $(document).ready(function() {
     // Render Mobile Pagination
     function renderMobilePagination(totalPages) {
         if (totalPages <= 1) {
-            $('#mobilePagination').html(`<p class="text-sm text-gray-500">Showing ${filteredMaterials.length} item(s)</p>`);
+            // Hide pagination completely when only 1 page or no data
+            $('#mobilePagination').html('');
             return;
         }
 
@@ -607,16 +608,7 @@ $(document).ready(function() {
     $('#apply-filters').on('click', function() {
         const categoryId = $('#filter-category').val();
         
-        // Filter desktop table
-        $('table tbody tr').each(function() {
-            if (categoryId === '' || $(this).data('category') == categoryId) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-        
-        // Filter mobile cards
+        // Filter materials
         if (categoryId === '') {
             filteredMaterials = [...allMaterials];
         } else {
@@ -624,6 +616,20 @@ $(document).ready(function() {
                 return mat.category_id == categoryId;
             });
         }
+        
+        // Re-render desktop table with filtered data
+        if (dataTable) {
+            dataTable.destroy();
+            dataTable = null;
+        }
+        
+        if (filteredMaterials.length > 0) {
+            renderDesktopTable(filteredMaterials);
+        } else {
+            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-filter text-4xl mb-3 block"></i><p>No materials found for the selected category</p></td></tr>');
+        }
+        
+        // Reset mobile pagination and render cards
         currentPage = 1;
         renderMobileCards();
     });
@@ -631,10 +637,23 @@ $(document).ready(function() {
     // Reset Filter
     $('#reset-filters').on('click', function() {
         $('#filter-category').val('');
-        $('table tbody tr').show();
+        
+        // Reset filtered materials to all materials
+        filteredMaterials = [...allMaterials];
+        
+        // Re-render desktop table with all data
+        if (dataTable) {
+            dataTable.destroy();
+            dataTable = null;
+        }
+        
+        if (filteredMaterials.length > 0) {
+            renderDesktopTable(filteredMaterials);
+        } else {
+            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No raw materials found</p></td></tr>');
+        }
         
         // Reset mobile cards
-        filteredMaterials = [...allMaterials];
         currentPage = 1;
         $('#mobileSearch').val('');
         renderMobileCards();
