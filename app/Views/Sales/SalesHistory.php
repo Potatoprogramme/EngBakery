@@ -437,11 +437,25 @@
         }
 
         function initFilters() {
-            // Set default date range (today only)
+            // Set default date range (2 weeks ago to today)
             const today = new Date();
+            const twoWeeksAgo = new Date(today);
+            twoWeeksAgo.setDate(today.getDate() - 14);
 
-            $('#filterDateTo').val(today.toISOString().split('T')[0]);
-            $('#filterDateFrom').val(today.toISOString().split('T')[0]);
+            // Format today's date
+            const todayYear = today.getFullYear();
+            const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+            const todayDay = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${todayYear}-${todayMonth}-${todayDay}`;
+
+            // Format two weeks ago date
+            const fromYear = twoWeeksAgo.getFullYear();
+            const fromMonth = String(twoWeeksAgo.getMonth() + 1).padStart(2, '0');
+            const fromDay = String(twoWeeksAgo.getDate()).padStart(2, '0');
+            const twoWeeksAgoStr = `${fromYear}-${fromMonth}-${fromDay}`;
+
+            $('#filterDateTo').val(todayStr);
+            $('#filterDateFrom').val(twoWeeksAgoStr);
 
             $('#btnApplyFilters').on('click', function () {
                 // Reload data from API with new date filters
@@ -452,9 +466,21 @@
 
             $('#btnResetFilters').on('click', function () {
                 const today = new Date();
+                const twoWeeksAgo = new Date(today);
+                twoWeeksAgo.setDate(today.getDate() - 14);
 
-                $('#filterDateTo').val(today.toISOString().split('T')[0]);
-                $('#filterDateFrom').val(today.toISOString().split('T')[0]);
+                const todayYear = today.getFullYear();
+                const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+                const todayDay = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${todayYear}-${todayMonth}-${todayDay}`;
+
+                const fromYear = twoWeeksAgo.getFullYear();
+                const fromMonth = String(twoWeeksAgo.getMonth() + 1).padStart(2, '0');
+                const fromDay = String(twoWeeksAgo.getDate()).padStart(2, '0');
+                const twoWeeksAgoStr = `${fromYear}-${fromMonth}-${fromDay}`;
+
+                $('#filterDateTo').val(todayStr);
+                $('#filterDateFrom').val(twoWeeksAgoStr);
                 loadSalesHistory();
                 getSummaryDetails();
                 showToast('info', 'Filters reset');
