@@ -8,6 +8,9 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 
 // Authentication Routes
+
+
+$routes->get('/', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->get('/registration', 'AuthenticationController::registrationPage');
 $routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
@@ -117,6 +120,7 @@ $routes->group('Approval', function (RouteCollection $routes) {
 
 $routes->group('ManageEmployee', function (RouteCollection $routes) {
     $routes->get('/', 'ManageEmployeeController::index');
+    $routes->get('GetEmployees', 'ManageEmployeeController::getEmployees');
     $routes->get('Approval', 'ApprovalController::index');
 });
 

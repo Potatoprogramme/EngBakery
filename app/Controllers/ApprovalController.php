@@ -12,7 +12,7 @@ class ApprovalController extends BaseController
             return $redirect;
         }
 
-        if ($redirect = $this->redirectIfNotAdmin()) {
+        if ($redirect = $this->redirectIfNotOwnerAndAdmin()) {
             return $redirect;
         }
 
