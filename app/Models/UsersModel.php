@@ -29,7 +29,7 @@ class UsersModel extends Model
     public function getAllEmployees()
     {
         return $this->select('user_id, email, firstname, middlename, lastname, employee_type, username, gender, birthdate, phone_number, approved, created_at')
-            ->findAll();
+            ->where('approved', 1)->findAll();
     }
 
     public function createUser($data)

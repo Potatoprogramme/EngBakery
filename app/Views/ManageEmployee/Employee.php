@@ -27,11 +27,14 @@
                     <div class="flex items-center gap-2">
                         <a href="<?= base_url('ManageEmployee/Approval') ?>"
                             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-secondary transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Employee Approvals
-                            <span class="ml-2 bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full" id="pendingBadge">3</span>
+                            <span class="ml-2 bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full"
+                                id="pendingBadge">0</span>
                         </a>
                     </div>
                 </div>
@@ -115,146 +118,67 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Employee</th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Contact</th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Role</th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Joined</th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="employeeTableBody">
-
+                            <!-- Dynamic content will be inserted here -->
                         </tbody>
-                        <!-- Empty State (hidden by default) -->
-                        <div id="emptyState" class="hidden">
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
-                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-user-check text-2xl text-gray-300"></i>
-                                </div>
-                                <h3 class="text-base font-medium text-gray-900 mb-1">No Employees Found</h3>
-                                <p class="text-gray-500 text-sm">All registration requests have been processed.</p>
-                            </div>
-                        </div>
                     </table>
                 </div>
+
+                <!-- Empty State (positioned outside table) -->
+                <div id="emptyState" class="hidden p-8 text-center">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-2xl text-gray-300"></i>
+                    </div>
+                    <h3 class="text-base font-medium text-gray-900 mb-1">No Employees Found</h3>
+                    <p class="text-gray-500 text-sm">There are no employees to display.</p>
+                </div>
+
                 <!-- Pagination -->
-                <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between"
+                    id="paginationSection">
                     <div class="text-sm text-gray-500">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> employees
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span
+                            class="font-medium">12</span> employees
                     </div>
                     <div class="flex gap-1">
-                        <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50" disabled>&laquo; Prev</button>
+                        <button
+                            class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                            disabled>&laquo; Prev</button>
                         <button class="px-3 py-1 text-sm bg-primary text-white rounded">1</button>
                         <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">2</button>
                         <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">3</button>
-                        <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">Next &raquo;</button>
+                        <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">Next
+                            &raquo;</button>
                     </div>
                 </div>
             </div>
 
             <!-- Mobile Card View -->
-            <div class="lg:hidden space-y-3">
-                <!-- Employee Card 1 -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-bold text-primary">JD</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">John Doe</h3>
-                                <p class="text-xs text-gray-500 truncate">johndoe@email.com</p>
-                            </div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                Admin
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                            <span><i class="fas fa-phone mr-1"></i>09123456789</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-gray-700">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>Active
-                            </span>
-                        </div>
-                    </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                        <button type="button" class="btn-edit flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-eye mr-1"></i> View
-                        </button>
-                        <button type="button" class="btn-delete flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-trash mr-1"></i> Delete
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Employee Card 2 -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-bold text-primary">MS</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Maria Santos</h3>
-                                <p class="text-xs text-gray-500 truncate">maria.santos@email.com</p>
-                            </div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-gray-700">
-                                Cashier
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                            <span><i class="fas fa-phone mr-1"></i>09234567890</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                                <span class="w-1.5 h-1.5 bg-gree-500 rounded-full mr-1"></span>Active
-                            </span>
-                        </div>
-                    </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                        <button type="button" class="btn-edit flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-eye mr-1"></i> View
-                        </button>
-                        <button type="button" class="btn-delete flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-trash mr-1"></i> Delete
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Employee Card 3 -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-bold text-primary">PR</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-gray-900 truncate">Pedro Reyes</h3>
-                                <p class="text-xs text-gray-500 truncate">pedro.reyes@email.com</p>
-                            </div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                Staff
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                            <span><i class="fas fa-phone mr-1"></i>09345678901</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                                <span class="w-1.5 h-1.5 bg-gray-500 rounded-full mr-1"></span>Active
-                            </span>
-                        </div>
-                    </div>
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                        <button type="button" class="btn-edit flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-eye mr-1"></i> View
-                        </button>
-                        <button type="button" class="btn-delete flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-trash mr-1"></i> Delete
-                        </button>
-                    </div>
-                </div>
+            <div class="lg:hidden space-y-3" id="mobileCardsContainer">
+                <!-- Dynamic mobile cards will be inserted here -->
             </div>
         </div>
     </div>
 
     <!-- Change Role Modal -->
-    <div id="changeRoleModal" aria-hidden="true"
+    <div id="changeRoleModal"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[60] justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div class="fixed inset-0 bg-black/50 transition-opacity" id="roleModalBackdrop"></div>
         <div class="relative p-4 w-full max-w-lg max-h-full mx-auto mt-20">
@@ -264,7 +188,8 @@
                     <button type="button" id="closeRoleModal"
                         class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -279,13 +204,11 @@
                         </div>
                     </div>
                     <div class="mb-4">
-                        <label for="newRole" class="block mb-2 text-sm font-medium text-gray-900">Select New Role <span class="text-red-500">*</span></label>
-                        <select id="newRole" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
+                        <label for="newRole" class="block mb-2 text-sm font-medium text-gray-900">Select New Role <span
+                                class="text-red-500">*</span></label>
+                        <select id="newRole"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
                             <option value="">Select a role...</option>
-                            <option value="admin">Admin</option>
-                            <option value="cashier">Cashier</option>
-                            <option value="staff">Staff</option>
-                            <option value="owner">Owner</option>
                         </select>
                     </div>
                 </div>
@@ -304,7 +227,7 @@
     </div>
 
     <!-- View/Edit Employee Modal -->
-    <div id="viewEditModal" tabindex="-1" aria-hidden="true"
+    <div id="viewEditModal" tabindex="-1"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div class="fixed inset-0 bg-black/50 transition-opacity" id="viewEditModalBackdrop"></div>
         <div class="relative p-4 w-full max-w-lg max-h-full mx-auto mt-20">
@@ -314,20 +237,24 @@
                     <button type="button" id="closeViewEditModal"
                         class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
                 <div class="p-4 md:p-5">
                     <div class="flex items-center gap-4 mb-5">
-                        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div
+                            class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                             <span class="text-xl font-bold text-primary" id="viewInitials">JD</span>
                         </div>
                         <div class="flex-1">
                             <h4 class="text-base font-semibold text-gray-900" id="viewName">John Doe</h4>
                             <p class="text-sm text-gray-500" id="viewEmail">johndoe@email.com</p>
                         </div>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-green-100 text-gray-700" id="viewStatus">
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-green-100 text-gray-700"
+                            id="viewStatus">
                             Active
                         </span>
                     </div>
@@ -371,18 +298,39 @@
             </div>
         </div>
     </div>
-
     <script>
         window.BASE_URL = '<?= base_url() ?>';
-        
+
         // Current logged-in user info
         const currentUser = {
             id: '<?= $user_id ?>',
             employeeType: '<?= $employee_type ?>'
         };
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             fetchEmployees();
+            fetchPendingCount();
+
+            // Blame -> jc ... fetch pending approval accounts
+            function fetchPendingCount() {
+                $.ajax({
+                    url: `${BASE_URL}/Approval/GetPendingUsers`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            console.log('Pending users:', response.data);
+                            const pendingCount = response.data.length;
+                            $('#pendingBadge').text(pendingCount);
+                        } else {
+                            $('#pendingBadge').text('0');
+                        }
+                    },
+                    error: function () {
+                        $('#pendingBadge').text('0');
+                    }
+                });
+            }
 
             // Helper function to get initials from name
             function getInitials(firstname, lastname) {
@@ -414,7 +362,7 @@
                 if (currentType === 'admin') {
                     return targetType === 'staff' || targetType === 'cashier';
                 }
-                
+
                 // Owner: cannot delete co-owner, but can delete admin/staff
                 if (currentType === 'owner') {
                     return targetType !== 'owner';
@@ -424,87 +372,222 @@
                 return false;
             }
 
+
+            function deleteUser(userId, employeeName) {
+                $.ajax({
+                    url: `${BASE_URL}/ManageEmployee/DeleteUser`,
+                    method: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        user_id: userId,
+                        privilege_level: currentUser.employeeType
+                    }),
+                    success: function (response) {
+                        if (response.success) {
+                            Toast.success('Employee deleted successfully.');
+                            console.log('Deleted user ID:', response.data);
+                            fetchEmployees();
+                            fetchPendingCount();
+                        } else {
+                            Toast.error(response.message || 'Failed to delete employee.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error deleting user:', xhr);
+                        Toast.error('An error occurred while deleting the employee.');
+                    }
+                });
+            }
+
+            function changeUserRole(userId, newRole) {
+                $.ajax({
+                    url: `${BASE_URL}ManageEmployee/ChangeUserRole`,
+                    method: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        user_id: userId,
+                        new_role: newRole,
+                    }),
+                    success: function (response) {
+                        if (response.success) {
+                            Toast.success(response.message || 'Employee role changed successfully.');
+                            console.log(response.data);
+
+                            // Close the change role modal
+                            $('#changeRoleModal').removeClass('flex').addClass('hidden');
+                            $('#newRole').val('');
+
+                            // Refresh employee list and pending count
+                            fetchEmployees();
+                            fetchPendingCount();
+                        } else {
+                            Toast.error(response.message || 'Failed to change employee role.');
+                            console.log(response.data);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr);
+                        const errorMessage = xhr.responseJSON?.message || 'An error occurred while changing employee role.';
+                        Toast.error(errorMessage);
+                    }
+                });
+            }
+
+
             function fetchEmployees() {
                 $.ajax({
                     url: `${BASE_URL}/ManageEmployee/GetEmployees`,
                     method: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Filter out the current logged-in user from the list
                             // Also hide owners from admin view
                             let users = response.data.filter(user => user.user_id != currentUser.id);
-                            
+
                             if (currentUser.employeeType.toLowerCase() === 'admin') {
                                 users = users.filter(user => user.employee_type && user.employee_type.toLowerCase() !== 'owner');
                             }
 
                             if (users.length === 0) {
+                                // Show empty state for both desktop and mobile
                                 $('#emptyState').removeClass('hidden');
                                 $('#employeeTableBody').empty();
-                            } else {
-                                $('#employeeTableBody').empty();
-                                $('#emptyState').addClass('hidden');
+                                $('#paginationSection').addClass('hidden');
 
-                                users.forEach(function(user) {
+                                // Hide mobile cards container and show mobile empty state
+                                $('#mobileCardsContainer').html(`
+                        <div class="p-8 text-center bg-white rounded-lg shadow-sm border border-gray-100">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-users text-2xl text-gray-300"></i>
+                            </div>
+                            <h3 class="text-base font-medium text-gray-900 mb-1">No Employees Found</h3>
+                            <p class="text-gray-500 text-sm">There are no employees to display.</p>
+                        </div>
+                    `);
+                            } else {
+                                // Hide empty state, show table body and pagination
+                                $('#emptyState').addClass('hidden');
+                                $('#paginationSection').removeClass('hidden');
+                                $('#employeeTableBody').empty();
+
+                                // Clear and populate mobile cards
+                                let mobileCardsHTML = '';
+
+                                users.forEach(function (user) {
                                     const initials = getInitials(user.firstname, user.lastname);
                                     const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
                                     const formattedDate = formatDate(user.created_at);
                                     const role = capitalizeRole(user.employee_type);
                                     const canDelete = canDeleteUser(user.employee_type);
 
+                                    // Desktop table row
                                     const rowHTML = `
-                                    <tr class="hover:bg-gray-50" data-user-id="${user.user_id}">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                                    <span class="text-sm font-semibold text-primary">${initials}</span>
-                                                </div>
-                                                <div class="ml-4">
-                                                    <div class="text-sm font-medium text-gray-900">${fullName}</div>
-                                                    <div class="text-sm text-gray-500">@${user.username || 'N/A'}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
-                                            <div class="text-sm text-gray-500">${user.phone_number || 'N/A'}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                                ${role}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View"
-                                                    data-user-id="${user.user_id}"
-                                                    data-firstname="${user.firstname || ''}"
-                                                    data-middlename="${user.middlename || ''}"
-                                                    data-lastname="${user.lastname || ''}"
-                                                    data-email="${user.email || ''}"
-                                                    data-username="${user.username || ''}"
-                                                    data-phone="${user.phone_number || ''}"
-                                                    data-role="${user.employee_type || ''}"
-                                                    data-gender="${user.gender || ''}"
-                                                    data-birthdate="${user.birthdate || ''}"
-                                                    data-joined="${user.created_at || ''}">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                ${canDelete ? `
-                                                <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete"
-                                                    data-user-id="${user.user_id}"
-                                                    data-name="${fullName}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                ` : ''}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
+                            <tr class="hover:bg-gray-50" data-user-id="${user.user_id}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                            <span class="text-sm font-semibold text-primary">${initials}</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">${fullName}</div>
+                                            <div class="text-sm text-gray-500">@${user.username || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">${user.email || 'N/A'}</div>
+                                    <div class="text-sm text-gray-500">${user.phone_number || 'N/A'}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                        ${role}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View"
+                                            data-user-id="${user.user_id}"
+                                            data-firstname="${user.firstname || ''}"
+                                            data-middlename="${user.middlename || ''}"
+                                            data-lastname="${user.lastname || ''}"
+                                            data-email="${user.email || ''}"
+                                            data-username="${user.username || ''}"
+                                            data-phone="${user.phone_number || ''}"
+                                            data-role="${user.employee_type || ''}"
+                                            data-gender="${user.gender || ''}"
+                                            data-birthdate="${user.birthdate || ''}"
+                                            data-joined="${user.created_at || ''}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        ${canDelete ? `
+                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete"
+                                            data-user-id="${user.user_id}"
+                                            data-name="${fullName}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        ` : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
                                     $('#employeeTableBody').append(rowHTML);
+
+                                    // Mobile card
+                                    mobileCardsHTML += `
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                <div class="p-4">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <span class="text-sm font-bold text-primary">${initials}</span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-sm font-semibold text-gray-900 truncate">${fullName}</h3>
+                                            <p class="text-xs text-gray-500 truncate">${user.email || 'N/A'}</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                            ${role}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                                        <span><i class="fas fa-phone mr-1"></i>${user.phone_number || 'N/A'}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-gray-700">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>Active
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
+                                    <button type="button" class="btn-edit flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors"
+                                        data-user-id="${user.user_id}"
+                                        data-firstname="${user.firstname || ''}"
+                                        data-middlename="${user.middlename || ''}"
+                                        data-lastname="${user.lastname || ''}"
+                                        data-email="${user.email || ''}"
+                                        data-username="${user.username || ''}"
+                                        data-phone="${user.phone_number || ''}"
+                                        data-role="${user.employee_type || ''}"
+                                        data-gender="${user.gender || ''}"
+                                        data-birthdate="${user.birthdate || ''}"
+                                        data-joined="${user.created_at || ''}">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </button>
+                                    ${canDelete ? `
+                                    <button type="button" class="btn-delete flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors"
+                                        data-user-id="${user.user_id}"
+                                        data-name="${fullName}">
+                                        <i class="fas fa-trash mr-1"></i> Delete
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
                                 });
+
+                                // Update mobile cards container
+                                $('#mobileCardsContainer').html(mobileCardsHTML);
 
                                 attachEventHandlers();
                             }
@@ -512,7 +595,7 @@
                             Toast.error(response.message || 'Failed to load employees');
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('Error fetching employees:', error);
                         Toast.error('Failed to load employees. Please try again.');
                     }
@@ -521,7 +604,7 @@
 
             function attachEventHandlers() {
                 // View/Edit button handler
-                $('.btn-edit').off('click').on('click', function() {
+                $('.btn-edit').off('click').on('click', function () {
                     const btn = $(this);
                     const firstname = btn.data('firstname');
                     const middlename = btn.data('middlename');
@@ -539,34 +622,38 @@
                     $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
                     $('#viewJoined').text(formatDate(btn.data('joined')));
 
-                    // Store user_id for role change
+                    // Store user_id and role for actions
                     $('#viewEditModal').data('user-id', btn.data('user-id'));
+                    $('#viewEditModal').data('user-role', btn.data('role'));
+                    $('#viewEditModal').data('user-name', fullName);
 
                     $('#viewEditModal').removeClass('hidden').addClass('flex');
                 });
 
                 // Delete button handler
-                $('.btn-delete').off('click').on('click', function() {
+                $('.btn-delete').off('click').on('click', function () {
                     const btn = $(this);
                     const userId = btn.data('user-id');
                     const employeeName = btn.data('name');
 
-                    Confirm.delete(`Are you sure you want to delete ${employeeName}? This action cannot be undone.`, function() {
-                        // Add delete logic here when backend is implemented
-                        console.log('Deleting employee:', employeeName, 'ID:', userId);
-                        Toast.success('Employee deleted successfully.');
-                    });
+                    Confirm.delete(
+                        `Are you sure you want to delete ${employeeName}? This action cannot be undone.`,
+                        function () {
+                            // User confirmed deletion
+                            deleteUser(userId, employeeName);
+                        }
+                    );
                 });
             }
             // Search functionality (client-side for static data)
-            $('#searchInput').on('keyup', function() {
+            $('#searchInput').on('keyup', function () {
                 const searchTerm = $(this).val().toLowerCase();
                 // Add search logic here when backend is implemented
                 console.log('Searching for:', searchTerm);
             });
 
             // Filter functionality
-            $('#roleFilter, #statusFilter').on('change', function() {
+            $('#roleFilter, #statusFilter').on('change', function () {
                 const role = $('#roleFilter').val();
                 const status = $('#statusFilter').val();
                 // Add filter logic here when backend is implemented
@@ -574,32 +661,84 @@
             });
 
             // Change Role Modal handlers
-            $('.btn-role').on('click', function() {
+            $('.btn-role').on('click', function () {
+                const userId = $('#viewEditModal').data('user-id');
+                const userName = $('#viewEditModal').data('user-name');
+                const userRole = $('#viewEditModal').data('user-role');
+                const userEmail = $('#viewEmail').text();
+                const initials = $('#viewInitials').text();
+
+                console.log('Opening change role modal for:', userName, 'Current role:', userRole);
+
+                // Populate the change role modal
+                $('#roleModalInitials').text(initials);
+                $('#roleModalName').text(userName);
+                $('#roleModalEmail').text(userEmail);
+
+                // Store user data in the modal
+                $('#changeRoleModal').data('user-id', userId);
+                $('#changeRoleModal').data('current-role', userRole);
+
+                // Populate role dropdown based on current user's privilege level
+                const currentEmployeeType = currentUser.employeeType.toLowerCase();
+                let roleOptions = '<option value="">Select a role...</option>';
+
+                if (currentEmployeeType === 'owner') {
+                    // Owner can assign all roles
+                    roleOptions += '<option value="owner">Owner</option>';
+                    roleOptions += '<option value="admin">Admin</option>';
+                    roleOptions += '<option value="staff">Staff</option>';
+                } else if (currentEmployeeType === 'admin') {
+                    // Admin can only assign staff and admin roles
+                    roleOptions += '<option value="admin">Admin</option>';
+                    roleOptions += '<option value="staff">Staff</option>';
+                }
+
+                $('#newRole').html(roleOptions);
+
+                // Hide view modal
+                $('#viewEditModal').removeClass('flex').addClass('hidden');
+
+                // Show change role modal
                 $('#changeRoleModal').removeClass('hidden').addClass('flex');
+
+                // Set focus to dropdown after animation
+                setTimeout(() => {
+                    $('#newRole').focus();
+                }, 100);
             });
 
-            $('#closeRoleModal, #cancelRoleChange, #roleModalBackdrop').on('click', function() {
+            $('#closeRoleModal, #cancelRoleChange, #roleModalBackdrop').on('click', function () {
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
+                $('#newRole').val('');
             });
 
-            $('#confirmRoleChange').on('click', function() {
+            $('#confirmRoleChange').on('click', function () {
                 const newRole = $('#newRole').val();
+                const userId = $('#changeRoleModal').data('user-id');
+                const currentRole = $('#changeRoleModal').data('current-role');
+
                 if (!newRole) {
                     Toast.warning('Please select a role');
                     return;
                 }
-                // Add role change logic here when backend is implemented
-                console.log('Changing role to:', newRole);
-                $('#changeRoleModal').removeClass('flex').addClass('hidden');
+
+                if (newRole.toLowerCase() === currentRole.toLowerCase()) {
+                    Toast.info('Employee already has this role');
+                    return;
+                }
+
+                // Call the change user role function
+                changeUserRole(userId, newRole);
             });
 
             // View/Edit Modal close handlers
-            $('#closeViewEditModal, #closeViewBtn, #viewEditModalBackdrop').on('click', function() {
+            $('#closeViewEditModal, #closeViewBtn, #viewEditModalBackdrop').on('click', function () {
                 $('#viewEditModal').removeClass('flex').addClass('hidden');
             });
 
             // Prevent modal content click from closing
-            $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white').on('click', function(e) {
+            $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white').on('click', function (e) {
                 e.stopPropagation();
             });
         });
