@@ -267,4 +267,13 @@ class OrderModel extends Model
             ->getRowArray();
         return $result['total_revenue'] ?? 0;
     }
+
+    /** 
+     * Getting Transaction Info using the order id
+     * Blame -> Julius Caesar
+     */
+    public function getTransactionDetailsByOrderId(int $orderId)
+    {
+        return $this->where('order_id', $orderId)->first();
+    }
 }

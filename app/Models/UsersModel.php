@@ -26,6 +26,12 @@ class UsersModel extends Model
         'created_at',
     ];
 
+    public function getAllEmployees()
+    {
+        return $this->select('user_id, email, firstname, middlename, lastname, employee_type, username, gender, birthdate, phone_number, approved, created_at')
+            ->where('approved', 1)->findAll();
+    }
+
     public function createUser($data)
     {
         try {

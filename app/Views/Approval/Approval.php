@@ -330,7 +330,7 @@
                     method: 'POST',
                     dataType: 'json',
                     contentType: 'application/json',
-                    data: JSON.stringify({ user_id: userId }),
+                    data: JSON.stringify({ user_id: userId, }),
                     success: function (response) {
                         if (response.success) {
                             showToast('success', 'User approved successfully.');
@@ -341,7 +341,7 @@
                     },
                     error: function (xhr) {
                         console.log(xhr);
-                        showToast('error', 'Error approving user.');
+                        showToast('error', response.message || 'Error approving user.');
                     }
                 });
             }

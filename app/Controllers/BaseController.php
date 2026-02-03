@@ -145,6 +145,15 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * Check if user is owner
+     * @return bool
+     */
+    protected function isOwner(): bool
+    {
+        return session()->get('employee_type') === 'owner';
+    }
+
+    /**
      * Redirect if user is not logged in
      * @param string $message Optional error message
      * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not logged in, false otherwise
@@ -165,6 +174,19 @@ abstract class BaseController extends Controller
     protected function redirectIfNotAdmin(string $message = 'Access denied. Admin privileges required.')
     {
         if (!$this->isAdmin()) {
+            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
+        }
+        return false;
+    }
+    
+    /**
+     * Redirect if user is not owner and admin
+     * @param string $message Optional error message
+     * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not owner and admin, false otherwise
+     */
+    protected function redirectIfNotOwnerAndAdmin(string $message = 'Access denied. Admin privileges required.')
+    {
+        if (!$this->isAdmin() && !$this->isOwner()) {
             return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
         }
         return false;

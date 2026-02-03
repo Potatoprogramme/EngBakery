@@ -8,6 +8,9 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('/', 'Home::index');
 
 // Authentication Routes
+
+
+$routes->get('/', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->get('/registration', 'AuthenticationController::registrationPage');
 $routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
@@ -100,6 +103,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('History', 'SalesController::history');
     $routes->get('GetSalesHistory', 'SalesController::getSalesHistory');
     $routes->get('GetSummaryDetails', 'SalesController::getSummaryDetails'); // fetch information for the summary cards
+    $routes->post('GetTransactionDetails', 'SalesController::getTransactionDetails'); // fetch detailed sales data for a transaction id
     // Routes for Remittance History
     $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
     $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');
@@ -116,7 +120,10 @@ $routes->group('Approval', function (RouteCollection $routes) {
 
 $routes->group('ManageEmployee', function (RouteCollection $routes) {
     $routes->get('/', 'ManageEmployeeController::index');
+    $routes->get('GetEmployees', 'ManageEmployeeController::getEmployees');
     $routes->get('Approval', 'ApprovalController::index');
+    $routes->post('DeleteUser', 'ManageEmployeeController::deleteUser');
+    $routes->post('ChangeUserRole', 'ManageEmployeeController::changeUserRole');
 });
 
 $routes->group('DeliveryLog', function (RouteCollection $routes) {

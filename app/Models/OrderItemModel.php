@@ -12,7 +12,7 @@ class OrderItemModel extends Model
     protected $allowedFields = [
         'product_id',
         'order_id',
-        'amout',
+        'amount',
         'cost_per_item',
         'total_cost_of_item',
         'date_created',
@@ -30,7 +30,7 @@ class OrderItemModel extends Model
             $insertData[] = [
                 'order_id' => $orderId,
                 'product_id' => intval($item['product_id']),
-                'amout' => intval($item['quantity']),
+                'amount' => intval($item['quantity']),
                 'cost_per_item' => floatval($item['price']),
                 'total_cost_of_item' => floatval($item['total']),
                 'date_created' => $now,
@@ -62,7 +62,7 @@ class OrderItemModel extends Model
     public function getSalesHistory(): array
     {
         return $this->builder()
-            ->select('order_items.order_item_id, order_items.order_id, order_items.amout as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
+            ->select('order_items.order_item_id, order_items.order_id, order_items.amount as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
             ->join('products', 'products.product_id = order_items.product_id', 'left')
             ->join('orders', 'orders.order_id = order_items.order_id', 'left')
             ->orderBy('order_items.date_created', 'DESC')
@@ -77,7 +77,7 @@ class OrderItemModel extends Model
     public function getSalesHistoryByDateRange(string $dateFrom, string $dateTo): array
     {
         return $this->builder()
-            ->select('order_items.order_item_id, order_items.order_id, order_items.amout as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
+            ->select('order_items.order_item_id, order_items.order_id, order_items.amount as quantity, order_items.cost_per_item as price, order_items.total_cost_of_item as total, order_items.date_created, order_items.time_created, products.product_name, products.category, orders.payment_method, orders.order_type')
             ->join('products', 'products.product_id = order_items.product_id', 'left')
             ->join('orders', 'orders.order_id = order_items.order_id', 'left')
             ->where('order_items.date_created >=', $dateFrom)

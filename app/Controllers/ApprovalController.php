@@ -7,12 +7,12 @@ class ApprovalController extends BaseController
     public function index()
     {
         $data = $this->getSessionData();
-        
+
         if ($redirect = $this->redirectIfNotLoggedIn()) {
             return $redirect;
         }
 
-        if ($redirect = $this->redirectIfNotAdmin()) {
+        if ($redirect = $this->redirectIfNotOwnerAndAdmin()) {
             return $redirect;
         }
 
@@ -23,18 +23,33 @@ class ApprovalController extends BaseController
             . view('Template/Footer', $data);
     }
 
-    // to approve user
+    /**
+     * Summary of approveUser
+     * @return \CodeIgniter\HTTP\ResponseInterface
+     * for approving an employee account
+     * blame - JC
+     */
     public function approveUser()
     {
         $data = $this->request->getJSON(true);
 
         $user_id = $data['user_id'];
-        // $privilege_level = $data['privilege_level'];
+        $sessionData = $this->getSessionData();
+
+        $privilege_level = $sessionData['employee_type'];
+
+
+        if ($privilege_level !== 'owner' && $privilege_level !== 'admin') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You do not have permission to approve users.'
+            ]);
+        }
 
         if ($this->usersModel->checkUserExists($user_id)) {
             $updateData = [
                 'approved' => 1,
-                // 'employee_type' => $privilege_level
+                'employee_type' => 'staff',
             ];
 
             $this->usersModel->update($user_id, $updateData);
@@ -87,6 +102,17 @@ class ApprovalController extends BaseController
     {
         $data = $this->request->getJSON(true);
         $user_id = $data['user_id'];
+        $sessionData = $this->getSessionData();
+
+        $privilege_level = $sessionData['employee_type'];
+
+
+        if ($privilege_level !== 'owner' || $privilege_level !== 'admin') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You do not have permission to approve users.'
+            ]);
+        }
 
         if ($this->usersModel->checkUserExists($user_id)) {
             $this->usersModel->removeUser($user_id);
