@@ -237,7 +237,7 @@ class AuthenticationController extends BaseController
     public function getCurrentUser()
     {
         // Prefer session-based user id when available; otherwise fallback to 1 for dev
-        $userID = session()->get('id') ?? 1;
+        $userID = session()->get('id');
 
         $getUserInfo = $this->usersModel->find($userID);
 

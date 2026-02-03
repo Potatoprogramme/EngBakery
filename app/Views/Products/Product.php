@@ -1434,7 +1434,7 @@
                         shouldShow = true;
                     } else if (label === 'general' || label === '') {
                         shouldShow = true;
-                    } else if ((category === 'bakery' || category === 'dough') && label === 'bakery' || label === 'dough') {
+                    } else if ((category === 'bakery' || category === 'dough') && label === 'bread') {
                         shouldShow = true;
                     } else if (category === 'drinks' && label === 'drinks') {
                         shouldShow = true;
