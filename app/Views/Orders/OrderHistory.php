@@ -506,7 +506,6 @@
 
         function initOrderDetailsModal() {
             $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
-            $('#orderDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#orderDetailsModal').addClass('hidden'); });
 
             $('#btnPrintReceipt').on('click', function() {
                 const content = $('#receiptContent').clone();

@@ -87,6 +87,10 @@
      * Toast Notification System
      * Usage: showToast('success', 'Your message here');
      * Types: 'success', 'danger', 'warning', 'info'
+     * 
+     * Features:
+     * - Prevents duplicate toasts within 5 seconds
+     * - Auto-dismiss after configurable duration
      */
     const Toast = {
         config: {
@@ -116,7 +120,47 @@
             }
         },
 
+        // Track recent messages to prevent duplicates
+        _recentMessages: new Map(),
+        _duplicateBlockDuration: 3000, // 5 seconds
+
+        /**
+         * Check if a message was recently shown (within block duration)
+         * @param {string} type - Toast type
+         * @param {string} message - Toast message
+         * @returns {boolean} - True if duplicate, false if allowed
+         */
+        _isDuplicate: function(type, message) {
+            const key = `${type}:${message}`;
+            const lastShown = this._recentMessages.get(key);
+            
+            if (lastShown && (Date.now() - lastShown) < this._duplicateBlockDuration) {
+                return true;
+            }
+            
+            // Record this message
+            this._recentMessages.set(key, Date.now());
+            
+            // Clean up old entries periodically
+            if (this._recentMessages.size > 50) {
+                const now = Date.now();
+                for (const [k, v] of this._recentMessages.entries()) {
+                    if (now - v > this._duplicateBlockDuration) {
+                        this._recentMessages.delete(k);
+                    }
+                }
+            }
+            
+            return false;
+        },
+
         show: function (type, message, duration = 5000) {
+            // Prevent duplicate toasts within 5 seconds
+            if (this._isDuplicate(type, message)) {
+                console.log('Toast blocked (duplicate within 5s):', type, message);
+                return null;
+            }
+
             const container = document.getElementById('toast-container');
             if (!container) {
                 console.error('Toast container not found!');
@@ -163,6 +207,13 @@
                 toast.classList.add('fade-out-right');
                 setTimeout(() => toast.remove(), 600);
             }
+        },
+
+        /**
+         * Clear the duplicate message cache (useful for testing)
+         */
+        clearCache: function() {
+            this._recentMessages.clear();
         },
 
         // Convenience methods
@@ -288,15 +339,6 @@
 
         if (closeBtn) {
             closeBtn.addEventListener('click', function () {
-                if (typeof Confirm.onCancel === 'function') {
-                    Confirm.onCancel();
-                }
-                Confirm.hide();
-            });
-        }
-
-        if (backdrop) {
-            backdrop.addEventListener('click', function () {
                 if (typeof Confirm.onCancel === 'function') {
                     Confirm.onCancel();
                 }

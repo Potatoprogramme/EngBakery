@@ -846,7 +846,7 @@
                 }, 100);
             });
 
-            $('#closeRoleModal, #cancelRoleChange, #roleModalBackdrop').on('click', function () {
+            $('#closeRoleModal, #cancelRoleChange').on('click', function () {
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
                 $('#newRole').val('');
             });
@@ -871,7 +871,7 @@
             });
 
             // View/Edit Modal close handlers
-            $('#closeViewEditModal, #closeViewBtn, #viewEditModalBackdrop').on('click', function () {
+            $('#closeViewEditModal, #closeViewBtn').on('click', function () {
                 $('#viewEditModal').removeClass('flex').addClass('hidden');
             });
 
