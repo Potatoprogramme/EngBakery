@@ -387,8 +387,21 @@
                 return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             }
 
+            // Track approving/rejecting state to prevent double-clicks
+            let approvingUserId = null;
+            let rejectingUserId = null;
+
             // Approve user
             function approveUser(userId) {
+                // Prevent double-click
+                if (approvingUserId === userId) return;
+                approvingUserId = userId;
+                
+                const $btn = $(`.btn-approve[data-user-id="${userId}"]`);
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start($btn, 'Approving...');
+                }
+                
                 $.ajax({
                     url: window.BASE_URL + 'Approval/ApproveUser',
                     method: 'POST',
@@ -406,12 +419,27 @@
                     error: function (xhr) {
                         console.log(xhr);
                         showToast('error', response.message || 'Error approving user.');
+                    },
+                    complete: function() {
+                        approvingUserId = null;
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop($btn, 'Approve');
+                        }
                     }
                 });
             }
 
             // Reject user
             function rejectUser(userId) {
+                // Prevent double-click
+                if (rejectingUserId === userId) return;
+                rejectingUserId = userId;
+                
+                const $btn = $(`.btn-reject[data-user-id="${userId}"]`);
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start($btn, 'Rejecting...');
+                }
+                
                 $.ajax({
                     url: window.BASE_URL + 'Approval/RejectUser',
                     method: 'POST',
@@ -429,6 +457,12 @@
                     error: function (xhr) {
                         console.log(xhr);
                         showToast('error', 'Error rejecting user.');
+                    },
+                    complete: function() {
+                        rejectingUserId = null;
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop($btn, 'Reject');
+                        }
                     }
                 });
             }
@@ -521,11 +555,11 @@
             });
 
             // Close modals
-            $('#closeModal, #modalClose, #viewModalBackdrop').on('click', function () {
+            $('#closeModal, #modalClose').on('click', function () {
                 $('#viewDetailsModal').removeClass('flex').addClass('hidden');
             });
 
-            $('#closeRejectModal, #cancelReject, #rejectModalBackdrop').on('click', function () {
+            $('#closeRejectModal, #cancelReject').on('click', function () {
                 $('#rejectReasonModal').removeClass('flex').addClass('hidden');
             });
 

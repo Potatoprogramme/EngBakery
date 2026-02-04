@@ -38,11 +38,6 @@ const InventoryModal = {
         $('#timeInputModalClose, #timeInputModalCancel').on('click', function() {
             InventoryModal.closeTimeInputModal();
         });
-
-        // Close modal on backdrop click
-        $('#timeInputModalBackdrop').on('click', function() {
-            InventoryModal.closeTimeInputModal();
-        });
     },
 
     /**
@@ -101,11 +96,6 @@ const InventoryModal = {
     initEditModal: function() {
         // Close Edit Modal
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function() {
-            InventoryModal.closeEditModal();
-        });
-
-        // Close modal on backdrop click
-        $('#editInventoryModalBackdrop').on('click', function() {
             InventoryModal.closeEditModal();
         });
     },
@@ -177,11 +167,6 @@ const InventoryModal = {
     initAddProductModal: function() {
         // Close Add Product Modal
         $('#addProductModalClose, #addProductModalCancel').on('click', function() {
-            InventoryModal.closeAddProductModal();
-        });
-
-        // Close modal on backdrop click
-        $('#addProductModalBackdrop').on('click', function() {
             InventoryModal.closeAddProductModal();
         });
 

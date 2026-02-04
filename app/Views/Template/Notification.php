@@ -87,6 +87,10 @@
      * Toast Notification System
      * Usage: showToast('success', 'Your message here');
      * Types: 'success', 'danger', 'warning', 'info'
+     * 
+     * Features:
+     * - Prevents duplicate toasts within 5 seconds
+     * - Auto-dismiss after configurable duration
      */
     const Toast = {
         config: {
@@ -116,7 +120,47 @@
             }
         },
 
+        // Track recent messages to prevent duplicates
+        _recentMessages: new Map(),
+        _duplicateBlockDuration: 3000, // 5 seconds
+
+        /**
+         * Check if a message was recently shown (within block duration)
+         * @param {string} type - Toast type
+         * @param {string} message - Toast message
+         * @returns {boolean} - True if duplicate, false if allowed
+         */
+        _isDuplicate: function(type, message) {
+            const key = `${type}:${message}`;
+            const lastShown = this._recentMessages.get(key);
+            
+            if (lastShown && (Date.now() - lastShown) < this._duplicateBlockDuration) {
+                return true;
+            }
+            
+            // Record this message
+            this._recentMessages.set(key, Date.now());
+            
+            // Clean up old entries periodically
+            if (this._recentMessages.size > 50) {
+                const now = Date.now();
+                for (const [k, v] of this._recentMessages.entries()) {
+                    if (now - v > this._duplicateBlockDuration) {
+                        this._recentMessages.delete(k);
+                    }
+                }
+            }
+            
+            return false;
+        },
+
         show: function (type, message, duration = 5000) {
+            // Prevent duplicate toasts within 5 seconds
+            if (this._isDuplicate(type, message)) {
+                console.log('Toast blocked (duplicate within 5s):', type, message);
+                return null;
+            }
+
             const container = document.getElementById('toast-container');
             if (!container) {
                 console.error('Toast container not found!');
@@ -163,6 +207,13 @@
                 toast.classList.add('fade-out-right');
                 setTimeout(() => toast.remove(), 600);
             }
+        },
+
+        /**
+         * Clear the duplicate message cache (useful for testing)
+         */
+        clearCache: function() {
+            this._recentMessages.clear();
         },
 
         // Convenience methods
@@ -294,14 +345,107 @@
                 Confirm.hide();
             });
         }
-
-        if (backdrop) {
-            backdrop.addEventListener('click', function () {
-                if (typeof Confirm.onCancel === 'function') {
-                    Confirm.onCancel();
-                }
-                Confirm.hide();
-            });
-        }
     });
+
+    /**
+     * Button Loader Utility
+     * Prevents repeated button clicks and shows loading state
+     * 
+     * Usage:
+     *   // Start loading (returns original content for later restoration)
+     *   const originalContent = ButtonLoader.start('#myButton', 'Saving...');
+     *   
+     *   // After AJAX completes
+     *   ButtonLoader.stop('#myButton', originalContent);
+     *   
+     *   // Or use with jQuery
+     *   ButtonLoader.start($('#myButton'), 'Processing...');
+     *   ButtonLoader.stop($('#myButton'));
+     */
+    const ButtonLoader = {
+        // Store original button content
+        _originalContent: new Map(),
+
+        /**
+         * Start loading state for a button
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @param {string} loadingText - Text to show while loading (default: 'Processing...')
+         * @returns {string} Original button content for restoration
+         */
+        start: function(button, loadingText = 'Processing...') {
+            const btn = this._getElement(button);
+            if (!btn) return '';
+
+            // Prevent if already loading
+            if (btn.dataset.loading === 'true') {
+                return btn.dataset.originalContent || '';
+            }
+
+            // Store original content
+            const originalContent = btn.innerHTML;
+            btn.dataset.originalContent = originalContent;
+            btn.dataset.loading = 'true';
+            this._originalContent.set(btn, originalContent);
+
+            // Disable button and show spinner
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${loadingText}`;
+
+            return originalContent;
+        },
+
+        /**
+         * Stop loading state for a button
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @param {string} customContent - Optional custom content to restore (uses original if not provided)
+         */
+        stop: function(button, customContent = null) {
+            const btn = this._getElement(button);
+            if (!btn) return;
+
+            // Get original content
+            const originalContent = customContent || btn.dataset.originalContent || this._originalContent.get(btn) || '';
+
+            // Restore button state
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = originalContent;
+            btn.dataset.loading = 'false';
+            delete btn.dataset.originalContent;
+            this._originalContent.delete(btn);
+        },
+
+        /**
+         * Check if button is currently loading
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @returns {boolean}
+         */
+        isLoading: function(button) {
+            const btn = this._getElement(button);
+            return btn ? btn.dataset.loading === 'true' : false;
+        },
+
+        /**
+         * Helper to get DOM element from various input types
+         * @private
+         */
+        _getElement: function(button) {
+            if (!button) return null;
+            
+            // jQuery object
+            if (button.jquery) {
+                return button[0];
+            }
+            // String selector
+            if (typeof button === 'string') {
+                return document.querySelector(button);
+            }
+            // DOM element
+            return button;
+        }
+    };
+
+    // Make ButtonLoader globally available
+    window.ButtonLoader = ButtonLoader;
 </script>

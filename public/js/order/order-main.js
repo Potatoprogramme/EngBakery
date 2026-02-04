@@ -161,6 +161,14 @@ function attachProductCardHandlers() {
 // ==========================================
 
 /**
+ * Check if the current screen size is mobile or tablet (width <= 1024px)
+ * @returns {boolean} True if mobile/tablet, false if desktop
+ */
+function isMobileOrTablet() {
+    return window.innerWidth <= 1024;
+}
+
+/**
  * Initialize the product selection modal
  * Handles quantity controls, price display, and adding items to cart
  */
@@ -214,8 +222,9 @@ function initProductModal() {
         productModal.classList.add('hidden');
     });
 
+    // Close modal on backdrop click - only on mobile/tablet
     productModal.addEventListener('click', function(e) {
-        if (e.target === productModal) {
+        if (e.target === productModal && isMobileOrTablet()) {
             productModal.classList.add('hidden');
         }
     });
@@ -249,8 +258,9 @@ function initCustomerOrdersModal() {
         customerOrdersModal.classList.add('hidden');
     });
 
+    // Close modal on backdrop click - only on mobile/tablet
     customerOrdersModal.addEventListener('click', function(e) {
-        if (e.target === customerOrdersModal) {
+        if (e.target === customerOrdersModal && isMobileOrTablet()) {
             customerOrdersModal.classList.add('hidden');
         }
     });
@@ -386,8 +396,9 @@ function initEditOrderModal() {
         editOrderModal.classList.add('hidden');
     });
 
+    // Close modal on backdrop click - only on mobile/tablet
     editOrderModal.addEventListener('click', function(e) {
-        if (e.target === editOrderModal) {
+        if (e.target === editOrderModal && isMobileOrTablet()) {
             editOrderModal.classList.add('hidden');
         }
     });
@@ -495,9 +506,14 @@ function initCheckoutModal() {
         closeCheckoutModal();
     });
 
+    // Close modal on backdrop click - only on mobile/tablet (shows exit confirmation if not on step 4)
     checkoutModal.addEventListener('click', function(e) {
-        if (e.target === checkoutModal && currentStep < 4) {
-            showExitConfirmation();
+        if (e.target === checkoutModal && isMobileOrTablet()) {
+            if (currentStep < 4) {
+                showExitConfirmation();
+            } else {
+                closeCheckoutModal();
+            }
         }
     });
 }

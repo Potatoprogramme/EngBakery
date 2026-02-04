@@ -370,11 +370,6 @@
             $('#deleteConfirmModal').addClass('hidden');
         });
 
-        // Close modal on backdrop click
-        $('#deleteConfirmModalBackdrop').on('click', function () {
-            $('#deleteConfirmModal').addClass('hidden');
-        });
-
         // Confirm Delete
         $('#btnConfirmDelete').on('click', function () {
             $('#deleteConfirmModal').addClass('hidden');
@@ -459,12 +454,6 @@
 
             // Close Time Input Modal
             $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
-                $('#timeInputModal').addClass('hidden');
-                $('#timeInputForm')[0].reset();
-            });
-
-            // Close modal on backdrop click
-            $('#timeInputModalBackdrop').on('click', function () {
                 $('#timeInputModal').addClass('hidden');
                 $('#timeInputForm')[0].reset();
             });
@@ -853,12 +842,6 @@
             $('#editInventoryForm')[0].reset();
         });
 
-        // Close modal on backdrop click
-        $('#editInventoryModalBackdrop').on('click', function () {
-            $('#editInventoryModal').addClass('hidden');
-            $('#editInventoryForm')[0].reset();
-        });
-
 
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
@@ -939,12 +922,6 @@
 
         // Close Add Product Modal
         $('#addProductModalClose, #addProductModalCancel').on('click', function () {
-            $('#addProductModal').addClass('hidden');
-            $('#addProductForm')[0].reset();
-        });
-
-        // Close modal on backdrop click
-        $('#addProductModalBackdrop').on('click', function () {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
         });

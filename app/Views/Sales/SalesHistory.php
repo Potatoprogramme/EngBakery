@@ -649,7 +649,6 @@
 
         function initDetailsModal() {
             $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#salesDetailsModal').addClass('hidden'));
-            $('#salesDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#salesDetailsModal').addClass('hidden'); });
 
             $('#btnPrintDetails').on('click', function () {
                 printOrderDetails();

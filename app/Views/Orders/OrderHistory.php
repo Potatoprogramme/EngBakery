@@ -506,7 +506,6 @@
 
         function initOrderDetailsModal() {
             $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
-            $('#orderDetailsModal').on('click', e => { if (e.target === e.currentTarget) $('#orderDetailsModal').addClass('hidden'); });
 
             $('#btnPrintReceipt').on('click', function() {
                 const content = $('#receiptContent').clone();
@@ -538,9 +537,16 @@
             });
 
             $('#btnVoidOrder').on('click', function() {
+                const btn = $(this);
+                
+                // Prevent double submission
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                    return;
+                }
+                
                 if (!currentOrderId) return;
                 Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function() {
-                    voidOrder(currentOrderId);
+                    voidOrder(currentOrderId, btn);
                 });
             });
         }
@@ -596,12 +602,19 @@
             });
         }
 
-        function voidOrder(orderId) {
+        function voidOrder(orderId, btn) {
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start(btn, 'Voiding...');
+            }
+            
             $.ajax({
                 url: BASE_URL + 'Order/VoidOrder/' + orderId,
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     if (response.success) {
                         Toast.success('Order voided successfully');
                         $('#orderDetailsModal').addClass('hidden');
@@ -611,6 +624,9 @@
                     }
                 },
                 error: function() {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     Toast.error('Error voiding order');
                 }
             });

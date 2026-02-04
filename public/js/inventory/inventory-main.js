@@ -192,13 +192,37 @@ function bindEventHandlers() {
     $('#timeInputForm').on('submit', function(e) {
         e.preventDefault();
         
+        // Prevent double submission
+        const submitBtn = $(this).find('button[type="submit"]');
+        if (ButtonLoader.isLoading(submitBtn)) {
+            return;
+        }
+        
         if (!InventoryModal.validateTimeInput()) {
             return;
         }
         
         const values = InventoryModal.getTimeInputValues();
-        InventoryModal.closeTimeInputModal();
-        addTodaysInventory(values.timeStart, values.timeEnd);
+        ButtonLoader.start(submitBtn, 'Creating...');
+        
+        InventoryAPI.addTodaysInventory(values.timeStart, values.timeEnd,
+            function(response) {
+                ButtonLoader.stop(submitBtn);
+                if (response.success) {
+                    inventoryExists = true;
+                    safeToast('success', response.message, 2000);
+                    InventoryModal.closeTimeInputModal();
+                    checkIfInventoryExists();
+                    fetchAllStockItems();
+                } else {
+                    safeToast('error', response.message, 2000);
+                }
+            },
+            function(xhr, status, error) {
+                ButtonLoader.stop(submitBtn);
+                safeToast('danger', 'Error adding inventory: ' + (xhr.responseJSON?.message || error), 2000);
+            }
+        );
     });
 
     // ==========================================
@@ -206,8 +230,31 @@ function bindEventHandlers() {
     // ==========================================
     
     $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function() {
+        const btn = $(this);
+        if (ButtonLoader.isLoading(btn)) {
+            return;
+        }
+        
         if (confirm('Are you sure you want to delete today\'s entire inventory? This action cannot be undone.')) {
-            deleteTodaysInventory();
+            ButtonLoader.start(btn, 'Deleting...');
+            InventoryAPI.deleteTodaysInventory(
+                function(response) {
+                    ButtonLoader.stop(btn);
+                    if (response.success) {
+                        inventoryExists = false;
+                        safeToast('success', response.message, 2000);
+                        InventoryTable.clear();
+                        $('#timeRange').text('--:-- - --:--');
+                        fetchAllStockItems();
+                    } else {
+                        safeToast('error', response.message, 2000);
+                    }
+                },
+                function(xhr, status, error) {
+                    ButtonLoader.stop(btn);
+                    safeToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                }
+            );
         }
     });
 
@@ -225,17 +272,25 @@ function bindEventHandlers() {
     $('#editInventoryForm').on('submit', function(e) {
         e.preventDefault();
         
+        // Prevent double submission
+        const submitBtn = $(this).find('button[type="submit"]');
+        if (ButtonLoader.isLoading(submitBtn)) {
+            return;
+        }
+        
         if (!InventoryModal.validateEditForm()) {
             return;
         }
         
         const values = InventoryModal.getEditFormValues();
+        ButtonLoader.start(submitBtn, 'Updating...');
         
         InventoryAPI.updateStockItem(
             values.itemId,
             values.beginningStock,
             values.pullOutQuantity,
             function(response) {
+                ButtonLoader.stop(submitBtn);
                 if (response.success) {
                     safeToast('success', response.message, 2000);
                     InventoryModal.closeEditModal();
@@ -245,6 +300,7 @@ function bindEventHandlers() {
                 }
             },
             function(xhr, status, error) {
+                ButtonLoader.stop(submitBtn);
                 safeToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
             }
         );
@@ -256,9 +312,17 @@ function bindEventHandlers() {
     
     $(document).on('click', '.btn-delete', function() {
         const id = $(this).data('id');
+        const btn = $(this);
+        
+        if (ButtonLoader.isLoading(btn)) {
+            return;
+        }
+        
         if (confirm('Are you sure you want to delete this inventory record?')) {
+            ButtonLoader.start(btn, '');
             InventoryAPI.deleteItem(id,
                 function(response) {
+                    ButtonLoader.stop(btn);
                     if (response.success) {
                         safeToast('success', 'Inventory deleted successfully!', 2000);
                         fetchAllStockItems();
@@ -267,6 +331,7 @@ function bindEventHandlers() {
                     }
                 },
                 function(xhr, status, error) {
+                    ButtonLoader.stop(btn);
                     safeToast('danger', 'Error deleting inventory: ' + error, 2000);
                 }
             );
@@ -313,16 +378,24 @@ function bindEventHandlers() {
     $('#addProductForm').on('submit', function(e) {
         e.preventDefault();
         
+        // Prevent double submission
+        const submitBtn = $('#btnSubmitAddProduct');
+        if (ButtonLoader.isLoading(submitBtn)) {
+            return;
+        }
+        
         if (!InventoryModal.validateAddProductForm()) {
             return;
         }
         
         const values = InventoryModal.getAddProductFormValues();
+        ButtonLoader.start(submitBtn, 'Adding...');
         
         InventoryAPI.addProductToInventory(
             values.productId,
             values.beginningStock,
             function(response) {
+                ButtonLoader.stop(submitBtn);
                 if (response.success) {
                     safeToast('success', response.message, 2000);
                     InventoryModal.closeAddProductModal();
@@ -332,6 +405,7 @@ function bindEventHandlers() {
                 }
             },
             function(xhr, status, error) {
+                ButtonLoader.stop(submitBtn);
                 safeToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
             }
         );
