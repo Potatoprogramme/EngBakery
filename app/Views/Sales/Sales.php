@@ -889,6 +889,13 @@
 
         // Save remittance
         $('#btnSaveRemittance').on('click', function() {
+            const btn = $(this);
+            
+            // Prevent double submission
+            if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                return;
+            }
+            
             // Calculate variance properly with sign
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
             const totalOnlineRevenue = parseFloat($('#totalOnlineRevenue').val()) || 0;
@@ -929,6 +936,10 @@
             };
 
             console.log('Saving remittance data:', remittanceData);
+            
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start(btn, 'Saving...');
+            }
 
             $.ajax({
                 url: BASE_URL + 'Sales/SaveRemittance',
@@ -936,6 +947,9 @@
                 contentType: 'application/json',
                 data: JSON.stringify(remittanceData),
                 success: function(response) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     if (response.success) {
                         showToast('success', 'Remittance saved successfully!');
                     } else {
@@ -943,6 +957,9 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     showToast('danger', 'Error saving remittance: ' + error);
                 }
             });

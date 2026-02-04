@@ -346,4 +346,106 @@
             });
         }
     });
+
+    /**
+     * Button Loader Utility
+     * Prevents repeated button clicks and shows loading state
+     * 
+     * Usage:
+     *   // Start loading (returns original content for later restoration)
+     *   const originalContent = ButtonLoader.start('#myButton', 'Saving...');
+     *   
+     *   // After AJAX completes
+     *   ButtonLoader.stop('#myButton', originalContent);
+     *   
+     *   // Or use with jQuery
+     *   ButtonLoader.start($('#myButton'), 'Processing...');
+     *   ButtonLoader.stop($('#myButton'));
+     */
+    const ButtonLoader = {
+        // Store original button content
+        _originalContent: new Map(),
+
+        /**
+         * Start loading state for a button
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @param {string} loadingText - Text to show while loading (default: 'Processing...')
+         * @returns {string} Original button content for restoration
+         */
+        start: function(button, loadingText = 'Processing...') {
+            const btn = this._getElement(button);
+            if (!btn) return '';
+
+            // Prevent if already loading
+            if (btn.dataset.loading === 'true') {
+                return btn.dataset.originalContent || '';
+            }
+
+            // Store original content
+            const originalContent = btn.innerHTML;
+            btn.dataset.originalContent = originalContent;
+            btn.dataset.loading = 'true';
+            this._originalContent.set(btn, originalContent);
+
+            // Disable button and show spinner
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${loadingText}`;
+
+            return originalContent;
+        },
+
+        /**
+         * Stop loading state for a button
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @param {string} customContent - Optional custom content to restore (uses original if not provided)
+         */
+        stop: function(button, customContent = null) {
+            const btn = this._getElement(button);
+            if (!btn) return;
+
+            // Get original content
+            const originalContent = customContent || btn.dataset.originalContent || this._originalContent.get(btn) || '';
+
+            // Restore button state
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = originalContent;
+            btn.dataset.loading = 'false';
+            delete btn.dataset.originalContent;
+            this._originalContent.delete(btn);
+        },
+
+        /**
+         * Check if button is currently loading
+         * @param {string|jQuery|HTMLElement} button - Button selector, jQuery object, or DOM element
+         * @returns {boolean}
+         */
+        isLoading: function(button) {
+            const btn = this._getElement(button);
+            return btn ? btn.dataset.loading === 'true' : false;
+        },
+
+        /**
+         * Helper to get DOM element from various input types
+         * @private
+         */
+        _getElement: function(button) {
+            if (!button) return null;
+            
+            // jQuery object
+            if (button.jquery) {
+                return button[0];
+            }
+            // String selector
+            if (typeof button === 'string') {
+                return document.querySelector(button);
+            }
+            // DOM element
+            return button;
+        }
+    };
+
+    // Make ButtonLoader globally available
+    window.ButtonLoader = ButtonLoader;
 </script>
