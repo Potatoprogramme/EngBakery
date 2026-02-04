@@ -417,7 +417,7 @@
 
     <script>
         $(document).ready(function () {
-            const baseUrl = '<?= site_url() ?>';
+            const baseUrl = '<?= base_url() ?>';
 
             // Display today's date
             const today = new Date();
@@ -638,7 +638,7 @@
 
         // If no inventory, show button for creating inventory
         function addTodaysInventory(time_start, time_end) {
-            const baseUrl = `<?= base_url() ?>`;
+            const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddTodaysInventory',
                 type: 'POST',
@@ -663,7 +663,7 @@
         }
 
         function fetchAllStockitems() {
-            const baseURL = `<?= base_url() ?>`;
+            const baseURL = '<?= base_url() ?>';
             $.ajax({
                 url: `${baseURL}Inventory/FetchAllStockItems`,
                 type: 'GET',
