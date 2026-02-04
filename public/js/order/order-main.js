@@ -704,7 +704,10 @@ function showExitConfirmation() {
 function closeCheckoutModal() {
     document.getElementById('checkoutModal').classList.add('hidden');
     resetStepProgress();
-    document.getElementById('progressLine').style.width = '0%';
+    const progressLine = document.getElementById('progressLine');
+    if (progressLine) {
+        progressLine.style.width = '0%';
+    }
 }
 
 // ==========================================

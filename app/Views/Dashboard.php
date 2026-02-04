@@ -2,24 +2,25 @@
     <!-- Main Content -->
     <div class="p-3 sm:p-4 sm:ml-60">
         <div class="mt-14">
-            <!-- Header Section -->
-            <div class="mb-4 sm:mb-6">
+            <!-- Welcome Section -->
+            <div class="mb-4 sm:mb-6 bg-gradient-to-r from-primary to-secondary rounded-xl p-4 sm:p-6 text-white shadow-lg">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
-                        <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                        <p class="text-sm sm:text-base text-white/80">Good <?= date('H') < 12 ? 'Morning' : (date('H') < 17 ? 'Afternoon' : 'Evening') ?>,</p>
+                        <h1 class="text-xl sm:text-2xl font-bold"><?= esc($name ?? 'User') ?>!</h1>
+                        <p class="text-xs sm:text-sm text-white/70 mt-1">
                             <i class="far fa-calendar-alt mr-1"></i><?= $currentDate ?> · <?= $currentTime ?>
                         </p>
                     </div>
-                    <div class="mt-2 sm:mt-0">
+                    <div class="mt-3 sm:mt-0">
                         <?php if ($inventoryExists): ?>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                                <span class="w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
                                 Inventory Active
                             </span>
                         <?php else: ?>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <span class="w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full mr-1.5"></span>
                                 No Inventory Today
                             </span>
                         <?php endif; ?>
@@ -42,7 +43,7 @@
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-green-600 font-medium">
-                            <i class="fas fa-shopping-cart mr-1"></i><?= $todaysOrderCount ?> orders
+                            <i class="fas fa-arrow-trend-up mr-1"></i>Revenue today
                         </span>
                     </div>
                 </div>
@@ -65,139 +66,125 @@
                     </div>
                 </div>
 
-                <!-- Products -->
+                <!-- Orders Today -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Products</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($totalProducts) ?></p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Orders Today</p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($todaysOrderCount) ?></p>
                         </div>
                         <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-bread-slice text-amber-600 text-base sm:text-xl"></i>
+                            <i class="fas fa-receipt text-amber-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-amber-600 font-medium">
-                            <i class="fas fa-tags mr-1"></i>Active items
+                            <i class="fas fa-clock mr-1"></i>Completed
                         </span>
                     </div>
                 </div>
 
-                <!-- Raw Materials -->
+                <!-- Avg Order Value -->
+                <?php $avgOrderValue = $todaysOrderCount > 0 ? $todaysSales / $todaysOrderCount : 0; ?>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Raw Materials</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($totalRawMaterials) ?></p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Avg Order Value</p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">₱<?= number_format($avgOrderValue, 2) ?></p>
                         </div>
                         <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-cubes text-purple-600 text-base sm:text-xl"></i>
+                            <i class="fas fa-chart-pie text-purple-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
                     <div class="mt-2 sm:mt-3 flex items-center text-xs">
                         <span class="text-purple-600 font-medium">
-                            <i class="fas fa-warehouse mr-1"></i>In inventory
+                            <i class="fas fa-trending-up mr-1"></i>Per transaction
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Sales by Category & Payment Methods - Mobile: Stack, Desktop: Side by Side -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <!-- Sales by Category -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4">
-                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                        <i class="fas fa-chart-pie text-primary mr-2"></i>
-                        Sales by Category
-                    </h3>
-                    <div class="space-y-3">
-                        <!-- Bakery -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-bread-slice text-amber-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">Bakery</p>
-                                    <p class="text-xs text-gray-500">Bread & Pastries</p>
-                                </div>
+            <!-- Sales by Category - Kebab Style (3 horizontal cards) -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <!-- Bakery -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center min-w-0 flex-1">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <i class="fas fa-bread-slice text-amber-600 text-xs sm:text-sm"></i>
                             </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($bakerySales, 2) ?></span>
-                        </div>
-                        <!-- Drinks -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-mug-hot text-blue-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">Drinks</p>
-                                    <p class="text-xs text-gray-500">Coffee & Beverages</p>
-                                </div>
+                            <div class="min-w-0">
+                                <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Bakery</p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($bakerySales, 2) ?></p>
                             </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($drinksSales, 2) ?></span>
-                        </div>
-                        <!-- Grocery -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-shopping-basket text-green-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">Grocery</p>
-                                    <p class="text-xs text-gray-500">Other Items</p>
-                                </div>
-                            </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($grocerySales, 2) ?></span>
                         </div>
                     </div>
                 </div>
+                <!-- Drinks -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center min-w-0 flex-1">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <i class="fas fa-mug-hot text-blue-600 text-xs sm:text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Drinks</p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($drinksSales, 2) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Grocery -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center min-w-0 flex-1">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <i class="fas fa-shopping-basket text-green-600 text-xs sm:text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Grocery</p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($grocerySales, 2) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <!-- Payment Methods -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4">
-                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                        <i class="fas fa-credit-card text-primary mr-2"></i>
-                        Payment Methods
-                    </h3>
-                    <div class="space-y-3">
-                        <!-- Cash -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-money-bill-wave text-green-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">Cash</p>
-                                    <p class="text-xs text-gray-500">Physical payment</p>
-                                </div>
-                            </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($cashSales, 2) ?></span>
+            <!-- Payment Methods - Full Width -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 mb-4 sm:mb-6">
+                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <i class="fas fa-credit-card text-primary mr-2"></i>
+                    Payment Methods
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <!-- Cash -->
+                    <div class="flex items-center p-2 sm:p-3 bg-green-50 rounded-lg">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <i class="fas fa-money-bill-wave text-white text-xs sm:text-sm"></i>
                         </div>
-                        <!-- GCash -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-mobile-alt text-blue-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">GCash</p>
-                                    <p class="text-xs text-gray-500">E-wallet</p>
-                                </div>
-                            </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($gcashSales, 2) ?></span>
+                        <div class="min-w-0">
+                            <p class="text-xs text-green-700 font-medium">Cash</p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($cashSales, 2) ?></p>
                         </div>
-                        <!-- Maya -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center min-w-0 flex-1">
-                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                                    <i class="fas fa-wallet text-purple-600 text-xs sm:text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">Maya</p>
-                                    <p class="text-xs text-gray-500">E-wallet</p>
-                                </div>
-                            </div>
-                            <span class="text-sm sm:text-base font-semibold text-gray-900 ml-2">₱<?= number_format($mayaSales, 2) ?></span>
+                    </div>
+                    <!-- GCash -->
+                    <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #e6f3ff;">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #007DFE;">
+                            <i class="fas fa-mobile-screen text-white text-xs sm:text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium" style="color: #007DFE;">GCash</p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($gcashSales, 2) ?></p>
+                        </div>
+                    </div>
+                    <!-- Maya -->
+                    <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #e6fff0;">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #00D26A;">
+                            <i class="fas fa-wallet text-white text-xs sm:text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium" style="color: #00D26A;">Maya</p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($mayaSales, 2) ?></p>
                         </div>
                     </div>
                 </div>
@@ -504,6 +491,52 @@
                         <p class="text-xs sm:text-sm text-gray-500">No sales data available</p>
                     </div>
                 <?php endif; ?>
+            </div>
+
+            <!-- System Overview -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 mb-4 sm:mb-6">
+                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <i class="fas fa-database text-gray-500 mr-2"></i>
+                    System Overview
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-bread-slice text-amber-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Products</p>
+                            <p class="text-lg font-bold text-gray-900"><?= number_format($totalProducts) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-cubes text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Raw Materials</p>
+                            <p class="text-lg font-bold text-gray-900"><?= number_format($totalRawMaterials) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Low Stock</p>
+                            <p class="text-lg font-bold <?= count($lowStockProducts) > 0 ? 'text-red-600' : 'text-gray-900' ?>"><?= count($lowStockProducts) ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-calendar-check text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Inventory</p>
+                            <p class="text-lg font-bold <?= $inventoryExists ? 'text-green-600' : 'text-red-600' ?>"><?= $inventoryExists ? 'Done' : 'Pending' ?></p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Quick Actions - Mobile Friendly Grid -->

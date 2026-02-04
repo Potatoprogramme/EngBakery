@@ -222,8 +222,11 @@
                                     class="text-red-500">*</span></label>
                             <div class="relative">
                                 <input type="text" id="ingredient_search"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                     placeholder="Search ingredient..." autocomplete="off">
+                                <button type="button" id="btnClearIngredient" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
                                 <div id="ingredient_dropdown"
                                     class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                     <!-- Dropdown items will be populated here -->
@@ -237,7 +240,7 @@
                                         class="text-red-500">*</span></label>
                                 <input type="number" name="ingredient_quantity" id="ingredient_quantity"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="100" min="0.01" step="0.01">
+                                    placeholder="100" min="1" step="1">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
@@ -323,7 +326,7 @@
                                 <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                 <input type="number" id="groceryDirectCost"
                                     class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-green-500 font-semibold text-green-700"
-                                    placeholder="0.00" step="0.01" min="0" value="0">
+                                    placeholder="0.00" min="0" step="1">
                             </div>
                         </div>
                     </div>
@@ -409,7 +412,7 @@
                                                 <div class="flex w-32">
                                                     <input type="number" id="traysPerYield"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1" value="0">
+                                                        placeholder="0" min="0" step="1">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">tray</span>
                                                 </div>
@@ -420,7 +423,7 @@
                                                 <div class="flex w-32">
                                                     <input type="number" id="gramsPerTray"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="0.01" value="0">
+                                                        placeholder="0" min="0" step="1">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
                                                 </div>
@@ -456,7 +459,7 @@
                                                 <div class="flex w-32">
                                                     <input type="number" id="piecesPerYield"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1" value="0">
+                                                        placeholder="0" min="0" step="1">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">pcs</span>
                                                 </div>
@@ -467,7 +470,7 @@
                                                 <div class="flex w-32">
                                                     <input type="number" id="gramsPerPiece"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="0.01" value="0">
+                                                        placeholder="0" min="0" step="1">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
                                                 </div>
@@ -536,7 +539,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPriceOverall"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                        placeholder="0.00" step="1" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -553,7 +556,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPricePerTray"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                        placeholder="0.00" step="1" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -570,7 +573,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPricePerPiece"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
-                                        placeholder="0.00" step="0.01" min="0" value="0">
+                                        placeholder="0.00" step="0.01" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -1176,6 +1179,7 @@
                 // Reset search inputs
                 $('#ingredient_search').val('');
                 $('#ingredient_id').val('');
+                $('#btnClearIngredient').addClass('hidden');
                 hideIngredientDropdown();
 
                 // Reset combined recipes UI
@@ -1430,7 +1434,7 @@
                         shouldShow = true;
                     } else if (label === 'general' || label === '') {
                         shouldShow = true;
-                    } else if ((category === 'bakery' || category === 'dough') && label === 'bakery' || label === 'dough') {
+                    } else if ((category === 'bakery' || category === 'dough') && label === 'bread') {
                         shouldShow = true;
                     } else if (category === 'drinks' && label === 'drinks') {
                         shouldShow = true;
@@ -1499,8 +1503,26 @@
                 $('#ingredient_id').val(id);
                 $('#ingredient_search').val(name);
                 $('#ingredient_unit').val(unit);
+                $('#btnClearIngredient').removeClass('hidden');
                 hideIngredientDropdown();
                 $('#ingredient_quantity').focus();
+            });
+
+            // Clear ingredient selection
+            $('#btnClearIngredient').on('click', function () {
+                $('#ingredient_id').val('');
+                $('#ingredient_search').val('');
+                $(this).addClass('hidden');
+                $('#ingredient_search').focus();
+            });
+
+            // Show/hide clear button based on input
+            $('#ingredient_search').on('input', function () {
+                if ($(this).val().trim() !== '' && $('#ingredient_id').val() !== '') {
+                    $('#btnClearIngredient').removeClass('hidden');
+                } else if ($('#ingredient_id').val() === '') {
+                    $('#btnClearIngredient').addClass('hidden');
+                }
             });
 
             // Hide dropdown when clicking outside (Add Modal)
@@ -1563,6 +1585,7 @@
                 $('#ingredient_id').val('');
                 $('#ingredient_search').val('');
                 $('#ingredient_quantity').val('');
+                $('#btnClearIngredient').addClass('hidden');
                 $('#ingredient_search').focus();
 
                 Toast.success('Ingredient added successfully!');

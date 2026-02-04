@@ -94,143 +94,144 @@
 
     <!-- Remittance Details Modal -->
     <div id="remittanceDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
+        <div class="relative w-full max-w-3xl mx-auto shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                <div>
+                    <h3 class="text-lg font-semibold text-primary">Remittance Details</h3>
+                    <p class="text-sm text-gray-500" id="detailDate">-</p>
+                </div>
+                <button type="button" id="btnCloseDetailsModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-4">
+                <!-- Cashier Info - Compact Grid -->
+                <div class="grid grid-cols-2 gap-3 mb-4 p-3 bg-gray-50 rounded-md text-sm">
                     <div>
-                        <h3 class="text-xl font-bold text-gray-800">Remittance Details</h3>
-                        <p class="text-sm text-gray-500" id="detailDate">-</p>
+                        <span class="text-xs text-gray-500 block">Cashier</span>
+                        <p class="font-medium text-gray-800 truncate" id="detailCashier">-</p>
                     </div>
-                    <button type="button" id="btnCloseDetailsModal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Email</span>
+                        <p class="font-medium text-gray-800 truncate" id="detailCashierEmail">-</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Outlet</span>
+                        <p class="font-medium text-gray-800 truncate" id="detailOutlet">-</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Shift</span>
+                        <p class="font-medium text-gray-800" id="detailShift">-</p>
+                    </div>
                 </div>
 
-                <!-- Detail Content -->
-                <div class="space-y-4">
-                    <!-- Cashier Info -->
-                    <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div>
-                            <span class="text-sm text-gray-500">Cashier:</span>
-                            <p class="font-semibold text-gray-800" id="detailCashier">-</p>
-                        </div>
-                        <div>
-                            <span class="text-sm text-gray-500">Email:</span>
-                            <p class="font-semibold text-gray-800" id="detailCashierEmail">-</p>
-                        </div>
-                        <div>
-                            <span class="text-sm text-gray-500">Outlet:</span>
-                            <p class="font-semibold text-gray-800" id="detailOutlet">-</p>
-                        </div>
-                        <div>
-                            <span class="text-sm text-gray-500">Shift:</span>
-                            <p class="font-semibold text-gray-800" id="detailShift">-</p>
-                        </div>
-                    </div>
-
-
-                    <!-- Denomination Breakdown Table -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-gray-700 mb-3">Cash Denomination Breakdown</h4>
-                        <div class="overflow-x-auto">
+                <!-- Two Column Layout for Desktop -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Left Column -->
+                    <div class="space-y-4">
+                        <!-- Denomination Breakdown Table -->
+                        <div class="border border-gray-200 rounded-md overflow-hidden">
+                            <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700">Cash Denominations</h4>
+                            </div>
                             <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700">Denomination</th>
-                                        <th class="px-3 py-2 text-center font-semibold text-gray-700">Quantity</th>
-                                        <th class="px-3 py-2 text-right font-semibold text-gray-700">Total</th>
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">Denom</th>
+                                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-600">Qty</th>
+                                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-600">Total</th>
                                     </tr>
                                 </thead>
-                                <tbody id="denominationTableBody">
+                                <tbody id="denominationTableBody" class="divide-y divide-gray-100">
                                     <tr>
-                                        <td colspan="3" class="px-3 py-2 text-center text-gray-500">No denominations recorded</td>
+                                        <td colspan="3" class="px-3 py-2 text-center text-gray-500 text-xs">No denominations recorded</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                    </div>
 
-                    <!-- Remittance Breakdown -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-gray-700 mb-3">Remittance Breakdown</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-money-bill text-green-500 mr-2"></i>Cash On Hand:</span>
-                                <span class="font-semibold" id="detailCashOnHand">₱0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-mobile-alt text-blue-500 mr-2"></i>GCash:</span>
-                                <span class="font-semibold" id="detailGcash">₱0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-gray-500 mr-2"></i>Cash Out:</span>
-                                <span class="font-semibold text-red-600" id="detailCashOut">-₱0.00</span>
-                            </div>
-                            <div class="flex justify-between border-t pt-2 mt-2">
-                                <span class="font-bold text-gray-800">Total Remitted:</span>
-                                <span class="font-bold text-primary text-lg" id="detailTotalRemitted">₱0.00</span>
-                            </div>
+                        <!-- Cash Out Reason -->
+                        <div class="border border-gray-200 rounded-md p-3" id="cashOutReasonContainer" style="display: none;">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-1">Cash Out Reason</h4>
+                            <p class="text-sm text-gray-600" id="detailCashOutReason">-</p>
                         </div>
                     </div>
 
-                    <!-- Sales Breakdown -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-gray-700 mb-3">Sales by Category</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-money-bill text-green-500 mr-2"></i>Bakery/Bread:</span>
-                                <span class="font-semibold" id="detailBakerySales">₱0.00</span>
+                    <!-- Right Column -->
+                    <div class="space-y-4">
+                        <!-- Remittance Breakdown -->
+                        <div class="border border-gray-200 rounded-md overflow-hidden">
+                            <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700">Remittance Breakdown</h4>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-mobile-alt text-blue-500 mr-2"></i>Coffee/Drinks:</span>
-                                <span class="font-semibold" id="detailCoffeeSales">₱0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-gray-500 mr-2"></i>Grocery:</span>
-                                <span class="font-semibold" id="detailGrocerySales">₱0.00</span>
-                            </div>
-                            <div class="flex justify-between border-t pt-2 mt-2">
-                                <span class="font-bold text-gray-800">Total Sales:</span>
-                                <span class="font-bold text-primary text-lg" id="detailTotalSales">₱0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sales vs Remittance -->
-                    <div class="p-4 border border-gray-200 rounded-lg">
-                        <h4 class="font-semibold text-gray-700 mb-3">Sales vs Remittance</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-chart-line text-primary mr-2"></i>Total Sales:</span>
-                                <span class="font-semibold" id="detailTotalSales">₱0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-green-500 mr-2"></i>Total Remitted:</span>
-                                <span class="font-semibold" id="detailTotalRemittedCompare">₱0.00</span>
+                            <div class="p-3 space-y-2 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-money-bill text-green-500 mr-2 w-4"></i>Cash On Hand</span>
+                                    <span class="font-medium" id="detailCashOnHand">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-mobile-alt text-blue-500 mr-2 w-4"></i>GCash/Online</span>
+                                    <span class="font-medium" id="detailGcash">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-red-500 mr-2 w-4"></i>Cash Out</span>
+                                    <span class="font-medium text-red-600" id="detailCashOut">-₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                    <span class="font-semibold text-gray-800">Total Remitted</span>
+                                    <span class="font-bold text-primary" id="detailTotalRemitted">₱0.00</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Cash Out Reason -->
-                    <div class="p-4 border border-gray-200 rounded-lg" id="cashOutReasonContainer" style="display: none;">
-                        <h4 class="font-semibold text-gray-700 mb-2">Cash Out Reason</h4>
-                        <p class="text-gray-600" id="detailCashOutReason">-</p>
-                    </div>
-
-                    <!-- Variance -->
-                    <div class="p-4 rounded-lg" id="detailVarianceContainer">
-                        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                            <span class="font-bold text-gray-800">Overage/Shortage:</span>
-                            <span class="font-bold text-xl" id="detailVariance">₱0.00</span>
+                        <!-- Sales Breakdown -->
+                        <div class="border border-gray-200 rounded-md overflow-hidden">
+                            <div class="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700">Sales by Category</h4>
+                            </div>
+                            <div class="p-3 space-y-2 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-bread-slice text-amber-500 mr-2 w-4"></i>Bakery/Bread</span>
+                                    <span class="font-medium" id="detailBakerySales">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-coffee text-brown-500 mr-2 w-4"></i>Coffee/Drinks</span>
+                                    <span class="font-medium" id="detailCoffeeSales">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-shopping-basket text-gray-500 mr-2 w-4"></i>Grocery</span>
+                                    <span class="font-medium" id="detailGrocerySales">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                    <span class="font-semibold text-gray-800">Total Sales</span>
+                                    <span class="font-bold text-primary" id="detailTotalSales">₱0.00</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Variance Section - Full Width -->
+                <div class="mt-4 p-3 rounded-md" id="detailVarianceContainer">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-gray-800">Sales vs Remittance</span>
+                            <span class="text-xs text-gray-500">(Total Sales: <span id="detailTotalRemittedCompare">₱0.00</span>)</span>
+                        </div>
+                        <span class="font-bold text-lg" id="detailVariance">₱0.00</span>
+                    </div>
+                </div>
             </div>
-            <div class="px-6 pb-6 flex gap-2">
-                <button type="button" id="btnPrintDetails" class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
+
+            <!-- Modal Footer -->
+            <div class="flex gap-2 p-4 border-t border-gray-200">
+                <button type="button" id="btnPrintDetails" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
-                <button type="button" id="btnCloseModal" class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">
+                <button type="button" id="btnCloseModal" class="flex-1 sm:flex-none sm:ml-auto px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary transition-colors">
                     Close
                 </button>
             </div>
@@ -385,16 +386,16 @@
                     const denomLabel = parseFloat(denom.denomination) === 0.25 ? '₱0.25' : '₱' + parseFloat(denom.denomination).toLocaleString('en-PH');
 
                     denominationHtml += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-3 py-2 font-medium text-gray-700">${denomLabel}</td>
-                            <td class="px-3 py-2 text-center text-gray-700">${quantity}</td>
-                            <td class="px-3 py-2 text-right font-semibold text-gray-800">${formatCurrency(total)}</td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-1.5 text-gray-700 text-xs">${denomLabel}</td>
+                            <td class="px-3 py-1.5 text-center text-gray-700 text-xs">${quantity}</td>
+                            <td class="px-3 py-1.5 text-right font-medium text-gray-800 text-xs">${formatCurrency(total)}</td>
                         </tr>
                     `;
                 });
                 $('#denominationTableBody').html(denominationHtml);
             } else {
-                $('#denominationTableBody').html('<tr><td colspan="3" class="px-3 py-2 text-center text-gray-500">No denominations recorded</td></tr>');
+                $('#denominationTableBody').html('<tr><td colspan="3" class="px-3 py-2 text-center text-gray-500 text-xs">No denominations recorded</td></tr>');
             }
 
             // Use variance_amount and is_short from database

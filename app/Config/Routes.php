@@ -19,8 +19,17 @@ $routes->get('/Logout', 'AuthenticationController::logout');
 $routes->get('/Auth/Google', 'AuthenticationController::googleLogin');
 $routes->get('/Auth/Google/Callback', 'AuthenticationController::googleCallback');
 
+// Password Reset Routes
+$routes->group('PasswordReset', function (RouteCollection $routes) {
+    $routes->get('/', 'PasswordResetController::index');
+    $routes->post('RequestOTP', 'PasswordResetController::requestOTP');
+    $routes->post('VerifyOTP', 'PasswordResetController::verifyOTP');
+    $routes->post('ResetPassword', 'PasswordResetController::resetPassword');
+});
+
 $routes->group('User', function (RouteCollection $routes) {
-    $routes->get('Profile', 'UserController::profile');
+    $routes->get('Profile', 'UserController::index');
+    $routes->get('GetUserData', 'UserController::getCurrentUserData');
     $routes->post('UpdateProfile', 'UserController::updateProfile');
     $routes->post('ChangePassword', 'UserController::changePassword');
     $routes->get('GetCurrentUser', 'AuthenticationController::getCurrentUser');

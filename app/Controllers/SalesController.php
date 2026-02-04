@@ -93,8 +93,8 @@ class SalesController extends BaseController
         $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
         $gCashSales = $this->orderModel->getTotalSalesByOrderType('gcash');
         $mayaSales = $this->orderModel->getTotalSalesByOrderType('maya');
-        $creditCardSales = $this->orderModel->getTotalSalesByOrderType('credit_card');
-        $debitCardSales = $this->orderModel->getTotalSalesByOrderType('debit_card');
+        $creditCardSales = $this->orderModel->getTotalSalesByOrderType('credit card');
+        $debitCardSales = $this->orderModel->getTotalSalesByOrderType('debit card');
         $todaysTotalOrders = $this->orderModel->getTodaysOrderCount();
         $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
         $todaysTransactionIds = $this->transactionsModel->getTodaysTransactionsIds();

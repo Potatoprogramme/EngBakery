@@ -49,7 +49,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Total Employees</p>
-                            <p class="text-lg font-semibold text-gray-800">12</p>
+                            <p class="text-lg font-semibold text-gray-800" id="statTotalEmployees">0</p>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Active</p>
-                            <p class="text-lg font-semibold text-gray-800">10</p>
+                            <p class="text-lg font-semibold text-gray-800" id="statActiveEmployees">0</p>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Admins</p>
-                            <p class="text-lg font-semibold text-gray-800">2</p>
+                            <p class="text-lg font-semibold text-gray-800" id="statAdminCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Pending</p>
-                            <p class="text-lg font-semibold text-gray-800">3</p>
+                            <p class="text-lg font-semibold text-gray-800" id="statPendingCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -104,7 +104,6 @@
                             class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-1 focus:ring-primary focus:border-primary">
                             <option value="all">All Roles</option>
                             <option value="admin">Admin</option>
-                            <option value="cashier">Cashier</option>
                             <option value="staff">Staff</option>
                             <option value="owner">Owner</option>
                         </select>
@@ -246,11 +245,11 @@
                     <div class="flex items-center gap-4 mb-5">
                         <div
                             class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-xl font-bold text-primary" id="viewInitials">JD</span>
+                            <span class="text-xl font-bold text-primary" id="viewInitials"></span>
                         </div>
                         <div class="flex-1">
-                            <h4 class="text-base font-semibold text-gray-900" id="viewName">John Doe</h4>
-                            <p class="text-sm text-gray-500" id="viewEmail">johndoe@email.com</p>
+                            <h4 class="text-base font-semibold text-gray-900" id="viewName"></h4>
+                            <p class="text-sm text-gray-500" id="viewEmail"></p>
                         </div>
                         <span
                             class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-green-100 text-gray-700"
@@ -261,27 +260,27 @@
                     <div class="grid gap-4 grid-cols-2">
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Username</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewUsername">@johndoe</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewUsername"></p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Phone</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewPhone">09123456789</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewPhone"></p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Role</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewRole">Admin</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewRole"></p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Gender</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewGender">Male</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewGender"></p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Birthdate</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewBirthdate">January 15, 1995</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewBirthdate"></p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Joined</label>
-                            <p class="text-sm font-medium text-gray-900" id="viewJoined">January 15, 2025</p>
+                            <p class="text-sm font-medium text-gray-900" id="viewJoined"></p>
                         </div>
                     </div>
                 </div>
@@ -307,6 +306,11 @@
             employeeType: '<?= $employee_type ?>'
         };
 
+        // Store all employees for filtering
+        let allEmployees = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
         $(document).ready(function () {
             fetchEmployees();
             fetchPendingCount();
@@ -320,14 +324,17 @@
                     success: function (response) {
                         if (response.success) {
                             console.log('Pending users:', response.data);
-                            const pendingCount = response.data.length;
+                            const pendingCount = response.data.filter(u => (u.status || 'pending').toLowerCase() === 'pending').length;
                             $('#pendingBadge').text(pendingCount);
+                            $('#statPendingCount').text(pendingCount);
                         } else {
                             $('#pendingBadge').text('0');
+                            $('#statPendingCount').text('0');
                         }
                     },
                     error: function () {
                         $('#pendingBadge').text('0');
+                        $('#statPendingCount').text('0');
                     }
                 });
             }
@@ -451,40 +458,80 @@
                                 users = users.filter(user => user.employee_type && user.employee_type.toLowerCase() !== 'owner');
                             }
 
-                            if (users.length === 0) {
-                                // Show empty state for both desktop and mobile
-                                $('#emptyState').removeClass('hidden');
-                                $('#employeeTableBody').empty();
-                                $('#paginationSection').addClass('hidden');
+                            // Store all employees for filtering
+                            allEmployees = users;
 
-                                // Hide mobile cards container and show mobile empty state
-                                $('#mobileCardsContainer').html(`
+                            // Update stats cards
+                            updateStatsCards(users);
+
+                            // Apply filters (which will call renderEmployees)
+                            applyFilters();
+                        } else {
+                            Toast.error(response.message || 'Failed to load employees');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching employees:', error);
+                        Toast.error('Failed to load employees. Please try again.');
+                    }
+                });
+            }
+
+            // Update stats cards with actual data
+            function updateStatsCards(users) {
+                const totalCount = users.length;
+                const activeCount = users.length; // All fetched users are active
+                const adminCount = users.filter(u => (u.employee_type || '').toLowerCase() === 'admin').length;
+                
+                // Update the stats cards using IDs
+                $('#statTotalEmployees').text(totalCount);
+                $('#statActiveEmployees').text(activeCount);
+                $('#statAdminCount').text(adminCount);
+            }
+
+            // Render employees with pagination
+            function renderEmployees(users) {
+                // Calculate pagination
+                const totalItems = users.length;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                const paginatedUsers = users.slice(startIndex, endIndex);
+
+                if (users.length === 0) {
+                    // Show empty state for both desktop and mobile
+                    $('#emptyState').removeClass('hidden');
+                    $('#employeeTableBody').empty();
+                    $('#paginationSection').addClass('hidden');
+
+                    // Show mobile empty state
+                    $('#mobileCardsContainer').html(`
                         <div class="p-8 text-center bg-white rounded-lg shadow-sm border border-gray-100">
                             <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-users text-2xl text-gray-300"></i>
                             </div>
                             <h3 class="text-base font-medium text-gray-900 mb-1">No Employees Found</h3>
-                            <p class="text-gray-500 text-sm">There are no employees to display.</p>
+                            <p class="text-gray-500 text-sm">There are no employees matching your criteria.</p>
                         </div>
                     `);
-                            } else {
-                                // Hide empty state, show table body and pagination
-                                $('#emptyState').addClass('hidden');
-                                $('#paginationSection').removeClass('hidden');
-                                $('#employeeTableBody').empty();
+                } else {
+                    // Hide empty state, show table body and pagination
+                    $('#emptyState').addClass('hidden');
+                    $('#paginationSection').removeClass('hidden');
+                    $('#employeeTableBody').empty();
 
-                                // Clear and populate mobile cards
-                                let mobileCardsHTML = '';
+                    // Clear and populate mobile cards
+                    let mobileCardsHTML = '';
 
-                                users.forEach(function (user) {
-                                    const initials = getInitials(user.firstname, user.lastname);
-                                    const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
-                                    const formattedDate = formatDate(user.created_at);
-                                    const role = capitalizeRole(user.employee_type);
-                                    const canDelete = canDeleteUser(user.employee_type);
+                    paginatedUsers.forEach(function (user) {
+                        const initials = getInitials(user.firstname, user.lastname);
+                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
+                        const formattedDate = formatDate(user.created_at);
+                        const role = capitalizeRole(user.employee_type);
+                        const canDelete = canDeleteUser(user.employee_type);
 
-                                    // Desktop table row
-                                    const rowHTML = `
+                        // Desktop table row
+                        const rowHTML = `
                             <tr class="hover:bg-gray-50" data-user-id="${user.user_id}">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
@@ -509,7 +556,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button type="button" class="btn-edit text-blue-600 hover:text-blue-900 p-1" title="View"
+                                        <button type="button" class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" title="View"
                                             data-user-id="${user.user_id}"
                                             data-firstname="${user.firstname || ''}"
                                             data-middlename="${user.middlename || ''}"
@@ -524,7 +571,7 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         ${canDelete ? `
-                                        <button type="button" class="btn-delete text-red-600 hover:text-red-900 p-1" title="Delete"
+                                        <button type="button" class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete"
                                             data-user-id="${user.user_id}"
                                             data-name="${fullName}">
                                             <i class="fas fa-trash"></i>
@@ -534,10 +581,10 @@
                                 </td>
                             </tr>
                         `;
-                                    $('#employeeTableBody').append(rowHTML);
+                        $('#employeeTableBody').append(rowHTML);
 
-                                    // Mobile card
-                                    mobileCardsHTML += `
+                        // Mobile card
+                        mobileCardsHTML += `
                             <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                                 <div class="p-4">
                                     <div class="flex items-center gap-3 mb-3">
@@ -560,7 +607,7 @@
                                     </div>
                                 </div>
                                 <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                                    <button type="button" class="btn-edit flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors"
+                                    <button type="button" class="btn-edit flex-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg py-2 hover:bg-blue-100 transition-colors"
                                         data-user-id="${user.user_id}"
                                         data-firstname="${user.firstname || ''}"
                                         data-middlename="${user.middlename || ''}"
@@ -575,7 +622,7 @@
                                         <i class="fas fa-eye mr-1"></i> View
                                     </button>
                                     ${canDelete ? `
-                                    <button type="button" class="btn-delete flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-50 transition-colors"
+                                    <button type="button" class="btn-delete flex-1 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg py-2 hover:bg-red-100 transition-colors"
                                         data-user-id="${user.user_id}"
                                         data-name="${fullName}">
                                         <i class="fas fa-trash mr-1"></i> Delete
@@ -584,20 +631,79 @@
                                 </div>
                             </div>
                         `;
-                                });
+                    });
 
-                                // Update mobile cards container
-                                $('#mobileCardsContainer').html(mobileCardsHTML);
+                    // Update mobile cards container
+                    $('#mobileCardsContainer').html(mobileCardsHTML);
 
-                                attachEventHandlers();
-                            }
-                        } else {
-                            Toast.error(response.message || 'Failed to load employees');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching employees:', error);
-                        Toast.error('Failed to load employees. Please try again.');
+                    // Update pagination
+                    renderPagination(totalItems, totalPages, startIndex, endIndex);
+
+                    attachEventHandlers();
+                }
+            }
+
+            // Render pagination controls
+            function renderPagination(totalItems, totalPages, startIndex, endIndex) {
+                let paginationHTML = `
+                    <div class="text-sm text-gray-500">
+                        Showing <span class="font-medium">${startIndex + 1}</span> to <span class="font-medium">${endIndex}</span> of <span class="font-medium">${totalItems}</span> employees
+                    </div>
+                    <div class="flex gap-1" id="paginationButtons">
+                `;
+
+                // Previous button
+                paginationHTML += `
+                    <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 btn-page-prev" ${currentPage === 1 ? 'disabled' : ''}>
+                        &laquo; Prev
+                    </button>
+                `;
+
+                // Page numbers
+                const maxVisiblePages = 3;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    if (i === currentPage) {
+                        paginationHTML += `<button class="px-3 py-1 text-sm bg-primary text-white rounded">${i}</button>`;
+                    } else {
+                        paginationHTML += `<button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 btn-page" data-page="${i}">${i}</button>`;
+                    }
+                }
+
+                // Next button
+                paginationHTML += `
+                    <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 btn-page-next" ${currentPage === totalPages ? 'disabled' : ''}>
+                        Next &raquo;
+                    </button>
+                `;
+
+                paginationHTML += '</div>';
+
+                $('#paginationSection').html(paginationHTML);
+
+                // Attach pagination handlers
+                $('.btn-page').off('click').on('click', function () {
+                    currentPage = parseInt($(this).data('page'));
+                    applyFilters();
+                });
+
+                $('.btn-page-prev').off('click').on('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        applyFilters();
+                    }
+                });
+
+                $('.btn-page-next').off('click').on('click', function () {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        applyFilters();
                     }
                 });
             }
@@ -645,20 +751,52 @@
                     );
                 });
             }
-            // Search functionality (client-side for static data)
+            // Search functionality (client-side filtering)
             $('#searchInput').on('keyup', function () {
-                const searchTerm = $(this).val().toLowerCase();
-                // Add search logic here when backend is implemented
-                console.log('Searching for:', searchTerm);
+                applyFilters();
             });
 
             // Filter functionality
-            $('#roleFilter, #statusFilter').on('change', function () {
-                const role = $('#roleFilter').val();
-                const status = $('#statusFilter').val();
-                // Add filter logic here when backend is implemented
-                console.log('Filtering by role:', role, 'status:', status);
+            $('#roleFilter').on('change', function () {
+                currentPage = 1; // Reset to first page on filter change
+                applyFilters();
             });
+
+            // Apply filters and re-render
+            function applyFilters() {
+                const searchTerm = $('#searchInput').val().toLowerCase().trim();
+                const roleFilter = $('#roleFilter').val();
+
+                let filteredUsers = allEmployees;
+
+                // Filter by role
+                if (roleFilter !== 'all') {
+                    filteredUsers = filteredUsers.filter(user => {
+                        const userRole = (user.employee_type || '').toLowerCase();
+                        return userRole === roleFilter;
+                    });
+                }
+
+                // Filter by search term
+                if (searchTerm) {
+                    filteredUsers = filteredUsers.filter(user => {
+                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.toLowerCase();
+                        const email = (user.email || '').toLowerCase();
+                        const username = (user.username || '').toLowerCase();
+                        const phone = (user.phone_number || '').toLowerCase();
+                        return fullName.includes(searchTerm) || email.includes(searchTerm) || 
+                               username.includes(searchTerm) || phone.includes(searchTerm);
+                    });
+                }
+
+                // Reset to page 1 if current page exceeds total pages
+                const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = 1;
+                }
+
+                renderEmployees(filteredUsers);
+            }
 
             // Change Role Modal handlers
             $('.btn-role').on('click', function () {

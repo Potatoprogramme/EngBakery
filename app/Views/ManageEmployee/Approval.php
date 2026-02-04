@@ -231,9 +231,127 @@
         window.BASE_URL = '<?= base_url() ?>';
 
         $(document).ready(function () {
+            // Store all users for filtering
+            let allUsers = [];
+
             fetchPendingUsers();
 
-            // Fetch pending users
+            // Search functionality
+            $('#searchInput').on('keyup', function () {
+                applyFilters();
+            });
+
+            // Filter functionality
+            $('#statusFilter').on('change', function () {
+                applyFilters();
+            });
+
+            // Apply search and filter
+            function applyFilters() {
+                const searchTerm = $('#searchInput').val().toLowerCase().trim();
+                const statusFilter = $('#statusFilter').val();
+
+                let filteredUsers = allUsers;
+
+                // Filter by status
+                if (statusFilter !== 'all') {
+                    filteredUsers = filteredUsers.filter(user => {
+                        const userStatus = (user.status || 'pending').toLowerCase();
+                        return userStatus === statusFilter;
+                    });
+                }
+
+                // Filter by search term
+                if (searchTerm) {
+                    filteredUsers = filteredUsers.filter(user => {
+                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.toLowerCase();
+                        const email = (user.email || '').toLowerCase();
+                        const username = (user.username || '').toLowerCase();
+                        return fullName.includes(searchTerm) || email.includes(searchTerm) || username.includes(searchTerm);
+                    });
+                }
+
+                renderUsers(filteredUsers);
+            }
+
+            // Render users to the grid
+            function renderUsers(users) {
+                if (users.length === 0) {
+                    $('#approvalCardsContainer').hide();
+                    $('#emptyState').removeClass('hidden').addClass('block');
+                    // Update pending count based on filter
+                    const pendingOnly = allUsers.filter(u => (u.status || 'pending').toLowerCase() === 'pending');
+                    $('#pendingCount').text(pendingOnly.length);
+                } else {
+                    $('#approvalCardsContainer').show().empty();
+                    $('#emptyState').removeClass('block').addClass('hidden');
+                    // Update pending count based on filter
+                    const pendingOnly = allUsers.filter(u => (u.status || 'pending').toLowerCase() === 'pending');
+                    $('#pendingCount').text(pendingOnly.length);
+
+                    users.forEach(function (user) {
+                        const initials = getInitials(user.firstname, user.lastname);
+                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
+                        const formattedDate = formatDate(user.created_at);
+                        const status = (user.status || 'pending').toLowerCase();
+
+                        // Determine status badge style
+                        let statusBadge = '';
+                        let showActionButtons = false;
+                        if (status === 'pending') {
+                            statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">Pending</span>';
+                            showActionButtons = true;
+                        } else if (status === 'approved') {
+                            statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">Approved</span>';
+                        } else if (status === 'rejected') {
+                            statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">Rejected</span>';
+                        }
+
+                        const cardHTML = `
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow" data-user-id="${user.user_id}">
+                            <div class="p-4">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-11 h-11 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-sm font-semibold text-gray-600">${initials}</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-sm font-semibold text-gray-900 truncate">${fullName}</h3>
+                                        <p class="text-xs text-gray-500 truncate">${user.email}</p>
+                                    </div>
+                                    <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">${user.employee_type || 'Staff'}</span>
+                                </div>
+                                <div class="flex mt-3 pt-3 border-t border-gray-100 items-center justify-between mb-3">
+                                    ${statusBadge}
+                                    <span class="text-xs text-gray-400">${formattedDate}</span>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                                    <span><i class="fas fa-phone mr-1"></i>${user.phone_number || 'N/A'}</span>
+                                    <span><i class="fas fa-user mr-1"></i>${user.username}</span>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
+                                ${showActionButtons ? `
+                                <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
+                                    Approve
+                                </button>
+                                <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
+                                    Reject
+                                </button>
+                                ` : ''}
+                                <button type="button" class="btn-view ${showActionButtons ? 'px-3' : 'flex-1'} py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <i class="fas fa-eye${showActionButtons ? '' : ' mr-1'}"></i>${showActionButtons ? '' : ' View Details'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                        $('#approvalCardsContainer').append(cardHTML);
+                    });
+
+                    attachCardEventHandlers();
+                }
+            }
+
+            // Fetch all users (including approved/rejected)
             function fetchPendingUsers() {
                 $.ajax({
                     url: window.BASE_URL + 'Approval/GetPendingUsers',
@@ -241,71 +359,17 @@
                     dataType: 'json',
                     success: function (response) {
                         if (response.success) {
-                            const users = response.data;
+                            allUsers = response.data;
 
-                            if (users.length === 0) {
-                                $('#approvalCardsContainer').hide();
-                                $('#emptyState').removeClass('hidden').addClass('block');
-                                $('#pendingCount').text('0');
-                            } else {
-                                $('#approvalCardsContainer').show().empty();
-                                $('#emptyState').removeClass('block').addClass('hidden');
-                                $('#pendingCount').text(users.length);
-
-                                users.forEach(function (user) {
-                                    const initials = getInitials(user.firstname, user.lastname);
-                                    const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
-                                    const formattedDate = formatDate(user.created_at);
-
-                                    const cardHTML = `
-                                    <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow" data-user-id="${user.user_id}">
-                                        <div class="p-4">
-                                            <div class="flex items-center gap-3 mb-3">
-                                                <div class="w-11 h-11 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                    <span class="text-sm font-semibold text-gray-600">${initials}</span>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <h3 class="text-sm font-semibold text-gray-900 truncate">${fullName}</h3>
-                                                    <p class="text-xs text-gray-500 truncate">${user.email}</p>
-                                                </div>
-                                                <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">${user.employee_type || 'Staff'}</span>
-                                            </div>
-                                            <div class="flex mt-3 pt-3 border-t border-gray-100 items-center justify-between mb-3">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                                    Pending
-                                                </span>
-                                                <span class="text-xs text-gray-400">${formattedDate}</span>
-                                            </div>
-                                            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                                                <span><i class="fas fa-phone mr-1"></i>${user.phone_number || 'N/A'}</span>
-                                                <span><i class="fas fa-user mr-1"></i>${user.username}</span>
-                                            </div>
-                                        </div>
-                                        <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                                            <button type="button" class="btn-approve flex-1 text-sm font-medium text-white bg-green-600 rounded-lg py-2 hover:bg-green-700 transition-colors">
-                                                Approve
-                                            </button>
-                                            <button type="button" class="btn-reject flex-1 text-sm font-medium text-white bg-red-500 rounded-lg py-2 hover:bg-red-600 transition-colors">
-                                                Reject
-                                            </button>
-                                            <button type="button" class="btn-view px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
-                                    $('#approvalCardsContainer').append(cardHTML);
-                                });
-
-                                attachCardEventHandlers();
-                            }
+                            // Apply initial filter (pending by default)
+                            applyFilters();
                         } else {
-                            showToast('error', response.message || 'Failed to load pending users');
+                            showToast('error', response.message || 'Failed to load users');
                         }
                     },
                     error: function (xhr) {
                         console.log(xhr);
-                        showToast('error', 'Error loading pending users');
+                        showToast('error', 'Error loading users');
                     }
                 });
             }

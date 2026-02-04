@@ -71,7 +71,7 @@
                             </div>
 
                             <div class="flex items-right justify-end">
-                                <a href="<?= base_url('password/forgot') ?>" class="text-sm font-medium text-[#005A36] hover:underline">Forgot password?</a>
+                                <a href="<?= base_url('PasswordReset') ?>" class="text-sm font-medium text-[#005A36] hover:underline">Forgot password?</a>
                             </div>
 
                             <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 bg-[#007B4C] hover:bg-[#005A36] text-white font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#005A36]">Sign in</button>

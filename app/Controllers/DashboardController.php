@@ -53,7 +53,7 @@ class DashboardController extends BaseController
         $todaysItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
 
         // Sales by Category
-        $bakerySales = $this->transactionsModel->getTodaysSaleByCategory('bread');
+        $bakerySales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
         $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
         $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
 
