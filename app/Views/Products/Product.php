@@ -24,6 +24,14 @@
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Add Product
                         </button>
+                        <button type="button" id="viewDisabledProducts"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            <div id="disabledProductsCount"
+                                class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
+                                0
+                            </div>
+                            Disabled Products
+                        </button>
                         <!-- Enable Export Button -->
                         <!-- <button type="button" id="btnExport"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
@@ -2175,9 +2183,15 @@
                             allProducts = response.data;
                             filteredProducts = [...allProducts];
                             
+                            // Count disabled products and update badge
+                            const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                            $('#disabledProductsCount').text(disabledCount);
+                            
                             response.data.forEach(function (product) {
+                                const isActive = product.is_active !== undefined ? product.is_active : 1; // Default to active if not set
+                                
                                 // Desktop table rows
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
+                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-is-active="' + isActive + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
@@ -2224,6 +2238,10 @@
                     error: function (xhr, status, error) {
                         allProducts = [];
                         filteredProducts = [];
+                        
+                        // Reset disabled products count
+                        $('#disabledProductsCount').text('0');
+                        
                         // Still initialize DataTable on error to show controls
                         if (dataTable) {
                             dataTable.destroy();
@@ -2597,6 +2615,79 @@
                 currentPage = 1;
                 $('#mobileSearchInput').val('');
                 renderMobileCards();
+            });
+
+            // Track disabled products view state
+            let showingDisabledOnly = false;
+
+            // View Disabled Products Button Click
+            $('#viewDisabledProducts').on('click', function () {
+                showingDisabledOnly = !showingDisabledOnly;
+                
+                if (showingDisabledOnly) {
+                    // Update button appearance to show "Back to All Products"
+                    $(this).removeClass('bg-gray-500 hover:bg-gray-600')
+                           .addClass('bg-blue-600 hover:bg-blue-700');
+                    $(this).html(`
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to All Products
+                    `);
+                    
+                    // Filter to show only disabled products
+                    // Note: This requires an 'is_active' column in the database
+                    // For now, we'll filter based on a data attribute when available
+                    if (dataTable) {
+                        // Filter DataTable to show only inactive products
+                        dataTable.search(''); // Clear any existing search
+                        
+                        // Hide all rows, then show only disabled ones
+                        $('table tbody tr').each(function() {
+                            const isActive = $(this).data('is-active');
+                            if (isActive === 0 || isActive === false) {
+                                $(this).show();
+                            } else {
+                                $(this).hide();
+                            }
+                        });
+                    }
+                    
+                    // Filter mobile cards to show only disabled products
+                    filteredProducts = allProducts.filter(function(product) {
+                        return product.is_active === 0 || product.is_active === false;
+                    });
+                    
+                    currentPage = 1;
+                    renderMobileCards();
+                    
+                    // Update disabled count display
+                    const disabledCount = filteredProducts.length;
+                    if (disabledCount === 0) {
+                        Toast.info('No disabled products found.');
+                    }
+                } else {
+                    // Update button appearance to show "View Disabled Products"
+                    $(this).removeClass('bg-blue-600 hover:bg-blue-700')
+                           .addClass('bg-gray-500 hover:bg-gray-600');
+                    
+                    const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                    $(this).html(`
+                        <div id="disabledProductsCount"
+                            class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
+                            ${disabledCount}
+                        </div>
+                        Disabled Products
+                    `);
+                    
+                    // Show all products again
+                    if (dataTable) {
+                        $('table tbody tr').show();
+                    }
+                    
+                    // Reset mobile cards to show all products
+                    filteredProducts = [...allProducts];
+                    currentPage = 1;
+                    renderMobileCards();
+                }
             });
 
             // =====================================================
