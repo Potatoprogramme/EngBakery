@@ -24,10 +24,10 @@
                         Daily Sales Remittance
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Sales/History') ?>"
+                        <!-- <a href="<?= base_url('Sales/History') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            <i class="fas fa-history mr-2"></i>Sales History
-                        </a>
+                            <i class="fas fa-history mr-2"></i>Transactions History
+                        </a> -->
                         <a href="<?= base_url('Sales/RemittanceHistory') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-file-invoice-dollar mr-2"></i>Remittance History
