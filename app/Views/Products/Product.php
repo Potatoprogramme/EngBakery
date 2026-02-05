@@ -18,7 +18,7 @@
             </nav>
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Product Lists</h2>
+                    <h2 id="productListTitle" class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Product Lists</h2>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" id="btnAddMaterial"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -38,10 +38,10 @@
                             Export
                         </button> -->
                         <!-- Disable Export Button -->
-                        <button type="button" id="btnExport" disabled
+                        <!-- <button type="button" id="btnExport" disabled
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
                             Export
-                        </button>
+                        </button> -->
                     </div>
                 </div>
 
@@ -857,6 +857,9 @@
             let filteredProducts = [];
             let currentPage = 1;
             const itemsPerPage = 10;
+            
+            // Track disabled products view state
+            let showingDisabledOnly = false;
 
             // Load data on page load
             loadMaterials();
@@ -2163,7 +2166,7 @@
             }
 
             // Load products via AJAX
-            function loadMaterials(categoryFilter = '') {
+            function loadMaterials(categoryFilter = '', showDisabledOnly = false) {
                 $.ajax({
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
@@ -2187,6 +2190,13 @@
                             if (categoryFilter !== '') {
                                 displayProducts = allProducts.filter(function(product) {
                                     return product.category && product.category.toLowerCase() === categoryFilter.toLowerCase();
+                                });
+                            }
+                            
+                            // Apply disabled filter if viewing disabled products only
+                            if (showDisabledOnly) {
+                                displayProducts = displayProducts.filter(function(product) {
+                                    return product.is_active === 0 || product.is_active === false;
                                 });
                             }
                             
@@ -2652,26 +2662,31 @@
             // Apply Filter
             $('#apply-filters').on('click', function () {
                 const categoryId = $('#filter-category').val();
-                // Reload the table with the selected category filter
-                loadMaterials(categoryId);
+                // Reload the table with the selected category filter, respecting disabled view state
+                loadMaterials(categoryId, showingDisabledOnly);
             });
 
             // Reset Filter
             $('#reset-filters').on('click', function () {
                 $('#filter-category').val('');
-                // Reload the table without any filter
-                loadMaterials('');
+                // Reload the table without any filter, respecting disabled view state
+                loadMaterials('', showingDisabledOnly);
                 $('#mobileSearchInput').val('');
             });
-
-            // Track disabled products view state
-            let showingDisabledOnly = false;
 
             // View Disabled Products Button Click
             $('#viewDisabledProducts').on('click', function () {
                 showingDisabledOnly = !showingDisabledOnly;
+                const categoryFilter = $('#filter-category').val();
                 
                 if (showingDisabledOnly) {
+                    // Hide Add Product buttons
+                    $('#btnAddMaterial').addClass('sm:hidden').removeClass('sm:inline-flex');
+                    $('#btnAddMaterialMobile').addClass('hidden');
+                    
+                    // Change title to "Disabled Product Lists"
+                    $('#productListTitle').text('Disabled Product Lists');
+                    
                     // Update button appearance to show "Back to All Products"
                     $(this).removeClass('bg-gray-500 hover:bg-gray-600')
                            .addClass('bg-blue-600 hover:bg-blue-700');
@@ -2680,38 +2695,16 @@
                         Back to All Products
                     `);
                     
-                    // Filter to show only disabled products
-                    // Note: This requires an 'is_active' column in the database
-                    // For now, we'll filter based on a data attribute when available
-                    if (dataTable) {
-                        // Filter DataTable to show only inactive products
-                        dataTable.search(''); // Clear any existing search
-                        
-                        // Hide all rows, then show only disabled ones
-                        $('table tbody tr').each(function() {
-                            const isActive = $(this).data('is-active');
-                            if (isActive === 0 || isActive === false) {
-                                $(this).show();
-                            } else {
-                                $(this).hide();
-                            }
-                        });
-                    }
-                    
-                    // Filter mobile cards to show only disabled products
-                    filteredProducts = allProducts.filter(function(product) {
-                        return product.is_active === 0 || product.is_active === false;
-                    });
-                    
-                    currentPage = 1;
-                    renderMobileCards();
-                    
-                    // Update disabled count display
-                    const disabledCount = filteredProducts.length;
-                    if (disabledCount === 0) {
-                        Toast.info('No disabled products found.');
-                    }
+                    // Reload with disabled filter (respecting current category filter)
+                    loadMaterials(categoryFilter, true);
                 } else {
+                    // Show Add Product buttons
+                    $('#btnAddMaterial').removeClass('sm:hidden').addClass('sm:inline-flex');
+                    $('#btnAddMaterialMobile').removeClass('hidden');
+                    
+                    // Change title back to "Product Lists"
+                    $('#productListTitle').text('Product Lists');
+                    
                     // Update button appearance to show "View Disabled Products"
                     $(this).removeClass('bg-blue-600 hover:bg-blue-700')
                            .addClass('bg-gray-500 hover:bg-gray-600');
@@ -2725,15 +2718,8 @@
                         Disabled Products
                     `);
                     
-                    // Show all products again
-                    if (dataTable) {
-                        $('table tbody tr').show();
-                    }
-                    
-                    // Reset mobile cards to show all products
-                    filteredProducts = [...allProducts];
-                    currentPage = 1;
-                    renderMobileCards();
+                    // Reload without disabled filter (respecting current category filter)
+                    loadMaterials(categoryFilter, false);
                 }
             });
 
