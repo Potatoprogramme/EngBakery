@@ -32,7 +32,7 @@
             <div id="floatingCartContainer" class="fixed bottom-6 right-6 z-40">
                 <!-- Mini Cart Panel (Hidden by default) -->
                 <div id="miniCartPanel"
-                    class="hidden absolute bottom-20 right-0 w-80 sm:w-96 bg-white border border-gray-200 shadow-2xl max-h-[70vh] overflow-hidden">
+                    class="hidden absolute rounded bottom-20 right-0 w-80 sm:w-96 bg-white border border-gray-200 shadow-2xl max-h-[70vh] overflow-hidden">
                     <!-- Mini Cart Header -->
                     <div class="bg-primary text-white px-4 py-3 flex justify-between items-center">
                         <h4 class="font-semibold">Your Order</h4>
@@ -54,11 +54,11 @@
                         </div>
                         <div class="flex gap-2">
                             <button type="button" id="btnClearCart"
-                                class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">
+                                class="flex-1 px-3 rounded py-2 text-sm font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">
                                 Clear
                             </button>
                             <button type="button" id="btnMiniCartCheckout"
-                                class="flex-[2] px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-secondary transition-colors">
+                                class="flex-[2] px-4 rounded py-2 text-sm font-bold text-white bg-primary hover:bg-secondary transition-colors">
                                 Checkout
                             </button>
                         </div>
@@ -361,10 +361,10 @@
                         <select id="checkoutPaymentMethod"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="cash">Cash</option>
-                            <option value="gcash">GCash</option>
-                            <option value="maya">Maya</option>
-                            <option value="credit card">Credit Card</option>
-                            <option value="debit card">Debit Card</option>
+                            <option value="gcash" disabled>GCash</option>
+                            <option value="maya" disabled>Maya</option>
+                            <option value="credit card" disabled>Credit Card</option>
+                            <option value="debit card" disabled>Debit Card</option>
                         </select>
                     </div>
                     <div class="flex gap-2">
@@ -391,7 +391,7 @@
                                 class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">₱</span>
                             <input type="number" id="amountTendered"
                                 class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-lg font-semibold"
-                                placeholder="0.00" min="0" step="0.01">
+                                placeholder="0.00" step="1">
                         </div>
                     </div>
                     <div class="grid grid-cols-4 gap-2 mb-3">
@@ -418,7 +418,7 @@
                         <button type="button" id="btnBackToStep2"
                             class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Back</button>
                         <button type="button" id="btnCompleteCheckout"
-                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Complete</button>
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Complete</button>
                     </div>
                 </div>
 
@@ -463,8 +463,8 @@
 
     <!-- Exit Confirmation Modal -->
     <div id="exitConfirmModal"
-        class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4">
-        <div class="relative w-full max-w-md mx-auto p-8 border shadow-xl bg-white">
+        class="hidden fixed inset-0 bg-gray-800 bg-opacity-75  overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md mx-auto p-8 border rounded shadow-xl bg-white">
             <div class="text-center">
                 <div
                     class="w-20 h-20 mx-auto mb-5 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full">
@@ -474,9 +474,9 @@
                 <p class="text-gray-600 mb-6">Are you sure you want to exit? Your checkout progress will be lost.</p>
                 <div class="flex gap-3">
                     <button type="button" id="btnCancelExit"
-                        class="flex-1 px-5 py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Stay</button>
+                        class="flex-1 px-5 rounded py-4 text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Stay</button>
                     <button type="button" id="btnConfirmExit"
-                        class="flex-1 px-5 py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Exit</button>
+                        class="flex-1 px-5 rounded py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Exit</button>
                 </div>
             </div>
         </div>
@@ -484,7 +484,7 @@
 
     <!-- Add Material Modal -->
     <div id="addMaterialModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 rounded overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md max-h-42 mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white"
             style="max-width: 42rem;">
             <div class="flex justify-between items-center mb-4">
