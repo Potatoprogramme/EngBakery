@@ -79,7 +79,7 @@
                 <!-- Mobile Search -->
                 <div class="mb-3">
                     <div class="relative">
-                        <input type="text" id="mobileSearchInput" placeholder="Search inventory..." 
+                        <input type="text" id="mobileSearchInput" placeholder="Search inventory..."
                             class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -99,14 +99,16 @@
 
             <!-- Desktop Table View -->
             <div class="hidden sm:block space-y-6 mb-20 sm:mb-0">
-                
+
                 <!-- Bakery Section -->
                 <div class="bg-white rounded border border-gray-200 overflow-hidden">
                     <div class="px-4 py-3 bg-amber-50/50 border-b border-gray-200">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-bread-slice text-amber-500 text-sm"></i>
                             <h3 class="text-sm font-medium text-gray-700">Bakery Products</h3>
-                            <span id="bakeryCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 rounded">0 items</span>
+                            <span id="bakeryCount"
+                                class="ml-auto px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 rounded">0
+                                items</span>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -127,7 +129,8 @@
                             </tbody>
                             <tfoot class="bg-gray-50 border-t border-gray-200">
                                 <tr>
-                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
                                     <td></td>
                                 </tr>
@@ -142,7 +145,9 @@
                         <div class="flex items-center gap-2">
                             <i class="fas fa-mug-hot text-blue-500 text-sm"></i>
                             <h3 class="text-sm font-medium text-gray-700">Drinks</h3>
-                            <span id="drinksCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">0 items</span>
+                            <span id="drinksCount"
+                                class="ml-auto px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">0
+                                items</span>
                         </div>
                         <p class="text-[11px] text-gray-500 mt-1">Drinks do not require stock tracking</p>
                     </div>
@@ -161,7 +166,8 @@
                             </tbody>
                             <tfoot class="bg-gray-50 border-t border-gray-200">
                                 <tr>
-                                    <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
                                     <td></td>
                                 </tr>
@@ -176,7 +182,9 @@
                         <div class="flex items-center gap-2">
                             <i class="fas fa-shopping-basket text-emerald-500 text-sm"></i>
                             <h3 class="text-sm font-medium text-gray-700">Grocery Items</h3>
-                            <span id="groceryCount" class="ml-auto px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">0 items</span>
+                            <span id="groceryCount"
+                                class="ml-auto px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">0
+                                items</span>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -197,7 +205,8 @@
                             </tbody>
                             <tfoot class="bg-gray-50 border-t border-gray-200">
                                 <tr>
-                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">Total:</td>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
                                     <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
                                     <td></td>
                                 </tr>
@@ -219,13 +228,15 @@
                     <p class="text-xs text-gray-500 mb-5">Set the operating hours for today.</p>
                     <form id="timeInputForm">
                         <div class="mb-4">
-                            <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start Time</label>
+                            <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start
+                                Time</label>
                             <input type="time" id="time_start" name="time_start" required
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <p class="text-xs text-gray-400 mt-1">Morning (AM)</p>
                         </div>
                         <div class="mb-6">
-                            <label for="time_end" class="block mb-1.5 text-sm font-medium text-gray-700">End Time</label>
+                            <label for="time_end" class="block mb-1.5 text-sm font-medium text-gray-700">End
+                                Time</label>
                             <input type="time" id="time_end" name="time_end" required
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <p class="text-xs text-gray-400 mt-1">Afternoon/Evening (PM)</p>
@@ -255,19 +266,22 @@
                 <i class="fas fa-times text-lg"></i>
             </button>
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Edit Inventory Item</h3>
-            <p class="text-sm text-gray-500 mb-5">Product: <span id="editProductName" class="font-medium text-gray-700"></span></p>
+            <p class="text-sm text-gray-500 mb-5">Product: <span id="editProductName"
+                    class="font-medium text-gray-700"></span></p>
 
             <form id="editInventoryForm">
                 <input type="hidden" id="editItemId" name="item_id">
 
                 <div class="mb-4">
-                    <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning Stock</label>
+                    <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
+                        Stock</label>
                     <input type="number" id="editBeginningStock" name="beginning_stock" required min="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
                 <div class="mb-6">
-                    <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out Quantity</label>
+                    <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
+                        Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
@@ -298,16 +312,19 @@
 
             <form id="addProductForm">
                 <div class="mb-4">
-                    <label for="selectProduct" class="block mb-1.5 text-sm font-medium text-gray-700">Select Product</label>
+                    <label for="selectProduct" class="block mb-1.5 text-sm font-medium text-gray-700">Select
+                        Product</label>
                     <select id="selectProduct" name="product_id" required
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all">
                         <option value="">-- Select a product --</option>
                     </select>
-                    <p id="noProductsMessage" class="hidden mt-2 text-xs text-gray-500">All products are already in inventory.</p>
+                    <p id="noProductsMessage" class="hidden mt-2 text-xs text-gray-500">All products are already in
+                        inventory.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning Stock</label>
+                    <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
+                        Stock</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
@@ -522,11 +539,11 @@
                                 showToast('success', 'Inventory item deleted successfully!', 2000);
                                 fetchAllStockitems();
                             } else {
-                                showToast('error', 'Error: ' + response.message, 3000);
+                                showToast('error', response.message, 3000);
                             }
                         },
                         error: function (xhr, status, error) {
-                            showToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 3000);
+                            showToast('danger', xhr.responseJSON.message || 'An error occured while deleting inventory', 3000);
                         }
                     });
                 });
@@ -645,7 +662,7 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error adding inventory: ' + xhr.responseJSON.message, 2000);
+                    showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory', 2000);
                     console.log(xhr.responseJSON);
                 }
             });
@@ -668,7 +685,7 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error adding inventory: ' + xhr.responseJSON.message, 2000);
+                    showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error), 2000);
                     console.log(xhr.responseJSON);
                 }
             });
@@ -695,10 +712,10 @@
             renderBakeryTable(bakeryItems);
             renderDrinksTable(drinksItems);
             renderGroceryTable(groceryItems);
-            
+
             // Update totals
             updateGrandTotals(items || []);
-            
+
             // Render mobile cards with pagination
             renderMobileCards();
         }
@@ -708,14 +725,14 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = beginning - pullOut - qtySold;
-                    
+
                     totalQty += qtySold;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
@@ -745,10 +762,10 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const qtySold = parseInt(item.quantity_sold) || 0;
-                    
+
                     totalQty += qtySold;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
@@ -774,13 +791,13 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = beginning - pullOut - qtySold;
-                    
+
                     totalQty += qtySold;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
@@ -808,7 +825,7 @@
         function updateGrandTotals(items) {
             let grandQty = 0;
 
-            items.forEach(function(item) {
+            items.forEach(function (item) {
                 grandQty += parseInt(item.quantity_sold) || 0;
             });
 
@@ -818,10 +835,10 @@
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             const itemId = $(this).data('id');
-            
+
             // Always get data from stored items array (more reliable)
             const item = allInventoryItems.find(i => i.item_id == itemId);
-            
+
             if (item) {
                 // Store item ID and populate modal
                 $('#editItemId').val(itemId);
@@ -908,7 +925,7 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error deleting inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
                 }
             });
@@ -967,18 +984,18 @@
         }
 
         // Mobile Search functionality
-        $('#mobileSearchInput').on('input', function() {
+        $('#mobileSearchInput').on('input', function () {
             const searchTerm = $(this).val().toLowerCase().trim();
-            
+
             if (searchTerm === '') {
                 filteredItems = [...allInventoryItems];
             } else {
                 filteredItems = allInventoryItems.filter(item => {
                     return (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
-                           (item.category && item.category.toLowerCase().includes(searchTerm));
+                        (item.category && item.category.toLowerCase().includes(searchTerm));
                 });
             }
-            
+
             currentPage = 1;
             renderMobileCards();
         });
@@ -999,7 +1016,7 @@
                 cards += '<span class="text-xs text-gray-400">(' + bakeryItems.length + ')</span>';
                 cards += '</div>';
                 cards += '<div class="space-y-2">';
-                bakeryItems.forEach(function(item) {
+                bakeryItems.forEach(function (item) {
                     cards += renderMobileCard(item, 'bakery');
                 });
                 cards += '</div>';
@@ -1014,7 +1031,7 @@
                 cards += '<span class="text-xs text-gray-400">(' + drinksItems.length + ')</span>';
                 cards += '</div>';
                 cards += '<div class="space-y-2">';
-                drinksItems.forEach(function(item) {
+                drinksItems.forEach(function (item) {
                     cards += renderMobileCard(item, 'drinks');
                 });
                 cards += '</div>';
@@ -1029,7 +1046,7 @@
                 cards += '<span class="text-xs text-gray-400">(' + groceryItems.length + ')</span>';
                 cards += '</div>';
                 cards += '<div class="space-y-2">';
-                groceryItems.forEach(function(item) {
+                groceryItems.forEach(function (item) {
                     cards += renderMobileCard(item, 'grocery');
                 });
                 cards += '</div>';
@@ -1052,7 +1069,7 @@
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
             const isDrink = category === 'drinks';
             const ending_stock = isDrink ? null : (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
-            
+
             let borderColor = 'border-gray-200';
             if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
@@ -1063,7 +1080,7 @@
             card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
-            
+
             if (isDrink) {
                 card += '  <div class="flex items-center justify-between text-xs text-gray-500 mb-2">';
                 card += '    <span>Qty: <span class="text-gray-700 font-medium">' + (item.quantity_sold || 0) + '</span></span>';
@@ -1077,7 +1094,7 @@
                 card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
                 card += '  </div>';
             }
-            
+
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
             if (!isDrink) {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
@@ -1096,11 +1113,11 @@
         // Render mobile pagination
         function renderMobilePagination(totalPages, totalItems, startIndex, endIndex) {
             let pagination = '';
-            
+
             if (totalPages > 1) {
                 // Previous button
-                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
-                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') +
                     '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="prev">';
                 pagination += '<i class="fas fa-chevron-left"></i>';
                 pagination += '</button>';
@@ -1109,7 +1126,7 @@
                 const maxVisiblePages = 5;
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
+
                 if (endPage - startPage + 1 < maxVisiblePages) {
                     startPage = Math.max(1, endPage - maxVisiblePages + 1);
                 }
@@ -1122,8 +1139,8 @@
                 }
 
                 for (let i = startPage; i <= endPage; i++) {
-                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
-                        (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                        (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') +
                         '" data-page="' + i + '">' + i + '</button>';
                 }
 
@@ -1135,15 +1152,15 @@
                 }
 
                 // Next button
-                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' + 
-                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + 
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') +
                     '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="next">';
                 pagination += '<i class="fas fa-chevron-right"></i>';
                 pagination += '</button>';
             }
 
             $('#mobilePagination').html(pagination);
-            
+
             // Page info
             if (totalItems > 0) {
                 $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries');
@@ -1153,10 +1170,10 @@
         }
 
         // Mobile pagination click handler
-        $(document).on('click', '#mobilePagination button:not([disabled])', function() {
+        $(document).on('click', '#mobilePagination button:not([disabled])', function () {
             const page = $(this).data('page');
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-            
+
             if (page === 'prev') {
                 currentPage = Math.max(1, currentPage - 1);
             } else if (page === 'next') {
@@ -1164,9 +1181,9 @@
             } else {
                 currentPage = parseInt(page);
             }
-            
+
             renderMobileCards();
-            
+
             // Scroll to top of cards
             $('html, body').animate({
                 scrollTop: $('#mobileCardView').offset().top - 100

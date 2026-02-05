@@ -211,6 +211,43 @@ class InventoryController extends BaseController
     public function deleteTodaysInventory()
     {
         $today = date('Y-m-d');
+
+        // Check if daily stock exists
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No inventory found for today.'
+            ]);
+        }
+
+        // Check if there's a remittance for today
+        $remittance = $this->remittanceDetailsModel
+            ->where('DATE(remittance_date)', $today)
+            ->get()
+            ->getRow();
+
+        if ($remittance) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot delete inventory. A remittance has already been created for today.'
+            ]);
+        }
+
+        // Check if there are any transactions for today
+        $hasTransactions = $this->transactionsModel
+            ->where('DATE(date_created)', $today)
+            ->countAllResults() > 0;
+
+        if ($hasTransactions) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot delete inventory. Sales transactions exist for today. Please delete transactions first.'
+            ]);
+        }
+
+        // Safe to delete - no remittance and no transactions
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -307,7 +344,45 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Delete the item
+        // Get the daily stock to check the date
+        $dailyStock = $this->dailyStockModel->find($item['daily_stock_id']);
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory record not found'
+            ]);
+        }
+
+        $inventoryDate = $dailyStock['inventory_date'];
+
+        // Check if there's a remittance for this date
+        $remittance = $this->remittanceDetailsModel
+            ->where('DATE(remittance_date)', $inventoryDate)
+            ->get()
+            ->getRow();
+
+        if ($remittance) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot delete item. A remittance has already been created for this inventory.'
+            ]);
+        }
+
+        // Check if there are any transactions for this item on this date
+        $hasTransactions = $this->transactionsModel
+            ->where('item_id', $item['item_id'])
+            ->where('DATE(date_created)', $inventoryDate)
+            ->countAllResults() > 0;
+
+        if ($hasTransactions) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot delete item. Sales transactions exist for this product.'
+            ]);
+        }
+
+        // Safe to delete - no remittance and no transactions
         if ($this->dailyStockItemsModel->delete($item_id)) {
             return $this->response->setJSON([
                 'success' => true,
