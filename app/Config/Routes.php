@@ -58,6 +58,8 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('AddProduct', 'ProductsController::addProduct');
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
+    $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
+    
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {

@@ -18,7 +18,8 @@
             </nav>
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 id="productListTitle" class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Product Lists</h2>
+                    <h2 id="productListTitle" class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">
+                        Product Lists</h2>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" id="btnAddMaterial"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -238,7 +239,8 @@
                                 <input type="text" id="ingredient_search"
                                     class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                     placeholder="Search ingredient..." autocomplete="off">
-                                <button type="button" id="btnClearIngredient" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <button type="button" id="btnClearIngredient"
+                                    class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i class="fas fa-times"></i>
                                 </button>
                                 <div id="ingredient_dropdown"
@@ -325,19 +327,23 @@
                 <!-- STEP 3: Costing -->
                 <div id="addStep3" class="step-content hidden">
                     <!-- Grocery Product Price Section (only shown for grocery category) -->
-                    <div id="groceryPriceSection" class="hidden mb-4 p-4 bg-white border-2 border-green-200 rounded-lg shadow-sm">
+                    <div id="groceryPriceSection"
+                        class="hidden mb-4 p-4 bg-white border-2 border-green-200 rounded-lg shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                                     <i class="fas fa-tag text-green-600 me-1"></i> Product Price
                                 </h4>
-                                <p class="text-xs text-gray-500">Enter the purchase/acquisition cost of this grocery item.</p>
+                                <p class="text-xs text-gray-500">Enter the purchase/acquisition cost of this grocery
+                                    item.</p>
                             </div>
                         </div>
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <label for="groceryDirectCost" class="text-sm font-medium text-gray-700">Product Price (Direct Cost) <span class="text-red-500">*</span></label>
+                            <label for="groceryDirectCost" class="text-sm font-medium text-gray-700">Product Price
+                                (Direct Cost) <span class="text-red-500">*</span></label>
                             <div class="flex w-full sm:w-48">
-                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
+                                <span
+                                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                 <input type="number" id="groceryDirectCost"
                                     class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-green-500 font-semibold text-green-700"
                                     placeholder="0.00" min="0" step="1">
@@ -356,7 +362,7 @@
                                     to
                                     see totals instantly.</p>
                             </div>
-                            <div id="totalCostSection" class="text-left sm:text-right" >
+                            <div id="totalCostSection" class="text-left sm:text-right">
                                 <span class="text-xs text-gray-500 uppercase tracking-wide">Total Cost</span>
                                 <div id="totalCostDisplay" class="text-xl font-semibold text-primary">₱ 0.00</div>
                             </div>
@@ -851,13 +857,13 @@
         $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
             let dataTable = null;
-            
+
             // Mobile pagination variables
             let allProducts = [];
             let filteredProducts = [];
             let currentPage = 1;
             const itemsPerPage = 10;
-            
+
             // Track disabled products view state
             let showingDisabledOnly = false;
 
@@ -943,13 +949,13 @@
                 if (searchTerm === '') {
                     filteredProducts = [...allProducts];
                 } else {
-                    filteredProducts = allProducts.filter(function(product) {
+                    filteredProducts = allProducts.filter(function (product) {
                         const productName = (product.product_name || '').toLowerCase();
                         const category = (product.category || '').toLowerCase();
                         return productName.includes(searchTerm) || category.includes(searchTerm);
                     });
                 }
-                
+
                 currentPage = 1;
                 renderMobileCards();
             });
@@ -1258,7 +1264,7 @@
                     // Hide step 2 indicator and connector2
                     $('#step2Indicator').parent().addClass('hidden');
                     $('#connector2').addClass('hidden');
-                    
+
                     // Update step 1 indicator
                     const step1Indicator = $('#step1Indicator');
                     const step1Label = $('#step1Label');
@@ -1273,7 +1279,7 @@
                         step1Indicator.html('<i class="fas fa-check"></i>');
                         step1Label.removeClass('text-gray-400 text-primary').addClass('text-primary');
                     }
-                    
+
                     // Update step 3 indicator (now becomes step 2 visually)
                     const step3Indicator = $('#step3Indicator');
                     const step3Label = $('#step3Label');
@@ -1288,7 +1294,7 @@
                         step3Indicator.html('2');
                         step3Label.removeClass('text-primary').addClass('text-gray-400');
                     }
-                    
+
                     // Update connector1 for grocery
                     $('#connector1').removeClass('bg-primary bg-gray-300').addClass(currentAddStep > 1 ? 'bg-primary' : 'bg-gray-300');
                 } else {
@@ -1296,10 +1302,10 @@
                     // Show step 2 indicator and connector2
                     $('#step2Indicator').parent().removeClass('hidden');
                     $('#connector2').removeClass('hidden');
-                    
+
                     // Reset step 3 indicator to show "3"
                     const step3Indicator = $('#step3Indicator');
-                    
+
                     // Update stepper indicators
                     for (let i = 1; i <= 3; i++) {
                         const indicator = $('#step' + i + 'Indicator');
@@ -1333,7 +1339,7 @@
 
                 // Update button visibility based on grocery mode
                 const maxStep = isGroceryCategory ? 2 : 3;
-                
+
                 if (currentAddStep === 1) {
                     $('#btnBackStep').addClass('hidden');
                     $('#btnNextStep').removeClass('hidden');
@@ -1677,7 +1683,7 @@
             // Update Costing Display
             function updateCostingDisplay(changedField = null) {
                 const currentCategory = $('#category_id').val();
-                
+
                 // For grocery category, use the grocery direct cost input
                 let directCost;
                 if (currentCategory === 'grocery') {
@@ -1685,7 +1691,7 @@
                 } else {
                     directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
                 }
-                
+
                 const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
                 const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
                 // Combined cost is NOT added to totalCost for per-unit pricing - it's calculated per piece separately
@@ -2184,31 +2190,31 @@
                         if (response.success && response.data && response.data.length > 0) {
                             // Store all products for mobile pagination
                             allProducts = response.data;
-                            
+
                             // Apply category filter if specified
                             let displayProducts = allProducts;
                             if (categoryFilter !== '') {
-                                displayProducts = allProducts.filter(function(product) {
+                                displayProducts = allProducts.filter(function (product) {
                                     return product.category && product.category.toLowerCase() === categoryFilter.toLowerCase();
                                 });
                             }
-                            
+
                             // Apply disabled filter if viewing disabled products only
                             if (showDisabledOnly) {
-                                displayProducts = displayProducts.filter(function(product) {
+                                displayProducts = displayProducts.filter(function (product) {
                                     return product.is_active === 0 || product.is_active === false;
                                 });
                             }
-                            
+
                             filteredProducts = [...displayProducts];
-                            
+
                             // Count disabled products and update badge
                             const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
                             $('#disabledProductsCount').text(disabledCount);
-                            
+
                             displayProducts.forEach(function (product) {
                                 const isActive = product.is_active !== undefined ? product.is_active : 1; // Default to active if not set
-                                
+
                                 // Desktop table rows
                                 rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-is-active="' + isActive + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
@@ -2232,11 +2238,11 @@
                                 rows += '</td>';
                                 rows += '</tr>';
                             });
-                            
+
                             // Render mobile cards with pagination
                             currentPage = 1;
                             renderMobileCards();
-                            
+
                             $('#mobileNoResults').addClass('hidden');
                         } else {
                             allProducts = [];
@@ -2267,10 +2273,10 @@
                     error: function (xhr, status, error) {
                         allProducts = [];
                         filteredProducts = [];
-                        
+
                         // Reset disabled products count
                         $('#disabledProductsCount').text('0');
-                        
+
                         // Still initialize DataTable on error to show controls
                         if (dataTable) {
                             dataTable.destroy();
@@ -2296,7 +2302,7 @@
                     }
                 });
             }
-            
+
             // Render Mobile Cards with Pagination
             function renderMobileCards() {
                 const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -2380,7 +2386,7 @@
                 }
 
                 let pagination = '';
-                
+
                 // Previous button
                 pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="' + (currentPage - 1) + '">';
                 pagination += '<i class="fas fa-chevron-left"></i>';
@@ -2390,7 +2396,7 @@
                 const maxVisiblePages = 5;
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
+
                 if (endPage - startPage + 1 < maxVisiblePages) {
                     startPage = Math.max(1, endPage - maxVisiblePages + 1);
                 }
@@ -2422,7 +2428,7 @@
             }
 
             // Handle Mobile Pagination Click
-            $(document).on('click', '#mobilePagination .pagination-btn:not([disabled])', function() {
+            $(document).on('click', '#mobilePagination .pagination-btn:not([disabled])', function () {
                 const page = parseInt($(this).data('page'));
                 if (page && page !== currentPage) {
                     currentPage = page;
@@ -2448,7 +2454,7 @@
                 } else {
                     directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
                 }
-                
+
                 const combinedRecipeCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
                 const overheadPercentage = parseFloat($('#overheadCost').val()) || 0;
                 const overheadCost = directCost * (overheadPercentage / 100);
@@ -2523,7 +2529,7 @@
                     Toast.error('Product category is required.');
                     return;
                 }
-                
+
                 // For grocery, validate direct cost; for others, validate ingredients
                 if (isGrocery) {
                     if (directCost <= 0) {
@@ -2545,12 +2551,12 @@
 
                 const ajaxUrl = mode === 'edit' ? baseUrl + 'Products/UpdateProduct' : baseUrl + 'Products/AddProduct';
                 const submitBtn = $('#btnSaveMaterial');
-                
+
                 // Prevent double submission
                 if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(submitBtn)) {
                     return;
                 }
-                
+
                 if (typeof ButtonLoader !== 'undefined') {
                     ButtonLoader.start(submitBtn, mode === 'edit' ? 'Updating...' : 'Saving...');
                 }
@@ -2623,40 +2629,86 @@
             */
 
             // Toggle Enable/Disable Product (Frontend only - no backend)
-            $(document).on('click', '.btn-toggle', function () {
+            $(document).on('click', '.btn-toggle', function (e) {
+                e.stopPropagation(); // Prevent event bubbling to parent elements
+
                 const btn = $(this);
-                const id = btn.data('id');
+                const productId = btn.data('id');
                 const isEnabled = btn.data('enabled') === true || btn.data('enabled') === 'true';
-                const isMobileCard = btn.hasClass('w-full'); // Check if it's a mobile card toggle
-                
+                const isMobileCard = btn.hasClass('w-full');
+
+                // Prevent double click
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                    return;
+                }
+
                 // Toggle the state
                 const newState = !isEnabled;
-                btn.data('enabled', newState);
-                
-                if (newState) {
-                    // Set to enabled state
-                    btn.removeClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-500 hover:bg-gray-50');
-                    btn.addClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100 hover:bg-green-50');
-                    btn.attr('title', 'Click to Disable');
-                    btn.find('i').removeClass('fa-toggle-off').addClass('fa-toggle-on');
-                    // Update text for mobile cards
-                    if (isMobileCard) {
-                        btn.html('<i class="fas fa-toggle-on text-xl"></i> Enabled');
-                    }
-                    Toast.success('Product enabled!');
-                } else {
-                    // Set to disabled state
-                    btn.removeClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100 hover:bg-green-50');
-                    btn.addClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200');
-                    btn.attr('title', 'Click to Enable');
-                    btn.find('i').removeClass('fa-toggle-on').addClass('fa-toggle-off');
-                    // Update text for mobile cards
-                    if (isMobileCard) {
-                        btn.removeClass('text-green-600').addClass('text-gray-500');
-                        btn.html('<i class="fas fa-toggle-off text-xl"></i> Disabled');
-                    }
-                    Toast.info('Product disabled!');
+
+                // Show loading state
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start(btn, '');
                 }
+
+                // Send AJAX request to backend
+                $.ajax({
+                    url: baseUrl + 'Products/ToggleProductStatus',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        product_id: productId,
+                        is_enabled: newState
+                    }),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
+
+                        if (response.success) {
+                            // Update button state
+                            btn.data('enabled', newState);
+
+                            if (newState) {
+                                // Set to enabled state
+                                btn.removeClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-500 hover:bg-gray-50');
+                                btn.addClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100');
+                                btn.attr('title', 'Click to Disable');
+                                btn.find('i').removeClass('fa-toggle-off').addClass('fa-toggle-on');
+
+                                if (isMobileCard) {
+                                    btn.html('<i class="fas fa-toggle-on text-xl"></i> Enabled');
+                                }
+
+                                Toast.success('Product enabled successfully!');
+                            } else {
+                                // Set to disabled state
+                                btn.removeClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100');
+                                btn.addClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200');
+                                btn.attr('title', 'Click to Enable');
+                                btn.find('i').removeClass('fa-toggle-on').addClass('fa-toggle-off');
+
+                                if (isMobileCard) {
+                                    btn.removeClass('text-green-600').addClass('text-gray-500');
+                                    btn.html('<i class="fas fa-toggle-off text-xl"></i> Disabled');
+                                }
+
+                                Toast.info('Product disabled successfully!');
+                            }
+
+                            // Optionally reload the products list to reflect changes
+                            // loadMaterials();
+                        } else {
+                            Toast.error('Error: ' + (response.message || 'Failed to update product status'));
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
+                        Toast.error('Error toggling product status: ' + error);
+                    }
+                });
             });
 
             // Apply Filter
@@ -2678,37 +2730,37 @@
             $('#viewDisabledProducts').on('click', function () {
                 showingDisabledOnly = !showingDisabledOnly;
                 const categoryFilter = $('#filter-category').val();
-                
+
                 if (showingDisabledOnly) {
                     // Hide Add Product buttons
                     $('#btnAddMaterial').addClass('sm:hidden').removeClass('sm:inline-flex');
                     $('#btnAddMaterialMobile').addClass('hidden');
-                    
+
                     // Change title to "Disabled Product Lists"
                     $('#productListTitle').text('Disabled Product Lists');
-                    
+
                     // Update button appearance to show "Back to All Products"
                     $(this).removeClass('bg-gray-500 hover:bg-gray-600')
-                           .addClass('bg-blue-600 hover:bg-blue-700');
+                        .addClass('bg-blue-600 hover:bg-blue-700');
                     $(this).html(`
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to All Products
                     `);
-                    
+
                     // Reload with disabled filter (respecting current category filter)
                     loadMaterials(categoryFilter, true);
                 } else {
                     // Show Add Product buttons
                     $('#btnAddMaterial').removeClass('sm:hidden').addClass('sm:inline-flex');
                     $('#btnAddMaterialMobile').removeClass('hidden');
-                    
+
                     // Change title back to "Product Lists"
                     $('#productListTitle').text('Product Lists');
-                    
+
                     // Update button appearance to show "View Disabled Products"
                     $(this).removeClass('bg-blue-600 hover:bg-blue-700')
-                           .addClass('bg-gray-500 hover:bg-gray-600');
-                    
+                        .addClass('bg-gray-500 hover:bg-gray-600');
+
                     const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
                     $(this).html(`
                         <div id="disabledProductsCount"
@@ -2717,7 +2769,7 @@
                         </div>
                         Disabled Products
                     `);
-                    
+
                     // Reload without disabled filter (respecting current category filter)
                     loadMaterials(categoryFilter, false);
                 }
@@ -2832,7 +2884,7 @@
                                             gramsPerPiece: parseFloat(r.grams_per_piece) || 0,
                                             unit: 'g',
                                             costPerUnit: parseFloat(r.cost_per_gram) || 0,
-                                            costPerProductPiece: (parseFloat(r.cost_per_gram)||0) * (parseFloat(r.grams_per_piece)||0),
+                                            costPerProductPiece: (parseFloat(r.cost_per_gram) || 0) * (parseFloat(r.grams_per_piece) || 0),
                                             totalCost: parseFloat(r.total_cost) || 0
                                         });
                                     });
