@@ -240,6 +240,9 @@
 
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.USER_ROLE = '<?= $employee_type ?? 'staff' ?>'; // Get user role from session
+        const canDeleteRemittance = ['admin', 'owner'].includes(USER_ROLE);
+        
         let dataTable = null;
         let remittanceData = []; // Store fetched data for filtering
         let currentRemittanceDetails = null; // Store current remittance details for printing
@@ -458,6 +461,13 @@
                     varianceText = isShort ? '-' + formatCurrency(varianceAmount) : '+' + formatCurrency(varianceAmount);
                 }
 
+                // Delete button - only shown for admin/owner
+                const deleteButton = canDeleteRemittance ? `
+                    <button type="button" class="btn-delete-remittance text-red-500 py-2 px-3 bg-red-50 rounded border border-red-200 hover:text-white hover:bg-red-500 ml-1" data-id="${remittance.remittance_id}" data-date="${dateStr}" title="Delete Remittance">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : '';
+
                 html += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
@@ -468,9 +478,12 @@
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                            <div class="flex items-center">
+                                <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${deleteButton}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -496,6 +509,13 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+            });
+
+            // Delete button click handler (desktop)
+            $('#remittanceHistoryTable').on('click', '.btn-delete-remittance', function() {
+                const remittanceId = $(this).data('id');
+                const dateStr = $(this).data('date');
+                confirmDeleteRemittance(remittanceId, dateStr);
             });
         }
 
@@ -592,9 +612,16 @@
                                     <p class="text-xs text-gray-500">Total Remitted</p>
                                     <p class="text-xl font-bold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</p>
                                 </div>
-                                <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
+                                        <i class="fas fa-eye mr-1"></i>View
+                                    </button>
+                                    ${canDeleteRemittance ? `
+                                    <button type="button" class="btn-delete-remittance-mobile px-3 py-2 text-sm font-medium text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-500 hover:text-white transition-all" data-id="${remittance.remittance_id}" data-date="${dateStr}" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -609,6 +636,60 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+            });
+
+            // Delete button click handler (mobile)
+            $('.btn-delete-remittance-mobile').on('click', function() {
+                const remittanceId = $(this).data('id');
+                const dateStr = $(this).data('date');
+                confirmDeleteRemittance(remittanceId, dateStr);
+            });
+        }
+
+        // Confirm and delete remittance
+        function confirmDeleteRemittance(remittanceId, dateStr) {
+            if (!canDeleteRemittance) {
+                showToast('error', 'You do not have permission to delete remittances');
+                return;
+            }
+
+            // Use custom Confirm.delete modal
+            Confirm.delete(
+                `Are you sure you want to delete the remittance from ${dateStr}? This action cannot be undone.`,
+                function() {
+                    // On confirm
+                    deleteRemittance(remittanceId);
+                },
+                function() {
+                    // On cancel - do nothing
+                }
+            );
+        }
+
+        function deleteRemittance(remittanceId) {
+            $.ajax({
+                url: BASE_URL + 'Sales/DeleteRemittance/' + remittanceId,
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('success', response.message || 'Remittance deleted successfully');
+                        // Refresh the remittance list
+                        getAllRemittances();
+                    } else {
+                        showToast('error', response.message || 'Failed to delete remittance');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    if (xhr.status === 403) {
+                        showToast('error', response?.message || 'You do not have permission to delete remittances');
+                    } else if (xhr.status === 404) {
+                        showToast('error', response?.message || 'Remittance not found');
+                    } else {
+                        showToast('error', response?.message || 'An error occurred while deleting remittance');
+                    }
+                }
             });
         }
 
