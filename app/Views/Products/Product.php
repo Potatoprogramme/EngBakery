@@ -2163,7 +2163,7 @@
             }
 
             // Load products via AJAX
-            function loadMaterials() {
+            function loadMaterials(categoryFilter = '') {
                 $.ajax({
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
@@ -2181,13 +2181,22 @@
                         if (response.success && response.data && response.data.length > 0) {
                             // Store all products for mobile pagination
                             allProducts = response.data;
-                            filteredProducts = [...allProducts];
+                            
+                            // Apply category filter if specified
+                            let displayProducts = allProducts;
+                            if (categoryFilter !== '') {
+                                displayProducts = allProducts.filter(function(product) {
+                                    return product.category && product.category.toLowerCase() === categoryFilter.toLowerCase();
+                                });
+                            }
+                            
+                            filteredProducts = [...displayProducts];
                             
                             // Count disabled products and update badge
                             const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
                             $('#disabledProductsCount').text(disabledCount);
                             
-                            response.data.forEach(function (product) {
+                            displayProducts.forEach(function (product) {
                                 const isActive = product.is_active !== undefined ? product.is_active : 1; // Default to active if not set
                                 
                                 // Desktop table rows
@@ -2643,38 +2652,16 @@
             // Apply Filter
             $('#apply-filters').on('click', function () {
                 const categoryId = $('#filter-category').val();
-
-                // Filter desktop table
-                $('table tbody tr').each(function () {
-                    if (categoryId === '' || $(this).data('category') == categoryId) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                // Filter mobile cards with pagination
-                if (categoryId === '') {
-                    filteredProducts = [...allProducts];
-                } else {
-                    filteredProducts = allProducts.filter(function(product) {
-                        return product.category == categoryId;
-                    });
-                }
-                currentPage = 1;
-                renderMobileCards();
+                // Reload the table with the selected category filter
+                loadMaterials(categoryId);
             });
 
             // Reset Filter
             $('#reset-filters').on('click', function () {
                 $('#filter-category').val('');
-                $('table tbody tr').show();
-                
-                // Reset mobile cards with pagination
-                filteredProducts = [...allProducts];
-                currentPage = 1;
+                // Reload the table without any filter
+                loadMaterials('');
                 $('#mobileSearchInput').val('');
-                renderMobileCards();
             });
 
             // Track disabled products view state
