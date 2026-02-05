@@ -685,7 +685,7 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error adding inventory: ' + xhr.responseJSON.message, 2000);
+                    showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error), 2000);
                     console.log(xhr.responseJSON);
                 }
             });
