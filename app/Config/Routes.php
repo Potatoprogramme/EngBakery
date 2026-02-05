@@ -107,6 +107,8 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('/', 'SalesController::index');
     $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
     $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
+    $routes->get('checkExistingRemittance', 'SalesController::checkExistingRemittance');
+    $routes->get('getRemittancesForDate', 'SalesController::getRemittancesForDate');
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
     // Routes for Sales History
     $routes->get('History', 'SalesController::history');
@@ -117,6 +119,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
     $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');
     $routes->get('GetRemittanceDetails/(:num)', 'SalesController::getRemittanceDetails/$1');
+    $routes->post('DeleteRemittance/(:num)', 'SalesController::deleteRemittance/$1'); // Admin/Owner only
 });
 
 $routes->group('Approval', function (RouteCollection $routes) {
