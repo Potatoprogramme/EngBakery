@@ -370,11 +370,6 @@
             $('#deleteConfirmModal').addClass('hidden');
         });
 
-        // Close modal on backdrop click
-        $('#deleteConfirmModalBackdrop').on('click', function () {
-            $('#deleteConfirmModal').addClass('hidden');
-        });
-
         // Confirm Delete
         $('#btnConfirmDelete').on('click', function () {
             $('#deleteConfirmModal').addClass('hidden');
@@ -417,7 +412,7 @@
 
     <script>
         $(document).ready(function () {
-            const baseUrl = '<?= site_url() ?>';
+            const baseUrl = '<?= base_url() ?>';
 
             // Display today's date
             const today = new Date();
@@ -459,12 +454,6 @@
 
             // Close Time Input Modal
             $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
-                $('#timeInputModal').addClass('hidden');
-                $('#timeInputForm')[0].reset();
-            });
-
-            // Close modal on backdrop click
-            $('#timeInputModalBackdrop').on('click', function () {
                 $('#timeInputModal').addClass('hidden');
                 $('#timeInputForm')[0].reset();
             });
@@ -638,7 +627,7 @@
 
         // If no inventory, show button for creating inventory
         function addTodaysInventory(time_start, time_end) {
-            const baseUrl = `<?= base_url() ?>`;
+            const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddTodaysInventory',
                 type: 'POST',
@@ -663,7 +652,7 @@
         }
 
         function fetchAllStockitems() {
-            const baseURL = `<?= base_url() ?>`;
+            const baseURL = '<?= base_url() ?>';
             $.ajax({
                 url: `${baseURL}Inventory/FetchAllStockItems`,
                 type: 'GET',
@@ -853,12 +842,6 @@
             $('#editInventoryForm')[0].reset();
         });
 
-        // Close modal on backdrop click
-        $('#editInventoryModalBackdrop').on('click', function () {
-            $('#editInventoryModal').addClass('hidden');
-            $('#editInventoryForm')[0].reset();
-        });
-
 
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
@@ -939,12 +922,6 @@
 
         // Close Add Product Modal
         $('#addProductModalClose, #addProductModalCancel').on('click', function () {
-            $('#addProductModal').addClass('hidden');
-            $('#addProductForm')[0].reset();
-        });
-
-        // Close modal on backdrop click
-        $('#addProductModalBackdrop').on('click', function () {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
         });

@@ -348,6 +348,11 @@
 
         // Update profile
         function updateProfile() {
+            // Prevent double-click
+            if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading('#profileForm button[type="submit"]')) {
+                return;
+            }
+            
             const formData = {
                 firstname: $('#firstname').val().trim(),
                 middlename: $('#middlename').val().trim(),
@@ -364,6 +369,11 @@
                 !formData.gender || !formData.phone_number || !formData.username || !formData.email) {
                 showAlert('error', 'Please fill in all required fields');
                 return;
+            }
+
+            // Start loading state
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start('#profileForm button[type="submit"]', 'Saving...');
             }
 
             $.ajax({
@@ -383,12 +393,22 @@
                     console.error('Error updating profile:', error);
                     const errorMsg = xhr.responseJSON?.message || 'Failed to update profile. Please try again.';
                     showAlert('error', errorMsg);
+                },
+                complete: function() {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop('#profileForm button[type="submit"]', '<i class="fas fa-save mr-2"></i>Save Changes');
+                    }
                 }
             });
         }
 
         // Update password
         function updatePassword() {
+            // Prevent double-click
+            if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading('#passwordForm button[type="submit"]')) {
+                return;
+            }
+            
             const currentPassword = $('#current_password').val();
             const newPassword = $('#new_password').val();
             const confirmPassword = $('#confirm_password').val();
@@ -407,6 +427,11 @@
             if (newPassword !== confirmPassword) {
                 showAlert('error', 'New passwords do not match');
                 return;
+            }
+
+            // Start loading state
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start('#passwordForm button[type="submit"]', 'Updating...');
             }
 
             $.ajax({
@@ -430,6 +455,11 @@
                     console.error('Error updating password:', error);
                     const errorMsg = xhr.responseJSON?.message || 'Failed to update password. Please try again.';
                     showAlert('error', errorMsg);
+                },
+                complete: function() {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop('#passwordForm button[type="submit"]', '<i class="fas fa-key mr-2"></i>Change Password');
+                    }
                 }
             });
         }

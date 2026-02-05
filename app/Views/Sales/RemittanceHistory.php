@@ -633,9 +633,6 @@
 
         function initModalHandlers() {
             $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#remittanceDetailsModal').addClass('hidden'));
-            $('#remittanceDetailsModal').on('click', e => {
-                if (e.target === e.currentTarget) $('#remittanceDetailsModal').addClass('hidden');
-            });
 
             $('#btnPrintDetails').on('click', function() {
                 printRemittanceSlip();

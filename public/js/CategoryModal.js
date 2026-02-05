@@ -47,8 +47,18 @@ const CategoryModal = (function() {
         // Delete Category
         $(document).on('click', '.btn-delete-category', function() {
             const id = $(this).data('id');
+            const btn = $(this);
+            
+            // Prevent double click
+            if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                return;
+            }
+            
              Confirm.delete('Are you sure you want to delete this category?', function() {
-                deleteCategory(id);
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start(btn, '');
+                }
+                deleteCategory(id, btn);
             });
         });
     }
@@ -113,6 +123,13 @@ const CategoryModal = (function() {
 
     function saveCategory() {
         const categoryId = $('#edit_category_id').val();
+        const submitBtn = $('#btnSaveCategory');
+        
+        // Prevent double submission
+        if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(submitBtn)) {
+            return;
+        }
+        
         const formData = {
             category_name: $('#category_name').val(),
             description: $('#category_description').val(),
@@ -124,6 +141,10 @@ const CategoryModal = (function() {
         }
 
         const endpoint = categoryId ? 'MaterialCategory/Update' : 'MaterialCategory/Add';
+        
+        if (typeof ButtonLoader !== 'undefined') {
+            ButtonLoader.start(submitBtn, categoryId ? 'Updating...' : 'Saving...');
+        }
 
         $.ajax({
             url: baseUrl + endpoint,
@@ -132,6 +153,9 @@ const CategoryModal = (function() {
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(submitBtn);
+                }
                 if (response.success) {
                     Toast.success(categoryId ? 'Category updated successfully!' : 'Category added successfully!');
                     $('#categoryForm')[0].reset();
@@ -145,12 +169,15 @@ const CategoryModal = (function() {
                 }
             },
             error: function(xhr, status, error) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(submitBtn);
+                }
                 Toast.error('Error saving category: ' + (xhr.responseJSON?.message || error));
             }
         });
     }
 
-    function deleteCategory(id) {
+    function deleteCategory(id, btn) {
         $.ajax({
             url: baseUrl + 'MaterialCategory/Delete',
             type: 'POST',
@@ -158,6 +185,9 @@ const CategoryModal = (function() {
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
+                if (typeof ButtonLoader !== 'undefined' && btn) {
+                    ButtonLoader.stop(btn);
+                }
                 if (response.success) {
                     Toast.success('Category deleted successfully!');
                     loadCategoriesList();
@@ -168,6 +198,9 @@ const CategoryModal = (function() {
                 }
             },
             error: function(xhr, status, error) {
+                if (typeof ButtonLoader !== 'undefined' && btn) {
+                    ButtonLoader.stop(btn);
+                }
                 Toast.error('Error deleting category: ' + error);
             }
         });

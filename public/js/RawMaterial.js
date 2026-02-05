@@ -484,8 +484,9 @@ $(document).ready(function() {
     $('#addMaterialForm').on('submit', function(e) {
         e.preventDefault();
 
-        // Prevent double submission
-        if (isSubmitting) {
+        // Prevent double submission using ButtonLoader
+        const submitBtn = $('#btnSaveMaterial');
+        if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(submitBtn)) {
             return;
         }
 
@@ -511,9 +512,13 @@ $(document).ready(function() {
             endpoint = 'RawMaterials/UpdateRawMaterial';
         }
 
-        // Set submitting flag and disable button
-        isSubmitting = true;
-        $('#btnSaveMaterial').prop('disabled', true).text('Saving...');
+        // Set loading state
+        if (typeof ButtonLoader !== 'undefined') {
+            ButtonLoader.start(submitBtn, materialId ? 'Updating...' : 'Saving...');
+        } else {
+            isSubmitting = true;
+            submitBtn.prop('disabled', true).text('Saving...');
+        }
 
         $.ajax({
             url: baseUrl + endpoint,
@@ -534,9 +539,13 @@ $(document).ready(function() {
                 Toast.error('Error saving material: ' + error);
             },
             complete: function() {
-                // Reset submitting flag and button
-                isSubmitting = false;
-                $('#btnSaveMaterial').prop('disabled', false).text(materialId ? 'Update' : 'Save');
+                // Reset loading state
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(submitBtn);
+                } else {
+                    isSubmitting = false;
+                    $('#btnSaveMaterial').prop('disabled', false).text(materialId ? 'Update' : 'Save');
+                }
             }
         });
     });
@@ -584,12 +593,25 @@ $(document).ready(function() {
     // Delete Material
     $(document).on('click', '.btn-delete', function() {
         const id = $(this).data('id');
+        const btn = $(this);
+        
+        // Prevent double click
+        if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+            return;
+        }
+        
         Confirm.delete('Are you sure you want to delete this material?', function() {
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start(btn, '');
+            }
             $.ajax({
                 url: baseUrl + 'RawMaterials/Delete/' + id,
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     if (response.success) {
                         Toast.success('Material deleted successfully!');
                         loadMaterials();
@@ -598,6 +620,9 @@ $(document).ready(function() {
                     }
                 },
                 error: function(xhr, status, error) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
                     Toast.error('Error deleting material: ' + error);
                 }
             });

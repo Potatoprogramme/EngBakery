@@ -380,7 +380,11 @@
             }
 
 
-            function deleteUser(userId, employeeName) {
+            function deleteUser(userId, employeeName, btn) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start(btn, '');
+                }
+                
                 $.ajax({
                     url: `${BASE_URL}/ManageEmployee/DeleteUser`,
                     method: 'POST',
@@ -391,6 +395,9 @@
                         privilege_level: currentUser.employeeType
                     }),
                     success: function (response) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
                         if (response.success) {
                             Toast.success('Employee deleted successfully.');
                             console.log('Deleted user ID:', response.data);
@@ -401,13 +408,20 @@
                         }
                     },
                     error: function (xhr, status, error) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
                         console.error('Error deleting user:', xhr);
                         Toast.error('An error occurred while deleting the employee.');
                     }
                 });
             }
 
-            function changeUserRole(userId, newRole) {
+            function changeUserRole(userId, newRole, btn) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start(btn, 'Saving...');
+                }
+                
                 $.ajax({
                     url: `${BASE_URL}ManageEmployee/ChangeUserRole`,
                     method: 'POST',
@@ -418,6 +432,9 @@
                         new_role: newRole,
                     }),
                     success: function (response) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
                         if (response.success) {
                             Toast.success(response.message || 'Employee role changed successfully.');
                             console.log(response.data);
@@ -435,6 +452,9 @@
                         }
                     },
                     error: function (xhr, status, error) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(btn);
+                        }
                         console.error(xhr);
                         const errorMessage = xhr.responseJSON?.message || 'An error occurred while changing employee role.';
                         Toast.error(errorMessage);
@@ -741,12 +761,17 @@
                     const btn = $(this);
                     const userId = btn.data('user-id');
                     const employeeName = btn.data('name');
+                    
+                    // Prevent double click
+                    if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                        return;
+                    }
 
                     Confirm.delete(
                         `Are you sure you want to delete ${employeeName}? This action cannot be undone.`,
                         function () {
                             // User confirmed deletion
-                            deleteUser(userId, employeeName);
+                            deleteUser(userId, employeeName, btn);
                         }
                     );
                 });
@@ -846,15 +871,21 @@
                 }, 100);
             });
 
-            $('#closeRoleModal, #cancelRoleChange, #roleModalBackdrop').on('click', function () {
+            $('#closeRoleModal, #cancelRoleChange').on('click', function () {
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
                 $('#newRole').val('');
             });
 
             $('#confirmRoleChange').on('click', function () {
+                const btn = $(this);
                 const newRole = $('#newRole').val();
                 const userId = $('#changeRoleModal').data('user-id');
                 const currentRole = $('#changeRoleModal').data('current-role');
+                
+                // Prevent double submission
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                    return;
+                }
 
                 if (!newRole) {
                     Toast.warning('Please select a role');
@@ -867,11 +898,11 @@
                 }
 
                 // Call the change user role function
-                changeUserRole(userId, newRole);
+                changeUserRole(userId, newRole, btn);
             });
 
             // View/Edit Modal close handlers
-            $('#closeViewEditModal, #closeViewBtn, #viewEditModalBackdrop').on('click', function () {
+            $('#closeViewEditModal, #closeViewBtn').on('click', function () {
                 $('#viewEditModal').removeClass('flex').addClass('hidden');
             });
 

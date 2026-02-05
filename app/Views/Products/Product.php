@@ -2479,6 +2479,16 @@
                 }
 
                 const ajaxUrl = mode === 'edit' ? baseUrl + 'Products/UpdateProduct' : baseUrl + 'Products/AddProduct';
+                const submitBtn = $('#btnSaveMaterial');
+                
+                // Prevent double submission
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(submitBtn)) {
+                    return;
+                }
+                
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.start(submitBtn, mode === 'edit' ? 'Updating...' : 'Saving...');
+                }
 
                 $.ajax({
                     url: ajaxUrl,
@@ -2487,6 +2497,9 @@
                     contentType: 'application/json',
                     dataType: 'json',
                     success: function (response) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(submitBtn);
+                        }
                         if (response.success) {
                             Toast.success(mode === 'edit' ? 'Product updated successfully!' : 'Product added successfully!');
                             closeModal();
@@ -2496,6 +2509,9 @@
                         }
                     },
                     error: function (xhr, status, error) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.stop(submitBtn);
+                        }
                         Toast.error((mode === 'edit' ? 'Error updating product: ' : 'Error adding product: ') + error);
                     }
                 });
@@ -2504,12 +2520,25 @@
             // Delete Product
             $(document).on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
+                const btn = $(this);
+                
+                // Prevent double click
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                    return;
+                }
+                
                 Confirm.delete('Are you sure you want to delete this product?', function () {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.start(btn, '');
+                    }
                     $.ajax({
                         url: baseUrl + 'Products/DeleteProduct/' + id,
                         type: 'POST',
                         dataType: 'json',
                         success: function (response) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
                             if (response.success) {
                                 Toast.success('Product deleted successfully!');
                                 loadMaterials();
@@ -2518,6 +2547,9 @@
                             }
                         },
                         error: function (xhr, status, error) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
                             Toast.error('Error deleting product: ' + error);
                         }
                     });
