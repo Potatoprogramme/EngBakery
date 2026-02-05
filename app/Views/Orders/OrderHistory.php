@@ -33,7 +33,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Total Revenue Card -->
                 <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
                     <div class="flex items-center gap-3">
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Items Sold Card -->
                 <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
                     <div class="flex items-center gap-3">
@@ -59,7 +59,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Stock Summary Card -->
                 <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
                     <div class="flex items-center gap-3">
@@ -76,14 +76,17 @@
 
             <!-- Stock Summary Table (Collapsible) -->
             <div class="mb-4 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-                <button id="toggleStockSummary" class="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors">
+                <button id="toggleStockSummary"
+                    class="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 flex items-center justify-center bg-gray-50 rounded-lg">
                             <i class="fas fa-box-open text-gray-600"></i>
                         </div>
                         <div>
                             <span class="font-semibold text-gray-800">Today's Stock Summary</span>
-                            <span id="stockSummaryBadge" class="ml-2 px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">0 items</span>
+                            <span id="stockSummaryBadge"
+                                class="ml-2 px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">0
+                                items</span>
                         </div>
                     </div>
                     <i id="stockChevron" class="fas fa-chevron-down text-gray-400 transition-transform"></i>
@@ -96,12 +99,13 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Order History</h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Order') ?>" class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                        <a href="<?= base_url('Order') ?>"
+                            class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-plus mr-2"></i>New Order
                         </a>
                     </div>
@@ -110,17 +114,23 @@
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateFrom" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
-                            <input type="date" id="filterDateFrom" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateFrom"
+                                class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
+                            <input type="date" id="filterDateFrom"
+                                class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
-                            <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateTo"
+                                class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
+                            <input type="date" id="filterDateTo"
+                                class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                     </div>
                     <div class="flex gap-2 sm:justify-end">
-                        <button id="btnApplyFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
-                        <button id="btnResetFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
+                        <button id="btnApplyFilters" type="button"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
+                        <button id="btnResetFilters" type="button"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
                     </div>
                 </div>
             </div>
@@ -139,7 +149,12 @@
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
-                        <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading orders...</p></td></tr>
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500"><i
+                                    class="fas fa-spinner fa-spin text-2xl"></i>
+                                <p class="mt-2">Loading orders...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -147,7 +162,8 @@
     </div>
 
     <!-- Order Details Modal -->
-    <div id="orderDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div id="orderDetailsModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div class="relative w-full max-w-lg mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
             <div id="receiptContent" class="p-6">
                 <div class="flex justify-between items-start mb-4">
@@ -155,7 +171,8 @@
                         <h2 class="text-2xl font-bold text-gray-800">EngBakery</h2>
                         <p class="text-sm text-gray-500">Order Receipt</p>
                     </div>
-                    <button type="button" id="btnCloseOrderDetails" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                    <button type="button" id="btnCloseOrderDetails" class="text-gray-400 hover:text-gray-600"><i
+                            class="fas fa-times"></i></button>
                 </div>
                 <div class="border-t border-dashed border-gray-300 py-3">
                     <div class="grid grid-cols-2 gap-2 text-sm">
@@ -191,13 +208,16 @@
                 </div>
             </div>
             <div class="px-6 pb-6 flex gap-2">
-                <button type="button" id="btnPrintReceipt" class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
+                <button type="button" id="btnPrintReceipt"
+                    class="flex-1 px-4 py-3 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
-                <button type="button" id="btnVoidOrder" class="px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-600 hover:text-white transition-all">
+                <button type="button" id="btnVoidOrder"
+                    class="px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-600 hover:text-white transition-all">
                     <i class="fas fa-ban mr-2"></i>Void
                 </button>
-                <button type="button" id="btnCloseModal" class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">Close</button>
+                <button type="button" id="btnCloseModal"
+                    class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">Close</button>
             </div>
         </div>
     </div>
@@ -205,19 +225,19 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/a89dedcb22.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-    
+
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         window.ASSET_URL = '<?= base_url() ?>';
         let dataTable = null;
         let currentOrderId = null;
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Set today's date in the date filters
             const today = new Date().toISOString().split('T')[0];
             $('#filterDateFrom').val(today);
             $('#filterDateTo').val(today);
-            
+
             loadOrders(today, today); // Load today's orders by default
             loadTodaysSummary();
             loadStockSummary();
@@ -232,7 +252,7 @@
                 url: BASE_URL + 'Order/GetTodaysSales',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         $('#todayTotalOrders').text(response.data.total_orders || 0);
                         $('#todayTotalRevenue').text('₱' + parseFloat(response.data.total_revenue || 0).toFixed(2));
@@ -248,16 +268,16 @@
                 url: BASE_URL + 'Order/GetTodaysStockSummary',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         // Separate bakery, drinks, and grocery
                         const breadItems = response.data.filter(item => item.category === 'bakery');
                         const drinkItems = response.data.filter(item => item.category === 'drinks');
                         const groceryItems = response.data.filter(item => item.category === 'grocery');
-                        
+
                         let html = '';
                         let totalProducts = response.data.length;
-                        
+
                         // Render Bakery Section
                         if (breadItems.length > 0) {
                             html += `
@@ -267,17 +287,17 @@
                                     </h4>
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                             `;
-                            
+
                             breadItems.forEach(item => {
                                 const beginning = parseInt(item.beginning_stock) || 0;
                                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                                 const remaining = parseInt(item.ending_stock) || 0;
                                 const sold = beginning - remaining - pullOut;
-                                
+
                                 const remainingClass = remaining <= 5 ? 'text-red-600' : remaining <= 10 ? 'text-orange-500' : 'text-gray-700';
                                 const stockStatus = remaining <= 5 ? 'Low Stock' : remaining <= 10 ? 'Running Low' : 'In Stock';
                                 const statusClass = remaining <= 5 ? 'bg-red-50 text-red-700' : remaining <= 10 ? 'bg-orange-50 text-orange-700' : 'bg-green-50 text-green-700';
-                                
+
                                 html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
                                         <div class="flex items-start justify-between mb-2">
@@ -307,13 +327,13 @@
                                     </div>
                                 `;
                             });
-                            
+
                             html += `
                                     </div>
                                 </div>
                             `;
                         }
-                        
+
                         // Render Drinks Section
                         if (drinkItems.length > 0) {
                             html += `
@@ -323,11 +343,11 @@
                                     </h4>
                                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             `;
-                            
+
                             drinkItems.forEach(item => {
                                 // For drinks, use quantity_sold from transactions (not stock calculation)
                                 const sold = parseInt(item.quantity_sold) || 0;
-                                
+
                                 html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
                                         <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
@@ -336,13 +356,13 @@
                                     </div>
                                 `;
                             });
-                            
+
                             html += `
                                     </div>
                                 </div>
                             `;
                         }
-                        
+
                         // Render Grocery Section
                         if (groceryItems.length > 0) {
                             html += `
@@ -352,13 +372,13 @@
                                     </h4>
                                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             `;
-                            
+
                             groceryItems.forEach(item => {
                                 const beginning = parseInt(item.beginning_stock) || 0;
                                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                                 const remaining = parseInt(item.ending_stock) || 0;
                                 const sold = beginning - remaining - pullOut;
-                                
+
                                 html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
                                         <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
@@ -367,13 +387,13 @@
                                     </div>
                                 `;
                             });
-                            
+
                             html += `
                                     </div>
                                 </div>
                             `;
                         }
-                        
+
                         $('#stockSummaryBody').html(html);
                         $('#todayStockCount').text(totalProducts);
                         $('#stockSummaryBadge').text(totalProducts + ' items');
@@ -383,7 +403,7 @@
                         $('#stockSummaryBadge').text('No inventory');
                     }
                 },
-                error: function() {
+                error: function () {
                     $('#stockSummaryBody').html('<div class="text-center text-red-500 py-8">Error loading stock data</div>');
                 }
             });
@@ -394,8 +414,8 @@
             // Keep stock summary expanded by default
             $('#stockSummaryContent').removeClass('hidden');
             $('#stockChevron').addClass('rotate-180');
-            
-            $('#toggleStockSummary').on('click', function() {
+
+            $('#toggleStockSummary').on('click', function () {
                 $('#stockSummaryContent').toggleClass('hidden');
                 $('#stockChevron').toggleClass('rotate-180');
             });
@@ -412,14 +432,14 @@
                 url: url,
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         renderOrders(response.data);
                     } else {
                         $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
                     }
                 },
-                error: function() {
+                error: function () {
                     $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>');
                 }
             });
@@ -442,12 +462,12 @@
                 const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const timeStr = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
-                const typeIcon = order.order_type === 'foodpanda' 
-                    ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">` 
+                const typeIcon = order.order_type === 'foodpanda'
+                    ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
                     : '<i class="fas fa-walking mr-1"></i>';
                 const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
                 const cashierName = order.cashier_name || 'Unknown';
-                
+
                 // Format: yyyy-mm-dd - order id
                 const year = order.date_created.substring(0, 4);
                 const month = order.date_created.substring(5, 7);
@@ -485,19 +505,19 @@
                 }
             });
 
-            $('.btn-view-order').on('click', function() {
+            $('.btn-view-order').on('click', function () {
                 openOrderDetails($(this).data('order-id'));
             });
         }
 
         function initFilters() {
-            $('#btnApplyFilters').on('click', function() {
+            $('#btnApplyFilters').on('click', function () {
                 const dateFrom = $('#filterDateFrom').val();
                 const dateTo = $('#filterDateTo').val();
                 loadOrders(dateFrom, dateTo);
             });
 
-            $('#btnResetFilters').on('click', function() {
+            $('#btnResetFilters').on('click', function () {
                 $('#filterDateFrom').val('');
                 $('#filterDateTo').val('');
                 loadOrders();
@@ -507,7 +527,7 @@
         function initOrderDetailsModal() {
             $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
 
-            $('#btnPrintReceipt').on('click', function() {
+            $('#btnPrintReceipt').on('click', function () {
                 const content = $('#receiptContent').clone();
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
@@ -536,16 +556,16 @@
                 printWindow.print();
             });
 
-            $('#btnVoidOrder').on('click', function() {
+            $('#btnVoidOrder').on('click', function () {
                 const btn = $(this);
-                
+
                 // Prevent double submission
                 if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
                     return;
                 }
-                
+
                 if (!currentOrderId) return;
-                Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function() {
+                Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function () {
                     voidOrder(currentOrderId, btn);
                 });
             });
@@ -557,7 +577,7 @@
                 url: BASE_URL + 'Order/GetOrderDetails/' + orderId,
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         const order = response.data.order;
                         const items = response.data.items;
@@ -566,21 +586,21 @@
                         $('#detailOrderNumber').text(order.order_number);
                         $('#detailOrderDate').text(orderDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
                         $('#detailOrderTime').text(orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
-                        
+
                         // Set order type with icon
                         if (order.order_type === 'foodpanda') {
                             $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
                         } else {
                             $('#detailOrderType').html('<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>');
                         }
-                        
+
                         $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1));
 
                         let itemsHtml = '';
                         items.forEach(item => {
                             itemsHtml += `
                                 <div class="flex justify-between">
-                                    <span>${item.product_name} x${item.amout}</span>
+                                    <span>${item.product_name} x${item.amount}</span>
                                     <span>₱${parseFloat(item.total_cost_of_item).toFixed(2)}</span>
                                 </div>
                             `;
@@ -596,7 +616,7 @@
                         Toast.error('Failed to load order details');
                     }
                 },
-                error: function() {
+                error: function () {
                     Toast.error('Error loading order details');
                 }
             });
@@ -606,12 +626,12 @@
             if (typeof ButtonLoader !== 'undefined') {
                 ButtonLoader.start(btn, 'Voiding...');
             }
-            
+
             $.ajax({
                 url: BASE_URL + 'Order/VoidOrder/' + orderId,
                 type: 'POST',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }
@@ -623,7 +643,7 @@
                         Toast.error(response.message || 'Failed to void order');
                     }
                 },
-                error: function() {
+                error: function () {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }

@@ -15,6 +15,7 @@ class ProductModel extends Model
         'category',
         'product_name',
         'product_description',
+        'is_disabled',
         'date_created',
     ];
 
@@ -29,7 +30,7 @@ class ProductModel extends Model
     public function getProductsForOrdering(): array
     {
         $today = date('Y-m-d');
-        
+
         return $this->db->query("
             SELECT p.product_id, p.category, p.product_name, p.product_description,
                    CASE 
