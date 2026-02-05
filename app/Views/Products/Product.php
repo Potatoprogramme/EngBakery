@@ -2184,8 +2184,18 @@
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.total_cost || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.selling_price || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">';
-                                rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                                rows += '<div class="flex items-center gap-2">';
+                                rows += '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                                // Toggle Enable/Disable button
+                                var isEnabled = product.is_enabled !== false && product.is_enabled !== 0; // Default to enabled
+                                if (isEnabled) {
+                                    rows += '<button class="text-green-600 h-10 w-12 flex items-center justify-center bg-green-50 rounded border border-green-300 hover:bg-green-100 btn-toggle" data-id="' + product.product_id + '" data-enabled="true" title="Click to Disable"><i class="fas fa-toggle-on text-lg"></i></button>';
+                                } else {
+                                    rows += '<button class="text-gray-400 h-10 w-12 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:bg-gray-200 btn-toggle" data-id="' + product.product_id + '" data-enabled="false" title="Click to Enable"><i class="fas fa-toggle-off text-lg"></i></button>';
+                                }
+                                // Delete button (commented out)
+                                // rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                                rows += '</div>';
                                 rows += '</td>';
                                 rows += '</tr>';
                             });
@@ -2285,9 +2295,21 @@
                     cards += '          <i class="fas fa-edit"></i> Edit';
                     cards += '        </button>';
                     cards += '        <div class="border-t border-gray-100 my-1"></div>';
-                    cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
-                    cards += '          <i class="fas fa-trash"></i> Delete';
-                    cards += '        </button>';
+                    // Toggle Enable/Disable button
+                    var cardIsEnabled = product.is_enabled !== false && product.is_enabled !== 0;
+                    if (cardIsEnabled) {
+                        cards += '        <button class="btn-toggle w-full px-2 py-3 text-left text-base font-medium text-green-600 hover:bg-green-50 flex items-center gap-3" data-id="' + product.product_id + '" data-enabled="true">';
+                        cards += '          <i class="fas fa-toggle-on text-xl"></i> Enabled';
+                        cards += '        </button>';
+                    } else {
+                        cards += '        <button class="btn-toggle w-full px-2 py-3 text-left text-base font-medium text-gray-500 hover:bg-gray-50 flex items-center gap-3" data-id="' + product.product_id + '" data-enabled="false">';
+                        cards += '          <i class="fas fa-toggle-off text-xl"></i> Disabled';
+                        cards += '        </button>';
+                    }
+                    // Delete button (commented out)
+                    // cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                    // cards += '          <i class="fas fa-trash"></i> Delete';
+                    // cards += '        </button>';
                     cards += '      </div>';
                     cards += '    </div>';
                     cards += '  </div>';
@@ -2523,7 +2545,7 @@
                 });
             });
 
-            // Delete Product
+            /* Delete Product (commented out - replaced with toggle)
             $(document).on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
                 const btn = $(this);
@@ -2560,6 +2582,44 @@
                         }
                     });
                 });
+            });
+            */
+
+            // Toggle Enable/Disable Product (Frontend only - no backend)
+            $(document).on('click', '.btn-toggle', function () {
+                const btn = $(this);
+                const id = btn.data('id');
+                const isEnabled = btn.data('enabled') === true || btn.data('enabled') === 'true';
+                const isMobileCard = btn.hasClass('w-full'); // Check if it's a mobile card toggle
+                
+                // Toggle the state
+                const newState = !isEnabled;
+                btn.data('enabled', newState);
+                
+                if (newState) {
+                    // Set to enabled state
+                    btn.removeClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-500 hover:bg-gray-50');
+                    btn.addClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100 hover:bg-green-50');
+                    btn.attr('title', 'Click to Disable');
+                    btn.find('i').removeClass('fa-toggle-off').addClass('fa-toggle-on');
+                    // Update text for mobile cards
+                    if (isMobileCard) {
+                        btn.html('<i class="fas fa-toggle-on text-xl"></i> Enabled');
+                    }
+                    Toast.success('Product enabled!');
+                } else {
+                    // Set to disabled state
+                    btn.removeClass('text-green-600 bg-green-50 border-green-300 hover:bg-green-100 hover:bg-green-50');
+                    btn.addClass('text-gray-400 bg-gray-100 border-gray-300 hover:bg-gray-200');
+                    btn.attr('title', 'Click to Enable');
+                    btn.find('i').removeClass('fa-toggle-on').addClass('fa-toggle-off');
+                    // Update text for mobile cards
+                    if (isMobileCard) {
+                        btn.removeClass('text-green-600').addClass('text-gray-500');
+                        btn.html('<i class="fas fa-toggle-off text-xl"></i> Disabled');
+                    }
+                    Toast.info('Product disabled!');
+                }
             });
 
             // Apply Filter
