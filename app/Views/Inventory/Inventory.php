@@ -74,43 +74,34 @@
                     Delete
                 </button>
             </div>
-            <!-- Mobile Card View -->
-            <div class="sm:hidden mb-20">
-                <!-- Mobile Search -->
-                <div class="mb-3">
-                    <div class="relative">
-                        <input type="text" id="mobileSearchInput" placeholder="Search inventory..."
-                            class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    </div>
-                </div>
 
-                <!-- Mobile Cards Container -->
-                <div id="mobileCardView" class="space-y-3">
-                    <!-- Cards will be loaded via AJAX -->
-                </div>
-
-                <!-- Mobile Pagination -->
-                <div id="mobilePagination" class="flex items-center justify-center gap-1 mt-4 flex-wrap">
-                    <!-- Pagination will be generated via JS -->
-                </div>
-                <p id="mobilePageInfo" class="text-center text-sm text-gray-500 mt-2"></p>
+            <!-- Category Tabs -->
+            <div class="flex gap-2 mb-3">
+                <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
+                    <i class="fas fa-bread-slice mr-1.5 hidden sm:inline"></i> Bakery
+                </button>
+                <button type="button" data-tab="drinks" onclick="switchTab('drinks')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                    <i class="fas fa-mug-hot mr-1.5 hidden sm:inline"></i> Drinks
+                </button>
+                <button type="button" data-tab="grocery" onclick="switchTab('grocery')"
+                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                    <i class="fas fa-shopping-basket mr-1.5 hidden sm:inline"></i> Grocery
+                </button>
             </div>
 
-            <!-- Desktop Table View -->
-            <div class="hidden sm:block space-y-6 mb-20 sm:mb-0">
-
-                <!-- Bakery Section -->
-                <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="px-4 py-3 bg-amber-50/50 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-bread-slice text-amber-500 text-sm"></i>
-                            <h3 class="text-sm font-medium text-gray-700">Bakery Products</h3>
-                            <span id="bakeryCount"
-                                class="ml-auto px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 rounded">0
-                                items</span>
-                        </div>
+            <!-- Tab Content: Bakery -->
+            <div id="bakery-content" class="tab-content mb-20 sm:mb-0">
+                <!-- Mobile Card View -->
+                <div class="sm:hidden">
+                    <div id="bakeryMobileCards" class="space-y-3">
+                        <!-- Cards will be loaded via AJAX -->
                     </div>
+                </div>
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block">
+                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table id="bakeryTable" class="min-w-full text-sm text-left">
                             <thead class="bg-gray-50">
@@ -138,19 +129,20 @@
                         </table>
                     </div>
                 </div>
+                </div>
+            </div>
 
-                <!-- Drinks Section -->
-                <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="px-4 py-3 bg-blue-50/50 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-mug-hot text-blue-500 text-sm"></i>
-                            <h3 class="text-sm font-medium text-gray-700">Drinks</h3>
-                            <span id="drinksCount"
-                                class="ml-auto px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">0
-                                items</span>
-                        </div>
-                        <p class="text-[11px] text-gray-500 mt-1">Drinks do not require stock tracking</p>
+            <!-- Tab Content: Drinks -->
+            <div id="drinks-content" class="tab-content hidden mb-20 sm:mb-0">
+                <!-- Mobile Card View -->
+                <div class="sm:hidden">
+                    <div id="drinksMobileCards" class="space-y-3">
+                        <!-- Cards will be loaded via AJAX -->
                     </div>
+                </div>
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block">
+                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table id="drinksTable" class="min-w-full text-sm text-left">
                             <thead class="bg-gray-50">
@@ -175,18 +167,20 @@
                         </table>
                     </div>
                 </div>
+                </div>
+            </div>
 
-                <!-- Grocery Section -->
-                <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="px-4 py-3 bg-emerald-50/50 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-shopping-basket text-emerald-500 text-sm"></i>
-                            <h3 class="text-sm font-medium text-gray-700">Grocery Items</h3>
-                            <span id="groceryCount"
-                                class="ml-auto px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">0
-                                items</span>
-                        </div>
+            <!-- Tab Content: Grocery -->
+            <div id="grocery-content" class="tab-content hidden mb-20 sm:mb-0">
+                <!-- Mobile Card View -->
+                <div class="sm:hidden">
+                    <div id="groceryMobileCards" class="space-y-3">
+                        <!-- Cards will be loaded via AJAX -->
                     </div>
+                </div>
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block">
+                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table id="groceryTable" class="min-w-full text-sm text-left">
                             <thead class="bg-gray-50">
@@ -214,8 +208,9 @@
                         </table>
                     </div>
                 </div>
-
+                </div>
             </div>
+
             <!-- Time Input Modal -->
             <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
                 <div class="fixed inset-0 bg-black/40" id="timeInputModalBackdrop"></div>
@@ -753,7 +748,6 @@
             }
 
             $('#bakeryTableBody').html(rows);
-            $('#bakeryCount').text(items.length + ' items');
             $('#bakeryTotalQty').text(totalQty);
         }
 
@@ -782,7 +776,6 @@
             }
 
             $('#drinksTableBody').html(rows);
-            $('#drinksCount').text(items.length + ' items');
             $('#drinksTotalQty').text(totalQty);
         }
 
@@ -818,7 +811,6 @@
             }
 
             $('#groceryTableBody').html(rows);
-            $('#groceryCount').text(items.length + ' items');
             $('#groceryTotalQty').text(totalQty);
         }
 
@@ -1000,66 +992,44 @@
             renderMobileCards();
         });
 
-        // Render mobile cards with pagination - grouped by category
+        // Render mobile cards for each category tab
         function renderMobileCards() {
             const bakeryItems = filteredItems.filter(i => i.category === 'bakery');
             const drinksItems = filteredItems.filter(i => i.category === 'drinks');
             const groceryItems = filteredItems.filter(i => i.category === 'grocery');
 
-            let cards = '';
-
-            // Bakery Section
+            // Bakery cards
+            let bakeryCards = '';
             if (bakeryItems.length > 0) {
-                cards += '<div class="mb-4">';
-                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
-                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Bakery</span>';
-                cards += '<span class="text-xs text-gray-400">(' + bakeryItems.length + ')</span>';
-                cards += '</div>';
-                cards += '<div class="space-y-2">';
                 bakeryItems.forEach(function (item) {
-                    cards += renderMobileCard(item, 'bakery');
+                    bakeryCards += renderMobileCard(item, 'bakery');
                 });
-                cards += '</div>';
-                cards += '</div>';
+            } else {
+                bakeryCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No bakery items in inventory</div>';
             }
+            $('#bakeryMobileCards').html(bakeryCards);
 
-            // Drinks Section
+            // Drinks cards
+            let drinksCards = '';
             if (drinksItems.length > 0) {
-                cards += '<div class="mb-4">';
-                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
-                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Drinks</span>';
-                cards += '<span class="text-xs text-gray-400">(' + drinksItems.length + ')</span>';
-                cards += '</div>';
-                cards += '<div class="space-y-2">';
                 drinksItems.forEach(function (item) {
-                    cards += renderMobileCard(item, 'drinks');
+                    drinksCards += renderMobileCard(item, 'drinks');
                 });
-                cards += '</div>';
-                cards += '</div>';
+            } else {
+                drinksCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No drinks in inventory</div>';
             }
+            $('#drinksMobileCards').html(drinksCards);
 
-            // Grocery Section  
+            // Grocery cards
+            let groceryCards = '';
             if (groceryItems.length > 0) {
-                cards += '<div class="mb-4">';
-                cards += '<div class="flex items-center gap-2 mb-2 px-1">';
-                cards += '<span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Grocery</span>';
-                cards += '<span class="text-xs text-gray-400">(' + groceryItems.length + ')</span>';
-                cards += '</div>';
-                cards += '<div class="space-y-2">';
                 groceryItems.forEach(function (item) {
-                    cards += renderMobileCard(item, 'grocery');
+                    groceryCards += renderMobileCard(item, 'grocery');
                 });
-                cards += '</div>';
-                cards += '</div>';
+            } else {
+                groceryCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No grocery items in inventory</div>';
             }
-
-            if (filteredItems.length === 0) {
-                cards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No inventory data</div>';
-            }
-
-            $('#mobileCardView').html(cards);
-            $('#mobilePagination').html('');
-            $('#mobilePageInfo').text('');
+            $('#groceryMobileCards').html(groceryCards);
         }
 
         function renderMobileCard(item, category) {
@@ -1227,4 +1197,31 @@
                 }
             });
         });
+
+        // Tab Switching Function
+        function switchTab(tabName) {
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(function (btn) {
+                btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+            });
+
+            // Add active state to clicked button
+            var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+                activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+            }
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(function (content) {
+                content.classList.add('hidden');
+            });
+
+            // Show selected tab content
+            var targetContent = document.getElementById(tabName + '-content');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+        }
     </script>
