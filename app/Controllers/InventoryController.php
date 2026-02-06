@@ -195,24 +195,11 @@ class InventoryController extends BaseController
         );
 
         if ($result) {
-            // Auto-deduct raw materials if beginning stock > 0
-            $deductionResult = null;
-            if ($beginningStock > 0) {
-                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($json->product_id),
-                    $beginningStock
-                );
-            }
-
-            $responseData = [
+            return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
                 'item_id' => $result
-            ];
-            if ($deductionResult) {
-                $responseData['raw_material_deduction'] = $deductionResult;
-            }
-            return $this->response->setJSON($responseData);
+            ]);
         } else {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -319,16 +306,6 @@ class InventoryController extends BaseController
         if ($newEndingStock < 0)
             $newEndingStock = 0;
 
-        // Auto-deduct raw materials if beginning stock increased
-        $stockIncrease = $newBeginning - $oldBeginning;
-        $deductionResult = null;
-        if ($stockIncrease > 0) {
-            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                intval($item['product_id']),
-                $stockIncrease
-            );
-        }
-
         // Prepare update data
         $updateData = [
             'beginning_stock' => $newBeginning,
@@ -338,15 +315,11 @@ class InventoryController extends BaseController
 
         // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
-            $responseData = [
+            return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item updated successfully',
                 'data' => $updateData
-            ];
-            if ($deductionResult) {
-                $responseData['raw_material_deduction'] = $deductionResult;
-            }
-            return $this->response->setJSON($responseData);
+            ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
@@ -421,108 +394,6 @@ class InventoryController extends BaseController
                 'message' => 'Failed to delete inventory item'
             ]);
         }
-    }
-
-    /**
-     * Preview raw material deductions for a given product + quantity.
-     * Used by the frontend to show a before/after breakdown.
-     */
-    public function previewDeduction()
-    {
-        $productId = intval($this->request->getGet('product_id'));
-        $quantity  = intval($this->request->getGet('quantity'));
-
-        if ($productId <= 0 || $quantity <= 0) {
-            return $this->response->setJSON([
-                'success' => true,
-                'data'    => []
-            ]);
-        }
-
-        $db = \Config\Database::connect();
-
-        // Get product cost info
-        $productCost = $db->query("SELECT pieces_per_yield, yield_grams FROM product_costs WHERE product_id = ?", [$productId])->getRowArray();
-        $piecesPerYield = intval($productCost['pieces_per_yield'] ?? 0);
-
-        $deductions = []; // materialId => deduction amount
-
-        // 1. Direct recipe ingredients
-        $recipes = $db->query("SELECT material_id, quantity_needed FROM product_recipe WHERE product_id = ?", [$productId])->getResultArray();
-
-        foreach ($recipes as $recipe) {
-            $materialId = intval($recipe['material_id']);
-            $qtyNeeded  = floatval($recipe['quantity_needed']);
-            $perPiece   = ($piecesPerYield > 0) ? ($qtyNeeded / $piecesPerYield) : $qtyNeeded;
-            $deductions[$materialId] = ($deductions[$materialId] ?? 0) + ($perPiece * $quantity);
-        }
-
-        // 2. Combined recipe ingredients (dough)
-        $combinedRecipes = $db->query("SELECT source_product_id, grams_per_piece FROM product_combined_recipes WHERE product_id = ?", [$productId])->getResultArray();
-
-        foreach ($combinedRecipes as $combined) {
-            $sourceProductId = intval($combined['source_product_id']);
-            $gramsPerPiece   = floatval($combined['grams_per_piece']);
-            $totalGrams      = $gramsPerPiece * $quantity;
-
-            $sourceCost = $db->query("SELECT yield_grams FROM product_costs WHERE product_id = ?", [$sourceProductId])->getRowArray();
-            $sourceYield = floatval($sourceCost['yield_grams'] ?? 0);
-            if ($sourceYield <= 0) continue;
-
-            $batches = $totalGrams / $sourceYield;
-            $sourceRecipes = $db->query("SELECT material_id, quantity_needed FROM product_recipe WHERE product_id = ?", [$sourceProductId])->getResultArray();
-
-            foreach ($sourceRecipes as $srcRecipe) {
-                $materialId = intval($srcRecipe['material_id']);
-                $deductions[$materialId] = ($deductions[$materialId] ?? 0) + (floatval($srcRecipe['quantity_needed']) * $batches);
-            }
-        }
-
-        if (empty($deductions)) {
-            return $this->response->setJSON([
-                'success' => true,
-                'data'    => [],
-                'message' => 'No recipe found for this product'
-            ]);
-        }
-
-        // Get current stock + material names for each
-        $materialIds = array_keys($deductions);
-        $placeholders = implode(',', array_fill(0, count($materialIds), '?'));
-
-        $materials = $db->query("
-            SELECT rm.material_id, rm.material_name, rm.unit, 
-                   COALESCE(rms.current_quantity, 0) as current_quantity
-            FROM raw_materials rm
-            LEFT JOIN raw_material_stock rms ON rm.material_id = rms.material_id
-            WHERE rm.material_id IN ({$placeholders})
-        ", $materialIds)->getResultArray();
-
-        $result = [];
-        foreach ($materials as $mat) {
-            $mid       = intval($mat['material_id']);
-            $deductAmt = round($deductions[$mid], 2);
-            $before    = round(floatval($mat['current_quantity']), 2);
-            $after     = round(max(0, $before - $deductAmt), 2);
-
-            $result[] = [
-                'material_name' => $mat['material_name'],
-                'unit'          => $mat['unit'],
-                'before'        => $before,
-                'deduction'     => $deductAmt,
-                'after'         => $after,
-            ];
-        }
-
-        // Sort by deduction amount descending (most impacted first)
-        usort($result, function($a, $b) {
-            return $b['deduction'] <=> $a['deduction'];
-        });
-
-        return $this->response->setJSON([
-            'success' => true,
-            'data'    => $result
-        ]);
     }
 
     /**

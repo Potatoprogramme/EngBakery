@@ -113,17 +113,11 @@ const InventoryModal = {
         const beginningStock = row.find('td:eq(3)').text(); // Beginning Total column
         const pullOutQty = row.find('td:eq(4)').text(); // Pull Out Total column
 
-        // Store item ID, product ID, and original beginning stock
+        // Store item ID and populate modal
         $('#editItemId').val(itemId);
         $('#editProductName').text(productName);
         $('#editBeginningStock').val(beginningStock);
         $('#editPullOutQuantity').val(pullOutQty);
-        $('#editInventoryModal').data('product-id', productId);
-        $('#editInventoryModal').data('original-beginning', parseInt(beginningStock) || 0);
-
-        // Reset and hide deduction preview
-        $('#editDeductionPreview').addClass('hidden');
-        $('#editDeductionList').html('');
 
         // Show modal
         $('#editInventoryModal').removeClass('hidden');

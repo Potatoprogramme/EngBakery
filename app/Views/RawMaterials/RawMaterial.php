@@ -62,12 +62,12 @@
             </div>
 
             <!-- Stock Level Legend -->
-            <div class="flex items-center gap-4 mb-3 px-1 text-xs text-gray-500">
-                <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-red-500"></span> Critical (≤10)
+            <div class="flex items-center gap-3 mb-3 px-1 text-xs text-gray-500">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-700 font-medium">
+                    <i class="fas fa-exclamation-circle text-[10px]"></i> Critical (≤10)
                 </span>
-                <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Low (≤25)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-medium">
+                    <i class="fas fa-exclamation-triangle text-[10px]"></i> Low (≤25)
                 </span>
             </div>
 
