@@ -45,6 +45,7 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->get('GetCategories', 'RawMaterialsController::getCategories');
     $routes->get('GetAll', 'RawMaterialsController::getAll');
     $routes->get('GetMaterial/(:num)', 'RawMaterialsController::getMaterial/$1');
+    $routes->get('GetLowStock', 'RawMaterialsController::getLowStock');
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
     $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
     $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');

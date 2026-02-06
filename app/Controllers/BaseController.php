@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 // Models
 use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
+use App\Models\RawMaterialStockModel;
 use App\Models\DailyStockModel;
 use App\Models\ProductModel;
 use App\Models\ProductRecipeModel;
@@ -47,6 +48,7 @@ abstract class BaseController extends Controller
     // Preload Models Here
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
+    protected $rawMaterialStockModel;
     protected $dailyStockModel;
     protected $productModel;
     protected $productRecipeModel;
@@ -80,6 +82,7 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+        $this->rawMaterialStockModel = new RawMaterialStockModel();
         $this->dailyStockModel = new DailyStockModel();
         $this->productModel = new ProductModel();
         $this->productRecipeModel = new ProductRecipeModel();

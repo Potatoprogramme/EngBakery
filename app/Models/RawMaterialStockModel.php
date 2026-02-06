@@ -92,7 +92,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Get low stock materials (below threshold percentage)
+     * Get low stock materials (at or below minimum stock level)
      */
     public function getLowStock(float $thresholdPercentage = 20): array
     {
@@ -106,5 +106,55 @@ class RawMaterialStockModel extends Model
             ->join('raw_materials', 'raw_materials.stock_id = raw_material_stock.stock_id')
             ->having('stock_percentage <=', $thresholdPercentage)
             ->findAll();
+    }
+
+    /**
+     * Get materials with low stock levels based on quantity thresholds
+     * Critical: <= 10 units, Warning: <= 25 units
+     */
+    public function getLowStockMaterials(float $criticalLevel = 10, float $warningLevel = 25): array
+    {
+        return $this->db->query("
+            SELECT 
+                rms.stock_id,
+                rms.material_id,
+                rms.current_quantity,
+                rms.last_updated,
+                rm.material_name,
+                rm.unit,
+                mc.category_name,
+                mc.label,
+                rmc.cost_per_unit,
+                CASE 
+                    WHEN rms.current_quantity <= ? THEN 'critical'
+                    WHEN rms.current_quantity <= ? THEN 'warning'
+                    ELSE 'normal'
+                END as stock_status
+            FROM raw_material_stock rms
+            JOIN raw_materials rm ON rms.material_id = rm.material_id
+            LEFT JOIN material_category mc ON rm.category_id = mc.category_id
+            LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
+            WHERE rms.current_quantity <= ?
+            ORDER BY rms.current_quantity ASC
+        ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
+    }
+
+    /**
+     * Get count of low stock materials
+     */
+    public function getLowStockCount(float $criticalLevel = 10, float $warningLevel = 25): array
+    {
+        $result = $this->db->query("
+            SELECT 
+                SUM(CASE WHEN current_quantity <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN current_quantity > ? AND current_quantity <= ? THEN 1 ELSE 0 END) as warning_count
+            FROM raw_material_stock
+        ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
+        
+        return [
+            'critical' => intval($result['critical_count'] ?? 0),
+            'warning' => intval($result['warning_count'] ?? 0),
+            'total' => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0)
+        ];
     }
 }

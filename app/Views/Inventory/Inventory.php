@@ -279,11 +279,21 @@
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                </div>
+
+                <!-- Deduction Preview -->
+                <div id="editDeductionPreview" class="hidden mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Raw Material Usage</p>
+                        <span id="editDeductionCount" class="text-xs text-gray-400"></span>
+                    </div>
+                    <div id="editDeductionList" class="max-h-40 overflow-y-auto space-y-1.5 rounded-lg bg-gray-50 p-2.5 border border-gray-100">
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
@@ -322,12 +332,22 @@
                         inventory.</p>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
+                </div>
+
+                <!-- Deduction Preview -->
+                <div id="addDeductionPreview" class="hidden mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Raw Material Usage</p>
+                        <span id="addDeductionCount" class="text-xs text-gray-400"></span>
+                    </div>
+                    <div id="addDeductionList" class="max-h-40 overflow-y-auto space-y-1.5 rounded-lg bg-gray-50 p-2.5 border border-gray-100">
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
@@ -370,6 +390,8 @@
         </div>
     </div>
     <script>
+        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        
         // Track if inventory exists for today
         let inventoryExistsToday = false;
 
@@ -846,6 +868,14 @@
                 $('#editBeginningStock').val(item.beginning_stock || 0);
                 $('#editPullOutQuantity').val(item.pull_out_quantity || 0);
 
+                // Store product_id and original beginning stock for deduction preview
+                $('#editInventoryModal').data('product-id', item.product_id);
+                $('#editInventoryModal').data('original-beginning', parseInt(item.beginning_stock) || 0);
+
+                // Reset deduction preview
+                $('#editDeductionPreview').addClass('hidden');
+                $('#editDeductionList').html('');
+
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
             } else {
@@ -886,6 +916,15 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
+                        // Show deduction summary if materials were deducted
+                        if (response.raw_material_deduction && response.raw_material_deduction.deducted_materials) {
+                            var count = response.raw_material_deduction.deducted_materials.length;
+                            if (count > 0) {
+                                setTimeout(function() {
+                                    showToast('info', count + ' raw material' + (count > 1 ? 's' : '') + ' deducted from stock', 3000);
+                                }, 500);
+                            }
+                        }
                         $('#editInventoryModal').addClass('hidden');
                         $('#editInventoryForm')[0].reset();
                         fetchAllStockitems(); // Reload the table
@@ -934,6 +973,8 @@
         // Add Product to Inventory functionality
         $('#btnAddProductToInventory').on('click', function () {
             loadAvailableProducts();
+            $('#addDeductionPreview').addClass('hidden');
+            $('#addDeductionList').html('');
             $('#addProductModal').removeClass('hidden');
         });
 
@@ -941,6 +982,7 @@
         $('#addProductModalClose, #addProductModalCancel').on('click', function () {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
+            $('#addDeductionPreview').addClass('hidden');
         });
 
         // Load available products (not yet in inventory)
@@ -1075,7 +1117,7 @@
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
             else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '">';
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '" data-product-id="' + item.product_id + '">';
             card += '  <div class="flex items-center justify-between mb-2">';
             card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
@@ -1215,6 +1257,15 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
+                        // Show deduction summary if materials were deducted
+                        if (response.raw_material_deduction && response.raw_material_deduction.deducted_materials) {
+                            var count = response.raw_material_deduction.deducted_materials.length;
+                            if (count > 0) {
+                                setTimeout(function() {
+                                    showToast('info', count + ' raw material' + (count > 1 ? 's' : '') + ' deducted from stock', 3000);
+                                }, 500);
+                            }
+                        }
                         $('#addProductModal').addClass('hidden');
                         $('#addProductForm')[0].reset();
                         fetchAllStockitems(); // Reload the table
@@ -1226,5 +1277,92 @@
                     showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
                 }
             });
+        });
+
+        // ==========================================
+        // Deduction Preview (live update on typing)
+        // ==========================================
+        
+        let editPreviewTimer = null;
+        let addPreviewTimer = null;
+
+        function fetchDeductionPreview(productId, quantity, previewSel, listSel, countSel) {
+            $(previewSel).removeClass('hidden');
+            $(listSel).html('<div class="text-center py-3 text-gray-400 text-xs">Calculating…</div>');
+
+            $.ajax({
+                url: window.BASE_URL + 'Inventory/PreviewDeduction',
+                type: 'GET',
+                dataType: 'json',
+                data: { product_id: productId, quantity: quantity },
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        $(countSel).text(response.data.length + ' items');
+                        var html = '';
+                        response.data.forEach(function(m) {
+                            var afterVal = parseFloat(m.after);
+                            var deductVal = parseFloat(m.deduction);
+                            var dot = '';
+                            if (afterVal <= 10) {
+                                dot = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></span>';
+                            } else if (afterVal <= 25) {
+                                dot = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1"></span>';
+                            }
+                            html += '<div class="flex items-center justify-between py-1.5 px-2 text-xs border-b border-gray-100 last:border-0">';
+                            html +=   '<div class="flex items-center gap-1 flex-1 min-w-0">';
+                            html +=     dot;
+                            html +=     '<span class="truncate font-medium text-gray-700">' + m.material_name + '</span>';
+                            html +=   '</div>';
+                            html +=   '<div class="flex items-center gap-1.5 text-gray-500 shrink-0 ml-2">';
+                            html +=     '<span class="tabular-nums">' + parseFloat(m.before).toFixed(1) + '</span>';
+                            html +=     '<svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>';
+                            html +=     '<span class="tabular-nums font-semibold ' + (afterVal <= 10 ? 'text-red-600' : afterVal <= 25 ? 'text-amber-600' : 'text-gray-700') + '">' + afterVal.toFixed(1) + '</span>';
+                            html +=     '<span class="text-gray-400">' + m.unit + '</span>';
+                            html +=   '</div>';
+                            html += '</div>';
+                        });
+                        $(listSel).html(html);
+                    } else {
+                        $(previewSel).addClass('hidden');
+                    }
+                },
+                error: function() {
+                    $(listSel).html('<div class="text-center py-2 text-gray-400 text-xs">Could not load preview</div>');
+                }
+            });
+        }
+
+        // Edit modal: preview when beginning stock changes
+        $('#editBeginningStock').on('input', function() {
+            clearTimeout(editPreviewTimer);
+            var newVal = parseInt($(this).val()) || 0;
+            var originalVal = parseInt($('#editInventoryModal').data('original-beginning')) || 0;
+            var increase = newVal - originalVal;
+            var productId = $('#editInventoryModal').data('product-id');
+
+            if (increase <= 0 || !productId) {
+                $('#editDeductionPreview').addClass('hidden');
+                return;
+            }
+
+            editPreviewTimer = setTimeout(function() {
+                fetchDeductionPreview(productId, increase, '#editDeductionPreview', '#editDeductionList', '#editDeductionCount');
+            }, 400);
+        });
+
+        // Add product modal: preview when beginning stock or product changes
+        $('#addBeginningStock, #selectProduct').on('input change', function() {
+            clearTimeout(addPreviewTimer);
+            var qty = parseInt($('#addBeginningStock').val()) || 0;
+            var productId = $('#selectProduct').val();
+
+            if (qty <= 0 || !productId) {
+                $('#addDeductionPreview').addClass('hidden');
+                return;
+            }
+
+            addPreviewTimer = setTimeout(function() {
+                fetchDeductionPreview(productId, qty, '#addDeductionPreview', '#addDeductionList', '#addDeductionCount');
+            }, 400);
         });
     </script>

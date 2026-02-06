@@ -251,7 +251,17 @@ $(document).ready(function() {
             rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
-            rows += '<td class="px-6 py-4 text-gray-700">' + mat.material_quantity + '</td>';
+            let qtyClass = 'text-gray-700';
+            let stockDot = '';
+            const qty = parseFloat(mat.material_quantity) || 0;
+            if (qty <= 10) {
+                qtyClass = 'text-red-600 font-semibold';
+                stockDot = '<span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>';
+            } else if (qty <= 25) {
+                qtyClass = 'text-amber-600 font-semibold';
+                stockDot = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5"></span>';
+            }
+            rows += '<td class="px-6 py-4 ' + qtyClass + '">' + stockDot + mat.material_quantity + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + mat.unit + '</td>';
             rows += '<td class="px-6 py-4 text-gray-900 font-semibold">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
             rows += '<td class="px-6 py-4 ">';
@@ -334,10 +344,13 @@ $(document).ready(function() {
                             ${labelBadge}
                         </div>
                         <div class="grid grid-cols-2 gap-3 mb-3">
-                            <div class="bg-gray-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500">Quantity</p>
-                                <p class="font-semibold text-gray-800">${mat.material_quantity} ${mat.unit}</p>
-                            </div>
+                            ${(() => {
+                                const q = parseFloat(mat.material_quantity) || 0;
+                                let bg = 'bg-gray-50', tc = 'text-gray-800', dot = '';
+                                if (q <= 10) { bg = 'bg-red-50'; tc = 'text-red-700'; dot = '<span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>'; }
+                                else if (q <= 25) { bg = 'bg-amber-50'; tc = 'text-amber-700'; dot = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1"></span>'; }
+                                return `<div class="${bg} rounded-lg p-2"><p class="text-xs text-gray-500">Quantity</p><p class="font-semibold ${tc}">${dot}${mat.material_quantity} ${mat.unit}</p></div>`;
+                            })()}
                             <div class="bg-primary/10 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Cost per Unit</p>
                                 <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(2)}</p>

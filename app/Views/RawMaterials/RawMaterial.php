@@ -61,6 +61,16 @@
                 </div>
             </div>
 
+            <!-- Stock Level Legend -->
+            <div class="flex items-center gap-4 mb-3 px-1 text-xs text-gray-500">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span> Critical (≤10)
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Low (≤25)
+                </span>
+            </div>
+
             <!-- Floating Add Material button for mobile -->
             <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
                 <button type="button" id="btnAddMaterialMobile"

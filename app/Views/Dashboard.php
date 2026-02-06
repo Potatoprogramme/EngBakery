@@ -269,6 +269,35 @@
                 </div>
             </div>
 
+            <!-- Raw Materials Stock Alert -->
+            <?php $totalLowStock = count($lowStockRawMaterials); ?>
+            <?php if ($totalLowStock > 0): ?>
+                <?php 
+                    $criticalCount = $lowStockRawMaterialCounts['critical'] ?? 0;
+                    $warningCount = $lowStockRawMaterialCounts['warning'] ?? 0;
+                ?>
+                <div class="mb-4 sm:mb-6">
+                    <a href="<?= base_url('RawMaterials') ?>" class="block bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3">
+                            <?php if ($criticalCount > 0): ?>
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></span>
+                            <?php endif; ?>
+                            <?php if ($warningCount > 0): ?>
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                            <?php endif; ?>
+                            <span class="text-sm font-semibold text-gray-800"><?= $totalLowStock ?> material<?= $totalLowStock > 1 ? 's' : '' ?> running low</span>
+                            <?php if ($criticalCount > 0): ?>
+                                <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full"><?= $criticalCount ?> critical</span>
+                            <?php endif; ?>
+                            <?php if ($warningCount > 0): ?>
+                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full"><?= $warningCount ?> low</span>
+                            <?php endif; ?>
+                            <i class="fas fa-arrow-right text-gray-400 text-xs ml-auto"></i>
+                        </div>
+                    </a>
+                </div>
+            <?php endif; ?>
+
             <!-- Best Sellers & Recent Orders -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <!-- Best Sellers Today -->

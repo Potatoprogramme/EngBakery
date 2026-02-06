@@ -241,4 +241,19 @@ class RawMaterialsController extends BaseController
             ]);
         }
     }
+
+    /**
+     * Get low stock materials (AJAX)
+     */
+    public function getLowStock()
+    {
+        $lowStockMaterials = $this->rawMaterialStockModel->getLowStockMaterials();
+        $counts = $this->rawMaterialStockModel->getLowStockCount();
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $lowStockMaterials,
+            'counts' => $counts
+        ]);
+    }
 }

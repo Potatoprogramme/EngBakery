@@ -25,6 +25,54 @@ function safeToast(type, message, duration) {
     }
 }
 
+/**
+ * Fetch and render deduction preview into a modal panel
+ */
+function fetchDeductionPreview(productId, quantity, previewSel, listSel, countSel) {
+    // Show loading state
+    $(previewSel).removeClass('hidden');
+    $(listSel).html('<div class="text-center py-3 text-gray-400 text-xs">Calculating…</div>');
+
+    InventoryAPI.previewDeduction(productId, quantity,
+        function(response) {
+            if (response.success && response.data && response.data.length > 0) {
+                $(countSel).text(response.data.length);
+                var html = '';
+                response.data.forEach(function(m) {
+                    var afterVal = parseFloat(m.after);
+                    var deductVal = parseFloat(m.deduction);
+                    // Determine status color
+                    var dot = '';
+                    if (afterVal <= 10) {
+                        dot = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></span>';
+                    } else if (afterVal <= 25) {
+                        dot = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1"></span>';
+                    }
+
+                    html += '<div class="flex items-center justify-between py-1.5 px-2 text-xs border-b border-gray-100 last:border-0">';
+                    html +=   '<div class="flex items-center gap-1 flex-1 min-w-0">';
+                    html +=     dot;
+                    html +=     '<span class="truncate font-medium text-gray-700">' + m.material_name + '</span>';
+                    html +=   '</div>';
+                    html +=   '<div class="flex items-center gap-1.5 text-gray-500 shrink-0 ml-2">';
+                    html +=     '<span class="tabular-nums">' + parseFloat(m.before).toFixed(1) + '</span>';
+                    html +=     '<svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>';
+                    html +=     '<span class="tabular-nums font-semibold ' + (afterVal <= 10 ? 'text-red-600' : afterVal <= 25 ? 'text-amber-600' : 'text-gray-700') + '">' + afterVal.toFixed(1) + '</span>';
+                    html +=     '<span class="text-gray-400">' + m.unit + '</span>';
+                    html +=   '</div>';
+                    html += '</div>';
+                });
+                $(listSel).html(html);
+            } else {
+                $(previewSel).addClass('hidden');
+            }
+        },
+        function() {
+            $(listSel).html('<div class="text-center py-2 text-gray-400 text-xs">Could not load preview</div>');
+        }
+    );
+}
+
 $(document).ready(function() {
     // Initialize modals
     InventoryModal.init();
@@ -415,6 +463,47 @@ function bindEventHandlers() {
     // Filters (if needed in future)
     // ==========================================
     
+    // ==========================================
+    // Deduction Preview (live update on typing)
+    // ==========================================
+    
+    let editPreviewTimer = null;
+    let addPreviewTimer = null;
+
+    // Edit modal: preview when beginning stock changes
+    $('#editBeginningStock').on('input', function() {
+        clearTimeout(editPreviewTimer);
+        const newVal = parseInt($(this).val()) || 0;
+        const originalVal = parseInt($('#editInventoryModal').data('original-beginning')) || 0;
+        const increase = newVal - originalVal;
+        const productId = $('#editInventoryModal').data('product-id');
+
+        if (increase <= 0 || !productId) {
+            $('#editDeductionPreview').addClass('hidden');
+            return;
+        }
+
+        editPreviewTimer = setTimeout(function() {
+            fetchDeductionPreview(productId, increase, '#editDeductionPreview', '#editDeductionList', '#editDeductionCount');
+        }, 400);
+    });
+
+    // Add product modal: preview when beginning stock or product changes
+    $('#addBeginningStock, #selectProduct').on('input change', function() {
+        clearTimeout(addPreviewTimer);
+        const qty = parseInt($('#addBeginningStock').val()) || 0;
+        const productId = $('#selectProduct').val();
+
+        if (qty <= 0 || !productId) {
+            $('#addDeductionPreview').addClass('hidden');
+            return;
+        }
+
+        addPreviewTimer = setTimeout(function() {
+            fetchDeductionPreview(productId, qty, '#addDeductionPreview', '#addDeductionList', '#addDeductionCount');
+        }, 400);
+    });
+
     $('#apply-filters').on('click', function() {
         const dateFrom = $('#filter-date-from').val();
         const dateTo = $('#filter-date-to').val();

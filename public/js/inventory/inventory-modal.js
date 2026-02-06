@@ -106,17 +106,24 @@ const InventoryModal = {
      */
     openEditModal: function(row) {
         const itemId = row.data('id');
+        const productId = row.data('product-id') || row.closest('[data-product-id]').data('product-id');
         
         // Get current values from the row (adjusted for correct column indices)
         const productName = row.find('td:eq(2)').text(); // Items/Particulars column
         const beginningStock = row.find('td:eq(3)').text(); // Beginning Total column
         const pullOutQty = row.find('td:eq(4)').text(); // Pull Out Total column
 
-        // Store item ID and populate modal
+        // Store item ID, product ID, and original beginning stock
         $('#editItemId').val(itemId);
         $('#editProductName').text(productName);
         $('#editBeginningStock').val(beginningStock);
         $('#editPullOutQuantity').val(pullOutQty);
+        $('#editInventoryModal').data('product-id', productId);
+        $('#editInventoryModal').data('original-beginning', parseInt(beginningStock) || 0);
+
+        // Reset and hide deduction preview
+        $('#editDeductionPreview').addClass('hidden');
+        $('#editDeductionList').html('');
 
         // Show modal
         $('#editInventoryModal').removeClass('hidden');

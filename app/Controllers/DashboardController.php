@@ -6,6 +6,7 @@ use App\Models\OrderModel;
 use App\Models\TransactionsModel;
 use App\Models\ProductModel;
 use App\Models\RawMaterialsModel;
+use App\Models\RawMaterialStockModel;
 use App\Models\DailyStockModel;
 use App\Models\DailyStockItemsModel;
 
@@ -15,6 +16,7 @@ class DashboardController extends BaseController
     protected $transactionsModel;
     protected $productModel;
     protected $rawMaterialsModel;
+    protected $rawMaterialStockModel;
     protected $dailyStockModel;
     protected $dailyStockItemsModel;
 
@@ -24,6 +26,7 @@ class DashboardController extends BaseController
         $this->transactionsModel = new TransactionsModel();
         $this->productModel = new ProductModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+        $this->rawMaterialStockModel = new RawMaterialStockModel();
         $this->dailyStockModel = new DailyStockModel();
         $this->dailyStockItemsModel = new DailyStockItemsModel();
     }
@@ -81,9 +84,16 @@ class DashboardController extends BaseController
             }
         }
 
+        // Low stock raw materials (critical <= 10, warning <= 25)
+        $lowStockRawMaterials = $this->rawMaterialStockModel->getLowStockMaterials();
+        $lowStockRawMaterialCounts = $this->rawMaterialStockModel->getLowStockCount();
+
         // Total counts
         $totalProducts = $this->productModel->countAll();
         $totalRawMaterials = $this->rawMaterialsModel->countAll();
+
+        // Low stock raw materials
+        $lowStockRawMaterials = $this->rawMaterialStockModel->getLowStockMaterials();
 
         // Product counts by category
         $productsByCategory = $this->db->query("
@@ -134,6 +144,8 @@ class DashboardController extends BaseController
             'totalBeginningStock' => $totalBeginningStock,
             'totalEndingStock' => $totalEndingStock,
             'lowStockProducts' => $lowStockProducts,
+            'lowStockRawMaterials' => $lowStockRawMaterials,
+            'lowStockRawMaterialCounts' => $lowStockRawMaterialCounts,
             'totalProducts' => $totalProducts,
             'totalRawMaterials' => $totalRawMaterials,
             'productsByCategory' => $productsByCategory,
