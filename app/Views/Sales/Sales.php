@@ -542,31 +542,17 @@
         }
 
         function showOccupiedSlotsInfo() {
-            // Show info about already submitted remittances
-            let slotsHtml = occupiedSlots.map(slot => {
-                return `<span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded text-xs mr-1 mb-1">
-                    <i class="fas fa-clock mr-1"></i>${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)}
-                    <span class="ml-1 text-red-500">(${slot.cashier_name})</span>
-                </span>`;
-            }).join('');
+            // Show toast notification for already submitted remittances
+            let slotsText = occupiedSlots.map(slot => {
+                return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_name})`;
+            }).join(', ');
             
-            if ($('#occupiedSlotsInfo').length === 0) {
-                $('#shiftStart').closest('.flex.items-center.gap-2').after(`
-                    <div id="occupiedSlotsInfo" class="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                        <div class="text-xs font-medium text-red-600 mb-1">
-                            <i class="fas fa-info-circle mr-1"></i>Already submitted shifts today:
-                        </div>
-                        <div id="occupiedSlotsList">${slotsHtml}</div>
-                    </div>
-                `);
-            } else {
-                $('#occupiedSlotsList').html(slotsHtml);
-                $('#occupiedSlotsInfo').removeClass('hidden');
-            }
+            // Show persistent toast (duration 0 = stays until closed)
+            showToast('warning', `Already submitted shifts today: ${slotsText}`, 0);
         }
 
         function hideOccupiedSlotsInfo() {
-            $('#occupiedSlotsInfo').addClass('hidden');
+            // Toast is dismissed manually by user, no need to hide programmatically
         }
 
         function formatTimeLabel(timeValue) {
