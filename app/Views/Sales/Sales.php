@@ -24,10 +24,10 @@
                         Daily Sales Remittance
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Sales/History') ?>"
+                        <!-- <a href="<?= base_url('Sales/History') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            <i class="fas fa-history mr-2"></i>Sales History
-                        </a>
+                            <i class="fas fa-history mr-2"></i>Transactions History
+                        </a> -->
                         <a href="<?= base_url('Sales/RemittanceHistory') ?>"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-file-invoice-dollar mr-2"></i>Remittance History
@@ -37,6 +37,26 @@
                             <i class="fas fa-print mr-2"></i>Print
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Existing Remittance Warning Banner (Hidden by default) -->
+            <div id="existingRemittanceBanner" class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg shadow-md">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-amber-500 text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-amber-800 mb-1">Remittance Already Submitted</h4>
+                        <p class="text-sm text-amber-700" id="existingRemittanceMessage">
+                            A remittance for this date and shift has already been submitted.
+                        </p>
+                        <div class="mt-2 text-xs text-amber-600" id="existingRemittanceDetails"></div>
+                    </div>
+                    <a href="<?= base_url('Sales/RemittanceHistory') ?>" 
+                        class="flex-shrink-0 inline-flex items-center px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition">
+                        <i class="fas fa-eye mr-1"></i>View History
+                    </a>
                 </div>
             </div>
 
@@ -71,66 +91,20 @@
                                     class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
                                     placeholder="Enter outlet name" value="Deca Sentrio" readonly>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div id="shiftSection" class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
                                 <div class="flex-1 flex items-center gap-1 sm:gap-2">
                                     <div class="flex flex-col flex-1 min-w-0">
                                         <span class="text-[10px] text-gray-400 mb-0.5">Start</span>
                                         <select id="shiftStart" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" name="shift_start">
-                                            <option value="00:00">12:00 AM</option>
-                                            <option value="01:00">1:00 AM</option>
-                                            <option value="02:00">2:00 AM</option>
-                                            <option value="03:00">3:00 AM</option>
-                                            <option value="04:00">4:00 AM</option>
-                                            <option value="05:00">5:00 AM</option>
-                                            <option value="06:00">6:00 AM</option>
-                                            <option value="07:00" selected>7:00 AM</option>
-                                            <option value="08:00">8:00 AM</option>
-                                            <option value="09:00">9:00 AM</option>
-                                            <option value="10:00">10:00 AM</option>
-                                            <option value="11:00">11:00 AM</option>
-                                            <option value="12:00">12:00 PM</option>
-                                            <option value="13:00">1:00 PM</option>
-                                            <option value="14:00">2:00 PM</option>
-                                            <option value="15:00">3:00 PM</option>
-                                            <option value="16:00">4:00 PM</option>
-                                            <option value="17:00">5:00 PM</option>
-                                            <option value="18:00">6:00 PM</option>
-                                            <option value="19:00">7:00 PM</option>
-                                            <option value="20:00">8:00 PM</option>
-                                            <option value="21:00">9:00 PM</option>
-                                            <option value="22:00">10:00 PM</option>
-                                            <option value="23:00">11:00 PM</option>
+                                            <!-- Options populated dynamically -->
                                         </select>
                                     </div>
                                     <span class="text-gray-400 font-bold text-sm mt-4">-</span>
                                     <div class="flex flex-col flex-1 min-w-0">
                                         <span class="text-[10px] text-gray-400 mb-0.5">End</span>
                                         <select id="shiftEnd" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-                                            <option value="00:00">12:00 AM</option>
-                                            <option value="01:00">1:00 AM</option>
-                                            <option value="02:00">2:00 AM</option>
-                                            <option value="03:00">3:00 AM</option>
-                                            <option value="04:00">4:00 AM</option>
-                                            <option value="05:00">5:00 AM</option>
-                                            <option value="06:00">6:00 AM</option>
-                                            <option value="07:00">7:00 AM</option>
-                                            <option value="08:00">8:00 AM</option>
-                                            <option value="09:00">9:00 AM</option>
-                                            <option value="10:00">10:00 AM</option>
-                                            <option value="11:00">11:00 AM</option>
-                                            <option value="12:00">12:00 PM</option>
-                                            <option value="13:00">1:00 PM</option>
-                                            <option value="14:00">2:00 PM</option>
-                                            <option value="15:00">3:00 PM</option>
-                                            <option value="16:00" selected>4:00 PM</option>
-                                            <option value="17:00">5:00 PM</option>
-                                            <option value="18:00">6:00 PM</option>
-                                            <option value="19:00">7:00 PM</option>
-                                            <option value="20:00">8:00 PM</option>
-                                            <option value="21:00">9:00 PM</option>
-                                            <option value="22:00">10:00 PM</option>
-                                            <option value="23:00">11:00 PM</option>
+                                            <!-- Options populated dynamically -->
                                         </select>
                                     </div>
                                 </div>
@@ -449,6 +423,8 @@
         $(document).ready(function() {
             initializeRemittance();
             console.log('Remittance Slip Initialized');
+            initializeShiftDropdowns();
+            console.log('Shift Dropdowns Initialized');
             loadTodaysSalesData();
             console.log('Loaded Today\'s Sales Data');
             loadUserInfo();
@@ -459,7 +435,291 @@
             console.log('Bound Bill Button Events');
             bindGCashInputEvent();
             console.log('Bound GCash Input Event');
+            bindShiftChangeEvents();
+            console.log('Bound Shift Change Events');
+            checkExistingRemittance();
+            console.log('Checked for Existing Remittance');
         });
+
+        // Track if remittance already exists for current date/shift
+        var remittanceExists = false;
+        var existingRemittanceData = null;
+        var occupiedSlots = []; // Stores existing remittance time ranges
+
+        // All available time slots for shifts
+        const timeSlots = [
+            // { value: '00:00', label: '12:00 AM' },
+            // { value: '01:00', label: '1:00 AM' },
+            // { value: '02:00', label: '2:00 AM' },
+            // { value: '03:00', label: '3:00 AM' },
+            // { value: '04:00', label: '4:00 AM' },
+            { value: '05:00', label: '5:00 AM' },
+            { value: '06:00', label: '6:00 AM' },
+            { value: '07:00', label: '7:00 AM' },
+            { value: '08:00', label: '8:00 AM' },
+            { value: '09:00', label: '9:00 AM' },
+            { value: '10:00', label: '10:00 AM' },
+            { value: '11:00', label: '11:00 AM' },
+            { value: '12:00', label: '12:00 PM' },
+            { value: '13:00', label: '1:00 PM' },
+            { value: '14:00', label: '2:00 PM' },
+            { value: '15:00', label: '3:00 PM' },
+            { value: '16:00', label: '4:00 PM' },
+            { value: '17:00', label: '5:00 PM' },
+            { value: '18:00', label: '6:00 PM' },
+            { value: '19:00', label: '7:00 PM' },
+            { value: '20:00', label: '8:00 PM' },
+            { value: '21:00', label: '9:00 PM' },
+            // { value: '22:00', label: '10:00 PM' },
+            // { value: '23:00', label: '11:00 PM' }
+        ];
+
+        function initializeShiftDropdowns() {
+            // Fetch occupied slots first, then populate dropdowns
+            fetchOccupiedSlots(function() {
+                // Default shift: 5:00 AM - 1:00 PM (or first available)
+                const defaultStart = '05:00';
+                const defaultEnd = '13:00';
+                
+                populateShiftStartDropdown(defaultStart);
+                const selectedStart = $('#shiftStart').val();
+                populateShiftEndDropdown(selectedStart, defaultEnd);
+                
+                // Bind change events for dynamic updates
+                $('#shiftStart').on('change', function() {
+                    const selectedStart = $(this).val();
+                    const currentEnd = $('#shiftEnd').val();
+                    
+                    // Update end dropdown to only show times after start
+                    populateShiftEndDropdown(selectedStart, currentEnd);
+                    
+                    // Trigger remittance check
+                    checkExistingRemittance();
+                });
+                
+                $('#shiftEnd').on('change', function() {
+                    // Trigger remittance check
+                    checkExistingRemittance();
+                });
+            });
+        }
+
+        function fetchOccupiedSlots(callback) {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' + 
+                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(today.getDate()).padStart(2, '0');
+            const outletName = $('#outletName').val();
+
+            $.ajax({
+                url: BASE_URL + 'Sales/getRemittancesForDate',
+                type: 'GET',
+                data: {
+                    date: dateStr,
+                    outlet_name: outletName
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        occupiedSlots = response.occupied_slots || [];
+                        console.log('Occupied slots:', occupiedSlots);
+                        
+                        // Show occupied slots info if any
+                        if (occupiedSlots.length > 0) {
+                            showOccupiedSlotsInfo();
+                        } else {
+                            hideOccupiedSlotsInfo();
+                        }
+                    }
+                    if (callback) callback();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching occupied slots:', error);
+                    occupiedSlots = [];
+                    if (callback) callback();
+                }
+            });
+        }
+
+        function showOccupiedSlotsInfo() {
+            // Show info about already submitted remittances
+            let slotsHtml = occupiedSlots.map(slot => {
+                return `<span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded text-xs mr-1 mb-1">
+                    <i class="fas fa-clock mr-1"></i>${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)}
+                    <span class="ml-1 text-red-500">(${slot.cashier_name})</span>
+                </span>`;
+            }).join('');
+            
+            if ($('#occupiedSlotsInfo').length === 0) {
+                $('#shiftStart').closest('.flex.items-center.gap-2').after(`
+                    <div id="occupiedSlotsInfo" class="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="text-xs font-medium text-red-600 mb-1">
+                            <i class="fas fa-info-circle mr-1"></i>Already submitted shifts today:
+                        </div>
+                        <div id="occupiedSlotsList">${slotsHtml}</div>
+                    </div>
+                `);
+            } else {
+                $('#occupiedSlotsList').html(slotsHtml);
+                $('#occupiedSlotsInfo').removeClass('hidden');
+            }
+        }
+
+        function hideOccupiedSlotsInfo() {
+            $('#occupiedSlotsInfo').addClass('hidden');
+        }
+
+        function formatTimeLabel(timeValue) {
+            const slot = timeSlots.find(s => s.value === timeValue);
+            return slot ? slot.label : timeValue;
+        }
+
+        // Check if a time slot overlaps with any occupied slot
+        function isTimeOccupied(timeValue) {
+            return occupiedSlots.some(slot => {
+                // Time is occupied if it falls within an existing shift (exclusive of end time)
+                return timeValue >= slot.start && timeValue < slot.end;
+            });
+        }
+
+        // Check if a range would overlap with any occupied slot
+        function wouldRangeOverlap(startTime, endTime) {
+            return occupiedSlots.some(slot => {
+                // Overlap if: start < existing_end AND end > existing_start
+                return startTime < slot.end && endTime > slot.start;
+            });
+        }
+
+        // Get available start times (times that could begin a non-overlapping shift)
+        function getAvailableStartTimes() {
+            const available = [];
+            
+            for (let i = 0; i < timeSlots.length - 1; i++) {
+                const slot = timeSlots[i];
+                
+                // Check if this start time could have at least one valid end time
+                let hasValidEnd = false;
+                for (let j = i + 1; j < timeSlots.length; j++) {
+                    const endSlot = timeSlots[j];
+                    if (!wouldRangeOverlap(slot.value, endSlot.value)) {
+                        hasValidEnd = true;
+                        break;
+                    }
+                }
+                
+                if (hasValidEnd) {
+                    available.push(slot);
+                }
+            }
+            
+            return available;
+        }
+
+        // Get available end times for a given start time
+        function getAvailableEndTimes(startValue) {
+            const startIndex = timeSlots.findIndex(slot => slot.value === startValue);
+            const available = [];
+            
+            for (let i = startIndex + 1; i < timeSlots.length; i++) {
+                const endSlot = timeSlots[i];
+                
+                // Check if this range would overlap with any occupied slot
+                if (!wouldRangeOverlap(startValue, endSlot.value)) {
+                    available.push(endSlot);
+                } else {
+                    // Once we hit an overlap, we can't have any later end times either
+                    // (since extending the range would still overlap)
+                    break;
+                }
+            }
+            
+            return available;
+        }
+
+        function populateShiftStartDropdown(selectedValue) {
+            const $startSelect = $('#shiftStart');
+            $startSelect.empty();
+            
+            const availableStarts = getAvailableStartTimes();
+            
+            if (availableStarts.length === 0) {
+                $startSelect.append(`<option value="" disabled>No available times</option>`);
+                disableSaveButton();
+                showAllSlotsOccupiedMessage();
+                return;
+            }
+            
+            // If we have available starts, hide the message and show shift section
+            hideAllSlotsOccupiedMessage();
+            
+            // Check if selected value is in available starts
+            let hasSelectedValue = availableStarts.some(slot => slot.value === selectedValue);
+            
+            availableStarts.forEach(function(slot, index) {
+                let selected = '';
+                if (hasSelectedValue && slot.value === selectedValue) {
+                    selected = 'selected';
+                } else if (!hasSelectedValue && index === 0) {
+                    selected = 'selected';
+                }
+                $startSelect.append(`<option value="${slot.value}" ${selected}>${slot.label}</option>`);
+            });
+        }
+
+        function populateShiftEndDropdown(startValue, selectedEndValue) {
+            const $endSelect = $('#shiftEnd');
+            $endSelect.empty();
+            
+            const availableEnds = getAvailableEndTimes(startValue);
+            
+            if (availableEnds.length === 0) {
+                $endSelect.append(`<option value="" disabled>No available times</option>`);
+                return;
+            }
+            
+            // Check if current selected end is still valid
+            let hasSelectedValue = availableEnds.some(slot => slot.value === selectedEndValue);
+            
+            availableEnds.forEach(function(slot, index) {
+                let selected = '';
+                if (hasSelectedValue && slot.value === selectedEndValue) {
+                    selected = 'selected';
+                } else if (!hasSelectedValue && index === Math.min(8, availableEnds.length - 1)) {
+                    // Default to ~8 hours shift or last available option
+                    selected = 'selected';
+                }
+                $endSelect.append(`<option value="${slot.value}" ${selected}>${slot.label}</option>`);
+            });
+        }
+
+        function showAllSlotsOccupiedMessage() {
+            // Hide the shift section
+            $('#shiftSection').hide();
+            
+            // Show the message in place of the shift section
+            if ($('#allSlotsOccupied').length === 0) {
+                $('#shiftSection').after(`
+                    <div id="allSlotsOccupied" class="p-3 bg-amber-50 border border-amber-300 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                            <span class="text-sm font-medium text-amber-700">
+                                All time slots for today have already been covered by existing remittances.
+                            </span>
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#allSlotsOccupied').show();
+            }
+        }
+
+        function hideAllSlotsOccupiedMessage() {
+            // Show the shift section
+            $('#shiftSection').show();
+            
+            // Hide the message
+            $('#allSlotsOccupied').hide();
+        }
 
         function initializeRemittance() {
             // Set today's date
@@ -470,6 +730,83 @@
                 day: 'numeric'
             };
             $('#remittanceDate').text(today.toLocaleDateString('en-US', options));
+        }
+
+        function bindShiftChangeEvents() {
+            // Shift change events are now bound in initializeShiftDropdowns()
+            // This function is kept for backward compatibility
+            console.log('Shift change events already bound in initializeShiftDropdowns');
+        }
+
+        function checkExistingRemittance() {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' + 
+                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(today.getDate()).padStart(2, '0');
+            const shiftStart = $('#shiftStart').val();
+            const shiftEnd = $('#shiftEnd').val();
+            const outletName = $('#outletName').val();
+
+            $.ajax({
+                url: BASE_URL + 'Sales/checkExistingRemittance',
+                type: 'GET',
+                data: {
+                    date: dateStr,
+                    shift_start: shiftStart,
+                    shift_end: shiftEnd,
+                    outlet_name: outletName
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.exists) {
+                        remittanceExists = true;
+                        existingRemittanceData = response.existing_remittance;
+                        showExistingRemittanceBanner(response.existing_remittance);
+                        disableSaveButton();
+                    } else {
+                        remittanceExists = false;
+                        existingRemittanceData = null;
+                        hideExistingRemittanceBanner();
+                        enableSaveButton();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error checking existing remittance:', error);
+                    // On error, allow save attempt (server will validate)
+                    remittanceExists = false;
+                    hideExistingRemittanceBanner();
+                    enableSaveButton();
+                }
+            });
+        }
+
+        function showExistingRemittanceBanner(data) {
+            const message = `A remittance for this shift (${data.shift}) was already submitted by <strong>${data.cashier_name}</strong> at ${data.submitted_at}.`;
+            const details = `Total Sales: ₱${parseFloat(data.total_sales).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            
+            $('#existingRemittanceMessage').html(message);
+            $('#existingRemittanceDetails').html(details);
+            $('#existingRemittanceBanner').removeClass('hidden').addClass('flex');
+        }
+
+        function hideExistingRemittanceBanner() {
+            $('#existingRemittanceBanner').addClass('hidden').removeClass('flex');
+        }
+
+        function disableSaveButton() {
+            $('#btnSaveRemittance')
+                .prop('disabled', true)
+                .removeClass('bg-primary hover:bg-secondary')
+                .addClass('bg-gray-400 cursor-not-allowed')
+                .attr('title', 'A remittance for this date and shift already exists');
+        }
+
+        function enableSaveButton() {
+            $('#btnSaveRemittance')
+                .prop('disabled', false)
+                .removeClass('bg-gray-400 cursor-not-allowed')
+                .addClass('bg-primary hover:bg-secondary')
+                .removeAttr('title');
         }
 
         function loadUserInfo() {
@@ -895,6 +1232,12 @@
             if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
                 return;
             }
+
+            // Check if remittance already exists (client-side check)
+            if (remittanceExists) {
+                showToast('warning', 'A remittance for this date and shift already exists. Please check the Remittance History.');
+                return;
+            }
             
             // Calculate variance properly with sign
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
@@ -952,6 +1295,17 @@
                     }
                     if (response.success) {
                         showToast('success', 'Remittance saved successfully!');
+                        // After successful save, update state to prevent duplicate submissions
+                        remittanceExists = true;
+                        disableSaveButton();
+                        
+                        // Refresh the occupied slots and update dropdowns
+                        fetchOccupiedSlots(function() {
+                            const currentStart = $('#shiftStart').val();
+                            populateShiftStartDropdown(currentStart);
+                            const newStart = $('#shiftStart').val();
+                            populateShiftEndDropdown(newStart, '');
+                        });
                     } else {
                         showToast('danger', response.message || 'Failed to save remittance');
                     }
@@ -960,7 +1314,18 @@
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }
-                    showToast('danger', 'Error saving remittance: ' + error);
+                    // Handle 409 Conflict (duplicate remittance) specifically
+                    if (xhr.status === 409) {
+                        const response = xhr.responseJSON;
+                        if (response && response.existing_remittance) {
+                            showExistingRemittanceBanner(response.existing_remittance);
+                            disableSaveButton();
+                            remittanceExists = true;
+                        }
+                        showToast('warning', response?.message || 'A remittance for this date and shift already exists.');
+                    } else {
+                        showToast('danger', 'Error saving remittance: ' + error);
+                    }
                 }
             });
         });

@@ -361,10 +361,10 @@
                         <select id="checkoutPaymentMethod"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="cash">Cash</option>
-                            <option value="gcash" disabled>GCash</option>
-                            <option value="maya" disabled>Maya</option>
-                            <option value="credit card" disabled>Credit Card</option>
-                            <option value="debit card" disabled>Debit Card</option>
+                            <option value="gcash">GCash</option>
+                            <option value="maya">Maya</option>
+                            <option value="credit card">Credit Card</option>
+                            <option value="debit card">Debit Card</option>
                         </select>
                     </div>
                     <div class="flex gap-2">

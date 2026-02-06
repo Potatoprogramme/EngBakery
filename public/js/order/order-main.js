@@ -465,6 +465,9 @@ function initCheckoutModal() {
     document.getElementById('btnToStep3').addEventListener('click', function() {
         currentStep = 3;
         showStep(3);
+        // Apply payment method restrictions when entering Step 3
+        const paymentMethod = document.getElementById('checkoutPaymentMethod').value;
+        handlePaymentMethodChange(paymentMethod);
     });
 
     document.getElementById('btnBackToStep2').addEventListener('click', function() {
@@ -474,6 +477,11 @@ function initCheckoutModal() {
 
     document.getElementById('amountTendered').addEventListener('input', function() {
         calculateChange();
+    });
+
+    // Payment method change handler - disable exact amount for online payments
+    document.getElementById('checkoutPaymentMethod').addEventListener('change', function() {
+        handlePaymentMethodChange(this.value);
     });
 
     document.querySelectorAll('.quick-amount').forEach(btn => {
@@ -624,6 +632,60 @@ function resetStepProgress() {
     document.getElementById('changeAmount').classList.remove('text-green-600', 'text-red-600');
     document.getElementById('checkoutOrderType').value = 'walk-in';
     document.getElementById('checkoutPaymentMethod').value = 'cash';
+    // Reset payment method UI state
+    handlePaymentMethodChange('cash');
+}
+
+/**
+ * Handle payment method change
+ * For online payments (gcash, maya, credit card, debit card), auto-set exact amount and disable input
+ */
+function handlePaymentMethodChange(paymentMethod) {
+    const amountInput = document.getElementById('amountTendered');
+    const exactBtn = document.querySelector('.quick-amount[data-type="exact"]');
+    const quickAmountBtns = document.querySelectorAll('.quick-amount[data-amount]');
+    const isOnlinePayment = ['gcash', 'maya', 'credit card', 'debit card'].includes(paymentMethod);
+    
+    if (isOnlinePayment) {
+        // For online payments: set exact amount and disable input
+        amountInput.value = checkoutTotalAmount.toFixed(2);
+        amountInput.disabled = true;
+        amountInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+        
+        // Disable exact button
+        if (exactBtn) {
+            exactBtn.disabled = true;
+            exactBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            exactBtn.classList.remove('hover:bg-primary', 'hover:text-white', 'hover:border-primary');
+        }
+        
+        // Disable other quick amount buttons
+        quickAmountBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.classList.remove('hover:bg-primary', 'hover:text-white', 'hover:border-primary');
+        });
+        
+        calculateChange();
+    } else {
+        // For cash: enable input and buttons
+        amountInput.disabled = false;
+        amountInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        
+        // Enable exact button
+        if (exactBtn) {
+            exactBtn.disabled = false;
+            exactBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            exactBtn.classList.add('hover:bg-primary', 'hover:text-white', 'hover:border-primary');
+        }
+        
+        // Enable other quick amount buttons
+        quickAmountBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.classList.add('hover:bg-primary', 'hover:text-white', 'hover:border-primary');
+        });
+    }
 }
 
 /**

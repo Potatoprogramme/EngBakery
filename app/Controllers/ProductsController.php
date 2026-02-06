@@ -4,38 +4,38 @@ namespace App\Controllers;
 
 class ProductsController extends BaseController
 {
-    
+
     public function test(): string
     {
-        return  view('Template/Header').
-                view('Template/SideNav') . 
-                view('Template/notification') .
-                view('Products/ProductTest') .
-                view('Template/Footer');
+        return view('Template/Header') .
+            view('Template/SideNav') .
+            view('Template/notification') .
+            view('Products/ProductTest') .
+            view('Template/Footer');
     }
 
     public function products(): string
     {
         $data = $this->getSessionData();
-        return  view('Template/Header', $data).
-                view('Template/SideNav', $data) . 
-                view('Template/notification', $data) .
-                view('Products/Product', $data) .
-                view('Template/Footer', $data);
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('Products/Product', $data) .
+            view('Template/Footer', $data);
     }
 
     public function addProduct()
     {
         try {
             $data = $this->request->getJSON(true);
-            
+
             // Log incoming data for debugging
             log_message('debug', 'AddProduct received data: ' . json_encode($data));
-            
+
             // Handle both naming conventions (material_name/product_name, category_id/category)
             $productName = $data['product_name'] ?? $data['material_name'] ?? null;
             $category = $data['category'] ?? $data['category_id'] ?? null;
-            
+
             // Validate required fields
             if (empty($productName)) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -43,14 +43,14 @@ class ProductsController extends BaseController
                     'message' => 'Product name is required.',
                 ]);
             }
-            
+
             if (empty($category)) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Product category is required.',
                 ]);
             }
-            
+
             // Check for ingredients (not required for grocery category)
             $ingredients = $data['ingredients'] ?? [];
             if (empty($ingredients) && strtolower($category) !== 'grocery') {
@@ -59,7 +59,7 @@ class ProductsController extends BaseController
                     'message' => 'At least one ingredient is required.',
                 ]);
             }
-            
+
             // For grocery category, validate direct_cost
             if (strtolower($category) === 'grocery') {
                 $directCost = floatval($data['direct_cost'] ?? 0);
@@ -70,7 +70,7 @@ class ProductsController extends BaseController
                     ]);
                 }
             }
-            
+
             // Check if product name already exists
             if ($this->productModel->nameExists($productName)) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -78,10 +78,10 @@ class ProductsController extends BaseController
                     'message' => 'A product with this name already exists.',
                 ]);
             }
-            
+
             // Start database transaction
             $this->db->transStart();
-            
+
             try {
                 // Step 1: Insert the product first
                 $productData = [
@@ -89,12 +89,12 @@ class ProductsController extends BaseController
                     'product_name' => trim($productName),
                     'product_description' => trim($data['product_description'] ?? ''),
                 ];
-                
+
                 $this->db->table('products')->insert($productData);
                 $productId = $this->db->insertID();
-                
+
                 log_message('debug', 'Created product with ID: ' . $productId);
-                
+
                 // Step 2: Insert all recipe ingredients
                 foreach ($ingredients as $index => $ingredient) {
                     $ingredientData = [
@@ -104,10 +104,10 @@ class ProductsController extends BaseController
                         'unit' => $ingredient['unit'],
                     ];
                     $this->db->table('product_recipe')->insert($ingredientData);
-                    
+
                     log_message('debug', 'Inserted ingredient: ' . json_encode($ingredientData));
                 }
-                
+
                 // Step 3: Insert product costs
                 $costData = [
                     'product_id' => $productId,
@@ -127,9 +127,9 @@ class ProductsController extends BaseController
                     'grams_per_tray' => floatval($data['grams_per_tray'] ?? 0),
                     'grams_per_piece' => floatval($data['grams_per_piece'] ?? 0),
                 ];
-                
+
                 $this->db->table('product_costs')->insert($costData);
-                
+
                 log_message('debug', 'Inserted product costs: ' . json_encode($costData));
 
                 // Step 4: Insert combined recipes if provided
@@ -144,20 +144,20 @@ class ProductsController extends BaseController
                             'total_cost' => floatval($combinedRecipe['totalCost'] ?? $combinedRecipe['total_cost'] ?? 0),
                         ];
                         $this->db->table('product_combined_recipes')->insert($combinedRecipeData);
-                        
+
                         log_message('debug', 'Inserted combined recipe: ' . json_encode($combinedRecipeData));
                     }
                 }
-                
+
                 // Commit transaction
                 $this->db->transComplete();
-                
+
                 if ($this->db->transStatus() === false) {
                     throw new \Exception('Transaction failed');
                 }
-                
+
                 log_message('info', 'Product added successfully with ID: ' . $productId);
-                
+
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => 'Product added successfully.',
@@ -168,12 +168,12 @@ class ProductsController extends BaseController
                         'ingredients_count' => count($ingredients),
                     ],
                 ]);
-                
+
             } catch (\Exception $e) {
                 $this->db->transRollback();
                 throw $e;
             }
-            
+
         } catch (\Exception $e) {
             log_message('error', 'Error adding product: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return $this->response->setStatusCode(500)->setJSON([
@@ -190,7 +190,7 @@ class ProductsController extends BaseController
     {
         try {
             $products = $this->productModel->getAllWithDetails();
-            
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $products,
@@ -218,7 +218,7 @@ class ProductsController extends BaseController
             }
 
             $product = $this->productModel->getProductById($id);
-            
+
             if (!$product) {
                 return $this->response->setStatusCode(404)->setJSON([
                     'success' => false,
@@ -233,7 +233,7 @@ class ProductsController extends BaseController
             // Get combined recipes
             $combinedRecipes = $this->productCombinedRecipeModel->getCombinedRecipesByProductId($id);
             $product['combined_recipes'] = $combinedRecipes;
-            
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $product,
@@ -254,7 +254,7 @@ class ProductsController extends BaseController
     {
         try {
             $data = $this->request->getJSON(true);
-            
+
             if (empty($data['product_id'])) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
@@ -366,14 +366,14 @@ class ProductsController extends BaseController
             if (isset($data['combined_recipes'])) {
                 $this->productCombinedRecipeModel->saveCombinedRecipes($productId, $data['combined_recipes']);
             }
-            
+
             if (!$result) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to update product. Please try again.',
                 ]);
             }
-            
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'message' => 'Product updated successfully.',
@@ -411,14 +411,14 @@ class ProductsController extends BaseController
 
             // Delete product
             $result = $this->productModel->deleteProduct($id);
-            
+
             if (!$result) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to delete product. Please try again.',
                 ]);
             }
-            
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'message' => 'Product deleted successfully.',
@@ -428,6 +428,71 @@ class ProductsController extends BaseController
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'An error occurred while deleting the product.',
+            ]);
+        }
+    }
+    public function toggleProductStatus()
+    {
+        try {
+            $json = $this->request->getJSON(true);
+
+            // Validate input
+            if (empty($json['product_id'])) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Product ID is required.'
+                ]);
+            }
+
+            $productId = $json['product_id'];
+            $isEnabled = $json['is_enabled'] ?? true;
+
+            // Convert is_enabled to is_disabled (inverse logic)
+            $isDisabled = !$isEnabled;
+
+            // Check if product exists
+            $product = $this->productModel->find($productId);
+
+            if (!$product) {
+                return $this->response->setStatusCode(404)->setJSON([
+                    'success' => false,
+                    'message' => 'Product not found.'
+                ]);
+            }
+
+            // Update the is_disabled status (inverse of is_enabled)
+            $updated = $this->productModel->update($productId, [
+                'is_disabled' => $isDisabled ? 1 : 0,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            if ($updated) {
+                $statusText = $isEnabled ? 'enabled' : 'disabled';
+
+                log_message('info', "Product #{$productId} ({$product['product_name']}) has been {$statusText}");
+
+                return $this->response->setStatusCode(200)->setJSON([
+                    'success' => true,
+                    'message' => "Product {$statusText} successfully.",
+                    'data' => [
+                        'product_id' => $productId,
+                        'is_enabled' => $isEnabled,
+                        'is_disabled' => $isDisabled,
+                        'product_name' => $product['product_name']
+                    ]
+                ]);
+            } else {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to update product status. Please try again.'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error toggling product: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'An error occurred while updating product status: ' . $e->getMessage()
             ]);
         }
     }

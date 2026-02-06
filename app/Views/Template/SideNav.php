@@ -109,7 +109,7 @@
                         <li>
                             <a href="<?= base_url('Sales/History') ?>" class="flex items-center w-full p-2 pl-11 text-gray-900 rounded-lg hover:bg-gray-100 group transition-colors duration-300 <?= ($current === 'sales' && $currentSegment2 === 'history') ? 'bg-gray-200 font-semibold' : '' ?>">
                                 <i class="fas fa-history mr-2 <?= ($current === 'sales' && $currentSegment2 === 'history') ? 'text-primary' : 'text-gray-500' ?>"></i>
-                                <span class="text-sm">Sales History</span>
+                                <span class="text-sm">Transactions History</span>
                             </a>
                         </li>
                         <li>
