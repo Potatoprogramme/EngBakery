@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class RawMaterialStockModel extends Model
 {
-    protected $table            = 'raw_material_stock';
+    protected $table            = 'raw_material_stock_current';
     protected $primaryKey       = 'stock_id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -97,13 +97,13 @@ class RawMaterialStockModel extends Model
     public function getLowStock(float $thresholdPercentage = 20): array
     {
         return $this->select('
-                raw_material_stock.*,
+                raw_material_stock_current.*,
                 raw_materials.material_name,
                 raw_materials.material_quantity,
                 raw_materials.unit,
-                (raw_material_stock.current_quantity / raw_materials.material_quantity * 100) as stock_percentage
+                (raw_material_stock_current.current_quantity / raw_materials.material_quantity * 100) as stock_percentage
             ')
-            ->join('raw_materials', 'raw_materials.stock_id = raw_material_stock.stock_id')
+            ->join('raw_materials', 'raw_materials.stock_id = raw_material_stock_current.stock_id')
             ->having('stock_percentage <=', $thresholdPercentage)
             ->findAll();
     }
@@ -130,7 +130,7 @@ class RawMaterialStockModel extends Model
                     WHEN rms.current_quantity <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
-            FROM raw_material_stock rms
+            FROM raw_material_stock_current rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
@@ -148,7 +148,7 @@ class RawMaterialStockModel extends Model
             SELECT 
                 SUM(CASE WHEN current_quantity <= ? THEN 1 ELSE 0 END) as critical_count,
                 SUM(CASE WHEN current_quantity > ? AND current_quantity <= ? THEN 1 ELSE 0 END) as warning_count
-            FROM raw_material_stock
+            FROM raw_material_stock_current
         ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
         
         return [
