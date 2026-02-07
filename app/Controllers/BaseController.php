@@ -161,6 +161,7 @@ abstract class BaseController extends Controller
     protected function redirectIfNotLoggedIn(string $message = 'Please log in to access this page.')
     {
         if (!$this->isLoggedIn()) {
+            session()->destroy(); // Clear session data to prevent unauthorized access
             return redirect()->to(base_url('login'))->with('error_message', $message);
         }
         return false;
@@ -174,7 +175,7 @@ abstract class BaseController extends Controller
     protected function redirectIfNotAdmin(string $message = 'Access denied. Admin privileges required.')
     {
         if (!$this->isAdmin()) {
-            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
+            return redirect()->back()->with('error_message', $message);
         }
         return false;
     }
@@ -187,23 +188,8 @@ abstract class BaseController extends Controller
     protected function redirectIfNotOwnerAndAdmin(string $message = 'Access denied. Admin privileges required.')
     {
         if (!$this->isAdmin() && !$this->isOwner()) {
-            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
+            return redirect()->back()->with('error_message', $message);
         }
         return false;
     }
-
-    /**
-     * Redirect if user is not staff
-     * @param string $message Optional error message
-     * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not staff, false otherwise
-     */
-    protected function redirectIfNotStaff(string $message = 'Access denied. Staff privileges required.')
-    {
-        if (!$this->isStaff()) {
-            return redirect()->to(base_url('Dashboard'))->with('error_message', $message);
-        }
-        return false;
-    }
-
-    
 }

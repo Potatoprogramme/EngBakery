@@ -29,6 +29,14 @@ class RemittanceDetailsModel extends Model
         'is_short',
     ];
 
+    public function getAllRemittancesById(int $userId): array
+    {
+        return $this->select("remittance_details.*, CONCAT(users.firstname, ' ', COALESCE(users.middlename, ''), ' ', users.lastname) AS cashier_name")
+            ->join('users', 'users.user_id = remittance_details.cashier', 'left')
+            ->where('remittance_details.cashier', $userId)
+            ->orderBy('remittance_date', 'DESC')
+            ->findAll();
+    }
     public function getAllRemittances(): array
     {
         return $this->select("remittance_details.*, CONCAT(users.firstname, ' ', COALESCE(users.middlename, ''), ' ', users.lastname) AS cashier_name")

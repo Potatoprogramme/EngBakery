@@ -49,11 +49,24 @@ class SalesController extends BaseController
 
     public function getRemittanceHistory()
     {
-        $remittances = $this->remittanceDetailsModel->getAllRemittances();
+        $employeeType = $this->getSessionData()['employee_type'];
+        $userId = $this->getSessionData()['user_id'];
+
+        log_message("info", "Fetching remittance history for user ID: " . $userId . " with role: " . $employeeType);
+        
+        // If user is staff, filter remittances to show only their own
+        if ($employeeType === 'staff' && $userId) {
+            $remittances = $this->remittanceDetailsModel->getAllRemittancesById((int) $userId);
+        } else {
+            // Admin/Owner can see all remittances
+            $remittances = $this->remittanceDetailsModel->getAllRemittances();
+        }
 
         return $this->response->setJSON([
             'success' => true,
-            'data' => $remittances
+            'data' => $remittances,
+            'employeeType' => $employeeType,
+            'userId' => $userId
         ]);
     }
 
@@ -86,7 +99,8 @@ class SalesController extends BaseController
     public function deleteRemittance($remittanceId)
     {
         // Check if user is admin or owner
-        $employeeType = session()->get('employee_type');
+        $employeeType = $this->getSessionData()['employee_type'];
+        
         if (!in_array($employeeType, ['admin', 'owner'])) {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,

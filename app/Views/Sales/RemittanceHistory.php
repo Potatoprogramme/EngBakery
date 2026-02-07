@@ -1,24 +1,6 @@
 <body class="bg-gray-50">
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
-            <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
-                <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
-                    <li><a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a></li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li><a href="<?= base_url('Sales') ?>" class="hover:text-primary">Daily Sales Remittance</a></li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li class="text-gray-700">Remittance History</li>
-                </ol>
-            </nav>
-
             <!-- Header Card -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
@@ -28,7 +10,7 @@
                     <div class="flex flex-wrap gap-2">
                         <a href="<?= base_url('Sales') ?>"
                             class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Today's Remittance
+                            Remittance Form
                         </a>
                     </div>
                 </div>
@@ -45,12 +27,14 @@
                             <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
                             <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
-                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterCashier" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
-                            <select id="filterCashier" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                                <option value="">All Cashiers</option>
-                            </select>
-                        </div>
+                        <?php if ($employee_type === 'admin' || $employee_type === 'owner'): ?>
+                            <div class="flex items-center gap-2 flex-1 sm:flex-none">
+                                <label for="filterCashier" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
+                                <select id="filterCashier" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                                    <option value="">All Cashiers</option>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="flex gap-2 sm:justify-end">
                         <button id="btnApplyFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -249,7 +233,7 @@
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         window.USER_ROLE = '<?= $employee_type ?? 'staff' ?>'; // Get user role from session
         const canDeleteRemittance = ['admin', 'owner'].includes(USER_ROLE);
-        
+
         let dataTable = null;
         let remittanceData = []; // Store fetched data for filtering
         let currentRemittanceDetails = null; // Store current remittance details for printing
@@ -265,6 +249,8 @@
                         renderRemittanceHistory(response.data);
                         initFilters(); // Initialize filters after data is loaded
                         console.log('Remittance data fetched:', response.data);
+                        console.log('User role:', response.employeeType);
+                        console.log('User ID:', response.userId);
                     } else {
                         showToast('error', 'Failed to fetch remittance history');
                     }
@@ -337,7 +323,7 @@
 
                 $('#filterDateTo').val(today.toISOString().split('T')[0]);
                 $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
-                $('#filterCashier').val('');
+
                 renderRemittanceHistory(remittanceData);
                 showToast('info', 'Filters reset');
             });
