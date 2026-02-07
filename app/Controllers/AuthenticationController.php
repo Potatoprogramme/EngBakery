@@ -53,7 +53,12 @@ class AuthenticationController extends BaseController
             session()->set($userData);
 
             log_message('info', 'User Data: ' . print_r($userData, true));
-            return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
+
+            if ($this->isStaff()){
+                return redirect()->to(base_url('RawMaterials'))->with('success_message', 'Successfully logged in.');
+            } else {
+                return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
+            } 
         } else {
             log_message('warning', 'Failed login attempt for username: ' . $username);
             return redirect()->to(base_url('login'))->with('error_message', 'Invalid username or password.');
@@ -161,7 +166,13 @@ class AuthenticationController extends BaseController
 
             log_message('info', 'User Data: ' . print_r($userData, true));
             log_message('info', 'User logged in successfully via Google: ' . $userInformation['email']);
-            return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in with Google.');
+            
+            if ($this->isStaff()){
+                return redirect()->to(base_url('RawMaterials'))->with('success_message', 'Successfully logged in.');
+            } else {
+                return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
+            } 
+            
         } catch (\Exception $e) {
             log_message('error', 'Google OAuth Error: ' . $e->getMessage());
             return redirect()->to(base_url('login'))->with('error_message', $e->getMessage());

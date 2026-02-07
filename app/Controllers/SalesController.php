@@ -49,11 +49,24 @@ class SalesController extends BaseController
 
     public function getRemittanceHistory()
     {
-        $remittances = $this->remittanceDetailsModel->getAllRemittances();
+        $employeeType = $this->getSessionData()['employee_type'];
+        $userId = $this->getSessionData()['user_id'];
+
+        log_message("info", "Fetching remittance history for user ID: " . $userId . " with role: " . $employeeType);
+        
+        // If user is staff, filter remittances to show only their own
+        if ($employeeType === 'staff' && $userId) {
+            $remittances = $this->remittanceDetailsModel->getAllRemittancesById((int) $userId);
+        } else {
+            // Admin/Owner can see all remittances
+            $remittances = $this->remittanceDetailsModel->getAllRemittances();
+        }
 
         return $this->response->setJSON([
             'success' => true,
-            'data' => $remittances
+            'data' => $remittances,
+            'employeeType' => $employeeType,
+            'userId' => $userId
         ]);
     }
 
@@ -76,6 +89,52 @@ class SalesController extends BaseController
                 'details' => $remittanceDetails,
                 'denominations' => $remittanceDenominations
             ]
+        ]);
+    }
+
+    /**
+     * Delete a remittance record
+     * Only accessible by Admin and Owner
+     */
+    public function deleteRemittance($remittanceId)
+    {
+        // Check if user is admin or owner
+        $employeeType = $this->getSessionData()['employee_type'];
+        
+        if (!in_array($employeeType, ['admin', 'owner'])) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You do not have permission to delete remittances'
+            ]);
+        }
+
+        // Check if remittance exists
+        $remittance = $this->remittanceDetailsModel->find((int) $remittanceId);
+        if (!$remittance) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Remittance not found'
+            ]);
+        }
+
+        // Delete related records first (denominations and items)
+        $this->remittanceDenominationsModel->where('remittance_id', $remittanceId)->delete();
+        $this->remittanceItemsModel->where('remittance_id', $remittanceId)->delete();
+
+        // Delete the remittance
+        $deleted = $this->remittanceDetailsModel->deleteRemittance((int) $remittanceId);
+
+        if ($deleted) {
+            log_message('info', 'Remittance ID ' . $remittanceId . ' deleted by user ' . session()->get('id') . ' (' . $employeeType . ')');
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Remittance deleted successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to delete remittance'
         ]);
     }
 
@@ -118,6 +177,86 @@ class SalesController extends BaseController
         ]);
     }
 
+    /**
+     * Check if a remittance already exists for the given date and shift
+     * Called via AJAX to validate before allowing remittance creation
+     */
+    public function checkExistingRemittance()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $shiftStart = $this->request->getGet('shift_start') ?? '07:00:00';
+        $shiftEnd = $this->request->getGet('shift_end') ?? '16:00:00';
+        $outletName = $this->request->getGet('outlet_name') ?? '';
+
+        // Ensure time format includes seconds
+        if (strlen($shiftStart) === 5) {
+            $shiftStart .= ':00';
+        }
+        if (strlen($shiftEnd) === 5) {
+            $shiftEnd .= ':00';
+        }
+
+        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(
+            $date,
+            $shiftStart,
+            $shiftEnd,
+            !empty($outletName) ? $outletName : null
+        );
+
+        if ($existingRemittance) {
+            $cashierName = $existingRemittance['cashier_name'] ?? 'Unknown';
+            $existingTime = date('h:i A', strtotime($existingRemittance['remittance_date']));
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'exists' => true,
+                'existing_remittance' => [
+                    'id' => $existingRemittance['remittance_id'],
+                    'cashier_name' => $cashierName,
+                    'submitted_at' => $existingTime,
+                    'date' => $date,
+                    'shift' => date('h:i A', strtotime($shiftStart)) . ' - ' . date('h:i A', strtotime($shiftEnd)),
+                    'total_sales' => $existingRemittance['total_sales'] ?? 0
+                ]
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'exists' => false
+        ]);
+    }
+
+    /**
+     * Get all remittances for a specific date to determine available time slots
+     * Called via AJAX to populate shift dropdowns
+     */
+    public function getRemittancesForDate()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $outletName = $this->request->getGet('outlet_name') ?? '';
+
+        $remittances = $this->remittanceDetailsModel->getRemittancesByDate(
+            $date,
+            !empty($outletName) ? $outletName : null
+        );
+
+        // Extract just the shift times
+        $occupiedSlots = [];
+        foreach ($remittances as $remittance) {
+            $occupiedSlots[] = [
+                'start' => substr($remittance['shift_start'], 0, 5), // HH:MM format
+                'end' => substr($remittance['shift_end'], 0, 5),
+                'cashier_name' => $remittance['cashier_name'] ?? 'Unknown'
+            ];
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'occupied_slots' => $occupiedSlots
+        ]);
+    }
+
     public function saveRemittance()
     {
         $data = $this->request->getJSON(true);
@@ -126,6 +265,38 @@ class SalesController extends BaseController
         if (empty($data) || !is_array($data)) {
             log_message('warning', 'Invalid or empty remittance payload');
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Invalid remittance data']);
+        }
+
+        // Extract date and shift information for duplicate check
+        $remittanceDate = $data['date'] ?? date('Y-m-d H:i:s');
+        $dateOnly = date('Y-m-d', strtotime($remittanceDate));
+        $shiftStart = $data['shift_start'] ?? '00:00:00';
+        $shiftEnd = $data['shift_end'] ?? '00:00:00';
+        $outletName = $data['outlet_name'] ?? '';
+
+        // Check for existing remittance with same date, shift, and outlet
+        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(
+            $dateOnly,
+            $shiftStart,
+            $shiftEnd,
+            $outletName
+        );
+
+        if ($existingRemittance) {
+            $cashierName = $existingRemittance['cashier_name'] ?? 'Unknown';
+            $existingTime = date('h:i A', strtotime($existingRemittance['remittance_date']));
+            log_message('info', 'Duplicate remittance attempt blocked for date: ' . $dateOnly . ', shift: ' . $shiftStart . ' - ' . $shiftEnd);
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'A remittance for this date and shift already exists.',
+                'existing_remittance' => [
+                    'id' => $existingRemittance['remittance_id'],
+                    'cashier_name' => $cashierName,
+                    'submitted_at' => $existingTime,
+                    'date' => $dateOnly,
+                    'shift' => date('h:i A', strtotime($shiftStart)) . ' - ' . date('h:i A', strtotime($shiftEnd))
+                ]
+            ]);
         }
 
         // Get cashier id - use session if available, otherwise use provided value or default to 1

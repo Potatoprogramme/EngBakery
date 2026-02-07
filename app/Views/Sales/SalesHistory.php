@@ -9,13 +9,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </li>
-                    <li><a href="<?= base_url('Sales') ?>" class="hover:text-primary">Daily Sales Remittance</a></li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li class="text-gray-700">Sales History</li>
+                    <li class="text-gray-700">Transactions History</li>
                 </ol>
             </nav>
 
@@ -23,7 +17,7 @@
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">
-                        Sales History
+                        Transactions History
                     </h2>
                     <!-- <div class="flex flex-wrap gap-2">
                         <a href="<?= base_url('Sales') ?>"
@@ -59,8 +53,15 @@
                             class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-redo mr-2"></i>Reset
                         </button>
-                        <button id="btnExportCsv" type="button"
-                            class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-green-500 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-200">
+                        </button>
+                        <!-- Enable Export Button -->
+                        <!-- <button type="button" id="btnExportCsv"
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            <i class="fas fa-file-csv mr-2"></i>Export
+                        </button> -->
+                        <!-- Disable Export Button -->
+                        <button type="button" id="btnExportCsv" disabled
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fas fa-file-csv mr-2"></i>Export
                         </button>
                     </div>

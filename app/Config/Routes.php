@@ -58,6 +58,8 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('AddProduct', 'ProductsController::addProduct');
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
+    $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
+    
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {
@@ -107,6 +109,8 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('/', 'SalesController::index');
     $routes->get('GetTodaysSales', 'SalesController::getTodaysSales');
     $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
+    $routes->get('checkExistingRemittance', 'SalesController::checkExistingRemittance');
+    $routes->get('getRemittancesForDate', 'SalesController::getRemittancesForDate');
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
     // Routes for Sales History
     $routes->get('History', 'SalesController::history');
@@ -117,6 +121,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('RemittanceHistory', 'SalesController::remittanceHistory');
     $routes->get('GetRemittanceHistory', 'SalesController::getRemittanceHistory');
     $routes->get('GetRemittanceDetails/(:num)', 'SalesController::getRemittanceDetails/$1');
+    $routes->post('DeleteRemittance/(:num)', 'SalesController::deleteRemittance/$1'); // Admin/Owner only
 });
 
 $routes->group('Approval', function (RouteCollection $routes) {
@@ -139,3 +144,7 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
     $routes->get('/', 'DeliveryLogController::index');
 });
 
+
+$routes->group('Utility', function (RouteCollection $routes) {
+    $routes->get('/', 'UtilityController::index');
+});

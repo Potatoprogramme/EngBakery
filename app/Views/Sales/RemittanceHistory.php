@@ -1,24 +1,6 @@
 <body class="bg-gray-50">
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
-            <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
-                <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
-                    <li><a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a></li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li><a href="<?= base_url('Sales') ?>" class="hover:text-primary">Daily Sales Remittance</a></li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li class="text-gray-700">Remittance History</li>
-                </ol>
-            </nav>
-
             <!-- Header Card -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
@@ -28,7 +10,7 @@
                     <div class="flex flex-wrap gap-2">
                         <a href="<?= base_url('Sales') ?>"
                             class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Today's Remittance
+                            Remittance Form
                         </a>
                     </div>
                 </div>
@@ -45,12 +27,14 @@
                             <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
                             <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
-                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterCashier" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
-                            <select id="filterCashier" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                                <option value="">All Cashiers</option>
-                            </select>
-                        </div>
+                        <?php if ($employee_type === 'admin' || $employee_type === 'owner'): ?>
+                            <div class="flex items-center gap-2 flex-1 sm:flex-none">
+                                <label for="filterCashier" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
+                                <select id="filterCashier" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                                    <option value="">All Cashiers</option>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="flex gap-2 sm:justify-end">
                         <button id="btnApplyFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -59,7 +43,14 @@
                         <button id="btnResetFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-redo mr-2"></i>Reset
                         </button>
-                        <button id="btnExportCsv" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-green-500 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-200">
+                        <!-- Enable Export Button -->
+                        <!-- <button type="button" id="btnExportCsv"
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            <i class="fas fa-file-csv mr-2"></i>Export
+                        </button> -->
+                        <!-- Disable Export Button -->
+                        <button type="button" id="btnExportCsv" disabled
+                            class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fas fa-file-csv mr-2"></i>Export
                         </button>
                     </div>
@@ -240,6 +231,9 @@
 
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.USER_ROLE = '<?= $employee_type ?? 'staff' ?>'; // Get user role from session
+        const canDeleteRemittance = ['admin', 'owner'].includes(USER_ROLE);
+
         let dataTable = null;
         let remittanceData = []; // Store fetched data for filtering
         let currentRemittanceDetails = null; // Store current remittance details for printing
@@ -255,6 +249,8 @@
                         renderRemittanceHistory(response.data);
                         initFilters(); // Initialize filters after data is loaded
                         console.log('Remittance data fetched:', response.data);
+                        console.log('User role:', response.employeeType);
+                        console.log('User ID:', response.userId);
                     } else {
                         showToast('error', 'Failed to fetch remittance history');
                     }
@@ -327,7 +323,7 @@
 
                 $('#filterDateTo').val(today.toISOString().split('T')[0]);
                 $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
-                $('#filterCashier').val('');
+
                 renderRemittanceHistory(remittanceData);
                 showToast('info', 'Filters reset');
             });
@@ -458,6 +454,13 @@
                     varianceText = isShort ? '-' + formatCurrency(varianceAmount) : '+' + formatCurrency(varianceAmount);
                 }
 
+                // Delete button - only shown for admin/owner
+                const deleteButton = canDeleteRemittance ? `
+                    <button type="button" class="btn-delete-remittance text-red-500 py-2 px-3 bg-red-50 rounded border border-red-200 hover:text-white hover:bg-red-500 ml-1" data-id="${remittance.remittance_id}" data-date="${dateStr}" title="Delete Remittance">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : '';
+
                 html += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
@@ -468,9 +471,12 @@
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                            <div class="flex items-center">
+                                <button type="button" class="btn-view-details text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-index="${index}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${deleteButton}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -496,6 +502,13 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+            });
+
+            // Delete button click handler (desktop)
+            $('#remittanceHistoryTable').on('click', '.btn-delete-remittance', function() {
+                const remittanceId = $(this).data('id');
+                const dateStr = $(this).data('date');
+                confirmDeleteRemittance(remittanceId, dateStr);
             });
         }
 
@@ -592,9 +605,16 @@
                                     <p class="text-xs text-gray-500">Total Remitted</p>
                                     <p class="text-xl font-bold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</p>
                                 </div>
-                                <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
+                                        <i class="fas fa-eye mr-1"></i>View
+                                    </button>
+                                    ${canDeleteRemittance ? `
+                                    <button type="button" class="btn-delete-remittance-mobile px-3 py-2 text-sm font-medium text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-500 hover:text-white transition-all" data-id="${remittance.remittance_id}" data-date="${dateStr}" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -609,6 +629,60 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+            });
+
+            // Delete button click handler (mobile)
+            $('.btn-delete-remittance-mobile').on('click', function() {
+                const remittanceId = $(this).data('id');
+                const dateStr = $(this).data('date');
+                confirmDeleteRemittance(remittanceId, dateStr);
+            });
+        }
+
+        // Confirm and delete remittance
+        function confirmDeleteRemittance(remittanceId, dateStr) {
+            if (!canDeleteRemittance) {
+                showToast('error', 'You do not have permission to delete remittances');
+                return;
+            }
+
+            // Use custom Confirm.delete modal
+            Confirm.delete(
+                `Are you sure you want to delete the remittance from ${dateStr}? This action cannot be undone.`,
+                function() {
+                    // On confirm
+                    deleteRemittance(remittanceId);
+                },
+                function() {
+                    // On cancel - do nothing
+                }
+            );
+        }
+
+        function deleteRemittance(remittanceId) {
+            $.ajax({
+                url: BASE_URL + 'Sales/DeleteRemittance/' + remittanceId,
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('success', response.message || 'Remittance deleted successfully');
+                        // Refresh the remittance list
+                        getAllRemittances();
+                    } else {
+                        showToast('error', response.message || 'Failed to delete remittance');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    if (xhr.status === 403) {
+                        showToast('error', response?.message || 'You do not have permission to delete remittances');
+                    } else if (xhr.status === 404) {
+                        showToast('error', response?.message || 'Remittance not found');
+                    } else {
+                        showToast('error', response?.message || 'An error occurred while deleting remittance');
+                    }
+                }
             });
         }
 
