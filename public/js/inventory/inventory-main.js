@@ -665,6 +665,8 @@ function loadAvailableProducts() {
     );
 }
 
+// Deduction Helper Functions
+// ==========================================
 /**
  * Render deduction preview inside the add product modal
  */
