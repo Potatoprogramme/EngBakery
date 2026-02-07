@@ -1,60 +1,61 @@
-<?php 
-    $current = strtolower(service('uri')->getSegment(1) ?? ''); 
-    $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
+<?php
+$current = strtolower(service('uri')->getSegment(1) ?? '');
+$currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
 ?>
 <!-- Navbar -->
-    <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
-        <div class="px-3 py-3 lg:px-5 lg:pl-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center justify-start rtl:justify-end">
-                    <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                        <span class="sr-only">Open sidebar</span>
-                        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-                        </svg>
-                    </button>
-                    <a href="<?= base_url() ?>" class="flex items-center justify-center ms-4 md:me-24">
-                        <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-2" alt="En'G Bakery Logo" />
-                        <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary">E n' G Bakery</span>
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <div class="flex items-center gap-2 sm:gap-3 ms-3">
-                        <!-- Profile Dropdown -->
-                        <div>
-                            <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300" aria-expanded="false" data-dropdown-toggle="dropdown-user">
-                                <span class="sr-only">Open user menu</span>
-                                <img class="w-8 h-8 rounded-full" src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="user photo">
-                            </button>
+<nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
+    <div class="px-3 py-3 lg:px-5 lg:pl-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center justify-start rtl:justify-end">
+                <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <span class="sr-only">Open sidebar</span>
+                    <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+                    </svg>
+                </button>
+                <a href="<?= base_url() ?>" class="flex items-center justify-center ms-4 md:me-24">
+                    <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-2" alt="En'G Bakery Logo" />
+                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary">E n' G Bakery</span>
+                </a>
+            </div>
+            <div class="flex items-center">
+                <div class="flex items-center gap-2 sm:gap-3 ms-3">
+                    <!-- Profile Dropdown -->
+                    <div>
+                        <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300" aria-expanded="false" data-dropdown-toggle="dropdown-user">
+                            <span class="sr-only">Open user menu</span>
+                            <img class="w-8 h-8 rounded-full" src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="user photo">
+                        </button>
+                    </div>
+                    <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow" id="dropdown-user">
+                        <div class="px-4 py-3" role="none">
+                            <p class="text-sm text-gray-900" role="none">
+                                E n'G Bakery - <?= ucfirst(session('employee_type')) ?>
+                            </p>
+                            <p class="text-sm font-medium text-gray-900 truncate" role="none">
+                                <?= session('email') ?>
+                            </p>
                         </div>
-                        <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow" id="dropdown-user">
-                            <div class="px-4 py-3" role="none">
-                                <p class="text-sm text-gray-900" role="none">
-                                    E n'G Bakery - <?= ucfirst(session('employee_type')) ?>
-                                </p>
-                                <p class="text-sm font-medium text-gray-900 truncate" role="none">
-                                    <?= session('email') ?>
-                                </p>
-                            </div>
-                            <ul class="py-1" role="none">
-                                <li>
-                                    <a href="<?= base_url('User/Profile') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Account Settings</a>
-                                </li>
-                                <li>
-                                    <a href="<?= base_url('Logout') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</a>
-                                </li>
-                            </ul>
-                        </div>
+                        <ul class="py-1" role="none">
+                            <li>
+                                <a href="<?= base_url('User/Profile') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Account Settings</a>
+                            </li>
+                            <li>
+                                <a href="<?= base_url('Logout') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Sidebar -->
-    <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-60 h-screen pt-[70px] sm:pt-[60px] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
-        <div class="h-full px-3 pb-4 overflow-y-auto bg-white flex flex-col">
-            <ul class="space-y-2 font-medium flex-1">
+<!-- Sidebar -->
+<aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-60 h-screen pt-[70px] sm:pt-[60px] transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0" aria-label="Sidebar">
+    <div class="h-full px-3 pb-4 overflow-y-auto bg-white flex flex-col">
+        <ul class="space-y-2 font-medium flex-1">
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <a href="<?= base_url('Dashboard') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'dashboard') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'dashboard') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -63,14 +64,16 @@
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'dashboard') ? 'text-white' : '' ?>">Dashboard</span>
                     </a>
                 </li>
-                <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('RawMaterials') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'rawmaterials') ? 'bg-primary' : '' ?>">
-                        <svg class="w-6 h-6 <?= ($current === 'rawmaterials') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'rawmaterials') ? 'text-white' : '' ?>">Raw Material</span>
-                    </a>
-                </li>
+            <?php endif; ?>
+            <li class="pt-2 mt-2 border-t border-gray-100">
+                <a href="<?= base_url('RawMaterials') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'rawmaterials') ? 'bg-primary' : '' ?>">
+                    <svg class="w-6 h-6 <?= ($current === 'rawmaterials') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'rawmaterials') ? 'text-white' : '' ?>">Raw Material</span>
+                </a>
+            </li>
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <a href="<?= base_url('Products') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'products') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'products') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -79,22 +82,34 @@
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'products') ? 'text-white' : '' ?>">Product</span>
                     </a>
                 </li>
+            <?php endif; ?>
+            <li class="pt-2 mt-2 border-t border-gray-100">
+                <a href="<?= base_url('Inventory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'inventory') ? 'bg-primary' : '' ?>">
+                    <svg class="w-6 h-6 <?= ($current === 'inventory') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'inventory') ? 'text-white' : '' ?>">Inventory</span>
+                </a>
+            </li>
+            <li class="pt-2 mt-2 border-t border-gray-100">
+                <a href="<?= base_url('Order') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'order') ? 'bg-primary' : '' ?>">
+                    <svg class="w-6 h-6 <?= ($current === 'order') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'order') ? 'text-white' : '' ?>">Order</span>
+                </a>
+            </li>
+            <?php if ($employee_type === 'staff'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('Inventory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'inventory') ? 'bg-primary' : '' ?>">
-                        <svg class="w-6 h-6 <?= ($current === 'inventory') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    <a href="<?= base_url('Sales/RemittanceHistory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'sales') ? 'bg-primary' : '' ?>">
+                        <svg class="w-6 h-6 <?= ($current === 'sales') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                         </svg>
-                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'inventory') ? 'text-white' : '' ?>">Inventory</span>
+                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'sales') ? 'text-white' : '' ?>">Daily Remittance</span>
                     </a>
                 </li>
-                <li class="pt-2 mt-2 border-t border-gray-100">
-                    <a href="<?= base_url('Order') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'order') ? 'bg-primary' : '' ?>">
-                        <svg class="w-6 h-6 <?= ($current === 'order') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'order') ? 'text-white' : '' ?>">Order</span>
-                    </a>
-                </li>
+            <?php endif; ?>
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <button type="button" class="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= (strpos($current, 'sales') !== false) ? 'bg-primary' : '' ?>" aria-controls="dropdown-sales" data-collapse-toggle="dropdown-sales">
                         <svg class="w-6 h-6 <?= (strpos($current, 'sales') !== false) ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -126,7 +141,8 @@
                         </li>
                     </ul>
                 </li>
-                <!-- <li class="py-2 my-2 border-y border-gray-100">
+            <?php endif; ?>
+            <!-- <li class="py-2 my-2 border-y border-gray-100">
                     <a href="<?= base_url('DeliveryLog') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'deliverylog') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'deliverylog') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -134,6 +150,7 @@
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'deliverylog') ? 'text-white' : '' ?>">Delivery Log</span>
                     </a>
                 </li> -->
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <a href="<?= base_url('Utility') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'utility') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'utility') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -143,7 +160,7 @@
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'utility') ? 'text-white' : '' ?>">Utility</span>
                     </a>
                 </li>
-                 <li class="pt-2 mt-2 border-t border-gray-100">
+                <li class="pt-2 mt-2 border-t border-gray-100">
                     <a href="<?= base_url('Distribution') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'distribution') ? 'bg-primary' : '' ?>">
                         <svg class="w-6 h-6 <?= ($current === 'distribution') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -151,9 +168,10 @@
                         <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'distribution') ? 'text-white' : '' ?>">Distribution</span>
                     </a>
                 </li>
-            </ul>
-            
-            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
+            <?php endif; ?>
+        </ul>
+
+        <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
             <!-- Manage Employee at bottom -->
             <div class="pt-2 mt-auto border-t border-gray-100">
                 <a href="<?= base_url('ManageEmployee') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'manageemployee') ? 'bg-primary' : '' ?>">
@@ -163,6 +181,6 @@
                     <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'manageemployee') ? 'text-white' : '' ?>">Manage Employee</span>
                 </a>
             </div>
-            <?php endif; ?>
-        </div>
-    </aside>
+        <?php endif; ?>
+    </div>
+</aside>
