@@ -144,7 +144,12 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
     $routes->get('/', 'DeliveryLogController::index');
 });
 
-
 $routes->group('Utility', function (RouteCollection $routes) {
     $routes->get('/', 'UtilityController::index');
 });
+
+$routes->group('Distribution', function (RouteCollection $routes) {
+    $routes->get('/', 'DistributionController::index');
+});
+
+

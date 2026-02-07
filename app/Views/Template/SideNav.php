@@ -99,14 +99,16 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                     <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'order') ? 'text-white' : '' ?>">Order</span>
                 </a>
             </li>
-            <li class="pt-2 mt-2 border-t border-gray-100">
-                <a href="<?= base_url('Sales/RemittanceHistory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'sales') ? 'bg-primary' : '' ?>">
-                    <svg class="w-6 h-6 <?= ($current === 'sales') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                    </svg>
-                    <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'sales') ? 'text-white' : '' ?>">Daily Remittance</span>
-                </a>
-            </li>
+            <?php if ($employee_type === 'staff'): ?>
+                <li class="pt-2 mt-2 border-t border-gray-100">
+                    <a href="<?= base_url('Sales/RemittanceHistory') ?>" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'sales') ? 'bg-primary' : '' ?>">
+                        <svg class="w-6 h-6 <?= ($current === 'sales') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                        <span class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'sales') ? 'text-white' : '' ?>">Daily Remittance</span>
+                    </a>
+                </li>
+            <?php endif; ?>
             <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
                 <li class="pt-2 mt-2 border-t border-gray-100">
                     <button type="button" class="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= (strpos($current, 'sales') !== false) ? 'bg-primary' : '' ?>" aria-controls="dropdown-sales" data-collapse-toggle="dropdown-sales">
