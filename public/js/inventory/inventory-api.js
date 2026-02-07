@@ -178,6 +178,28 @@ const InventoryAPI = {
                 if (onError) onError(xhr, status, error);
             }
         });
+    },
+
+    /**
+     * Preview raw material deductions for a product
+     * @param {number} productId - Product ID
+     * @param {number} pieces - Number of pieces
+     * @param {Function} onSuccess - Callback on success
+     * @param {Function} onError - Callback on error
+     */
+    previewDeduction: function(productId, pieces, onSuccess, onError) {
+        $.ajax({
+            url: window.BASE_URL + 'Inventory/PreviewDeduction',
+            type: 'GET',
+            dataType: 'json',
+            data: { product_id: productId, pieces: pieces },
+            success: function(response) {
+                if (onSuccess) onSuccess(response);
+            },
+            error: function(xhr, status, error) {
+                if (onError) onError(xhr, status, error);
+            }
+        });
     }
 };
 //e
