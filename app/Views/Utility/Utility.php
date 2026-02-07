@@ -72,65 +72,95 @@
             </div>
 
             <!-- Monthly Summary Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
                 <!-- Gas Card -->
-                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Gas</span>
-                        <div class="p-2 bg-orange-100 rounded-full">
-                            <i class="fas fa-fire text-orange-500 text-sm"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Gas</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱3,500.00</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center ml-2">
+                            <i class="fas fa-fire text-orange-600 text-sm sm:text-base"></i>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-800">₱ 3,500.00</div>
-                    <div class="text-xs text-gray-500 mt-1">Monthly</div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="text-orange-600 font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>Monthly
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Water Card -->
-                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Water</span>
-                        <div class="p-2 bg-blue-100 rounded-full">
-                            <i class="fas fa-tint text-blue-500 text-sm"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Water</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱1,200.00</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center ml-2">
+                            <i class="fas fa-tint text-blue-600 text-sm sm:text-base"></i>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-800">₱ 1,200.00</div>
-                    <div class="text-xs text-gray-500 mt-1">Monthly</div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="text-blue-600 font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>Monthly
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Electricity Card -->
-                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-yellow-500">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Electricity</span>
-                        <div class="p-2 bg-yellow-100 rounded-full">
-                            <i class="fas fa-bolt text-yellow-500 text-sm"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Electricity</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱8,500.00</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 rounded-full flex items-center justify-center ml-2">
+                            <i class="fas fa-bolt text-yellow-600 text-sm sm:text-base"></i>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-800">₱ 8,500.00</div>
-                    <div class="text-xs text-gray-500 mt-1">Monthly</div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="text-yellow-600 font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>Monthly
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Labor Card -->
-                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Labor</span>
-                        <div class="p-2 bg-green-100 rounded-full">
-                            <i class="fas fa-users text-green-500 text-sm"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Labor</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱25,000.00</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center ml-2">
+                            <i class="fas fa-users text-green-600 text-sm sm:text-base"></i>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-800">₱ 25,000.00</div>
-                    <div class="text-xs text-gray-500 mt-1">Monthly</div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="text-green-600 font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>Monthly
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Rent Card -->
-                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-purple-500">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Rent</span>
-                        <div class="p-2 bg-purple-100 rounded-full">
-                            <i class="fas fa-home text-purple-500 text-sm"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Rent</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱15,000.00</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center ml-2">
+                            <i class="fas fa-home text-purple-600 text-sm sm:text-base"></i>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-800">₱ 15,000.00</div>
-                    <div class="text-xs text-gray-500 mt-1">Monthly</div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="text-purple-600 font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>Monthly
+                        </span>
+                    </div>
                 </div>
             </div>
 
