@@ -195,10 +195,21 @@ class InventoryController extends BaseController
         );
 
         if ($result) {
+            $deductionResult = null;
+
+            // Auto-deduct raw materials if beginning stock > 0
+            if ($beginningStock > 0) {
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($json->product_id),
+                    $beginningStock
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
-                'item_id' => $result
+                'item_id' => $result,
+                'deduction' => $deductionResult
             ]);
         } else {
             return $this->response->setStatusCode(400)->setJSON([
@@ -315,10 +326,22 @@ class InventoryController extends BaseController
 
         // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
+            $deductionResult = null;
+
+            // Auto-deduct raw materials if beginning stock was increased
+            $stockIncrease = $newBeginning - $oldBeginning;
+            if ($stockIncrease > 0 && isset($item['product_id'])) {
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($item['product_id']),
+                    $stockIncrease
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item updated successfully',
-                'data' => $updateData
+                'data' => $updateData,
+                'deduction' => $deductionResult
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
@@ -508,5 +531,36 @@ class InventoryController extends BaseController
                 'items' => $stockItems
             ]
         ]);
+    }
+
+    /**
+     * Preview raw material deductions for a product without actually deducting.
+     * GET /Inventory/PreviewDeduction?product_id=X&pieces=Y
+     */
+    public function previewDeduction()
+    {
+        $productId = intval($this->request->getGet('product_id'));
+        $pieces    = intval($this->request->getGet('pieces'));
+
+        if ($productId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product ID is required'
+            ]);
+        }
+
+        if ($pieces <= 0) {
+            // Return empty preview if no pieces specified
+            return $this->response->setJSON([
+                'success' => true,
+                'preview' => true,
+                'message' => 'Enter a quantity to see deduction preview',
+                'deductions' => []
+            ]);
+        }
+
+        $result = $this->rawMaterialStockModel->deductForProduction($productId, $pieces, true);
+
+        return $this->response->setJSON($result);
     }
 }

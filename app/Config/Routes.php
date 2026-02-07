@@ -75,6 +75,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->post('Delete/(:num)', 'InventoryController::deleteStockItem/$1');
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
     $routes->post('AddProductToInventory', 'InventoryController::addProductToInventory');
+    $routes->get('PreviewDeduction', 'InventoryController::previewDeduction');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {

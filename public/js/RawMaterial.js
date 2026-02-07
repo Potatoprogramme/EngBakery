@@ -251,7 +251,32 @@ $(document).ready(function() {
             rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
-            rows += '<td class="px-6 py-4 text-gray-700">' + mat.material_quantity + '</td>';
+            const qty = parseFloat(mat.material_quantity) || 0;
+            let barColor = 'bg-emerald-400';
+            let barTrack = 'bg-emerald-100';
+            let qtyText = 'text-gray-700';
+            let barWidth = Math.min(100, (qty / 100) * 100);
+            if (qty <= 10) {
+                barColor = 'bg-red-500';
+                barTrack = 'bg-red-100';
+                qtyText = 'text-red-600 font-semibold';
+                barWidth = Math.max(6, (qty / 25) * 100);
+            } else if (qty <= 25) {
+                barColor = 'bg-amber-400';
+                barTrack = 'bg-amber-100';
+                qtyText = 'text-amber-600 font-semibold';
+                barWidth = (qty / 50) * 100;
+            } else if (qty <= 50) {
+                barWidth = (qty / 100) * 100;
+            }
+            rows += '<td class="px-6 py-4">';
+            rows += '<div class="flex items-center gap-2.5">';
+            rows += '<span class="' + qtyText + ' tabular-nums text-sm min-w-[2.5rem]">' + mat.material_quantity + '</span>';
+            rows += '<div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden">';
+            rows += '<div class="h-full rounded-full ' + barColor + ' transition-all" style="width:' + barWidth + '%"></div>';
+            rows += '</div>';
+            rows += '</div>';
+            rows += '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + mat.unit + '</td>';
             rows += '<td class="px-6 py-4 text-gray-900 font-semibold">₱ ' + parseFloat(mat.cost_per_unit || 0).toFixed(2) + '</td>';
             rows += '<td class="px-6 py-4 ">';
@@ -334,10 +359,15 @@ $(document).ready(function() {
                             ${labelBadge}
                         </div>
                         <div class="grid grid-cols-2 gap-3 mb-3">
-                            <div class="bg-gray-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500">Quantity</p>
-                                <p class="font-semibold text-gray-800">${mat.material_quantity} ${mat.unit}</p>
-                            </div>
+                            ${(() => {
+                                const q = parseFloat(mat.material_quantity) || 0;
+                                let bg = 'bg-gray-50', tc = 'text-gray-800', barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+                                let barW = Math.min(100, (q / 100) * 100);
+                                if (q <= 10) { bg = 'bg-red-50'; tc = 'text-red-600'; barColor = 'bg-red-500'; barTrack = 'bg-red-100'; barW = Math.max(8, (q / 25) * 100); }
+                                else if (q <= 25) { bg = 'bg-amber-50'; tc = 'text-amber-600'; barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; barW = (q / 50) * 100; }
+                                else if (q <= 50) { barW = (q / 100) * 100; }
+                                return `<div class="${bg} rounded-lg p-2"><p class="text-xs text-gray-500 mb-0.5">Quantity</p><p class="font-semibold ${tc} text-sm">${mat.material_quantity} ${mat.unit}</p><div class="mt-1.5 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div></div>`;
+                            })()}
                             <div class="bg-primary/10 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Cost per Unit</p>
                                 <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(2)}</p>
