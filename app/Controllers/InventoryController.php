@@ -139,6 +139,76 @@ class InventoryController extends BaseController
     }
 
     /**
+     * Add today's inventory using distribution data.
+     * Only products from the distributions table for today will be added,
+     * with product_qnty as the beginning stock.
+     */
+    public function addInventoryFromDistribution()
+    {
+        $data = $this->request->getJSON(true);
+        $today = date('Y-m-d');
+
+        // Validate time inputs
+        if (empty($data['time_start']) || empty($data['time_end'])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Start time and end time are required.'
+            ]);
+        }
+
+        // Check if inventory already exists for today
+        if ($this->dailyStockModel->checkInventoryExists($today)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory already exists for today.'
+            ]);
+        }
+
+        // Fetch distribution records for today
+        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+
+        if (!$distributionItems || count($distributionItems) === 0) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today. Please add distribution data first.'
+            ]);
+        }
+
+        // Create the daily stock record
+        $insertData = [
+            'inventory_date' => $today,
+            'time_start' => $data['time_start'],
+            'time_end' => $data['time_end'],
+        ];
+
+        if ($this->dailyStockModel->addTodaysInventory($insertData)) {
+            $lastInsertId = $this->dailyStockModel->getInsertID();
+
+            // Insert only products from distribution with their quantities as beginning stock
+            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
+                return $this->response->setStatusCode(201)->setJSON([
+                    'success' => true,
+                    'message' => 'Today\'s inventory created from distribution data successfully.',
+                    'items_count' => count($distributionItems)
+                ]);
+            } else {
+                // Rollback: delete the daily stock record since items failed
+                $this->dailyStockModel->delete($lastInsertId);
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add stock items from distribution.',
+                    'error' => $this->dailyStockItemsModel->errors(),
+                ]);
+            }
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to create today\'s inventory.'
+            ]);
+        }
+    }
+
+    /**
      * Get products not yet in today's inventory (for adding mid-day)
      */
     public function getAvailableProducts()

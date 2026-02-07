@@ -2,20 +2,6 @@
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
-            <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
-                <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
-                    <li>
-                        <a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a>
-                    </li>
-                    <li>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </li>
-                    <li class="text-gray-700">Inventory</li>
-                </ol>
-            </nav>
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
@@ -27,6 +13,10 @@
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden sm:inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
+                        </button>
+                        <button id="btnAddTodaysInventoryFromDistribution" type="button"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            Add Today's Inventory (From Distribution Table)
                         </button>
                         <button id="btnAddTodaysInventory" type="button"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -481,9 +471,12 @@
             $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
                 $('#timeInputModal').addClass('hidden');
                 $('#timeInputForm')[0].reset();
+                inventorySource = 'all'; // Reset source on cancel
             });
 
             // Submit Time Input Form
+            let inventorySource = 'all'; // Track which button triggered the modal: 'all' or 'distribution'
+
             $('#timeInputForm').on('submit', function (e) {
                 e.preventDefault();
                 const timeStart = $('#time_start').val();
@@ -496,8 +489,23 @@
                 }
 
                 $('#timeInputModal').addClass('hidden');
-                addTodaysInventory(timeStart, timeEnd);
+
+                if (inventorySource === 'distribution') {
+                    addTodaysInventoryFromDistribution(timeStart, timeEnd);
+                } else {
+                    addTodaysInventory(timeStart, timeEnd);
+                }
+
+                inventorySource = 'all'; // Reset
                 $('#timeInputForm')[0].reset();
+            });
+
+            
+            $('#btnAddTodaysInventoryFromDistribution').on('click', function () {
+                inventorySource = 'distribution';
+                $('#timeInputModal').removeClass('hidden');
+                $('#time_start').val('08:00');
+                $('#time_end').val('17:00');
             });
 
             function closeModal() {
@@ -648,6 +656,34 @@
                 const timeEnd = formatTime(data.time_end);
                 $('#timeRange').text(`${timeStart} - ${timeEnd}`);
             }
+        }
+        
+        function addTodaysInventoryFromDistribution(time_start, time_end) {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddInventoryFromDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ time_start: time_start, time_end: time_end }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    let errorMessage = 'An error occurred while adding inventory from distribution';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showToast('danger', errorMessage, 2000);
+                    console.log(xhr.responseJSON);
+                }
+            });
         }
 
         // If no inventory, show button for creating inventory

@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 // Models
 use App\Models\MaterialCategoryModel;
 use App\Models\RawMaterialsModel;
+use App\Models\RawMaterialStockModel;
 use App\Models\DailyStockModel;
 use App\Models\ProductModel;
 use App\Models\ProductRecipeModel;
@@ -23,6 +24,7 @@ use App\Models\UsersModel;
 use App\Models\RemittanceDetailsModel;
 use App\Models\RemittanceItemsModel;
 use App\Models\RemittanceDenominationsModel;
+use App\Models\DistributionModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -47,6 +49,7 @@ abstract class BaseController extends Controller
     // Preload Models Here
     protected $materialCategoryModel;
     protected $rawMaterialsModel;
+    protected $rawMaterialStockModel;
     protected $dailyStockModel;
     protected $productModel;
     protected $productRecipeModel;
@@ -60,6 +63,7 @@ abstract class BaseController extends Controller
     protected $remittanceDetailsModel;
     protected $remittanceItemsModel;
     protected $remittanceDenominationsModel;
+    protected $distributionModel;
 
     // Database connection
     protected $db;
@@ -80,6 +84,7 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         $this->materialCategoryModel = new MaterialCategoryModel();
         $this->rawMaterialsModel = new RawMaterialsModel();
+        $this->rawMaterialStockModel = new RawMaterialStockModel();
         $this->dailyStockModel = new DailyStockModel();
         $this->productModel = new ProductModel();
         $this->productRecipeModel = new ProductRecipeModel();
@@ -93,6 +98,7 @@ abstract class BaseController extends Controller
         $this->remittanceDetailsModel = new RemittanceDetailsModel();
         $this->remittanceItemsModel = new RemittanceItemsModel();
         $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
+        $this->distributionModel = new DistributionModel();
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 
