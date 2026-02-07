@@ -37,6 +37,10 @@ class DashboardController extends BaseController
             return $redirect;
         }
 
+        if ($redirect = $this->redirectIfNotOwnerAndAdmin()) {
+            return $redirect;
+        }
+
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Dashboard', $data) .
