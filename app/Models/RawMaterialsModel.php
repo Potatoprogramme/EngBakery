@@ -27,7 +27,7 @@ class RawMaterialsModel extends Model
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            LEFT JOIN raw_material_stock rms ON rm.material_id = rms.material_id
+            LEFT JOIN raw_material_stock_current rms ON rm.material_id = rms.material_id
             ORDER BY rm.material_id DESC
         ")->getResultArray();
     }
@@ -42,7 +42,7 @@ class RawMaterialsModel extends Model
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            LEFT JOIN raw_material_stock rms ON rm.material_id = rms.material_id
+            LEFT JOIN raw_material_stock_current rms ON rm.material_id = rms.material_id
             WHERE rm.material_id = ?
         ", [$id])->getRowArray();
     }
@@ -79,7 +79,7 @@ class RawMaterialsModel extends Model
             );
 
             $this->db->query(
-                "INSERT INTO raw_material_stock (material_id, current_quantity) VALUES (?, ?)",
+                "INSERT INTO raw_material_stock_current (material_id, current_quantity) VALUES (?, ?)",
                 [$materialId, $qty]
             );
 
@@ -112,7 +112,7 @@ class RawMaterialsModel extends Model
             );
 
             $this->db->query(
-                "UPDATE raw_material_stock SET current_quantity = ? WHERE material_id = ?",
+                "UPDATE raw_material_stock_current SET current_quantity = ? WHERE material_id = ?",
                 [$qty, $materialId]
             );
 
