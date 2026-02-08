@@ -51,6 +51,16 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
 });
 
+$routes->group('StockInitial', function (RouteCollection $routes) {
+    $routes->get('/', 'RawMaterialStockInitialController::index');
+    $routes->get('GetAll', 'RawMaterialStockInitialController::getAll');
+    $routes->get('GetEntry/(:num)', 'RawMaterialStockInitialController::getEntry/$1');
+    $routes->get('GetMaterials', 'RawMaterialStockInitialController::getMaterials');
+    $routes->post('Add', 'RawMaterialStockInitialController::add');
+    $routes->post('Update', 'RawMaterialStockInitialController::update');
+    $routes->post('Delete/(:num)', 'RawMaterialStockInitialController::delete/$1');
+});
+
 $routes->group('Products', function (RouteCollection $routes) {
     $routes->get('/', 'ProductsController::products');
     $routes->get('GetAll', 'ProductsController::getAllProducts');
