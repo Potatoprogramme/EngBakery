@@ -106,6 +106,7 @@ const InventoryModal = {
      */
     openEditModal: function(row) {
         const itemId = row.data('id');
+        const productId = row.data('product-id') || row.closest('[data-product-id]').data('product-id');
         
         // Get current values from the row (adjusted for correct column indices)
         const productName = row.find('td:eq(2)').text(); // Items/Particulars column

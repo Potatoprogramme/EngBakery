@@ -45,10 +45,21 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->get('GetCategories', 'RawMaterialsController::getCategories');
     $routes->get('GetAll', 'RawMaterialsController::getAll');
     $routes->get('GetMaterial/(:num)', 'RawMaterialsController::getMaterial/$1');
+    $routes->get('GetLowStock', 'RawMaterialsController::getLowStock');
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
     $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
     $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
+});
+
+$routes->group('StockInitial', function (RouteCollection $routes) {
+    $routes->get('/', 'RawMaterialStockInitialController::index');
+    $routes->get('GetAll', 'RawMaterialStockInitialController::getAll');
+    $routes->get('GetEntry/(:num)', 'RawMaterialStockInitialController::getEntry/$1');
+    $routes->get('GetMaterials', 'RawMaterialStockInitialController::getMaterials');
+    $routes->post('Add', 'RawMaterialStockInitialController::add');
+    $routes->post('Update', 'RawMaterialStockInitialController::update');
+    $routes->post('Delete/(:num)', 'RawMaterialStockInitialController::delete/$1');
 });
 
 $routes->group('Products', function (RouteCollection $routes) {
