@@ -23,11 +23,12 @@ class RawMaterialsModel extends Model
         return $this->db->query("
             SELECT rm.material_id, rm.material_name, rm.unit, rm.category_id,
                    mc.category_name, mc.label, rmc.cost_per_unit,
-                   rms.current_quantity as material_quantity
+                   COALESCE(rms.initial_qty - rms.qty_used, 0) as material_quantity,
+                   CASE WHEN rms.stock_id IS NULL THEN 0 ELSE 1 END as has_stock
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            LEFT JOIN raw_material_stock_current rms ON rm.material_id = rms.material_id
+            LEFT JOIN raw_material_stock rms ON rm.material_id = rms.material_id
             ORDER BY rm.material_id DESC
         ")->getResultArray();
     }
@@ -37,12 +38,13 @@ class RawMaterialsModel extends Model
         return $this->db->query("
             SELECT rm.material_id, rm.material_name, rm.unit, rm.category_id,
                    mc.category_name, rmc.cost_id, rmc.cost_per_unit,
-                   rms.stock_id, rms.current_quantity as material_quantity,
-                   (rms.current_quantity * rmc.cost_per_unit) as total_cost
+                   rms.stock_id, COALESCE(rms.initial_qty - rms.qty_used, 0) as material_quantity,
+                   COALESCE((rms.initial_qty - rms.qty_used) * rmc.cost_per_unit, 0) as total_cost,
+                   CASE WHEN rms.stock_id IS NULL THEN 0 ELSE 1 END as has_stock
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            LEFT JOIN raw_material_stock_current rms ON rm.material_id = rms.material_id
+            LEFT JOIN raw_material_stock rms ON rm.material_id = rms.material_id
             WHERE rm.material_id = ?
         ", [$id])->getRowArray();
     }
@@ -79,8 +81,8 @@ class RawMaterialsModel extends Model
             );
 
             $this->db->query(
-                "INSERT INTO raw_material_stock_current (material_id, current_quantity) VALUES (?, ?)",
-                [$materialId, $qty]
+                "INSERT INTO raw_material_stock (material_id, initial_qty, qty_used, unit) VALUES (?, ?, 0, ?)",
+                [$materialId, $qty, $data['unit']]
             );
 
             $this->db->transComplete();
@@ -112,7 +114,7 @@ class RawMaterialsModel extends Model
             );
 
             $this->db->query(
-                "UPDATE raw_material_stock_current SET current_quantity = ? WHERE material_id = ?",
+                "UPDATE raw_material_stock SET initial_qty = ?, qty_used = 0 WHERE material_id = ?",
                 [$qty, $materialId]
             );
 
