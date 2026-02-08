@@ -59,7 +59,7 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
     $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
-    
+
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {
@@ -152,6 +152,7 @@ $routes->group('Utility', function (RouteCollection $routes) {
 
 $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('/', 'DistributionController::index');
+    $routes->post('AddDistribution', 'DistributionController::addDistribution');
     $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
 });
 
