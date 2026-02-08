@@ -139,6 +139,76 @@ class InventoryController extends BaseController
     }
 
     /**
+     * Add today's inventory using distribution data.
+     * Only products from the distributions table for today will be added,
+     * with product_qnty as the beginning stock.
+     */
+    public function addInventoryFromDistribution()
+    {
+        $data = $this->request->getJSON(true);
+        $today = date('Y-m-d');
+
+        // Validate time inputs
+        if (empty($data['time_start']) || empty($data['time_end'])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Start time and end time are required.'
+            ]);
+        }
+
+        // Check if inventory already exists for today
+        if ($this->dailyStockModel->checkInventoryExists($today)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory already exists for today.'
+            ]);
+        }
+
+        // Fetch distribution records for today
+        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+
+        if (!$distributionItems || count($distributionItems) === 0) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today. Please add distribution data first.'
+            ]);
+        }
+
+        // Create the daily stock record
+        $insertData = [
+            'inventory_date' => $today,
+            'time_start' => $data['time_start'],
+            'time_end' => $data['time_end'],
+        ];
+
+        if ($this->dailyStockModel->addTodaysInventory($insertData)) {
+            $lastInsertId = $this->dailyStockModel->getInsertID();
+
+            // Insert only products from distribution with their quantities as beginning stock
+            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
+                return $this->response->setStatusCode(201)->setJSON([
+                    'success' => true,
+                    'message' => 'Today\'s inventory created from distribution data successfully.',
+                    'items_count' => count($distributionItems)
+                ]);
+            } else {
+                // Rollback: delete the daily stock record since items failed
+                $this->dailyStockModel->delete($lastInsertId);
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add stock items from distribution.',
+                    'error' => $this->dailyStockItemsModel->errors(),
+                ]);
+            }
+        } else {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to create today\'s inventory.'
+            ]);
+        }
+    }
+
+    /**
      * Get products not yet in today's inventory (for adding mid-day)
      */
     public function getAvailableProducts()
@@ -195,10 +265,21 @@ class InventoryController extends BaseController
         );
 
         if ($result) {
+            $deductionResult = null;
+
+            // Auto-deduct raw materials if beginning stock > 0
+            if ($beginningStock > 0) {
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($json->product_id),
+                    $beginningStock
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
-                'item_id' => $result
+                'item_id' => $result,
+                'deduction' => $deductionResult
             ]);
         } else {
             return $this->response->setStatusCode(400)->setJSON([
@@ -315,10 +396,22 @@ class InventoryController extends BaseController
 
         // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
+            $deductionResult = null;
+
+            // Auto-deduct raw materials if beginning stock was increased
+            $stockIncrease = $newBeginning - $oldBeginning;
+            if ($stockIncrease > 0 && isset($item['product_id'])) {
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($item['product_id']),
+                    $stockIncrease
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item updated successfully',
-                'data' => $updateData
+                'data' => $updateData,
+                'deduction' => $deductionResult
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
@@ -508,5 +601,36 @@ class InventoryController extends BaseController
                 'items' => $stockItems
             ]
         ]);
+    }
+
+    /**
+     * Preview raw material deductions for a product without actually deducting.
+     * GET /Inventory/PreviewDeduction?product_id=X&pieces=Y
+     */
+    public function previewDeduction()
+    {
+        $productId = intval($this->request->getGet('product_id'));
+        $pieces    = intval($this->request->getGet('pieces'));
+
+        if ($productId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product ID is required'
+            ]);
+        }
+
+        if ($pieces <= 0) {
+            // Return empty preview if no pieces specified
+            return $this->response->setJSON([
+                'success' => true,
+                'preview' => true,
+                'message' => 'Enter a quantity to see deduction preview',
+                'deductions' => []
+            ]);
+        }
+
+        $result = $this->rawMaterialStockModel->deductForProduction($productId, $pieces, true);
+
+        return $this->response->setJSON($result);
     }
 }

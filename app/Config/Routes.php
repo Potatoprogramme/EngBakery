@@ -67,6 +67,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('History', 'InventoryController::inventoryHistory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
+    $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
     $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');
@@ -75,6 +76,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->post('Delete/(:num)', 'InventoryController::deleteStockItem/$1');
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
     $routes->post('AddProductToInventory', 'InventoryController::addProductToInventory');
+    $routes->get('PreviewDeduction', 'InventoryController::previewDeduction');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
@@ -144,7 +146,13 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
     $routes->get('/', 'DeliveryLogController::index');
 });
 
-
 $routes->group('Utility', function (RouteCollection $routes) {
     $routes->get('/', 'UtilityController::index');
 });
+
+$routes->group('Distribution', function (RouteCollection $routes) {
+    $routes->get('/', 'DistributionController::index');
+    $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
+});
+
+

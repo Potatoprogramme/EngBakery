@@ -39,6 +39,35 @@ class DailyStockItemsModel extends Model
         return $this->insertBatch($insertData);
     }
 
+    /**
+     * Insert daily stock items from distribution data.
+     * Each distribution record provides the product_id and product_qnty (used as beginning_stock).
+     *
+     * @param int   $dailyStockId
+     * @param array $distributionItems Array of distribution records with product_id and product_qnty
+     * @return int|false Number of rows inserted or false on failure
+     */
+    public function insertDailyStockItemsFromDistribution(int $dailyStockId, array $distributionItems)
+    {
+        $insertData = [];
+        foreach ($distributionItems as $item) {
+            $qty = intval($item['product_qnty'] ?? 0);
+            $insertData[] = [
+                'daily_stock_id' => $dailyStockId,
+                'product_id'     => $item['product_id'],
+                'beginning_stock' => $qty,
+                'pull_out_quantity' => 0,
+                'ending_stock'    => $qty,
+            ];
+        }
+
+        if (empty($insertData)) {
+            return false;
+        }
+
+        return $this->insertBatch($insertData);
+    }
+
     public function fetchAllStockItems($dailyStockId)
     {
         $stockItems = $this->where('daily_stock_id', $dailyStockId)

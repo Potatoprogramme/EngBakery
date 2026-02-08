@@ -293,6 +293,7 @@ function bindEventHandlers() {
                 ButtonLoader.stop(submitBtn);
                 if (response.success) {
                     safeToast('success', response.message, 2000);
+                    showDeductionToast(response.deduction);
                     InventoryModal.closeEditModal();
                     fetchAllStockItems();
                 } else {
@@ -374,6 +375,35 @@ function bindEventHandlers() {
         InventoryModal.closeAddProductModal();
     });
 
+    // Live deduction preview when product or quantity changes
+    var previewTimer = null;
+    $('#selectProduct, #addBeginningStock').on('change input', function() {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(function() {
+            var productId = $('#selectProduct').val();
+            var pieces = parseInt($('#addBeginningStock').val()) || 0;
+
+            if (!productId || pieces <= 0) {
+                $('#deductionPreviewContainer').addClass('hidden');
+                return;
+            }
+
+            InventoryAPI.previewDeduction(productId, pieces,
+                function(response) {
+                    if (response.deductions && response.deductions.length > 0) {
+                        renderDeductionPreview(response);
+                        $('#deductionPreviewContainer').removeClass('hidden');
+                    } else {
+                        $('#deductionPreviewContainer').addClass('hidden');
+                    }
+                },
+                function() {
+                    $('#deductionPreviewContainer').addClass('hidden');
+                }
+            );
+        }, 400);
+    });
+
     // Submit add product form
     $('#addProductForm').on('submit', function(e) {
         e.preventDefault();
@@ -398,6 +428,7 @@ function bindEventHandlers() {
                 ButtonLoader.stop(submitBtn);
                 if (response.success) {
                     safeToast('success', response.message, 2000);
+                    showDeductionToast(response.deduction);
                     InventoryModal.closeAddProductModal();
                     fetchAllStockItems();
                 } else {
@@ -439,4 +470,57 @@ function bindEventHandlers() {
         $('#filter-date-to').val('');
         $('table tbody tr').show();
     });
+}
+
+// ==========================================
+// Deduction Helper Functions
+// ==========================================
+
+/**
+ * Render deduction preview inside the add product modal
+ */
+function renderDeductionPreview(data) {
+    var html = '';
+    var deductions = data.deductions || [];
+
+    deductions.forEach(function(d) {
+        var statusClass = d.insufficient ? 'text-red-600' : 'text-gray-600';
+        var statusIcon = d.insufficient ? '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>' : '';
+        var fromLabel = d.from_combined ? ' <span class="text-gray-400">(from ' + d.from_combined + ')</span>' : '';
+
+        html += '<div class="flex justify-between items-center py-0.5 ' + statusClass + '">'
+            + '<span>' + statusIcon + d.material_name + fromLabel + '</span>'
+            + '<span class="font-mono">' + parseFloat(d.deduct_amount).toFixed(2) + ' ' + d.unit + '</span>'
+            + '</div>';
+    });
+
+    if (data.yields_needed) {
+        html = '<div class="text-gray-500 mb-1">Yields needed: <strong>' + data.yields_needed + '</strong></div>' + html;
+    }
+
+    $('#deductionPreviewList').html(html);
+
+    if (data.has_insufficient) {
+        $('#deductionPreviewWarning').removeClass('hidden');
+    } else {
+        $('#deductionPreviewWarning').addClass('hidden');
+    }
+}
+
+/**
+ * Show a toast summarizing what raw materials were deducted
+ */
+function showDeductionToast(deduction) {
+    if (!deduction || !deduction.success || !deduction.deductions || deduction.deductions.length === 0) {
+        return;
+    }
+
+    var count = deduction.deductions.length;
+    var msg = count + ' raw material' + (count > 1 ? 's' : '') + ' deducted for ' + deduction.pieces + ' pcs (' + deduction.yields_needed + ' yields)';
+
+    if (deduction.has_insufficient) {
+        safeToast('warning', msg + ' — some materials had insufficient stock', 4000);
+    } else {
+        safeToast('info', msg, 3000);
+    }
 }
