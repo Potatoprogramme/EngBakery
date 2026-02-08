@@ -76,7 +76,7 @@ const InventoryTable = {
             categoryLabel = item.category.charAt(0).toUpperCase() + item.category.slice(1);
         }
 
-        let row = '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '" data-product-id="' + item.product_id + '">';
+        let row = '<tr class="hover:bg-neutral-secondary-soft cursor-pointer" data-date="' + (item.inventory_date || '') + '" data-id="' + item.item_id + '">';
         row += '<td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ' + categoryClass + '">' + categoryLabel + '</span></td>';
         row += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + formattedPrice + '</td>';
         row += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + (item.product_name || 'N/A') + '</td>';

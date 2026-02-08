@@ -265,7 +265,7 @@ class OrdersController extends BaseController
                 foreach ($orderItems as $item) {
                     $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
                     if ($stockItem) {
-                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amount']));
+                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amout']));
                     }
                 }
             }

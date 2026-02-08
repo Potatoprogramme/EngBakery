@@ -1,4 +1,4 @@
-﻿<body class="bg-gray-50">
+<body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
@@ -92,35 +92,33 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="bakeryTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bakeryTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table id="bakeryTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bakeryTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -135,32 +133,30 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="drinksTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="drinksTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table id="drinksTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drinksTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -175,35 +171,33 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="groceryTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groceryTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table id="groceryTable" class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groceryTableBody">
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t border-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        Total:</td>
+                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -270,7 +264,7 @@
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-6">
                     <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0"
@@ -313,7 +307,7 @@
                         inventory.</p>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-6">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
@@ -374,43 +368,63 @@
         </div>
     </div>
     <script>
-    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        // Track if inventory exists for today
+        let inventoryExistsToday = false;
+
+        // Delete Modal Script
+        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+            if (!inventoryExistsToday) {
+                showToast('warning', 'No inventory exists for today to delete.', 2000);
+                return;
+            }
+            $('#deleteConfirmModal').removeClass('hidden');
+        });
+
+        // Close Delete Confirmation Modal
+        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+        });
+
+        // Confirm Delete
+        $('#btnConfirmDelete').on('click', function () {
+            $('#deleteConfirmModal').addClass('hidden');
+            deleteTodaysInventory(); // This calls your function
+        });
     </script>
     <style>
-    @media (max-width: 640px) {
+        @media (max-width: 640px) {
 
-        .datatable-top,
-        .datatable-bottom {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            gap: 0.3rem !important;
-            padding: 0.3rem 0;
-        }
+            .datatable-top,
+            .datatable-bottom {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.3rem !important;
+                padding: 0.3rem 0;
+            }
 
-        .datatable-dropdown,
-        .datatable-search,
-        .datatable-info,
-        .datatable-pagination {
-            float: none !important;
-            width: 100% !important;
-            text-align: center !important;
-            display: flex !important;
-            justify-content: center !important;
-            margin: 0 !important;
-        }
+            .datatable-dropdown,
+            .datatable-search,
+            .datatable-info,
+            .datatable-pagination {
+                float: none !important;
+                width: 100% !important;
+                text-align: center !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin: 0 !important;
+            }
 
-        .datatable-search {
-            margin-top: 0.5rem !important;
-        }
+            .datatable-search {
+                margin-top: 0.5rem !important;
+            }
 
-        .datatable-pagination ul {
-            justify-content: center !important;
+            .datatable-pagination ul {
+                justify-content: center !important;
+            }
         }
-    }
     </style>
 
-    <script>
     <script>
         $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';

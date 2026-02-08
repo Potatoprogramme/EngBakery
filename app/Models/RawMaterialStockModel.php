@@ -12,201 +12,100 @@ class RawMaterialStockModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['material_id', 'initial_qty', 'qty_used', 'unit'];
+    protected $allowedFields    = ['material_id', 'current_quantity'];
 
     // Dates
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'updated_at';
-    protected $updatedField  = 'updated_at';
+    protected $createdField  = 'last_updated';
+    protected $updatedField  = 'last_updated';
 
-    // ═══════════════════════════════════════════
-    //  STOCK PAGE CRUD
-    // ═══════════════════════════════════════════
-
-    /**
-     * Get all stock entries with material name & category joined
-     */
-    public function getAllWithDetails(): array
-    {
-        return $this->db->query("
-            SELECT 
-                rms.stock_id,
-                rms.material_id,
-                rms.initial_qty,
-                rms.qty_used,
-                (rms.initial_qty - rms.qty_used) as remaining,
-                rms.unit,
-                rms.updated_at,
-                rm.material_name,
-                mc.category_name,
-                mc.label
-            FROM raw_material_stock rms
-            JOIN raw_materials rm ON rms.material_id = rm.material_id
-            LEFT JOIN material_category mc ON rm.category_id = mc.category_id
-            ORDER BY rms.updated_at DESC
-        ")->getResultArray();
-    }
+    // Validation
+    protected $validationRules = [
+        'current_quantity' => 'required|decimal|greater_than_equal_to[0]',
+    ];
 
     /**
-     * Get single stock entry by ID with material details
-     */
-    public function getEntryById(int $id): ?array
-    {
-        return $this->db->query("
-            SELECT 
-                rms.stock_id,
-                rms.material_id,
-                rms.initial_qty,
-                rms.qty_used,
-                (rms.initial_qty - rms.qty_used) as remaining,
-                rms.unit,
-                rms.updated_at,
-                rm.material_name
-            FROM raw_material_stock rms
-            JOIN raw_materials rm ON rms.material_id = rm.material_id
-            WHERE rms.stock_id = ?
-        ", [$id])->getRowArray();
-    }
-
-    /**
-     * Add a new stock entry
-     */
-    public function addEntry(array $data): int|false
-    {
-        $success = $this->insert([
-            'material_id' => intval($data['material_id']),
-            'initial_qty' => floatval($data['initial_qty']),
-            'qty_used'    => 0,
-            'unit'        => $data['unit'],
-        ]);
-
-        return $success ? $this->getInsertID() : false;
-    }
-
-    /**
-     * Update an existing stock entry
-     */
-    public function updateEntry(int $stockId, array $data): bool
-    {
-        return $this->update($stockId, [
-            'material_id' => intval($data['material_id']),
-            'initial_qty' => floatval($data['initial_qty']),
-            'qty_used'    => floatval($data['qty_used']),
-            'unit'        => $data['unit'],
-        ]);
-    }
-
-    /**
-     * Delete a stock entry
-     */
-    public function deleteEntry(int $stockId): bool
-    {
-        return $this->delete($stockId);
-    }
-
-    // ═══════════════════════════════════════════
-    //  STOCK ENGINE METHODS
-    // ═══════════════════════════════════════════
-
-    /**
-     * Get stock by material ID.
-     * Adds a computed 'current_quantity' = initial_qty - qty_used
+     * Get stock by material ID
      */
     public function getByMaterialId(int $materialId): ?array
     {
-        $row = $this->where('material_id', $materialId)->first();
-
-        if ($row) {
-            $row['current_quantity'] = floatval($row['initial_qty']) - floatval($row['qty_used']);
-        }
-
-        return $row;
+        return $this->where('material_id', $materialId)->first();
     }
 
     /**
-     * Set stock to a specific quantity (resets qty_used to 0)
+     * Update stock quantity
      */
     public function updateStock(int $materialId, float $quantity): bool
     {
         $existing = $this->getByMaterialId($materialId);
-
+        
         if ($existing) {
             return $this->update($existing['stock_id'], [
-                'initial_qty' => $quantity,
-                'qty_used'    => 0,
+                'current_quantity' => $quantity
             ]);
         }
-
+        
         return $this->insert([
-            'material_id' => $materialId,
-            'initial_qty' => $quantity,
-            'qty_used'    => 0,
+            'material_id'      => $materialId,
+            'current_quantity' => $quantity
         ]) !== false;
     }
 
     /**
-     * Deduct from stock (increments qty_used)
+     * Deduct from stock
      */
     public function deductStock(int $materialId, float $amount): bool
     {
         $existing = $this->getByMaterialId($materialId);
-
+        
         if (!$existing) {
             return false;
         }
-
-        $newUsed = floatval($existing['qty_used']) + $amount;
-
+        
+        $newQuantity = max(0, $existing['current_quantity'] - $amount);
+        
         return $this->update($existing['stock_id'], [
-            'qty_used' => $newUsed,
+            'current_quantity' => $newQuantity
         ]);
     }
 
     /**
-     * Add to stock (increases initial_qty)
+     * Add to stock
      */
-    public function addStock(int $materialId, float $amount, string $unit = ''): bool
+    public function addStock(int $materialId, float $amount): bool
     {
         $existing = $this->getByMaterialId($materialId);
-
+        
         if (!$existing) {
             return $this->insert([
-                'material_id' => $materialId,
-                'initial_qty' => $amount,
-                'qty_used'    => 0,
-                'unit'        => $unit,
+                'material_id'      => $materialId,
+                'current_quantity' => $amount
             ]) !== false;
         }
-
-        $newInitial = floatval($existing['initial_qty']) + $amount;
-
+        
+        $newQuantity = $existing['current_quantity'] + $amount;
+        
         return $this->update($existing['stock_id'], [
-            'initial_qty' => $newInitial,
+            'current_quantity' => $newQuantity
         ]);
     }
 
-    // ═══════════════════════════════════════════
-    //  LOW STOCK METHODS
-    // ═══════════════════════════════════════════
-
     /**
-     * Get low stock materials (at or below minimum stock level)
+     * Get low stock materials (below threshold percentage)
      */
     public function getLowStock(float $thresholdPercentage = 20): array
     {
-        return $this->db->query("
-            SELECT 
-                rms.*,
-                (rms.initial_qty - rms.qty_used) as current_quantity,
-                rm.material_name,
-                rm.material_quantity,
-                rm.unit as material_unit,
-                ((rms.initial_qty - rms.qty_used) / NULLIF(rm.material_quantity, 0) * 100) as stock_percentage
-            FROM raw_material_stock rms
-            JOIN raw_materials rm ON rm.material_id = rms.material_id
-            HAVING stock_percentage <= ?
-        ", [$thresholdPercentage])->getResultArray();
+        return $this->select('
+                raw_material_stock.*,
+                raw_materials.material_name,
+                raw_materials.material_quantity,
+                raw_materials.unit,
+                (raw_material_stock.current_quantity / raw_materials.material_quantity * 100) as stock_percentage
+            ')
+            ->join('raw_materials', 'raw_materials.stock_id = raw_material_stock.stock_id')
+            ->having('stock_percentage <=', $thresholdPercentage)
+            ->findAll();
     }
 
     /**
@@ -219,24 +118,24 @@ class RawMaterialStockModel extends Model
             SELECT 
                 rms.stock_id,
                 rms.material_id,
-                (rms.initial_qty - rms.qty_used) as current_quantity,
-                rms.updated_at,
+                rms.current_quantity,
+                rms.last_updated,
                 rm.material_name,
                 rm.unit,
                 mc.category_name,
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'critical'
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'warning'
+                    WHEN rms.current_quantity <= ? THEN 'critical'
+                    WHEN rms.current_quantity <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE (rms.initial_qty - rms.qty_used) <= ?
-            ORDER BY (rms.initial_qty - rms.qty_used) ASC
+            WHERE rms.current_quantity <= ?
+            ORDER BY rms.current_quantity ASC
         ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
     }
 
@@ -247,21 +146,17 @@ class RawMaterialStockModel extends Model
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN (initial_qty - qty_used) <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN (initial_qty - qty_used) > ? AND (initial_qty - qty_used) <= ? THEN 1 ELSE 0 END) as warning_count
+                SUM(CASE WHEN current_quantity <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN current_quantity > ? AND current_quantity <= ? THEN 1 ELSE 0 END) as warning_count
             FROM raw_material_stock
         ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
-
+        
         return [
             'critical' => intval($result['critical_count'] ?? 0),
-            'warning'  => intval($result['warning_count'] ?? 0),
-            'total'    => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0),
+            'warning' => intval($result['warning_count'] ?? 0),
+            'total' => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0)
         ];
     }
-
-    // ═══════════════════════════════════════════
-    //  PRODUCTION DEDUCTION
-    // ═══════════════════════════════════════════
 
     /**
      * Deduct raw materials for production based on product recipe.
@@ -272,9 +167,9 @@ class RawMaterialStockModel extends Model
      * Also handles combined recipes (products made from other products)
      * by recursively deducting the source product's raw materials.
      *
-     * @param int  $productId  The product being produced
-     * @param int  $pieces     Number of pieces produced
-     * @param bool $preview    If true, calculate only — don't actually deduct
+     * @param int $productId  The product being produced
+     * @param int $pieces     Number of pieces produced
+     * @param bool $preview   If true, calculate only — don't actually deduct
      * @return array           Summary of deductions performed
      */
     public function deductForProduction(int $productId, int $pieces, bool $preview = false): array
@@ -283,8 +178,8 @@ class RawMaterialStockModel extends Model
             return ['success' => false, 'message' => 'Pieces must be greater than 0', 'deductions' => []];
         }
 
-        $productRecipeModel  = model('ProductRecipeModel');
-        $productCostModel    = model('ProductCostModel');
+        $productRecipeModel = model('ProductRecipeModel');
+        $productCostModel   = model('ProductCostModel');
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
 
         // Get pieces_per_yield from product_costs
@@ -325,20 +220,20 @@ class RawMaterialStockModel extends Model
                 $unit           = $ingredient['unit'] ?? '';
 
                 // Get current stock before deduction
-                $stock      = $this->getByMaterialId($materialId);
+                $stock = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
                 $afterQty   = max(0, $currentQty - $deductAmount);
 
                 $deductions[] = [
-                    'material_id'              => $materialId,
-                    'material_name'            => $materialName,
-                    'unit'                     => $unit,
+                    'material_id'   => $materialId,
+                    'material_name' => $materialName,
+                    'unit'          => $unit,
                     'quantity_needed_per_yield' => $quantityNeeded,
-                    'yields_needed'            => round($yieldsNeeded, 2),
-                    'deduct_amount'            => round($deductAmount, 4),
-                    'before'                   => round($currentQty, 4),
-                    'after'                    => round($afterQty, 4),
-                    'insufficient'             => $currentQty < $deductAmount,
+                    'yields_needed' => round($yieldsNeeded, 2),
+                    'deduct_amount' => round($deductAmount, 4),
+                    'before'        => round($currentQty, 4),
+                    'after'         => round($afterQty, 4),
+                    'insufficient'  => $currentQty < $deductAmount,
                 ];
 
                 if (!$preview) {
@@ -358,7 +253,7 @@ class RawMaterialStockModel extends Model
                 $totalGramsNeeded = $gramsPerPiece * $pieces;
 
                 // Get the source product's yield info to convert grams → yields
-                $sourceCost       = $productCostModel->getCostByProductId($sourceProductId);
+                $sourceCost = $productCostModel->getCostByProductId($sourceProductId);
                 $sourceYieldGrams = floatval($sourceCost['yield_grams'] ?? 0);
 
                 if ($sourceYieldGrams > 0) {
@@ -374,21 +269,21 @@ class RawMaterialStockModel extends Model
                         $materialName   = $ingredient['material_name'] ?? 'Unknown';
                         $unit           = $ingredient['unit'] ?? '';
 
-                        $stock      = $this->getByMaterialId($materialId);
+                        $stock = $this->getByMaterialId($materialId);
                         $currentQty = floatval($stock['current_quantity'] ?? 0);
                         $afterQty   = max(0, $currentQty - $deductAmount);
 
                         $deductions[] = [
-                            'material_id'              => $materialId,
-                            'material_name'            => $materialName,
-                            'unit'                     => $unit,
+                            'material_id'   => $materialId,
+                            'material_name' => $materialName,
+                            'unit'          => $unit,
                             'quantity_needed_per_yield' => $quantityNeeded,
-                            'yields_needed'            => round($sourceYieldsNeeded, 2),
-                            'deduct_amount'            => round($deductAmount, 4),
-                            'before'                   => round($currentQty, 4),
-                            'after'                    => round($afterQty, 4),
-                            'insufficient'             => $currentQty < $deductAmount,
-                            'from_combined'            => $sourceName,
+                            'yields_needed' => round($sourceYieldsNeeded, 2),
+                            'deduct_amount' => round($deductAmount, 4),
+                            'before'        => round($currentQty, 4),
+                            'after'         => round($afterQty, 4),
+                            'insufficient'  => $currentQty < $deductAmount,
+                            'from_combined' => $sourceName,
                         ];
 
                         if (!$preview) {
@@ -419,12 +314,12 @@ class RawMaterialStockModel extends Model
         $hasInsufficient = !empty(array_filter($deductions, fn($d) => $d['insufficient']));
 
         return [
-            'success'          => empty($errors),
-            'preview'          => $preview,
-            'message'          => $preview
+            'success'      => empty($errors),
+            'preview'      => $preview,
+            'message'      => $preview
                 ? 'Preview calculated'
                 : (empty($errors) ? 'Raw materials deducted successfully' : implode('; ', $errors)),
-            'pieces'           => $pieces,
+            'pieces'       => $pieces,
             'pieces_per_yield' => $piecesPerYield,
             'yields_needed'    => round($yieldsNeeded, 2),
             'deductions'       => $deductions,
