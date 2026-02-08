@@ -132,7 +132,7 @@
                 </button>
             </div>
             <form id="stockInitialForm">
-                <input type="hidden" id="edit_entry_id" value="">
+                <input type="hidden" id="edit_stock_id" value="">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Raw Material <span class="text-red-500">*</span></label>
                     <select name="material_id" id="material_id"
@@ -144,19 +144,19 @@
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
                         <div class="flex">
-                            <label for="initial_quantity" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
+                            <label for="initial_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
                                 Initial Quantity <span class="text-red-500">*</span>
                             </label>
                         </div>
-                        <input type="number" name="initial_quantity" id="initial_quantity"
+                        <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.01" required>
                     </div>
-                    <div id="quantityUsedWrapper" class="hidden">
-                        <label for="quantity_used" class="block text-sm font-medium text-gray-700 mb-1">
+                    <div id="qtyUsedWrapper" class="hidden">
+                        <label for="qty_used" class="block text-sm font-medium text-gray-700 mb-1">
                             Quantity Used
                         </label>
-                        <input type="number" name="quantity_used" id="quantity_used"
+                        <input type="number" name="qty_used" id="qty_used"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.01" value="0">
                     </div>

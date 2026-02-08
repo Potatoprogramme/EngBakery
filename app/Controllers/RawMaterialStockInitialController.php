@@ -23,7 +23,7 @@ class RawMaterialStockInitialController extends BaseController
      */
     public function getAll()
     {
-        $entries = $this->rawMaterialStockInitialModel->getAllWithDetails();
+        $entries = $this->rawMaterialStockModel->getAllWithDetails();
 
         return $this->response->setJSON([
             'success' => true,
@@ -43,7 +43,7 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        $entry = $this->rawMaterialStockInitialModel->getEntryById($id);
+        $entry = $this->rawMaterialStockModel->getEntryById($id);
 
         if (!$entry) {
             return $this->response->setJSON([
@@ -80,7 +80,7 @@ class RawMaterialStockInitialController extends BaseController
 
         // Validate required fields
         if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
-            !array_key_exists('initial_quantity', $data) || (string)$data['initial_quantity'] === '' ||
+            !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
             !isset($data['unit']) || trim((string)$data['unit']) === '') {
             return $this->response->setJSON([
                 'success' => false,
@@ -88,7 +88,7 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        if (!is_numeric($data['initial_quantity']) || floatval($data['initial_quantity']) < 0) {
+        if (!is_numeric($data['initial_qty']) || floatval($data['initial_qty']) < 0) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Initial quantity must be a number greater than or equal to 0.'
@@ -96,13 +96,13 @@ class RawMaterialStockInitialController extends BaseController
         }
 
         try {
-            $entryId = $this->rawMaterialStockInitialModel->addEntry($data);
+            $entryId = $this->rawMaterialStockModel->addEntry($data);
 
             if ($entryId) {
                 return $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Stock initial entry added successfully.',
-                    'entry_id' => $entryId
+                    'message' => 'Stock entry added successfully.',
+                    'stock_id' => $entryId
                 ]);
             }
 
@@ -127,10 +127,10 @@ class RawMaterialStockInitialController extends BaseController
         $data = $this->request->getJSON(true);
 
         // Validate required fields
-        if (!isset($data['entry_id']) || (string)$data['entry_id'] === '' ||
+        if (!isset($data['stock_id']) || (string)$data['stock_id'] === '' ||
             !isset($data['material_id']) || (string)$data['material_id'] === '' ||
-            !array_key_exists('initial_quantity', $data) || (string)$data['initial_quantity'] === '' ||
-            !array_key_exists('quantity_used', $data) || (string)$data['quantity_used'] === '' ||
+            !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
+            !array_key_exists('qty_used', $data) || (string)$data['qty_used'] === '' ||
             !isset($data['unit']) || trim((string)$data['unit']) === '') {
             return $this->response->setJSON([
                 'success' => false,
@@ -138,21 +138,21 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        if (!is_numeric($data['initial_quantity']) || floatval($data['initial_quantity']) < 0) {
+        if (!is_numeric($data['initial_qty']) || floatval($data['initial_qty']) < 0) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Initial quantity must be >= 0.'
             ]);
         }
 
-        if (!is_numeric($data['quantity_used']) || floatval($data['quantity_used']) < 0) {
+        if (!is_numeric($data['qty_used']) || floatval($data['qty_used']) < 0) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Quantity used must be >= 0.'
             ]);
         }
 
-        if (floatval($data['quantity_used']) > floatval($data['initial_quantity'])) {
+        if (floatval($data['qty_used']) > floatval($data['initial_qty'])) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Quantity used cannot exceed initial quantity.'
@@ -160,8 +160,8 @@ class RawMaterialStockInitialController extends BaseController
         }
 
         try {
-            $success = $this->rawMaterialStockInitialModel->updateEntry(
-                intval($data['entry_id']),
+            $success = $this->rawMaterialStockModel->updateEntry(
+                intval($data['stock_id']),
                 $data
             );
 
@@ -197,7 +197,7 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        $entry = $this->rawMaterialStockInitialModel->find($id);
+        $entry = $this->rawMaterialStockModel->find($id);
 
         if (!$entry) {
             return $this->response->setJSON([
@@ -207,7 +207,7 @@ class RawMaterialStockInitialController extends BaseController
         }
 
         try {
-            $this->rawMaterialStockInitialModel->deleteEntry($id);
+            $this->rawMaterialStockModel->deleteEntry($id);
 
             return $this->response->setJSON([
                 'success' => true,

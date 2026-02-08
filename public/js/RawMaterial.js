@@ -252,11 +252,21 @@ $(document).ready(function() {
             rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
             const qty = parseFloat(mat.material_quantity) || 0;
+            const hasStock = parseInt(mat.has_stock) === 1;
             let barColor = 'bg-emerald-400';
             let barTrack = 'bg-emerald-100';
             let qtyText = 'text-gray-700';
             let barWidth = Math.min(100, (qty / 100) * 100);
-            if (qty <= 10) {
+            let qtyDisplay = qty + '';
+            
+            if (!hasStock) {
+                // No stock entry exists
+                barColor = 'bg-gray-300';
+                barTrack = 'bg-gray-100';
+                qtyText = 'text-gray-400 italic';
+                barWidth = 0;
+                qtyDisplay = '<span class="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">No stock</span>';
+            } else if (qty <= 10) {
                 barColor = 'bg-red-500';
                 barTrack = 'bg-red-100';
                 qtyText = 'text-red-600 font-semibold';
@@ -271,7 +281,7 @@ $(document).ready(function() {
             }
             rows += '<td class="px-6 py-4">';
             rows += '<div class="flex items-center gap-2.5">';
-            rows += '<span class="' + qtyText + ' tabular-nums text-sm min-w-[2.5rem]">' + mat.material_quantity + '</span>';
+            rows += '<span class="' + qtyText + ' tabular-nums text-sm min-w-[2.5rem]">' + qtyDisplay + '</span>';
             rows += '<div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden">';
             rows += '<div class="h-full rounded-full ' + barColor + ' transition-all" style="width:' + barWidth + '%"></div>';
             rows += '</div>';
@@ -361,12 +371,18 @@ $(document).ready(function() {
                         <div class="grid grid-cols-2 gap-3 mb-3">
                             ${(() => {
                                 const q = parseFloat(mat.material_quantity) || 0;
+                                const hasStock = parseInt(mat.has_stock) === 1;
                                 let bg = 'bg-gray-50', tc = 'text-gray-800', barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
                                 let barW = Math.min(100, (q / 100) * 100);
-                                if (q <= 10) { bg = 'bg-red-50'; tc = 'text-red-600'; barColor = 'bg-red-500'; barTrack = 'bg-red-100'; barW = Math.max(8, (q / 25) * 100); }
+                                let qtyDisplay = `${q} ${mat.unit}`;
+                                
+                                if (!hasStock) {
+                                    bg = 'bg-gray-50'; tc = 'text-gray-400'; barColor = 'bg-gray-300'; barTrack = 'bg-gray-100'; barW = 0;
+                                    qtyDisplay = '<span class="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">No stock</span>';
+                                } else if (q <= 10) { bg = 'bg-red-50'; tc = 'text-red-600'; barColor = 'bg-red-500'; barTrack = 'bg-red-100'; barW = Math.max(8, (q / 25) * 100); }
                                 else if (q <= 25) { bg = 'bg-amber-50'; tc = 'text-amber-600'; barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; barW = (q / 50) * 100; }
                                 else if (q <= 50) { barW = (q / 100) * 100; }
-                                return `<div class="${bg} rounded-lg p-2"><p class="text-xs text-gray-500 mb-0.5">Quantity</p><p class="font-semibold ${tc} text-sm">${mat.material_quantity} ${mat.unit}</p><div class="mt-1.5 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div></div>`;
+                                return `<div class="${bg} rounded-lg p-2"><p class="text-xs text-gray-500 mb-0.5">Quantity</p><p class="font-semibold ${tc} text-sm">${qtyDisplay}</p><div class="mt-1.5 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div></div>`;
                             })()}
                             <div class="bg-primary/10 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Cost per Unit</p>

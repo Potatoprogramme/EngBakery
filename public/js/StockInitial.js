@@ -50,18 +50,18 @@ $(document).ready(function () {
     $('#stockInitialForm').on('submit', function (e) {
         e.preventDefault();
 
-        const entryId = $('#edit_entry_id').val();
+        const entryId = $('#edit_stock_id').val();
         const isEdit = entryId !== '';
 
         const payload = {
             material_id: $('#material_id').val(),
-            initial_quantity: $('#initial_quantity').val(),
-            quantity_used: $('#quantity_used').val() || 0,
+            initial_qty: $('#initial_qty').val(),
+            qty_used: $('#qty_used').val() || 0,
             unit: $('#unit').val()
         };
 
         if (isEdit) {
-            payload.entry_id = entryId;
+            payload.stock_id = entryId;
         }
 
         const url = isEdit
@@ -108,12 +108,12 @@ $(document).ready(function () {
                 if (res.success) {
                     const d = res.data;
                     loadMaterialsDropdown(function () {
-                        $('#edit_entry_id').val(d.entry_id);
+                        $('#edit_stock_id').val(d.stock_id);
                         $('#material_id').val(d.material_id);
-                        $('#initial_quantity').val(d.initial_quantity);
-                        $('#quantity_used').val(d.quantity_used);
+                        $('#initial_qty').val(d.initial_qty);
+                        $('#qty_used').val(d.qty_used);
                         $('#unit').val(d.unit);
-                        $('#quantityUsedWrapper').removeClass('hidden');
+                        $('#qtyUsedWrapper').removeClass('hidden');
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
@@ -226,8 +226,8 @@ $(document).ready(function () {
 
         data.forEach(function (entry) {
             const remaining = parseFloat(entry.remaining) || 0;
-            const initial = parseFloat(entry.initial_quantity) || 0;
-            const used = parseFloat(entry.quantity_used) || 0;
+            const initial = parseFloat(entry.initial_qty) || 0;
+            const used = parseFloat(entry.qty_used) || 0;
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
             // Health bar color
@@ -235,7 +235,7 @@ $(document).ready(function () {
             if (pct <= 10) barColor = 'bg-red-500';
             else if (pct <= 30) barColor = 'bg-amber-400';
 
-            const dateStr = entry.date_added ? new Date(entry.date_added).toLocaleDateString('en-PH', {
+            const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
 
@@ -261,10 +261,10 @@ $(document).ready(function () {
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
                         <div class="flex items-center gap-2">
-                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700" data-id="${entry.entry_id}" title="Edit">
+                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700" data-id="${entry.stock_id}" title="Edit">
                                 <i class="fas fa-pen-to-square"></i>
                             </button>
-                            <button class="btn-delete-entry text-red-500 hover:text-red-700" data-id="${entry.entry_id}" title="Delete">
+                            <button class="btn-delete-entry text-red-500 hover:text-red-700" data-id="${entry.stock_id}" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -305,15 +305,15 @@ $(document).ready(function () {
 
         pageItems.forEach(function (entry) {
             const remaining = parseFloat(entry.remaining) || 0;
-            const initial = parseFloat(entry.initial_quantity) || 0;
-            const used = parseFloat(entry.quantity_used) || 0;
+            const initial = parseFloat(entry.initial_qty) || 0;
+            const used = parseFloat(entry.qty_used) || 0;
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
             let barColor = 'bg-emerald-400';
             if (pct <= 10) barColor = 'bg-red-500';
             else if (pct <= 30) barColor = 'bg-amber-400';
 
-            const dateStr = entry.date_added ? new Date(entry.date_added).toLocaleDateString('en-PH', {
+            const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
 
@@ -345,10 +345,10 @@ $(document).ready(function () {
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-400">${dateStr}</span>
                         <div class="flex items-center gap-3">
-                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.entry_id}" title="Edit">
+                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
                                 <i class="fas fa-pen-to-square"></i>
                             </button>
-                            <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.entry_id}" title="Delete">
+                            <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -441,11 +441,11 @@ $(document).ready(function () {
 
     function resetModal() {
         $('#stockInitialForm')[0].reset();
-        $('#edit_entry_id').val('');
+        $('#edit_stock_id').val('');
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
-        $('#quantityUsedWrapper').addClass('hidden');
-        $('#quantity_used').val(0);
+        $('#qtyUsedWrapper').addClass('hidden');
+        $('#qty_used').val(0);
     }
 
     function closeModal() {
