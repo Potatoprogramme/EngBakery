@@ -17,9 +17,9 @@
                 </ol>
             </nav>
 
-            <!-- Header Section with Date Navigation -->
+            <!-- Header Section -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2 mb-4">
+                <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Baking Schedule</h2>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" id="btnAddItems"
@@ -28,84 +28,10 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Date Navigation -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnPrevDay"
-                            class="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="selectedDate" value="<?= date('Y-m-d') ?>"
-                                class="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                            <span id="dateLabel" class="text-sm font-medium text-primary hidden sm:inline-block"></span>
-                        </div>
-                        <button type="button" id="btnNextDay"
-                            class="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    <!-- Quick Date Buttons -->
-                    <div class="flex gap-2 overflow-x-auto pb-1">
-                        <button type="button" class="quick-date-btn px-3 py-1.5 text-xs font-medium rounded-full bg-primary text-white" data-days="0">Today</button>
-                        <button type="button" class="quick-date-btn px-3 py-1.5 text-xs font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100" data-days="1">Tomorrow</button>
-                        <button type="button" class="quick-date-btn px-3 py-1.5 text-xs font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100" data-days="2">+2 Days</button>
-                        <button type="button" class="quick-date-btn px-3 py-1.5 text-xs font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100" data-days="3">+3 Days</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center mr-3">
-                            <i class="fas fa-bread-slice text-primary text-lg sm:text-xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs sm:text-sm text-gray-500 truncate">Items</p>
-                            <p id="totalItemsCount" class="text-base sm:text-lg font-bold text-gray-900 truncate">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 flex items-center justify-center mr-3">
-                            <i class="fas fa-boxes text-blue-500 text-lg sm:text-xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs sm:text-sm text-gray-500 truncate">Pieces</p>
-                            <p id="totalQuantityCount" class="text-base sm:text-lg font-bold text-gray-900 truncate">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-yellow-50 flex items-center justify-center mr-3">
-                            <i class="fas fa-clock text-yellow-500 text-lg sm:text-xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs sm:text-sm text-gray-500 truncate">Pending</p>
-                            <p id="pendingCount" class="text-base sm:text-lg font-bold text-gray-900 truncate">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-50 flex items-center justify-center mr-3">
-                            <i class="fas fa-check-circle text-green-500 text-lg sm:text-xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs sm:text-sm text-gray-500 truncate">Done</p>
-                            <p id="completedCount" class="text-base sm:text-lg font-bold text-gray-900 truncate">0</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Floating Add Items button for mobile -->
-            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex justify-center z-30 md:hidden">
+            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex justify-center z-30 lg:hidden">
                 <button type="button" id="btnAddItemsMobile"
                     class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     <i class="fas fa-plus mr-2"></i>Add Items
@@ -129,49 +55,143 @@
                 </div>
             </div>
 
-            <!-- Desktop Table View - Daily Baking List -->
-            <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 lg:mb-0">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">
-                        <i class="fas fa-clipboard-list text-primary mr-2"></i>
-                        Baking List for <span id="tableDate"><?= date('F d, Y') ?></span>
-                    </h3>
-                </div>
-                <table id="distribution-table" class="min-w-full text-sm text-left">
-                    <thead>
-                        <tr class="border-b border-gray-200 bg-gray-50">
-                            <th scope="col" class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Product
-                            </th>
-                            <th scope="col" class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                                Quantity
-                            </th>
-                            <th scope="col" class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="distributionTableBody">
-                        <!-- Dynamically populated via JS -->
-                    </tbody>
-                </table>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden text-center py-12">
-                    <div class="w-20 h-20 rounded-full bg-gray-100 mx-auto mb-4 flex items-center justify-center">
-                        <i class="fas fa-clipboard-list text-gray-400 text-3xl"></i>
+            <!-- Main Layout: List + Calendar -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 lg:mb-0">
+                
+                <!-- Left Side: Baking List (hidden on mobile, shown on lg+) -->
+                <div class="hidden lg:block lg:col-span-5 xl:col-span-4">
+                    <!-- Date Navigation for Selected Date -->
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Selected Date</h3>
+                            <input type="date" id="selectedDate" value="<?= date('Y-m-d') ?>"
+                                class="rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <button type="button" id="btnPrevDay"
+                                class="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="text-center">
+                                <p id="tableDate" class="text-lg font-bold text-gray-800"><?= date('F d, Y') ?></p>
+                                <span id="dateLabel" class="text-xs font-medium text-primary"></span>
+                            </div>
+                            <button type="button" id="btnNextDay"
+                                class="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-800 mb-1">No items scheduled</h3>
-                    <p class="text-sm text-gray-500 mb-4">Add baking items for this day</p>
-                    <button type="button" id="btnAddItemsEmpty"
-                        class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary">
-                        <i class="fas fa-plus mr-2"></i>Add Items
-                    </button>
+
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-2">
+                                    <i class="fas fa-bread-slice text-primary text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Items</p>
+                                    <p id="totalItemsCount" class="text-sm font-bold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center mr-2">
+                                    <i class="fas fa-boxes text-blue-500 text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Pieces</p>
+                                    <p id="totalQuantityCount" class="text-sm font-bold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Baking List Panel -->
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                                <i class="fas fa-clipboard-list text-primary mr-1"></i>Baking List
+                            </h3>
+                            <button type="button" id="btnAddItemsEmpty"
+                                class="text-xs text-primary hover:text-secondary font-medium">
+                                <i class="fas fa-plus mr-1"></i>Add
+                            </button>
+                        </div>
+
+                        <!-- List Items -->
+                        <div id="distributionListContainer" class="space-y-2 max-h-[400px] overflow-y-auto">
+                            <!-- Dynamically populated via JS -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="emptyState" class="hidden text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-sm font-medium text-gray-800 mb-1">No items scheduled</h3>
+                            <p class="text-xs text-gray-500">Click "Add" to add baking items</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Calendar -->
+                <div class="lg:col-span-7 xl:col-span-8">
+                    <div class="bg-white rounded-lg shadow-md p-2 sm:p-4">
+                        <!-- Calendar Header -->
+                        <div class="flex items-center justify-between mb-3 sm:mb-4">
+                            <button type="button" id="btnPrevMonth"
+                                class="p-1.5 sm:p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-left text-xs sm:text-sm"></i>
+                            </button>
+                            <h3 id="calendarMonth" class="text-sm sm:text-lg font-bold text-gray-800"><?= date('F Y') ?></h3>
+                            <button type="button" id="btnNextMonth"
+                                class="p-1.5 sm:p-2 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-right text-xs sm:text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Sun</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Mon</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Tue</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Wed</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Thu</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Fri</div>
+                            <div class="text-center text-[10px] sm:text-xs font-semibold text-gray-500 py-1 sm:py-2">Sat</div>
+                        </div>
+                        <div id="calendarDays" class="grid grid-cols-7 gap-0.5 sm:gap-1">
+                            <!-- Dynamically populated via JS -->
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
+                            <div class="flex items-center gap-1">
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary"></div>
+                                <span class="text-[10px] sm:text-xs text-gray-500">Selected</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary/40"></div>
+                                <span class="text-[10px] sm:text-xs text-gray-500">Has items</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gray-200"></div>
+                                <span class="text-[10px] sm:text-xs text-gray-500">No items</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2 border-primary"></div>
+                                <span class="text-[10px] sm:text-xs text-gray-500">Today</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Mobile Card View -->
-            <div class="lg:hidden mb-24">
+            <!-- Mobile Card View (shown below on mobile) -->
+            <div class="lg:hidden mb-24" id="mobileCardSection">
                 <!-- Date Header for Mobile -->
                 <div class="bg-primary text-white rounded-lg p-3 mb-3">
                     <div class="flex items-center justify-between">
@@ -179,7 +199,7 @@
                             <span class="text-xs opacity-80">Baking List</span>
                             <h3 id="mobileDateHeader" class="font-semibold"><?= date('F d, Y') ?></h3>
                         </div>
-                        <span class="text-2xl font-bold" id="mobileItemCount">4</span>
+                        <span class="text-2xl font-bold" id="mobileItemCount">0</span>
                     </div>
                 </div>
 
@@ -201,14 +221,67 @@
         </div>
     </div>
 
-    <!-- Add Items Modal - Add Multiple Products -->
+    <!-- Calendar Day Modal -->
+    <div id="calendarDayModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+        <div class="relative w-full max-w-md mx-auto p-4 sm:p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 id="calendarDayModalTitle" class="text-lg font-semibold text-primary">Baking List</h3>
+                    <p id="calendarDayModalDate" class="text-sm text-gray-500">January 15, 2026</p>
+                </div>
+                <button type="button" id="btnCloseCalendarDayModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Summary -->
+            <div class="flex gap-3 mb-4">
+                <div class="flex-1 bg-primary/10 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-primary" id="modalItemCount">0</p>
+                    <p class="text-xs text-gray-600">Items</p>
+                </div>
+                <div class="flex-1 bg-blue-50 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="modalPiecesCount">0</p>
+                    <p class="text-xs text-gray-600">Pieces</p>
+                </div>
+            </div>
+
+            <!-- Items List -->
+            <div id="calendarDayItemsList" class="space-y-2 max-h-[300px] overflow-y-auto mb-4">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="calendarDayEmptyState" class="hidden text-center py-6">
+                <div class="w-14 h-14 rounded-full bg-gray-100 mx-auto mb-2 flex items-center justify-center">
+                    <i class="fas fa-clipboard-list text-gray-400 text-xl"></i>
+                </div>
+                <p class="text-sm text-gray-500">No items scheduled</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 justify-end pt-3 border-t border-gray-100">
+                <button type="button" id="btnCalendarDayClose"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    Close
+                </button>
+                <button type="button" id="btnCalendarDaySelect"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary">
+                    <i class="fas fa-arrow-right mr-1"></i>Go to this date
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Items Modal - Search & Add Pattern -->
     <div id="addItemsModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-2xl mx-auto p-4 sm:p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
+        <div class="relative w-full max-w-lg mx-auto p-4 sm:p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 id="addItemsModalTitle" class="text-lg font-semibold text-primary">Add Baking Items</h3>
-                    <p class="text-sm text-gray-500">Add products to bake for a specific date</p>
+                    <p class="text-sm text-gray-500">Search and add products for a specific date</p>
                 </div>
                 <button type="button" id="btnCloseAddItemsModal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
@@ -232,28 +305,51 @@
                     </div>
                 </div>
 
-                <!-- Items List -->
-                <div class="mb-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-sm font-medium text-gray-700">
-                            <i class="fas fa-list text-primary mr-1"></i>Items to Bake
-                        </label>
-                        <button type="button" id="btnAddMoreItem"
-                            class="text-xs text-primary hover:text-secondary font-medium">
-                            <i class="fas fa-plus mr-1"></i>Add More
-                        </button>
+                <!-- Product Search & Add Section -->
+                <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <h4 class="text-center text-sm font-medium text-gray-700 mb-3">Select Product & Quantity</h4>
+
+                    <!-- Product Search -->
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <input type="text" id="productSearch"
+                                class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="Search product..." autocomplete="off">
+                            <button type="button" id="btnClearProduct"
+                                class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div id="productDropdown"
+                                class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            </div>
+                            <input type="hidden" id="selectedProductId">
+                        </div>
                     </div>
 
-                    <div id="itemsContainer" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                        <!-- Dynamically populated via JS -->
+                    <!-- Quantity -->
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity (pieces) <span class="text-red-500">*</span></label>
+                        <input type="number" id="addProductQty" min="1" value="10" step="1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="10">
                     </div>
+
+                    <!-- Add Product Button -->
+                    <button type="button" id="btnAddProductToList"
+                        class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+                        <i class="fas fa-plus mr-1"></i>Add Product
+                    </button>
                 </div>
 
-                <!-- Summary -->
-                <div class="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-700">Items to add:</span>
-                        <span id="itemsSummaryCount" class="text-lg font-bold text-primary">1 item</span>
+                <!-- Added Products List -->
+                <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold text-gray-700">Added Products</h4>
+                        <span id="itemsSummaryCount" class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">0 items</span>
+                    </div>
+                    <div id="itemsContainer" class="space-y-2 max-h-[200px] overflow-y-auto">
+                        <p id="noItemsMsg" class="text-sm text-gray-500 text-center py-2">No products added yet</p>
                     </div>
                 </div>
 
@@ -265,7 +361,7 @@
                     </button>
                     <button type="submit" id="btnSaveItems"
                         class="px-6 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Add to Schedule
+                        <i class="fas fa-save mr-2"></i>Save to Schedule
                     </button>
                 </div>
             </form>
@@ -328,6 +424,9 @@
     <script>
         let productsData = []; // Store fetched products (global scope for template function)
         let inventoryLocked = false; // Track if inventory exists for the selected date
+        let calendarData = {}; // Store distribution data keyed by date
+        let currentCalendarMonth = new Date().getMonth();
+        let currentCalendarYear = new Date().getFullYear();
 
         $(document).ready(function() {
 
@@ -335,6 +434,8 @@
 
             getProducts();
             loadDistributionByDate();
+            renderCalendar();
+            loadMonthDistributions();
 
             // ===== API FUNCTIONS =====
 
@@ -344,11 +445,8 @@
                     method: 'GET',
                     dataType: 'json',
                     success: function(response) {
-                        console.log('Products fetched:', response);
                         if (response.success && response.data) {
-                            
                             productsData = response.data;
-                            populateProductSelects();
                         }
                     },
                     error: function(xhr, status, error) {
@@ -357,24 +455,7 @@
                 });
             }
 
-            function populateProductSelects() {
-                // Update the initial select in the modal
-                const selects = $('#itemsContainer select[name="product_id[]"]');
-                selects.each(function() {
-                    const currentVal = $(this).val();
-                    $(this).html(getProductOptionsHtml());
-                    if (currentVal) $(this).val(currentVal);
-                });
-            }
 
-            function getProductOptionsHtml(selectedId = '') {
-                let html = '<option value="">Select Product</option>';
-                productsData.forEach(function(product) {
-                    const selected = (product.product_id == selectedId) ? 'selected' : '';
-                    html += `<option value="${product.product_id}" ${selected}>${product.product_name}</option>`;
-                });
-                return html;
-            }
 
             function loadDistributionByDate() {
                 const date = $('#selectedDate').val();
@@ -386,27 +467,56 @@
                     success: function(response) {
                         if (response.success && response.data) {
                             inventoryLocked = response.inventory_locked || false;
-                            renderDistributionTable(response.data);
+                            renderDistributionList(response.data);
                             renderMobileCards(response.data);
-                            updateSummaryCounts();
+                            updateSummaryCounts(response.data);
                             updateInventoryLockState();
                         } else {
                             inventoryLocked = false;
-                            renderDistributionTable([]);
+                            renderDistributionList([]);
                             renderMobileCards([]);
-                            updateSummaryCounts();
-                            // Still check inventory even if no distribution items
+                            updateSummaryCounts([]);
                             checkInventoryForDate(date);
                         }
                     },
                     error: function(xhr, status, error) {
                         inventoryLocked = false;
-                        // No records found or server error — show empty state
-                        renderDistributionTable([]);
+                        renderDistributionList([]);
                         renderMobileCards([]);
-                        updateSummaryCounts();
-                        // Still check inventory even if no distribution items
+                        updateSummaryCounts([]);
                         checkInventoryForDate(date);
+                    }
+                });
+            }
+
+            function loadMonthDistributions() {
+                const startDate = new Date(currentCalendarYear, currentCalendarMonth, 1);
+                const endDate = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
+                
+                $.ajax({
+                    url: baseUrl + 'Distribution/GetDistributionByDateRange',
+                    method: 'GET',
+                    data: { 
+                        start_date: formatDate(startDate),
+                        end_date: formatDate(endDate)
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            // Group by date
+                            calendarData = {};
+                            response.data.forEach(function(item) {
+                                if (!calendarData[item.distribution_date]) {
+                                    calendarData[item.distribution_date] = [];
+                                }
+                                calendarData[item.distribution_date].push(item);
+                            });
+                            renderCalendar();
+                        }
+                    },
+                    error: function() {
+                        calendarData = {};
+                        renderCalendar();
                     }
                 });
             }
@@ -426,25 +536,19 @@
 
             function updateInventoryLockState() {
                 if (inventoryLocked) {
-                    // Show lock banner
                     $('#inventoryLockBanner').removeClass('hidden');
-                    // Hide add buttons
                     $('#btnAddItems').addClass('hidden');
                     $('#mobileAddBtnContainer').addClass('hidden');
                     $('#btnAddItemsEmpty').addClass('hidden');
                     $('#btnAddItemsMobileEmpty').addClass('hidden');
-                    // Disable edit/delete buttons in table
                     $('.btn-edit-qty').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
                     $('.btn-delete').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
                 } else {
-                    // Hide lock banner
                     $('#inventoryLockBanner').addClass('hidden');
-                    // Show add buttons
                     $('#btnAddItems').removeClass('hidden').addClass('hidden sm:inline-flex');
                     $('#mobileAddBtnContainer').removeClass('hidden');
                     $('#btnAddItemsEmpty').removeClass('hidden');
                     $('#btnAddItemsMobileEmpty').removeClass('hidden');
-                    // Enable edit/delete buttons in table
                     $('.btn-edit-qty').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
                     $('.btn-delete').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
                 }
@@ -469,9 +573,6 @@
                             showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
                             inventoryLocked = true;
                             updateInventoryLockState();
-                        } else if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
-                            showToast('danger', xhr.responseJSON.error, 4000);
-                            showInsufficientMaterialsAlert(xhr.responseJSON.insufficient_materials);
                         } else if (xhr.status === 409) {
                             console.warn('Duplicate product for this date.');
                         } else {
@@ -487,7 +588,9 @@
                     method: 'POST',
                     dataType: 'json',
                     success: function(response) {
+                        showToast('success', 'Item removed successfully!', 3000);
                         loadDistributionByDate();
+                        loadMonthDistributions();
                     },
                     error: function(xhr, status, error) {
                         if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
@@ -495,6 +598,7 @@
                             inventoryLocked = true;
                             updateInventoryLockState();
                         } else {
+                            showToast('danger', 'Failed to delete item. Please try again.', 3000);
                             console.error('Error deleting item:', error);
                         }
                     }
@@ -502,8 +606,7 @@
             }
 
             function updateDistributionItem(itemId, quantity) {
-                // Get the current item data from the row
-                const row = $('tr[data-id="' + itemId + '"]');
+                const row = $('[data-id="' + itemId + '"]');
                 const productId = row.data('product-id');
                 const date = $('#selectedDate').val();
 
@@ -518,7 +621,9 @@
                     }),
                     dataType: 'json',
                     success: function(response) {
+                        showToast('success', 'Quantity updated successfully!', 3000);
                         loadDistributionByDate();
+                        loadMonthDistributions();
                     },
                     error: function(xhr, status, error) {
                         if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
@@ -529,55 +634,188 @@
                             showToast('danger', xhr.responseJSON.error, 4000);
                             showInsufficientMaterialsAlert(xhr.responseJSON.insufficient_materials);
                         } else {
+                            showToast('danger', 'Failed to update quantity. Please try again.', 3000);
                             console.error('Error updating item:', error);
                         }
                     }
                 });
             }
 
-            // ===== RENDERING FUNCTIONS =====
+            // ===== CALENDAR FUNCTIONS =====
 
-            function renderDistributionTable(items) {
-                const tbody = $('#distributionTableBody');
-                tbody.empty();
+            function renderCalendar() {
+                const container = $('#calendarDays');
+                container.empty();
+
+                const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
+                const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
+                const startingDay = firstDay.getDay();
+                const totalDays = lastDay.getDate();
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const selectedDate = $('#selectedDate').val();
+
+                // Update month label
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                $('#calendarMonth').text(monthNames[currentCalendarMonth] + ' ' + currentCalendarYear);
+
+                // Empty slots for days before month starts
+                for (let i = 0; i < startingDay; i++) {
+                    container.append('<div class="h-16 sm:h-20"></div>');
+                }
+
+                // Render each day
+                for (let day = 1; day <= totalDays; day++) {
+                    const dateStr = formatDate(new Date(currentCalendarYear, currentCalendarMonth, day));
+                    const isToday = (new Date(currentCalendarYear, currentCalendarMonth, day).getTime() === today.getTime());
+                    const isSelected = (dateStr === selectedDate);
+                    const dayData = calendarData[dateStr] || [];
+                    const hasItems = dayData.length > 0;
+
+                    let todayClass = isToday ? 'ring-2 ring-primary' : '';
+                    let selectedClass = isSelected ? 'bg-primary text-white' : '';
+                    let bgClass = isSelected ? '' : (hasItems ? 'bg-primary/40' : 'bg-gray-50');
+
+                    let itemsPreview = '';
+                    if (hasItems) {
+                        const totalQty = dayData.reduce((sum, item) => sum + parseInt(item.product_qnty || 0), 0);
+                        itemsPreview = `
+                            <div class="mt-0.5 sm:mt-1 leading-tight">
+                                <span class="text-[8px] sm:text-[10px] md:text-xs ${isSelected ? 'text-white/80' : 'text-primary'} font-medium block sm:inline">${dayData.length}</span>
+                                <span class="hidden sm:inline text-[10px] md:text-xs ${isSelected ? 'text-white/60' : 'text-gray-500'}">(${totalQty})</span>
+                            </div>
+                        `;
+                    }
+
+                    const dayHtml = `
+                        <div class="calendar-day h-12 sm:h-16 md:h-20 p-0.5 sm:p-1 md:p-2 rounded-md sm:rounded-lg cursor-pointer hover:shadow-md transition-all ${bgClass} ${todayClass} ${selectedClass} border border-gray-100"
+                             data-date="${dateStr}">
+                            <div class="text-[10px] sm:text-xs md:text-sm font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}">${day}</div>
+                            ${itemsPreview}
+                        </div>
+                    `;
+                    container.append(dayHtml);
+                }
+            }
+
+            // Calendar navigation
+            $('#btnPrevMonth').on('click', function() {
+                currentCalendarMonth--;
+                if (currentCalendarMonth < 0) {
+                    currentCalendarMonth = 11;
+                    currentCalendarYear--;
+                }
+                loadMonthDistributions();
+            });
+
+            $('#btnNextMonth').on('click', function() {
+                currentCalendarMonth++;
+                if (currentCalendarMonth > 11) {
+                    currentCalendarMonth = 0;
+                    currentCalendarYear++;
+                }
+                loadMonthDistributions();
+            });
+
+            // Calendar day click - show modal
+            $(document).on('click', '.calendar-day', function() {
+                const dateStr = $(this).data('date');
+                const dayData = calendarData[dateStr] || [];
+                
+                showCalendarDayModal(dateStr, dayData);
+            });
+
+            function showCalendarDayModal(dateStr, items) {
+                const date = new Date(dateStr);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formatted = date.toLocaleDateString('en-US', options);
+
+                $('#calendarDayModalDate').text(formatted);
+                $('#calendarDayModal').data('selected-date', dateStr);
+
+                const totalQty = items.reduce((sum, item) => sum + parseInt(item.product_qnty || 0), 0);
+                $('#modalItemCount').text(items.length);
+                $('#modalPiecesCount').text(totalQty);
+
+                const listContainer = $('#calendarDayItemsList');
+                listContainer.empty();
 
                 if (items.length === 0) {
-                    $('#distribution-table').addClass('hidden');
+                    $('#calendarDayItemsList').addClass('hidden');
+                    $('#calendarDayEmptyState').removeClass('hidden');
+                } else {
+                    $('#calendarDayItemsList').removeClass('hidden');
+                    $('#calendarDayEmptyState').addClass('hidden');
+
+                    items.forEach(function(item) {
+                        const row = `
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+                                        <i class="fas fa-bread-slice text-primary text-xs"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-800">${item.product_name}</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">pcs</span></span>
+                            </div>
+                        `;
+                        listContainer.append(row);
+                    });
+                }
+
+                $('#calendarDayModal').removeClass('hidden');
+            }
+
+            // Close calendar day modal
+            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function() {
+                $('#calendarDayModal').addClass('hidden');
+            });
+
+            // Go to selected date from modal
+            $('#btnCalendarDaySelect').on('click', function() {
+                const dateStr = $('#calendarDayModal').data('selected-date');
+                $('#selectedDate').val(dateStr).trigger('change');
+                $('#calendarDayModal').addClass('hidden');
+            });
+
+            // ===== RENDERING FUNCTIONS =====
+
+            function renderDistributionList(items) {
+                const container = $('#distributionListContainer');
+                container.empty();
+
+                if (items.length === 0) {
+                    container.addClass('hidden');
                     $('#emptyState').removeClass('hidden');
                     return;
                 }
 
-                $('#distribution-table').removeClass('hidden');
+                container.removeClass('hidden');
                 $('#emptyState').addClass('hidden');
 
                 items.forEach(function(item) {
                     const row = `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-bread-slice text-primary"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800">${item.product_name}</span>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                            <div class="flex items-center gap-2 min-w-0 flex-1">
+                                <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bread-slice text-primary text-xs"></i>
                                 </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-lg font-bold text-gray-800">${item.product_qnty}</span>
-                                <span class="text-gray-500 text-sm">pcs</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                <span class="text-sm font-medium text-gray-800 truncate">${item.product_name}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-gray-800">${item.product_qnty}</span>
+                                <button type="button" class="btn-edit-qty p-1.5 text-primary hover:bg-primary/10 rounded" title="Edit">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button type="button" class="btn-delete p-1.5 text-red-500 hover:bg-red-50 rounded" title="Remove">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
                     `;
-                    tbody.append(row);
+                    container.append(row);
                 });
             }
 
@@ -594,18 +832,25 @@
 
                 items.forEach(function(item) {
                     const card = `
-                        <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-bread-slice text-primary"></i>
+                        <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-bread-slice text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-800">${item.product_name}</h4>
+                                        <span class="text-xs text-gray-500">${item.product_qnty} pcs</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-800">${item.product_name}</h4>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" class="btn-edit-qty-mobile p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                    <button type="button" class="btn-delete-mobile p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Remove">
+                                        <i class="fas fa-trash text-sm"></i>
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xl font-bold text-gray-800">${item.product_qnty}</span>
-                                <span class="text-xs text-gray-500">pcs</span>
                             </div>
                         </div>
                     `;
@@ -615,56 +860,30 @@
 
             // ===== DATE NAVIGATION =====
 
-            // Date change
             $('#selectedDate').on('change', function() {
                 updateDateLabel();
                 loadDistributionByDate();
-                updateQuickDateBtns();
+                renderCalendar();
             });
 
-            // Previous day
             $('#btnPrevDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() - 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
             });
 
-            // Next day
             $('#btnNextDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() + 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
             });
 
-            // Quick date buttons
-            $('.quick-date-btn').on('click', function() {
-                const days = parseInt($(this).data('days'));
-                const newDate = new Date();
-                newDate.setDate(newDate.getDate() + days);
-                $('#selectedDate').val(formatDate(newDate)).trigger('change');
-            });
-
-            function updateQuickDateBtns() {
-                const selectedDate = $('#selectedDate').val();
-                $('.quick-date-btn').each(function() {
-                    const days = parseInt($(this).data('days'));
-                    const btnDate = new Date();
-                    btnDate.setDate(btnDate.getDate() + days);
-
-                    if (formatDate(btnDate) === selectedDate) {
-                        $(this).removeClass('border border-gray-300 text-gray-600 hover:bg-gray-100').addClass('bg-primary text-white');
-                    } else {
-                        $(this).removeClass('bg-primary text-white').addClass('border border-gray-300 text-gray-600 hover:bg-gray-100');
-                    }
-                });
-            }
-
             // Initialize
             updateDateLabel();
-            updateSummaryCounts();
-            updateQuickDateBtns();
 
             // ===== ADD ITEMS MODAL =====
+
+            let itemsToAddList = [];
 
             $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty, #btnAddItemsMobileEmpty').on('click', function() {
                 if (inventoryLocked) {
@@ -673,9 +892,13 @@
                 }
                 $('#scheduleDate').val($('#selectedDate').val());
                 updateScheduleQuickBtns();
-                // Reset items container with fresh row using dynamic products
-                $('#itemsContainer').html(getItemRowTemplate());
-                updateItemsSummary();
+                itemsToAddList = [];
+                renderAddedItemsList();
+                $('#productSearch').val('');
+                $('#selectedProductId').val('');
+                $('#btnClearProduct').addClass('hidden');
+                $('#addProductQty').val(10);
+                hideProductDropdown();
                 $('#addItemsModal').removeClass('hidden');
             });
 
@@ -683,13 +906,146 @@
                 $('#addItemsModal').addClass('hidden');
             });
 
+            // Product search input events
+            $('#productSearch').on('focus', function() {
+                showProductDropdown($(this).val());
+            });
+
+            $('#productSearch').on('input', function() {
+                $('#selectedProductId').val('');
+                $('#btnClearProduct').addClass('hidden');
+                showProductDropdown($(this).val());
+            });
+
+            $('#addProductQty').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#btnAddProductToList').click();
+                }
+            });
+
+            $(document).on('click', '.product-option', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                $('#selectedProductId').val(id);
+                $('#productSearch').val(name);
+                $('#btnClearProduct').removeClass('hidden');
+                hideProductDropdown();
+                $('#addProductQty').focus();
+            });
+
+            $('#btnClearProduct').on('click', function() {
+                $('#selectedProductId').val('');
+                $('#productSearch').val('');
+                $(this).addClass('hidden');
+                $('#productSearch').focus();
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#productSearch, #productDropdown').length) {
+                    hideProductDropdown();
+                }
+            });
+
+            function showProductDropdown(searchTerm = '') {
+                const term = (searchTerm || '').toLowerCase();
+                let html = '';
+                const filtered = productsData.filter(p => p.product_name.toLowerCase().includes(term));
+
+                if (filtered.length === 0) {
+                    html = '<div class="px-3 py-2 text-sm text-gray-500">No products found</div>';
+                } else {
+                    filtered.forEach(function(product) {
+                        const alreadyAdded = itemsToAddList.some(i => i.product_id == product.product_id);
+                        const disabledClass = alreadyAdded ? 'opacity-50 pointer-events-none' : 'hover:bg-primary/10 cursor-pointer';
+                        const badge = alreadyAdded ? '<span class="text-xs text-green-600 font-medium">Added</span>' : '';
+                        html += `<div class="product-option px-3 py-2 text-sm ${disabledClass} flex items-center justify-between" data-id="${product.product_id}" data-name="${product.product_name}">
+                            <span>${product.product_name}</span>
+                            ${badge}
+                        </div>`;
+                    });
+                }
+                $('#productDropdown').html(html).removeClass('hidden');
+            }
+
+            function hideProductDropdown() {
+                $('#productDropdown').addClass('hidden');
+            }
+
+            $('#btnAddProductToList').on('click', function() {
+                const productId = $('#selectedProductId').val();
+                const productName = $('#productSearch').val();
+                const quantity = parseInt($('#addProductQty').val()) || 0;
+
+                if (!productId) {
+                    showToast('warning', 'Please search and select a product first.', 3000);
+                    return;
+                }
+                if (quantity <= 0) {
+                    showToast('warning', 'Please enter a valid quantity.', 3000);
+                    return;
+                }
+                if (itemsToAddList.some(i => i.product_id == productId)) {
+                    showToast('warning', 'This product is already in the list.', 3000);
+                    return;
+                }
+
+                itemsToAddList.push({ product_id: productId, product_name: productName, quantity: quantity });
+                renderAddedItemsList();
+
+                $('#productSearch').val('');
+                $('#selectedProductId').val('');
+                $('#btnClearProduct').addClass('hidden');
+                $('#addProductQty').val(10);
+                $('#productSearch').focus();
+            });
+
+            $(document).on('click', '.btn-remove-added-item', function() {
+                const idx = $(this).data('index');
+                itemsToAddList.splice(idx, 1);
+                renderAddedItemsList();
+            });
+
+            function renderAddedItemsList() {
+                const container = $('#itemsContainer');
+                container.empty();
+
+                if (itemsToAddList.length === 0) {
+                    container.html('<p id="noItemsMsg" class="text-sm text-gray-500 text-center py-2">No products added yet</p>');
+                    $('#itemsSummaryCount').text('0 items');
+                    return;
+                }
+
+                itemsToAddList.forEach(function(item, index) {
+                    const row = `
+                        <div class="flex items-center justify-between p-2 bg-white rounded-md border border-gray-200">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bread-slice text-primary text-xs"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
+                                    <span class="text-xs text-gray-500">${item.quantity} pcs</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-remove-added-item p-1.5 text-red-500 hover:bg-red-50 rounded-md flex-shrink-0" data-index="${index}" title="Remove">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.append(row);
+                });
+
+                const count = itemsToAddList.length;
+                $('#itemsSummaryCount').text(count + (count === 1 ? ' item' : ' items'));
+            }
+
             // ===== EDIT QTY MODAL =====
 
             $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function() {
                 $('#editQtyModal').addClass('hidden');
             });
 
-            // Schedule quick date buttons in modal
             $('.schedule-quick-btn').on('click', function() {
                 const days = parseInt($(this).data('days'));
                 const newDate = new Date();
@@ -698,34 +1054,6 @@
                 updateScheduleQuickBtns();
             });
 
-            // Add more item row
-            $('#btnAddMoreItem').on('click', function() {
-                addItemRow();
-                updateItemsSummary();
-            });
-
-            // Remove item row in modal
-            $(document).on('click', '.btn-remove-item', function() {
-                const container = $('#itemsContainer');
-                if (container.find('.item-row').length > 1) {
-                    $(this).closest('.item-row').remove();
-                    updateItemsSummary();
-                }
-            });
-
-            // Quantity increment/decrement in add items modal
-            $(document).on('click', '.btn-qty-inc', function() {
-                const input = $(this).siblings('input[name="quantity[]"]');
-                input.val(parseInt(input.val() || 0) + 5);
-            });
-
-            $(document).on('click', '.btn-qty-dec', function() {
-                const input = $(this).siblings('input[name="quantity[]"]');
-                const val = parseInt(input.val() || 0);
-                if (val > 5) input.val(val - 5);
-            });
-
-            // Edit quantity modal controls
             $('#btnEditQtyInc').on('click', function() {
                 const input = $('#editQuantity');
                 input.val(parseInt(input.val() || 0) + 5);
@@ -737,15 +1065,14 @@
                 if (val > 5) input.val(val - 5);
             });
 
-            // Edit quantity button click (desktop table)
             $(document).on('click', '.btn-edit-qty', function() {
                 if (inventoryLocked) {
                     showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
                     return;
                 }
-                const row = $(this).closest('tr');
-                const productName = row.find('span.font-medium').text();
-                const qty = row.find('.text-lg.font-bold').text();
+                const row = $(this).closest('[data-id]');
+                const productName = row.find('span.font-medium, span.truncate').first().text();
+                const qty = row.find('.font-bold').first().text();
 
                 $('#editProductName').text(productName);
                 $('#editQuantity').val(parseInt(qty));
@@ -753,14 +1080,42 @@
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            // Delete item — calls backend then reloads
+            $(document).on('click', '.btn-edit-qty-mobile', function() {
+                if (inventoryLocked) {
+                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                    return;
+                }
+                const card = $(this).closest('[data-id]');
+                const productName = card.find('h4').text();
+                const qtyText = card.find('.text-xs.text-gray-500').text();
+                const qty = parseInt(qtyText) || 0;
+
+                $('#editProductName').text(productName);
+                $('#editQuantity').val(qty);
+                $('#editItemId').val(card.data('id'));
+                $('#editQtyModal').removeClass('hidden');
+            });
+
             $(document).on('click', '.btn-delete', function() {
                 if (inventoryLocked) {
                     showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
                     return;
                 }
-                const row = $(this).closest('tr');
+                const row = $(this).closest('[data-id]');
                 const itemId = row.data('id');
+
+                Confirm.delete('Are you sure you want to remove this item?', function() {
+                    deleteDistributionItem(itemId);
+                });
+            });
+
+            $(document).on('click', '.btn-delete-mobile', function() {
+                if (inventoryLocked) {
+                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                    return;
+                }
+                const card = $(this).closest('[data-id]');
+                const itemId = card.data('id');
 
                 Confirm.delete('Are you sure you want to remove this item?', function() {
                     deleteDistributionItem(itemId);
@@ -769,28 +1124,20 @@
 
             // ===== FORM SUBMISSIONS =====
 
-            // Add items form — sends each item to backend
             $('#addItemsForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const scheduleDate = $('#scheduleDate').val();
-                const rows = $('#itemsContainer .item-row');
-                let itemsToAdd = [];
 
-                rows.each(function() {
-                    const productId = $(this).find('select[name="product_id[]"]').val();
-                    const quantity = $(this).find('input[name="quantity[]"]').val();
-                    if (productId && quantity) {
-                        itemsToAdd.push({ product_id: productId, quantity: quantity });
-                    }
-                });
-
-                if (itemsToAdd.length === 0) {
-                    showToast('warning', 'Please add at least one item with a selected product.', 3000);
+                if (itemsToAddList.length === 0) {
+                    showToast('warning', 'Please add at least one product to the list.', 3000);
                     return;
                 }
 
-                // Disable submit button
+                const itemsToAdd = itemsToAddList.map(function(item) {
+                    return { product_id: item.product_id, quantity: item.quantity };
+                });
+
                 $('#btnSaveItems').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Saving...');
 
                 let completed = 0;
@@ -818,7 +1165,6 @@
                         error: function(xhr, status, error) {
                             hasError = true;
                             completed++;
-                            // Check if it's a duplicate error (409)
                             if (xhr.status === 409) {
                                 const productName = productsData.find(p => p.product_id == item.product_id);
                                 duplicateProducts.push(productName ? productName.product_name : 'Unknown product');
@@ -839,36 +1185,27 @@
                     });
                 });
 
-                function onAllItemsAdded(hadError, duplicates, insufficients) {
+                function onAllItemsAdded(hadError, duplicates) {
                     $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-plus mr-2"></i>Add to Schedule');
                     $('#addItemsModal').addClass('hidden');
 
-                    // Switch view to the scheduled date and reload
                     $('#selectedDate').val(scheduleDate).trigger('change');
+                    loadMonthDistributions();
 
                     // Reset form
                     $('#itemsContainer').html(getItemRowTemplate());
                     updateItemsSummary();
 
-                    if (insufficients && insufficients.length > 0) {
-                        var allShort = [];
-                        insufficients.forEach(function(p) {
-                            p.materials.forEach(function(m) {
-                                allShort.push(p.name + ': ' + m);
-                            });
-                        });
-                        showInsufficientMaterialsAlert(allShort);
-                    }
-
                     if (duplicates && duplicates.length > 0) {
                         showToast('warning', 'The following products are already scheduled for this date and were skipped: ' + duplicates.join(', '), 5000);
                     } else if (hadError && (!insufficients || insufficients.length === 0)) {
                         showToast('danger', 'Some items could not be added. Please check and try again.', 3000);
+                    } else {
+                        showToast('success', 'Items added successfully!', 3000);
                     }
                 }
             });
 
-            // Edit quantity form — calls updateDistributionItem
             $('#editQtyForm').on('submit', function(e) {
                 e.preventDefault();
                 const itemId = $('#editItemId').val();
@@ -878,14 +1215,13 @@
                 $('#editQtyModal').addClass('hidden');
             });
 
-            // Update summary when products change in modal
-            $(document).on('change', '#itemsContainer select, #itemsContainer input', function() {
-                updateItemsSummary();
-            });
         });
 
         function formatDate(date) {
-            return date.toISOString().split('T')[0];
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
         function updateDateLabel() {
@@ -935,55 +1271,17 @@
             });
         }
 
-        function addItemRow(productId = '', qty = 10) {
-            const template = getItemRowTemplate(productId, qty);
-            $('#itemsContainer').append(template);
-        }
-
-        function getItemRowTemplate(productId = '', qty = 10) {
-            let optionsHtml = '<option value="">Select Product</option>';
-            if (typeof productsData !== 'undefined' && productsData.length > 0) {
-                productsData.forEach(function(product) {
-                    const selected = (product.product_id == productId) ? 'selected' : '';
-                    optionsHtml += `<option value="${product.product_id}" ${selected}>${product.product_name}</option>`;
+        function updateSummaryCounts(items) {
+            const total = items ? items.length : 0;
+            let totalQty = 0;
+            if (items) {
+                items.forEach(function(item) {
+                    totalQty += parseInt(item.product_qnty) || 0;
                 });
             }
-            return `
-                <div class="item-row flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                    <select name="product_id[]" required
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                        ${optionsHtml}
-                    </select>
-                    <div class="flex items-center gap-1">
-                        <button type="button" class="btn-qty-dec w-8 h-8 flex items-center justify-center border border-gray-300 bg-white text-gray-600 rounded-lg hover:bg-gray-100">-</button>
-                        <input type="number" name="quantity[]" min="1" value="${qty}" required
-                            class="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                        <button type="button" class="btn-qty-inc w-8 h-8 flex items-center justify-center border border-gray-300 bg-white text-gray-600 rounded-lg hover:bg-gray-100">+</button>
-                    </div>
-                    <button type="button" class="btn-remove-item p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Remove">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-        }
-
-        function updateItemsSummary() {
-            const count = $('#itemsContainer .item-row').length;
-            $('#itemsSummaryCount').text(count + (count === 1 ? ' item' : ' items'));
-        }
-
-        function updateSummaryCounts() {
-            const total = $('tr[data-id]').length;
-
-            let totalQty = 0;
-            $('tr[data-id] .text-lg.font-bold').each(function() {
-                totalQty += parseInt($(this).text()) || 0;
-            });
 
             $('#totalItemsCount').text(total);
             $('#totalQuantityCount').text(totalQty);
-            $('#pendingCount').text(total);
-            $('#completedCount').text(0);
             $('#mobileItemCount').text(total);
         }
 

@@ -65,6 +65,30 @@ class DistributionController extends BaseController
         ]);
     }
 
+    /**
+     * Get distribution records for a date range (for calendar view).
+     */
+    public function getDistributionByDateRange()
+    {
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+
+        if (!$startDate || !$endDate) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'error' => 'start_date and end_date are required'
+            ]);
+        }
+
+        $distributionData = $this->distributionModel->getDistributionByDateRange($startDate, $endDate);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Distribution records retrieved successfully',
+            'data' => $distributionData ?: []
+        ]);
+    }
+
     public function addDistribution()
     {
         $data = $this->request->getJSON();
