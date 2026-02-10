@@ -94,6 +94,31 @@ class DistributionController extends BaseController
             ]);
         }
 
+        // ── Pre-check: block if raw materials are insufficient ──
+        $quantity = intval($data->product_qnty);
+        if ($quantity > 0) {
+            $preview = $this->rawMaterialStockModel->deductForProduction(
+                intval($data->product_id),
+                $quantity,
+                true // preview only — don't actually deduct
+            );
+
+            if (!empty($preview['has_insufficient'])) {
+                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+                $shortNames = array_map(
+                    fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
+                    $shortMaterials
+                );
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'error' => 'Cannot add — insufficient raw material stock for this quantity.',
+                    'insufficient_materials' => array_values($shortNames),
+                    'preview' => $preview,
+                ]);
+            }
+        }
+
         // Insert distribution record
         $insertData = [
             'product_id' => $data->product_id,
@@ -151,6 +176,35 @@ class DistributionController extends BaseController
                 'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
                 'inventory_locked' => true
             ]);
+        }
+
+        // ── Pre-check: block if raw materials are insufficient for the updated quantity ──
+        $newQty = intval($data->product_qnty);
+        $existingRecord = $this->distributionModel->find($id);
+        $oldQty = intval($existingRecord['product_qnty'] ?? 0);
+        $qtyIncrease = $newQty - $oldQty;
+
+        if ($qtyIncrease > 0) {
+            $preview = $this->rawMaterialStockModel->deductForProduction(
+                intval($data->product_id),
+                $qtyIncrease,
+                true // preview only
+            );
+
+            if (!empty($preview['has_insufficient'])) {
+                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+                $shortNames = array_map(
+                    fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
+                    $shortMaterials
+                );
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'error' => 'Cannot update — insufficient raw material stock for the additional ' . $qtyIncrease . ' pieces.',
+                    'insufficient_materials' => array_values($shortNames),
+                    'preview' => $preview,
+                ]);
+            }
         }
 
         // Update distribution record

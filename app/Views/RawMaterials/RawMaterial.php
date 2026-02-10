@@ -107,7 +107,17 @@
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">
-                                    Quantity
+                                    Initial Stock
+                                </span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                                <span class="flex items-center">
+                                    Used
+                                </span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                                <span class="flex items-center">
+                                    Remaining
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
@@ -207,7 +217,7 @@
                         <div class="flex">
                             <input type="number" name="material_quantity" id="material_quantity"
                                 class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0"
-                                placeholder="25000" min="0" step="1.0" required>
+                                placeholder="25000" min="0" step="any" required>
                             <select name="unit" id="unit"
                                 class="w-32 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
                                 required>
@@ -216,6 +226,9 @@
                                 <option value="pcs">pcs</option>
                             </select>
                         </div>
+                        <p id="qty_readonly_hint" class="text-xs text-gray-400 mt-1 hidden">
+                            <i class="fas fa-info-circle"></i> Quantity is managed by deductions & restock. Use the <strong>Restock</strong> button to add more.
+                        </p>
                     </div>
 
                     <div id="converted_qty_wrapper">
@@ -294,6 +307,68 @@
 
     <!-- Category Modal Component -->
     <?= view('MaterialCategories/CategoryModal') ?>
+
+    <!-- Restock Modal -->
+    <div id="restockModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 bg-emerald-50 border-b border-emerald-100">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-emerald-100 rounded-lg">
+                        <i class="fas fa-plus-circle text-emerald-600 text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Restock Material</h3>
+                </div>
+                <button id="btnCloseRestock" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="restockForm">
+                <input type="hidden" id="restock_material_id">
+                <div class="px-6 py-5 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Material</label>
+                        <p id="restock_material_name" class="text-lg font-semibold text-gray-900"></p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-blue-50 rounded-lg p-2">
+                            <p class="text-xs text-gray-500 mb-0.5">Initial Stock</p>
+                            <p id="restock_initial_qty" class="font-semibold text-blue-700 text-sm"></p>
+                        </div>
+                        <div class="bg-orange-50 rounded-lg p-2">
+                            <p class="text-xs text-gray-500 mb-0.5">Used</p>
+                            <p id="restock_used_qty" class="font-semibold text-orange-600 text-sm"></p>
+                        </div>
+                        <div class="bg-emerald-50 rounded-lg p-2">
+                            <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
+                            <p id="restock_remaining_qty" class="font-semibold text-emerald-700 text-sm"></p>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="restock_qty" class="block text-sm font-medium text-gray-700 mb-1">
+                            Add Quantity <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex">
+                            <input type="number" id="restock_qty" min="0.01" step="any"
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 border-r-0"
+                                placeholder="Enter quantity to add" required>
+                            <span id="restock_unit_label"
+                                class="inline-flex items-center justify-center w-20 px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-r-md font-medium text-sm">
+                                grams
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2 justify-end px-6 py-4 bg-gray-50 border-t">
+                    <button type="button" id="btnCancelRestock"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                    <button type="submit" id="btnConfirmRestock"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700">
+                        <i class="fas fa-plus-circle mr-1"></i> Confirm Restock
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- App Scripts -->
     <script>

@@ -154,24 +154,15 @@ class RawMaterialsController extends BaseController
     {
         $data = $this->request->getJSON(true);
         
-        // Validate required fields (allow numeric zero values)
+        // Validate required fields — quantity is no longer editable (managed by deductions/restock)
         if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
             !isset($data['material_name']) || trim((string)$data['material_name']) === '' ||
             !isset($data['category_id']) || (string)$data['category_id'] === '' ||
             !isset($data['unit']) || trim((string)$data['unit']) === '' ||
-            !array_key_exists('material_quantity', $data) || (string)$data['material_quantity'] === '' ||
             !array_key_exists('total_cost', $data) || (string)$data['total_cost'] === '') {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
-            ]);
-        }
-
-        // Additional numeric validation: must be >= 0
-        if (!is_numeric($data['material_quantity']) || floatval($data['material_quantity']) < 0) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Quantity must be a number greater than or equal to 0.'
             ]);
         }
 
@@ -195,6 +186,55 @@ class RawMaterialsController extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Failed to update material. Transaction error.'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Restock raw material — add quantity (AJAX)
+     */
+    public function restockMaterial()
+    {
+        $data = $this->request->getJSON(true);
+
+        if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
+            !isset($data['restock_qty']) || (string)$data['restock_qty'] === '') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Material ID and restock quantity are required.'
+            ]);
+        }
+
+        $addQty = floatval($data['restock_qty']);
+        if ($addQty <= 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Restock quantity must be greater than 0.'
+            ]);
+        }
+
+        try {
+            $success = $this->rawMaterialsModel->restockMaterial(
+                intval($data['material_id']),
+                $addQty
+            );
+
+            if ($success) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Material restocked successfully.'
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Failed to restock material.'
             ]);
 
         } catch (\Exception $e) {

@@ -111,14 +111,25 @@ class RawMaterialStockModel extends Model
 
     /**
      * Get stock by material ID.
-     * Adds a computed 'current_quantity' = initial_qty - qty_used
+     * Uses raw_materials.material_quantity as the current available quantity.
      */
     public function getByMaterialId(int $materialId): ?array
     {
-        $row = $this->where('material_id', $materialId)->first();
+        $row = $this->db->query("
+            SELECT rms.*, rm.material_quantity as current_quantity
+            FROM raw_material_stock rms
+            JOIN raw_materials rm ON rm.material_id = rms.material_id
+            WHERE rms.material_id = ?
+        ", [$materialId])->getRowArray();
 
-        if ($row) {
-            $row['current_quantity'] = floatval($row['initial_qty']) - floatval($row['qty_used']);
+        // If no stock entry exists, still check raw_materials
+        if (!$row) {
+            $material = $this->db->query(
+                "SELECT material_id, material_quantity as current_quantity FROM raw_materials WHERE material_id = ?",
+                [$materialId]
+            )->getRowArray();
+
+            return $material ?: null;
         }
 
         return $row;
@@ -146,21 +157,24 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Deduct from stock (increments qty_used)
+     * Deduct from raw materials (decreases raw_materials.material_quantity)
      */
     public function deductStock(int $materialId, float $amount): bool
     {
-        $existing = $this->getByMaterialId($materialId);
+        // Log the deduction attempt
+        log_message('info', "DEDUCT: material_id={$materialId}, amount=" . round($amount, 4));
 
-        if (!$existing) {
-            return false;
-        }
+        // Reduce material_quantity in raw_materials, floor at 0
+        $result = $this->db->query(
+            "UPDATE raw_materials SET material_quantity = GREATEST(0, material_quantity - ?) WHERE material_id = ?",
+            [round($amount, 4), $materialId]
+        );
 
-        $newUsed = floatval($existing['qty_used']) + $amount;
+        $affected = $this->db->affectedRows();
+        log_message('info', "DEDUCT RESULT: affected_rows={$affected}");
 
-        return $this->update($existing['stock_id'], [
-            'qty_used' => $newUsed,
-        ]);
+        // Return true if query executed (even if no rows changed because qty was already 0)
+        return $result !== false;
     }
 
     /**
@@ -198,11 +212,10 @@ class RawMaterialStockModel extends Model
         return $this->db->query("
             SELECT 
                 rms.*,
-                (rms.initial_qty - rms.qty_used) as current_quantity,
+                rm.material_quantity as current_quantity,
                 rm.material_name,
-                rm.material_quantity,
                 rm.unit as material_unit,
-                ((rms.initial_qty - rms.qty_used) / NULLIF(rm.material_quantity, 0) * 100) as stock_percentage
+                (rm.material_quantity / NULLIF(rms.initial_qty, 0) * 100) as stock_percentage
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             HAVING stock_percentage <= ?
@@ -219,7 +232,7 @@ class RawMaterialStockModel extends Model
             SELECT 
                 rms.stock_id,
                 rms.material_id,
-                (rms.initial_qty - rms.qty_used) as current_quantity,
+                rm.material_quantity as current_quantity,
                 rms.updated_at,
                 rm.material_name,
                 rm.unit,
@@ -227,16 +240,16 @@ class RawMaterialStockModel extends Model
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'critical'
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'warning'
+                    WHEN rm.material_quantity <= ? THEN 'critical'
+                    WHEN rm.material_quantity <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE (rms.initial_qty - rms.qty_used) <= ?
-            ORDER BY (rms.initial_qty - rms.qty_used) ASC
+            WHERE rm.material_quantity <= ?
+            ORDER BY rm.material_quantity ASC
         ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
     }
 
@@ -247,15 +260,83 @@ class RawMaterialStockModel extends Model
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN (initial_qty - qty_used) <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN (initial_qty - qty_used) > ? AND (initial_qty - qty_used) <= ? THEN 1 ELSE 0 END) as warning_count
-            FROM raw_material_stock
+                SUM(CASE WHEN rm.material_quantity <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN rm.material_quantity > ? AND rm.material_quantity <= ? THEN 1 ELSE 0 END) as warning_count
+            FROM raw_material_stock rms
+            JOIN raw_materials rm ON rms.material_id = rm.material_id
         ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
 
         return [
             'critical' => intval($result['critical_count'] ?? 0),
             'warning'  => intval($result['warning_count'] ?? 0),
             'total'    => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0),
+        ];
+    }
+
+    // ═══════════════════════════════════════════
+    //  BATCH DEDUCTION (for inventory creation)
+    // ═══════════════════════════════════════════
+
+    /**
+     * Deduct raw materials for a batch of products being added to inventory.
+     * Alerts for products with no recipe or insufficient raw material stock.
+     *
+     * @param array $items  Array of ['product_id' => int, 'quantity' => int, 'product_name' => string]
+     * @param bool  $preview If true, only calculate — don't actually deduct
+     * @return array Summary with per-product deduction results and alerts
+     */
+    public function deductForInventoryBatch(array $items, bool $preview = false): array
+    {
+        $results = [];
+        $noRecipeProducts = [];
+        $insufficientProducts = [];
+        $successCount = 0;
+        $totalDeductions = 0;
+
+        foreach ($items as $item) {
+            $productId   = intval($item['product_id']);
+            $quantity    = intval($item['quantity'] ?? $item['product_qnty'] ?? 0);
+            $productName = $item['product_name'] ?? "Product #{$productId}";
+
+            if ($quantity <= 0) {
+                continue;
+            }
+
+            $result = $this->deductForProduction($productId, $quantity, $preview);
+
+            $result['product_id']   = $productId;
+            $result['product_name'] = $productName;
+            $result['pieces']       = $quantity;
+
+            if (!$result['success'] && (
+                str_contains($result['message'], 'No recipe found') ||
+                str_contains($result['message'], 'No yield data found')
+            )) {
+                $noRecipeProducts[] = $productName;
+            }
+
+            if (!empty($result['has_insufficient'])) {
+                $insufficientProducts[] = $productName;
+            }
+
+            if ($result['success']) {
+                $successCount++;
+                $totalDeductions += count($result['deductions'] ?? []);
+            }
+
+            $results[] = $result;
+        }
+
+        return [
+            'success'                => true,
+            'preview'                => $preview,
+            'total_products'         => count($items),
+            'products_deducted'      => $successCount,
+            'total_deductions'       => $totalDeductions,
+            'no_recipe_products'     => $noRecipeProducts,
+            'insufficient_products'  => $insufficientProducts,
+            'product_results'        => $results,
+            'has_warnings'           => !empty($noRecipeProducts) || !empty($insufficientProducts),
         ];
     }
 
