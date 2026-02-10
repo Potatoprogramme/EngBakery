@@ -163,6 +163,7 @@ $routes->group('Utility', function (RouteCollection $routes) {
 $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('/', 'DistributionController::index');
     $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
+    $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
     $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
     $routes->post('AddDistribution', 'DistributionController::addDistribution');
