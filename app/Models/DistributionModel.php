@@ -31,4 +31,14 @@ class DistributionModel extends Model
             ->groupBy('distributions.distribution_id')
             ->findAll();
     }
+
+    /**
+     * Check if a product already exists in the distribution for a given date
+     */
+    public function existsForDate($productId, $date)
+    {
+        return $this->where('product_id', $productId)
+            ->where('distribution_date', $date)
+            ->first();
+    }
 }

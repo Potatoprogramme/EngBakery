@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use CodeIgniter\Model;
@@ -215,7 +216,6 @@ class ProductModel extends Model
             }
 
             return $productId;
-
         } catch (\Exception $e) {
             $this->db->transRollback();
             log_message('error', 'Error adding product: ' . $e->getMessage());
@@ -311,7 +311,6 @@ class ProductModel extends Model
             $this->db->transComplete();
 
             return $this->db->transStatus() !== false;
-
         } catch (\Exception $e) {
             $this->db->transRollback();
             log_message('error', 'Error updating product: ' . $e->getMessage());
@@ -336,11 +335,33 @@ class ProductModel extends Model
     /**
      * Get products by category
      */
-    public function getProductsByCategory(string $category): array
+    public function getDoughProducts(): array
     {
-        return $this->where('category', $category)
-            ->orderBy('product_id', 'DESC')
-            ->findAll();
+        return $this->where('category', 'dough')
+        ->orderBy('product_id', 'DESC')
+        ->findAll();
+    }
+    public function getGroceryProducts(): array
+    {
+        return $this->where('category', 'grocery')
+        ->orderBy('product_id', 'DESC')
+        ->findAll();
+    }
+    public function getDrinksProducts(): array
+    {
+        return $this->where('category', 'drinks')
+        ->orderBy('product_id', 'DESC')
+        ->findAll();
+    }
+
+    /**
+     * Get bakery products
+     */
+    public function getBakeryProducts(): array
+    {
+        return $this->where('category', 'bakery')
+        ->orderBy('product_id', 'DESC')
+        ->findAll();
     }
 
     /**

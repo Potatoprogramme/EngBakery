@@ -105,11 +105,28 @@
             </div>
 
             <!-- Floating Add Items button for mobile -->
-            <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 md:hidden">
+            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex justify-center z-30 md:hidden">
                 <button type="button" id="btnAddItemsMobile"
                     class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     <i class="fas fa-plus mr-2"></i>Add Items
                 </button>
+            </div>
+
+            <!-- Inventory Lock Banner -->
+            <div id="inventoryLockBanner" class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-lock text-amber-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-amber-800 text-sm">Distribution Locked</h4>
+                        <p class="text-sm text-amber-700 mt-1">
+                            Inventory has already been created for this date. You cannot add, edit, or delete distribution items.
+                            To make changes, delete the inventory for this date first from the
+                            <a href="<?= base_url('Inventory') ?>" class="underline font-medium hover:text-amber-900">Inventory page</a>.
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <!-- Desktop Table View - Daily Baking List -->
@@ -135,103 +152,7 @@
                         </tr>
                     </thead>
                     <tbody id="distributionTableBody">
-                        <!-- Sample Data Rows -->
-                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="1">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-bread-slice text-primary"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800">Spanish Bread</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-lg font-bold text-gray-800">5</span>
-                                <span class="text-gray-500 text-sm">pcs</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="2">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-bread-slice text-primary"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800">Pandesal</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-lg font-bold text-gray-800">100</span>
-                                <span class="text-gray-500 text-sm">pcs</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="3">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-bread-slice text-primary"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800">Pandecoco</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-lg font-bold text-gray-800">30</span>
-                                <span class="text-gray-500 text-sm">pcs</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="4">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-bread-slice text-primary"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800">Ensaymada</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-lg font-bold text-gray-800">20</span>
-                                <span class="text-gray-500 text-sm">pcs</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-1">
-                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Dynamically populated via JS -->
                     </tbody>
                 </table>
 
@@ -264,69 +185,7 @@
 
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-2">
-                    <!-- Sample Card 1 -->
-                    <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-bread-slice text-primary"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Spanish Bread</h4>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl font-bold text-gray-800">5</span>
-                            <span class="text-xs text-gray-500">pcs</span>
-                        </div>
-                    </div>
-
-                    <!-- Sample Card 2 -->
-                    <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-bread-slice text-primary"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Pandesal</h4>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl font-bold text-gray-800">100</span>
-                            <span class="text-xs text-gray-500">pcs</span>
-                        </div>
-                    </div>
-
-                    <!-- Sample Card 3 -->
-                    <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-bread-slice text-primary"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Pandecoco</h4>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl font-bold text-gray-800">30</span>
-                            <span class="text-xs text-gray-500">pcs</span>
-                        </div>
-                    </div>
-
-                    <!-- Sample Card 4 -->
-                    <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-bread-slice text-primary"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Ensaymada</h4>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl font-bold text-gray-800">20</span>
-                            <span class="text-xs text-gray-500">pcs</span>
-                        </div>
-                    </div>
+                    <!-- Dynamically populated via JS -->
                 </div>
 
                 <!-- No results message -->
@@ -384,32 +243,9 @@
                             <i class="fas fa-plus mr-1"></i>Add More
                         </button>
                     </div>
-                    
+
                     <div id="itemsContainer" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                        <!-- Item Row Template -->
-                        <div class="item-row flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                            <select name="product_id[]" required
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                                <option value="">Select Product</option>
-                                <option value="1">Spanish Bread</option>
-                                <option value="2">Pandesal</option>
-                                <option value="3">Pandecoco</option>
-                                <option value="4">Ensaymada</option>
-                                <option value="5">Cheese Bread</option>
-                                <option value="6">Ube Pandesal</option>
-                                <option value="7">Monay</option>
-                                <option value="8">Pan de Coco</option>
-                            </select>
-                            <div class="flex items-center gap-1">
-                                <button type="button" class="btn-qty-dec w-8 h-8 flex items-center justify-center border border-gray-300 bg-white text-gray-600 rounded-lg hover:bg-gray-100">-</button>
-                                <input type="number" name="quantity[]" min="1" value="10" required
-                                    class="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                                <button type="button" class="btn-qty-inc w-8 h-8 flex items-center justify-center border border-gray-300 bg-white text-gray-600 rounded-lg hover:bg-gray-100">+</button>
-                            </div>
-                            <button type="button" class="btn-remove-item p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Remove">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                        <!-- Dynamically populated via JS -->
                     </div>
                 </div>
 
@@ -449,7 +285,7 @@
 
             <form id="editQtyForm">
                 <input type="hidden" id="editItemId" name="item_id">
-                
+
                 <div class="text-center mb-4">
                     <div class="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-2 flex items-center justify-center">
                         <i class="fas fa-bread-slice text-primary text-2xl"></i>
@@ -490,15 +326,350 @@
     </div>
 
     <script>
+        let productsData = []; // Store fetched products (global scope for template function)
+        let inventoryLocked = false; // Track if inventory exists for the selected date
+
         $(document).ready(function() {
+
+            baseUrl = '<?= base_url() ?>';
+
+            getProducts();
+            loadDistributionByDate();
+
+            // ===== API FUNCTIONS =====
+
+            function getProducts() {
+                $.ajax({
+                    url: baseUrl + 'Distribution/GetProducts',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Products fetched:', response);
+                        if (response.success && response.data) {
+                            
+                            productsData = response.data;
+                            populateProductSelects();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching products:', error);
+                    }
+                });
+            }
+
+            function populateProductSelects() {
+                // Update the initial select in the modal
+                const selects = $('#itemsContainer select[name="product_id[]"]');
+                selects.each(function() {
+                    const currentVal = $(this).val();
+                    $(this).html(getProductOptionsHtml());
+                    if (currentVal) $(this).val(currentVal);
+                });
+            }
+
+            function getProductOptionsHtml(selectedId = '') {
+                let html = '<option value="">Select Product</option>';
+                productsData.forEach(function(product) {
+                    const selected = (product.product_id == selectedId) ? 'selected' : '';
+                    html += `<option value="${product.product_id}" ${selected}>${product.product_name}</option>`;
+                });
+                return html;
+            }
+
+            function loadDistributionByDate() {
+                const date = $('#selectedDate').val();
+                $.ajax({
+                    url: baseUrl + 'Distribution/GetDistributionByDate',
+                    method: 'GET',
+                    data: { date: date },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            inventoryLocked = response.inventory_locked || false;
+                            renderDistributionTable(response.data);
+                            renderMobileCards(response.data);
+                            updateSummaryCounts();
+                            updateInventoryLockState();
+                        } else {
+                            inventoryLocked = false;
+                            renderDistributionTable([]);
+                            renderMobileCards([]);
+                            updateSummaryCounts();
+                            // Still check inventory even if no distribution items
+                            checkInventoryForDate(date);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        inventoryLocked = false;
+                        // No records found or server error — show empty state
+                        renderDistributionTable([]);
+                        renderMobileCards([]);
+                        updateSummaryCounts();
+                        // Still check inventory even if no distribution items
+                        checkInventoryForDate(date);
+                    }
+                });
+            }
+
+            function checkInventoryForDate(date) {
+                $.ajax({
+                    url: baseUrl + 'Distribution/CheckInventoryByDate',
+                    method: 'GET',
+                    data: { date: date },
+                    dataType: 'json',
+                    success: function(response) {
+                        inventoryLocked = response.inventory_exists || false;
+                        updateInventoryLockState();
+                    }
+                });
+            }
+
+            function updateInventoryLockState() {
+                if (inventoryLocked) {
+                    // Show lock banner
+                    $('#inventoryLockBanner').removeClass('hidden');
+                    // Hide add buttons
+                    $('#btnAddItems').addClass('hidden');
+                    $('#mobileAddBtnContainer').addClass('hidden');
+                    $('#btnAddItemsEmpty').addClass('hidden');
+                    $('#btnAddItemsMobileEmpty').addClass('hidden');
+                    // Disable edit/delete buttons in table
+                    $('.btn-edit-qty').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
+                    $('.btn-delete').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
+                } else {
+                    // Hide lock banner
+                    $('#inventoryLockBanner').addClass('hidden');
+                    // Show add buttons
+                    $('#btnAddItems').removeClass('hidden').addClass('hidden sm:inline-flex');
+                    $('#mobileAddBtnContainer').removeClass('hidden');
+                    $('#btnAddItemsEmpty').removeClass('hidden');
+                    $('#btnAddItemsMobileEmpty').removeClass('hidden');
+                    // Enable edit/delete buttons in table
+                    $('.btn-edit-qty').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
+                    $('.btn-delete').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
+                }
+            }
+
+            function addDistriutionItem(productId, quantity, date) {
+                $.ajax({
+                    url: baseUrl + 'Distribution/AddDistribution',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        product_id: productId,
+                        product_qnty: quantity,
+                        distribution_date: date
+                    }),
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Item added:', response);
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
+                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                            inventoryLocked = true;
+                            updateInventoryLockState();
+                        } else if (xhr.status === 409) {
+                            console.warn('Duplicate product for this date.');
+                        } else {
+                            console.error('Error adding item:', error);
+                        }
+                    }
+                });
+            }
+
+            function deleteDistributionItem(itemId) {
+                $.ajax({
+                    url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
+                    method: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        loadDistributionByDate();
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
+                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                            inventoryLocked = true;
+                            updateInventoryLockState();
+                        } else {
+                            console.error('Error deleting item:', error);
+                        }
+                    }
+                });
+            }
+
+            function updateDistributionItem(itemId, quantity) {
+                // Get the current item data from the row
+                const row = $('tr[data-id="' + itemId + '"]');
+                const productId = row.data('product-id');
+                const date = $('#selectedDate').val();
+
+                $.ajax({
+                    url: baseUrl + 'Distribution/UpdateDistribution/' + itemId,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        product_id: productId,
+                        product_qnty: quantity,
+                        distribution_date: date
+                    }),
+                    dataType: 'json',
+                    success: function(response) {
+                        loadDistributionByDate();
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
+                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                            inventoryLocked = true;
+                            updateInventoryLockState();
+                        } else {
+                            console.error('Error updating item:', error);
+                        }
+                    }
+                });
+            }
+
+            // ===== RENDERING FUNCTIONS =====
+
+            function renderDistributionTable(items) {
+                const tbody = $('#distributionTableBody');
+                tbody.empty();
+
+                if (items.length === 0) {
+                    $('#distribution-table').addClass('hidden');
+                    $('#emptyState').removeClass('hidden');
+                    return;
+                }
+
+                $('#distribution-table').removeClass('hidden');
+                $('#emptyState').addClass('hidden');
+
+                items.forEach(function(item) {
+                    const row = `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                        <i class="fas fa-bread-slice text-primary"></i>
+                                    </div>
+                                    <span class="font-medium text-gray-800">${item.product_name}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="text-lg font-bold text-gray-800">${item.product_qnty}</span>
+                                <span class="text-gray-500 text-sm">pcs</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center gap-1">
+                                    <button type="button" class="btn-edit-qty p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit Quantity">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn-delete p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Remove">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }
+
+            function renderMobileCards(items) {
+                const container = $('#mobileCardsContainer');
+                container.empty();
+
+                if (items.length === 0) {
+                    $('#mobileNoResults').removeClass('hidden');
+                    return;
+                }
+
+                $('#mobileNoResults').addClass('hidden');
+
+                items.forEach(function(item) {
+                    const card = `
+                        <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary flex items-center justify-between" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bread-slice text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">${item.product_name}</h4>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl font-bold text-gray-800">${item.product_qnty}</span>
+                                <span class="text-xs text-gray-500">pcs</span>
+                            </div>
+                        </div>
+                    `;
+                    container.append(card);
+                });
+            }
+
+            // ===== DATE NAVIGATION =====
+
+            // Date change
+            $('#selectedDate').on('change', function() {
+                updateDateLabel();
+                loadDistributionByDate();
+                updateQuickDateBtns();
+            });
+
+            // Previous day
+            $('#btnPrevDay').on('click', function() {
+                const current = new Date($('#selectedDate').val());
+                current.setDate(current.getDate() - 1);
+                $('#selectedDate').val(formatDate(current)).trigger('change');
+            });
+
+            // Next day
+            $('#btnNextDay').on('click', function() {
+                const current = new Date($('#selectedDate').val());
+                current.setDate(current.getDate() + 1);
+                $('#selectedDate').val(formatDate(current)).trigger('change');
+            });
+
+            // Quick date buttons
+            $('.quick-date-btn').on('click', function() {
+                const days = parseInt($(this).data('days'));
+                const newDate = new Date();
+                newDate.setDate(newDate.getDate() + days);
+                $('#selectedDate').val(formatDate(newDate)).trigger('change');
+            });
+
+            function updateQuickDateBtns() {
+                const selectedDate = $('#selectedDate').val();
+                $('.quick-date-btn').each(function() {
+                    const days = parseInt($(this).data('days'));
+                    const btnDate = new Date();
+                    btnDate.setDate(btnDate.getDate() + days);
+
+                    if (formatDate(btnDate) === selectedDate) {
+                        $(this).removeClass('border border-gray-300 text-gray-600 hover:bg-gray-100').addClass('bg-primary text-white');
+                    } else {
+                        $(this).removeClass('bg-primary text-white').addClass('border border-gray-300 text-gray-600 hover:bg-gray-100');
+                    }
+                });
+            }
+
             // Initialize
             updateDateLabel();
             updateSummaryCounts();
+            updateQuickDateBtns();
 
-            // Add Items Modal Handlers
+            // ===== ADD ITEMS MODAL =====
+
             $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty, #btnAddItemsMobileEmpty').on('click', function() {
+                if (inventoryLocked) {
+                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                    return;
+                }
                 $('#scheduleDate').val($('#selectedDate').val());
                 updateScheduleQuickBtns();
+                // Reset items container with fresh row using dynamic products
+                $('#itemsContainer').html(getItemRowTemplate());
+                updateItemsSummary();
                 $('#addItemsModal').removeClass('hidden');
             });
 
@@ -506,7 +677,8 @@
                 $('#addItemsModal').addClass('hidden');
             });
 
-            // Edit Qty Modal Handlers
+            // ===== EDIT QTY MODAL =====
+
             $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function() {
                 $('#editQtyModal').addClass('hidden');
             });
@@ -559,38 +731,125 @@
                 if (val > 5) input.val(val - 5);
             });
 
-            // Edit quantity button click
+            // Edit quantity button click (desktop table)
             $(document).on('click', '.btn-edit-qty', function() {
+                if (inventoryLocked) {
+                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                    return;
+                }
                 const row = $(this).closest('tr');
                 const productName = row.find('span.font-medium').text();
                 const qty = row.find('.text-lg.font-bold').text();
-                
+
                 $('#editProductName').text(productName);
                 $('#editQuantity').val(parseInt(qty));
                 $('#editItemId').val(row.data('id'));
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            // Delete item (static - just removes from view)
+            // Delete item — calls backend then reloads
             $(document).on('click', '.btn-delete', function() {
+                if (inventoryLocked) {
+                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                    return;
+                }
                 const row = $(this).closest('tr');
-                row.fadeOut(300, function() {
-                    $(this).remove();
-                    updateSummaryCounts();
+                const itemId = row.data('id');
+
+                Confirm.delete('Are you sure you want to remove this item?', function() {
+                    deleteDistributionItem(itemId);
                 });
             });
 
-            // Form submissions
+            // ===== FORM SUBMISSIONS =====
+
+            // Add items form — sends each item to backend
             $('#addItemsForm').on('submit', function(e) {
                 e.preventDefault();
-                $('#addItemsModal').addClass('hidden');
-                // Reset form
-                $('#itemsContainer').html(getItemRowTemplate());
-                updateItemsSummary();
+
+                const scheduleDate = $('#scheduleDate').val();
+                const rows = $('#itemsContainer .item-row');
+                let itemsToAdd = [];
+
+                rows.each(function() {
+                    const productId = $(this).find('select[name="product_id[]"]').val();
+                    const quantity = $(this).find('input[name="quantity[]"]').val();
+                    if (productId && quantity) {
+                        itemsToAdd.push({ product_id: productId, quantity: quantity });
+                    }
+                });
+
+                if (itemsToAdd.length === 0) {
+                    showToast('warning', 'Please add at least one item with a selected product.', 3000);
+                    return;
+                }
+
+                // Disable submit button
+                $('#btnSaveItems').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Saving...');
+
+                let completed = 0;
+                let hasError = false;
+                let duplicateProducts = [];
+
+                itemsToAdd.forEach(function(item) {
+                    $.ajax({
+                        url: baseUrl + 'Distribution/AddDistribution',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            product_id: item.product_id,
+                            product_qnty: item.quantity,
+                            distribution_date: scheduleDate
+                        }),
+                        dataType: 'json',
+                        success: function(response) {
+                            completed++;
+                            if (completed === itemsToAdd.length) {
+                                onAllItemsAdded(hasError, duplicateProducts);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            hasError = true;
+                            completed++;
+                            // Check if it's a duplicate error (409)
+                            if (xhr.status === 409) {
+                                const productName = productsData.find(p => p.product_id == item.product_id);
+                                duplicateProducts.push(productName ? productName.product_name : 'Unknown product');
+                            }
+                            console.error('Error adding item:', error);
+                            if (completed === itemsToAdd.length) {
+                                onAllItemsAdded(hasError, duplicateProducts);
+                            }
+                        }
+                    });
+                });
+
+                function onAllItemsAdded(hadError, duplicates) {
+                    $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-plus mr-2"></i>Add to Schedule');
+                    $('#addItemsModal').addClass('hidden');
+
+                    // Switch view to the scheduled date and reload
+                    $('#selectedDate').val(scheduleDate).trigger('change');
+
+                    // Reset form
+                    $('#itemsContainer').html(getItemRowTemplate());
+                    updateItemsSummary();
+
+                    if (duplicates && duplicates.length > 0) {
+                        showToast('warning', 'The following products are already scheduled for this date and were skipped: ' + duplicates.join(', '), 5000);
+                    } else if (hadError) {
+                        showToast('danger', 'Some items could not be added. Please check and try again.', 3000);
+                    }
+                }
             });
 
+            // Edit quantity form — calls updateDistributionItem
             $('#editQtyForm').on('submit', function(e) {
                 e.preventDefault();
+                const itemId = $('#editItemId').val();
+                const quantity = $('#editQuantity').val();
+
+                updateDistributionItem(itemId, quantity);
                 $('#editQtyModal').addClass('hidden');
             });
 
@@ -608,32 +867,41 @@
             const dateStr = $('#selectedDate').val();
             const date = new Date(dateStr);
             const today = new Date();
-            today.setHours(0,0,0,0);
-            
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            today.setHours(0, 0, 0, 0);
+
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
             const formatted = date.toLocaleDateString('en-US', options);
-            
+
             let label = '';
             const diffDays = Math.floor((date - today) / (1000 * 60 * 60 * 24));
-            
+
             if (diffDays === 0) label = '(Today)';
             else if (diffDays === 1) label = '(Tomorrow)';
             else if (diffDays === -1) label = '(Yesterday)';
             else if (diffDays > 1) label = `(+${diffDays} days)`;
-            
+
             $('#dateLabel').text(label);
             $('#tableDate').text(formatted);
-            $('#mobileDateHeader').text(date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+            $('#mobileDateHeader').text(date.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            }));
         }
 
         function updateScheduleQuickBtns() {
             const selectedDate = $('#scheduleDate').val();
-            
+
             $('.schedule-quick-btn').each(function() {
                 const days = parseInt($(this).data('days'));
                 const btnDate = new Date();
                 btnDate.setDate(btnDate.getDate() + days);
-                
+
                 if (formatDate(btnDate) === selectedDate) {
                     $(this).removeClass('border border-gray-300 text-gray-600').addClass('bg-primary text-white');
                 } else {
@@ -648,19 +916,18 @@
         }
 
         function getItemRowTemplate(productId = '', qty = 10) {
+            let optionsHtml = '<option value="">Select Product</option>';
+            if (typeof productsData !== 'undefined' && productsData.length > 0) {
+                productsData.forEach(function(product) {
+                    const selected = (product.product_id == productId) ? 'selected' : '';
+                    optionsHtml += `<option value="${product.product_id}" ${selected}>${product.product_name}</option>`;
+                });
+            }
             return `
                 <div class="item-row flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                     <select name="product_id[]" required
                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm">
-                        <option value="">Select Product</option>
-                        <option value="1" ${productId == 1 ? 'selected' : ''}>Spanish Bread</option>
-                        <option value="2" ${productId == 2 ? 'selected' : ''}>Pandesal</option>
-                        <option value="3" ${productId == 3 ? 'selected' : ''}>Pandecoco</option>
-                        <option value="4" ${productId == 4 ? 'selected' : ''}>Ensaymada</option>
-                        <option value="5" ${productId == 5 ? 'selected' : ''}>Cheese Bread</option>
-                        <option value="6" ${productId == 6 ? 'selected' : ''}>Ube Pandesal</option>
-                        <option value="7" ${productId == 7 ? 'selected' : ''}>Monay</option>
-                        <option value="8" ${productId == 8 ? 'selected' : ''}>Pan de Coco</option>
+                        ${optionsHtml}
                     </select>
                     <div class="flex items-center gap-1">
                         <button type="button" class="btn-qty-dec w-8 h-8 flex items-center justify-center border border-gray-300 bg-white text-gray-600 rounded-lg hover:bg-gray-100">-</button>
@@ -682,7 +949,7 @@
 
         function updateSummaryCounts() {
             const total = $('tr[data-id]').length;
-            
+
             let totalQty = 0;
             $('tr[data-id] .text-lg.font-bold').each(function() {
                 totalQty += parseInt($(this).text()) || 0;
