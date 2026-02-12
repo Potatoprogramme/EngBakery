@@ -107,7 +107,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">
-                                    Initial Stock
+                                    Initial Qty
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
@@ -208,14 +208,14 @@
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
                         <div class="flex">
-                            <label for="material_quantity"
+                            <label for="initial_quantity"
                                 class="flex-1 block text-sm font-medium text-gray-700 mb-1">Quantity <span
                                     class="text-red-500">*</span></label>
                             <label for="unit" class="w-32 block text-sm font-medium text-gray-700 mb-1">Unit of
                                 Measure</label>
                         </div>
                         <div class="flex">
-                            <input type="number" name="material_quantity" id="material_quantity"
+                            <input type="number" name="initial_quantity" id="initial_quantity"
                                 class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary border-r-0"
                                 placeholder="25000" min="0" step="any" required>
                             <select name="unit" id="unit"

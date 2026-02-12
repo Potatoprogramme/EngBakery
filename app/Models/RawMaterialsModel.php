@@ -14,7 +14,6 @@ class RawMaterialsModel extends Model
     protected $allowedFields = [
         'category_id',
         'material_name',
-        'material_quantity',
         'unit',
         'date_created',
     ];
@@ -22,9 +21,10 @@ class RawMaterialsModel extends Model
     public function getAllWithDetails(): array
     {
         return $this->db->query("
-            SELECT rm.material_id, rm.material_name, rm.material_quantity, rm.unit, rm.category_id,
+            SELECT rm.material_id, rm.material_name, rm.unit, rm.category_id,
                    mc.category_name, mc.label, rmc.cost_per_unit,
                    COALESCE(rms.initial_qty, 0) as initial_qty,
+                   COALESCE(rms.qty_used, 0) as qty_used,
                    CASE WHEN rms.stock_id IS NULL THEN 0 ELSE 1 END as has_stock
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
@@ -37,10 +37,10 @@ class RawMaterialsModel extends Model
     public function getMaterialById(int $id): ?array
     {
         return $this->db->query("
-            SELECT rm.material_id, rm.material_name, rm.material_quantity, rm.unit, rm.category_id,
+            SELECT rm.material_id, rm.material_name, rm.unit, rm.category_id,
                    mc.category_name, rmc.cost_id, rmc.cost_per_unit,
                    rms.stock_id, COALESCE(rms.initial_qty, 0) as initial_qty,
-                   COALESCE(rm.material_quantity * rmc.cost_per_unit, 0) as total_cost,
+                   COALESCE(rms.initial_qty * rmc.cost_per_unit, 0) as total_cost,
                    CASE WHEN rms.stock_id IS NULL THEN 0 ELSE 1 END as has_stock
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
@@ -67,12 +67,12 @@ class RawMaterialsModel extends Model
         $this->db->transStart();
 
         try {
-            $qty = floatval($data['material_quantity']);
+            $qty = floatval($data['initial_quantity']);
             $costPerUnit = floatval($data['total_cost']) / $qty;
 
             $this->db->query(
-                "INSERT INTO raw_materials (category_id, material_name, material_quantity, unit) VALUES (?, ?, ?, ?)",
-                [intval($data['category_id']), $data['material_name'], $qty, $data['unit']]
+                "INSERT INTO raw_materials (category_id, material_name, unit) VALUES (?, ?, ?)",
+                [intval($data['category_id']), $data['material_name'], $data['unit']]
             );
             $materialId = $this->db->insertID();
 
@@ -103,15 +103,15 @@ class RawMaterialsModel extends Model
         try {
             $materialId = intval($data['material_id']);
 
-            // Get current quantity to compute cost_per_unit (do NOT overwrite material_quantity)
-            $current = $this->db->query(
-                "SELECT material_quantity FROM raw_materials WHERE material_id = ?",
+            // Get stock quantity to compute cost_per_unit
+            $stock = $this->db->query(
+                "SELECT initial_qty FROM raw_material_stock WHERE material_id = ?",
                 [$materialId]
             )->getRowArray();
-            $currentQty = floatval($current['material_quantity'] ?? 0);
+            $currentQty = floatval($stock['initial_qty'] ?? 0);
             $costPerUnit = $currentQty > 0 ? floatval($data['total_cost']) / $currentQty : 0;
 
-            // Update name, category, unit — but NOT material_quantity (managed by deductions/restock)
+            // Update name, category, unit — quantity is managed by deductions/restock
             $this->db->query(
                 "UPDATE raw_materials SET category_id = ?, material_name = ?, unit = ? WHERE material_id = ?",
                 [intval($data['category_id']), $data['material_name'], $data['unit'], $materialId]
@@ -139,13 +139,7 @@ class RawMaterialsModel extends Model
         $this->db->transStart();
 
         try {
-            // Add to current material_quantity
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = material_quantity + ? WHERE material_id = ?",
-                [$addQty, $materialId]
-            );
-
-            // Also update the initial_qty baseline in raw_material_stock
+            // Update the initial_qty baseline in raw_material_stock
             $existing = $this->db->query(
                 "SELECT stock_id FROM raw_material_stock WHERE material_id = ?",
                 [$materialId]
