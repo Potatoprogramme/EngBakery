@@ -615,15 +615,21 @@
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
+                        // Show delete button when inventory exists
+                        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').removeClass('hidden');
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
+                        // Hide delete button when no inventory
+                        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').addClass('hidden');
                     }
                 },
                 error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
+                    // Hide delete button on error
+                    $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').addClass('hidden');
                 }
             });
         }
