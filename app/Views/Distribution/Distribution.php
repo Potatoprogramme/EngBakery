@@ -465,11 +465,12 @@
                     data: { date: date },
                     dataType: 'json',
                     success: function(response) {
-                        if (response.success && response.data) {
+                        if (response.success) {
                             inventoryLocked = response.inventory_locked || false;
-                            renderDistributionList(response.data);
-                            renderMobileCards(response.data);
-                            updateSummaryCounts(response.data);
+                            const items = response.data || [];
+                            renderDistributionList(items);
+                            renderMobileCards(items);
+                            updateSummaryCounts(items);
                             updateInventoryLockState();
                         } else {
                             inventoryLocked = false;
@@ -1185,20 +1186,27 @@
                     });
                 });
 
-                function onAllItemsAdded(hadError, duplicates) {
-                    $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-plus mr-2"></i>Add to Schedule');
+                function onAllItemsAdded(hadError, duplicates, insufficients) {
+                    $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Save to Schedule');
                     $('#addItemsModal').addClass('hidden');
 
                     $('#selectedDate').val(scheduleDate).trigger('change');
                     loadMonthDistributions();
 
                     // Reset form
-                    $('#itemsContainer').html(getItemRowTemplate());
-                    updateItemsSummary();
+                    itemsToAddList = [];
+                    renderAddedItemsList();
 
-                    if (duplicates && duplicates.length > 0) {
+                    if (insufficients && insufficients.length > 0) {
+                        let allMaterials = [];
+                        insufficients.forEach(function(p) {
+                            allMaterials = allMaterials.concat(p.materials);
+                        });
+                        showInsufficientMaterialsAlert(allMaterials);
+                        showToast('danger', 'Some items could not be added due to insufficient raw materials.', 4000);
+                    } else if (duplicates && duplicates.length > 0) {
                         showToast('warning', 'The following products are already scheduled for this date and were skipped: ' + duplicates.join(', '), 5000);
-                    } else if (hadError && (!insufficients || insufficients.length === 0)) {
+                    } else if (hadError) {
                         showToast('danger', 'Some items could not be added. Please check and try again.', 3000);
                     } else {
                         showToast('success', 'Items added successfully!', 3000);

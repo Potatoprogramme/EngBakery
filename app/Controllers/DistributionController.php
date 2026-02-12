@@ -31,20 +31,13 @@ class DistributionController extends BaseController
         
         $distributionData = $this->distributionModel->getDistributionByDate($date);
 
-        if (!$distributionData) {
-            return $this->response->setStatusCode(404)->setJSON([
-                'success' => false,
-                'error' => 'No distribution records found for the specified date'
-            ]);
-        }
-
         // Check if inventory exists for this date
         $inventoryExists = $this->dailyStockModel->checkInventoryExists($date) ? true : false;
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Distribution records retrieved successfully',
-            'data' => $distributionData,
+            'message' => $distributionData ? 'Distribution records retrieved successfully' : 'No distribution records for this date',
+            'data' => $distributionData ?: [],
             'inventory_locked' => $inventoryExists
         ]);
     }
@@ -128,16 +121,22 @@ class DistributionController extends BaseController
             );
 
             if (!empty($preview['has_insufficient'])) {
-                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-                $shortNames = array_map(
-                    fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
-                    $shortMaterials
-                );
+                // Deduplicate by material_id — show total_needed per material
+                $shortByMaterial = [];
+                foreach ($preview['deductions'] as $d) {
+                    if (!$d['insufficient']) continue;
+                    $mid = $d['material_id'];
+                    if (!isset($shortByMaterial[$mid])) {
+                        $shortByMaterial[$mid] = $d['material_name']
+                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
+                            . ', have ' . $d['before'] . ')';
+                    }
+                }
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'error' => 'Cannot add — insufficient raw material stock for this quantity.',
-                    'insufficient_materials' => array_values($shortNames),
+                    'insufficient_materials' => array_values($shortByMaterial),
                     'preview' => $preview,
                 ]);
             }
@@ -216,16 +215,21 @@ class DistributionController extends BaseController
             );
 
             if (!empty($preview['has_insufficient'])) {
-                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-                $shortNames = array_map(
-                    fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
-                    $shortMaterials
-                );
+                $shortByMaterial = [];
+                foreach ($preview['deductions'] as $d) {
+                    if (!$d['insufficient']) continue;
+                    $mid = $d['material_id'];
+                    if (!isset($shortByMaterial[$mid])) {
+                        $shortByMaterial[$mid] = $d['material_name']
+                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
+                            . ', have ' . $d['before'] . ')';
+                    }
+                }
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'error' => 'Cannot update — insufficient raw material stock for the additional ' . $qtyIncrease . ' pieces.',
-                    'insufficient_materials' => array_values($shortNames),
+                    'insufficient_materials' => array_values($shortByMaterial),
                     'preview' => $preview,
                 ]);
             }

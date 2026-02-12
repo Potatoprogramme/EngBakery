@@ -70,39 +70,75 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Add a new stock entry
+     * Add a new stock entry — syncs both raw_material_stock and raw_materials
      */
     public function addEntry(array $data): int|false
     {
+        $materialId = intval($data['material_id']);
+        $initialQty = floatval($data['initial_qty']);
+
         $success = $this->insert([
-            'material_id' => intval($data['material_id']),
-            'initial_qty' => floatval($data['initial_qty']),
+            'material_id' => $materialId,
+            'initial_qty' => $initialQty,
             'qty_used'    => 0,
             'unit'        => $data['unit'],
         ]);
 
-        return $success ? $this->getInsertID() : false;
+        if ($success) {
+            // Keep raw_materials.material_quantity in sync
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                [$initialQty, $materialId]
+            );
+            return $this->getInsertID();
+        }
+
+        return false;
     }
 
     /**
-     * Update an existing stock entry
+     * Update an existing stock entry — syncs both raw_material_stock and raw_materials
      */
     public function updateEntry(int $stockId, array $data): bool
     {
-        return $this->update($stockId, [
-            'material_id' => intval($data['material_id']),
-            'initial_qty' => floatval($data['initial_qty']),
+        $materialId = intval($data['material_id']);
+        $initialQty = floatval($data['initial_qty']);
+
+        $success = $this->update($stockId, [
+            'material_id' => $materialId,
+            'initial_qty' => $initialQty,
             'qty_used'    => floatval($data['qty_used']),
             'unit'        => $data['unit'],
         ]);
+
+        if ($success) {
+            // Keep raw_materials.material_quantity in sync with initial_qty
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                [$initialQty, $materialId]
+            );
+        }
+
+        return $success;
     }
 
     /**
-     * Delete a stock entry
+     * Delete a stock entry — also zeros out raw_materials.material_quantity
      */
     public function deleteEntry(int $stockId): bool
     {
-        return $this->delete($stockId);
+        // Get the material_id before deleting
+        $entry = $this->find($stockId);
+        $success = $this->delete($stockId);
+
+        if ($success && $entry) {
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = 0 WHERE material_id = ?",
+                [intval($entry['material_id'])]
+            );
+        }
+
+        return $success;
     }
 
     // ═══════════════════════════════════════════
@@ -111,21 +147,21 @@ class RawMaterialStockModel extends Model
 
     /**
      * Get stock by material ID.
-     * Uses raw_materials.material_quantity as the current available quantity.
+     * Uses raw_material_stock.initial_qty as the current available quantity (source of truth).
      */
     public function getByMaterialId(int $materialId): ?array
     {
         $row = $this->db->query("
-            SELECT rms.*, rm.material_quantity as current_quantity
+            SELECT rms.*, rms.initial_qty as current_quantity
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             WHERE rms.material_id = ?
         ", [$materialId])->getRowArray();
 
-        // If no stock entry exists, still check raw_materials
+        // If no stock entry exists, current quantity is 0
         if (!$row) {
             $material = $this->db->query(
-                "SELECT material_id, material_quantity as current_quantity FROM raw_materials WHERE material_id = ?",
+                "SELECT material_id, 0 as current_quantity FROM raw_materials WHERE material_id = ?",
                 [$materialId]
             )->getRowArray();
 
@@ -136,68 +172,101 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Set stock to a specific quantity (resets qty_used to 0)
+     * Set stock to a specific quantity (resets qty_used to 0) — syncs both tables
      */
     public function updateStock(int $materialId, float $quantity): bool
     {
         $existing = $this->getByMaterialId($materialId);
 
-        if ($existing) {
-            return $this->update($existing['stock_id'], [
+        $success = false;
+        if ($existing && isset($existing['stock_id'])) {
+            $success = $this->update($existing['stock_id'], [
                 'initial_qty' => $quantity,
                 'qty_used'    => 0,
             ]);
+        } else {
+            $success = $this->insert([
+                'material_id' => $materialId,
+                'initial_qty' => $quantity,
+                'qty_used'    => 0,
+            ]) !== false;
         }
 
-        return $this->insert([
-            'material_id' => $materialId,
-            'initial_qty' => $quantity,
-            'qty_used'    => 0,
-        ]) !== false;
+        if ($success) {
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                [$quantity, $materialId]
+            );
+        }
+
+        return $success;
     }
 
     /**
-     * Deduct from raw materials (decreases raw_materials.material_quantity)
+     * Deduct from stock (decreases raw_material_stock.initial_qty AND raw_materials.material_quantity)
      */
     public function deductStock(int $materialId, float $amount): bool
     {
-        // Log the deduction attempt
-        log_message('info', "DEDUCT: material_id={$materialId}, amount=" . round($amount, 4));
+        $amount = round($amount, 4);
+        log_message('info', "DEDUCT: material_id={$materialId}, amount={$amount}");
 
-        // Reduce material_quantity in raw_materials, floor at 0
+        // Primary: reduce initial_qty in raw_material_stock (source of truth), floor at 0
+        $this->db->query(
+            "UPDATE raw_material_stock SET initial_qty = GREATEST(0, initial_qty - ?) WHERE material_id = ?",
+            [$amount, $materialId]
+        );
+
+        // Mirror: keep raw_materials.material_quantity in sync, floor at 0
         $result = $this->db->query(
             "UPDATE raw_materials SET material_quantity = GREATEST(0, material_quantity - ?) WHERE material_id = ?",
-            [round($amount, 4), $materialId]
+            [$amount, $materialId]
         );
 
         $affected = $this->db->affectedRows();
         log_message('info', "DEDUCT RESULT: affected_rows={$affected}");
 
-        // Return true if query executed (even if no rows changed because qty was already 0)
         return $result !== false;
     }
 
     /**
-     * Add to stock (increases initial_qty)
+     * Add to stock (increases initial_qty) — syncs both tables
      */
     public function addStock(int $materialId, float $amount, string $unit = ''): bool
     {
         $existing = $this->getByMaterialId($materialId);
 
         if (!$existing) {
-            return $this->insert([
+            $inserted = $this->insert([
                 'material_id' => $materialId,
                 'initial_qty' => $amount,
                 'qty_used'    => 0,
                 'unit'        => $unit,
             ]) !== false;
+
+            if ($inserted) {
+                $this->db->query(
+                    "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                    [$amount, $materialId]
+                );
+            }
+            return $inserted;
         }
 
         $newInitial = floatval($existing['initial_qty']) + $amount;
 
-        return $this->update($existing['stock_id'], [
+        $success = $this->update($existing['stock_id'], [
             'initial_qty' => $newInitial,
         ]);
+
+        if ($success) {
+            // Keep raw_materials in sync
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                [$newInitial, $materialId]
+            );
+        }
+
+        return $success;
     }
 
     // ═══════════════════════════════════════════
@@ -212,10 +281,10 @@ class RawMaterialStockModel extends Model
         return $this->db->query("
             SELECT 
                 rms.*,
-                rm.material_quantity as current_quantity,
+                rms.initial_qty as current_quantity,
                 rm.material_name,
                 rm.unit as material_unit,
-                (rm.material_quantity / NULLIF(rms.initial_qty, 0) * 100) as stock_percentage
+                (rms.initial_qty / NULLIF(rms.initial_qty, 0) * 100) as stock_percentage
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             HAVING stock_percentage <= ?
@@ -232,7 +301,7 @@ class RawMaterialStockModel extends Model
             SELECT 
                 rms.stock_id,
                 rms.material_id,
-                rm.material_quantity as current_quantity,
+                rms.initial_qty as current_quantity,
                 rms.updated_at,
                 rm.material_name,
                 rm.unit,
@@ -240,16 +309,16 @@ class RawMaterialStockModel extends Model
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN rm.material_quantity <= ? THEN 'critical'
-                    WHEN rm.material_quantity <= ? THEN 'warning'
+                    WHEN rms.initial_qty <= ? THEN 'critical'
+                    WHEN rms.initial_qty <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE rm.material_quantity <= ?
-            ORDER BY rm.material_quantity ASC
+            WHERE rms.initial_qty <= ?
+            ORDER BY rms.initial_qty ASC
         ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
     }
 
@@ -260,8 +329,8 @@ class RawMaterialStockModel extends Model
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN rm.material_quantity <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN rm.material_quantity > ? AND rm.material_quantity <= ? THEN 1 ELSE 0 END) as warning_count
+                SUM(CASE WHEN rms.initial_qty <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN rms.initial_qty > ? AND rms.initial_qty <= ? THEN 1 ELSE 0 END) as warning_count
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
         ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
@@ -389,6 +458,76 @@ class RawMaterialStockModel extends Model
             return ['success' => false, 'message' => 'No recipe found for this product', 'deductions' => []];
         }
 
+        // ── Collect ALL material requirements first, aggregating duplicates ──
+        // Key = material_id, Value = ['total_deduct' => float, 'entries' => [...]]
+        $materialNeeds = [];
+
+        // Process direct raw material ingredients
+        foreach ($recipe as $ingredient) {
+            $materialId     = intval($ingredient['material_id']);
+            $quantityNeeded = floatval($ingredient['quantity_needed']);
+            $deductAmount   = $quantityNeeded * $yieldsNeeded;
+            $materialName   = $ingredient['material_name'] ?? 'Unknown';
+            $unit           = $ingredient['unit'] ?? '';
+
+            if (!isset($materialNeeds[$materialId])) {
+                $materialNeeds[$materialId] = ['total_deduct' => 0, 'entries' => []];
+            }
+            $materialNeeds[$materialId]['total_deduct'] += $deductAmount;
+            $materialNeeds[$materialId]['entries'][] = [
+                'material_id'              => $materialId,
+                'material_name'            => $materialName,
+                'unit'                     => $unit,
+                'quantity_needed_per_yield' => $quantityNeeded,
+                'yields_needed'            => round($yieldsNeeded, 2),
+                'deduct_amount'            => round($deductAmount, 4),
+            ];
+        }
+
+        // Process combined recipes — collect raw materials of the source product
+        foreach ($combinedRecipes as $combined) {
+            $sourceProductId = intval($combined['source_product_id']);
+            $gramsPerPiece   = floatval($combined['grams_per_piece']);
+            $sourceName      = $combined['source_product_name'] ?? 'Unknown';
+
+            // Total grams needed from the source product
+            $totalGramsNeeded = $gramsPerPiece * $pieces;
+
+            // Get the source product's yield info to convert grams → yields
+            $sourceCost       = $productCostModel->getCostByProductId($sourceProductId);
+            $sourceYieldGrams = floatval($sourceCost['yield_grams'] ?? 0);
+
+            if ($sourceYieldGrams > 0) {
+                $sourceYieldsNeeded = $totalGramsNeeded / $sourceYieldGrams;
+
+                // Get the source product's direct recipe
+                $sourceRecipe = $productRecipeModel->getRecipeWithMaterialDetails($sourceProductId);
+
+                foreach ($sourceRecipe as $ingredient) {
+                    $materialId     = intval($ingredient['material_id']);
+                    $quantityNeeded = floatval($ingredient['quantity_needed']);
+                    $deductAmount   = $quantityNeeded * $sourceYieldsNeeded;
+                    $materialName   = $ingredient['material_name'] ?? 'Unknown';
+                    $unit           = $ingredient['unit'] ?? '';
+
+                    if (!isset($materialNeeds[$materialId])) {
+                        $materialNeeds[$materialId] = ['total_deduct' => 0, 'entries' => []];
+                    }
+                    $materialNeeds[$materialId]['total_deduct'] += $deductAmount;
+                    $materialNeeds[$materialId]['entries'][] = [
+                        'material_id'              => $materialId,
+                        'material_name'            => $materialName,
+                        'unit'                     => $unit,
+                        'quantity_needed_per_yield' => $quantityNeeded,
+                        'yields_needed'            => round($sourceYieldsNeeded, 2),
+                        'deduct_amount'            => round($deductAmount, 4),
+                        'from_combined'            => $sourceName,
+                    ];
+                }
+            }
+        }
+
+        // ── Now check stock & build deductions with accurate cumulative totals ──
         $deductions = [];
         $errors = [];
 
@@ -397,86 +536,28 @@ class RawMaterialStockModel extends Model
         }
 
         try {
-            // Process direct raw material ingredients
-            foreach ($recipe as $ingredient) {
-                $materialId     = intval($ingredient['material_id']);
-                $quantityNeeded = floatval($ingredient['quantity_needed']);
-                $deductAmount   = $quantityNeeded * $yieldsNeeded;
-                $materialName   = $ingredient['material_name'] ?? 'Unknown';
-                $unit           = $ingredient['unit'] ?? '';
-
-                // Get current stock before deduction
+            foreach ($materialNeeds as $materialId => $need) {
                 $stock      = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
-                $afterQty   = max(0, $currentQty - $deductAmount);
+                $totalDeductForMaterial = round($need['total_deduct'], 4);
+                $afterQty   = max(0, $currentQty - $totalDeductForMaterial);
+                $isInsufficient = $currentQty < $totalDeductForMaterial;
 
-                $deductions[] = [
-                    'material_id'              => $materialId,
-                    'material_name'            => $materialName,
-                    'unit'                     => $unit,
-                    'quantity_needed_per_yield' => $quantityNeeded,
-                    'yields_needed'            => round($yieldsNeeded, 2),
-                    'deduct_amount'            => round($deductAmount, 4),
-                    'before'                   => round($currentQty, 4),
-                    'after'                    => round($afterQty, 4),
-                    'insufficient'             => $currentQty < $deductAmount,
-                ];
-
-                if (!$preview) {
-                    if (!$this->deductStock($materialId, $deductAmount)) {
-                        $errors[] = "Failed to deduct {$materialName}";
-                    }
+                // Build one deduction entry per source (direct / each combined)
+                foreach ($need['entries'] as $entry) {
+                    $deductions[] = array_merge($entry, [
+                        'before'       => round($currentQty, 4),
+                        'after'        => round($afterQty, 4),
+                        'insufficient' => $isInsufficient,
+                        'total_needed' => $totalDeductForMaterial,
+                    ]);
                 }
-            }
 
-            // Process combined recipes — deduct raw materials of the source product
-            foreach ($combinedRecipes as $combined) {
-                $sourceProductId = intval($combined['source_product_id']);
-                $gramsPerPiece   = floatval($combined['grams_per_piece']);
-                $sourceName      = $combined['source_product_name'] ?? 'Unknown';
-
-                // Total grams needed from the source product
-                $totalGramsNeeded = $gramsPerPiece * $pieces;
-
-                // Get the source product's yield info to convert grams → yields
-                $sourceCost       = $productCostModel->getCostByProductId($sourceProductId);
-                $sourceYieldGrams = floatval($sourceCost['yield_grams'] ?? 0);
-
-                if ($sourceYieldGrams > 0) {
-                    $sourceYieldsNeeded = $totalGramsNeeded / $sourceYieldGrams;
-
-                    // Get the source product's direct recipe
-                    $sourceRecipe = $productRecipeModel->getRecipeWithMaterialDetails($sourceProductId);
-
-                    foreach ($sourceRecipe as $ingredient) {
-                        $materialId     = intval($ingredient['material_id']);
-                        $quantityNeeded = floatval($ingredient['quantity_needed']);
-                        $deductAmount   = $quantityNeeded * $sourceYieldsNeeded;
-                        $materialName   = $ingredient['material_name'] ?? 'Unknown';
-                        $unit           = $ingredient['unit'] ?? '';
-
-                        $stock      = $this->getByMaterialId($materialId);
-                        $currentQty = floatval($stock['current_quantity'] ?? 0);
-                        $afterQty   = max(0, $currentQty - $deductAmount);
-
-                        $deductions[] = [
-                            'material_id'              => $materialId,
-                            'material_name'            => $materialName,
-                            'unit'                     => $unit,
-                            'quantity_needed_per_yield' => $quantityNeeded,
-                            'yields_needed'            => round($sourceYieldsNeeded, 2),
-                            'deduct_amount'            => round($deductAmount, 4),
-                            'before'                   => round($currentQty, 4),
-                            'after'                    => round($afterQty, 4),
-                            'insufficient'             => $currentQty < $deductAmount,
-                            'from_combined'            => $sourceName,
-                        ];
-
-                        if (!$preview) {
-                            if (!$this->deductStock($materialId, $deductAmount)) {
-                                $errors[] = "Failed to deduct {$materialName} (from {$sourceName})";
-                            }
-                        }
+                // Perform actual deduction (once per material, using total)
+                if (!$preview) {
+                    if (!$this->deductStock($materialId, $totalDeductForMaterial)) {
+                        $firstEntry = $need['entries'][0];
+                        $errors[] = "Failed to deduct " . ($firstEntry['material_name'] ?? "material #{$materialId}");
                     }
                 }
             }

@@ -56,7 +56,7 @@ $(document).ready(function () {
         const payload = {
             material_id: $('#material_id').val(),
             initial_qty: $('#initial_qty').val(),
-            qty_used: $('#qty_used').val() || 0,
+            qty_used: 0,
             unit: $('#unit').val()
         };
 
@@ -111,9 +111,7 @@ $(document).ready(function () {
                         $('#edit_stock_id').val(d.stock_id);
                         $('#material_id').val(d.material_id);
                         $('#initial_qty').val(d.initial_qty);
-                        $('#qty_used').val(d.qty_used);
                         $('#unit').val(d.unit);
-                        $('#qtyUsedWrapper').removeClass('hidden');
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
@@ -220,7 +218,7 @@ $(document).ready(function () {
         tbody.empty();
 
         if (data.length === 0) {
-            tbody.html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
+            tbody.html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
             return;
         }
 
@@ -304,14 +302,13 @@ $(document).ready(function () {
         }
 
         pageItems.forEach(function (entry) {
-            const remaining = parseFloat(entry.remaining) || 0;
+            const stockOnHand = parseFloat(entry.initial_qty) || 0;
             const initial = parseFloat(entry.initial_qty) || 0;
-            const used = parseFloat(entry.qty_used) || 0;
-            const pct = initial > 0 ? (remaining / initial * 100) : 0;
+            const pct = initial > 0 ? Math.min(100, (stockOnHand / initial) * 100) : 0;
 
             let barColor = 'bg-emerald-400';
-            if (pct <= 10) barColor = 'bg-red-500';
-            else if (pct <= 30) barColor = 'bg-amber-400';
+            if (stockOnHand <= 10) barColor = 'bg-red-500';
+            else if (stockOnHand <= 50) barColor = 'bg-amber-400';
 
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
@@ -325,22 +322,15 @@ $(document).ready(function () {
                             ${entry.category_name || '—'}
                         </span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-2">
+                    <div class="flex items-center justify-between mb-2">
                         <div>
-                            <span class="block text-gray-400">Initial</span>
-                            <span class="font-medium text-gray-700">${formatNumber(initial)} ${entry.unit}</span>
-                        </div>
-                        <div>
-                            <span class="block text-gray-400">Used</span>
-                            <span class="font-medium text-gray-700">${formatNumber(used)} ${entry.unit}</span>
-                        </div>
-                        <div>
-                            <span class="block text-gray-400">Remaining</span>
-                            <span class="font-medium text-gray-700">${formatNumber(remaining)} ${entry.unit}</span>
+                            <span class="block text-xs text-gray-400">Stock On Hand</span>
+                            <span class="text-lg font-bold text-gray-800">${formatNumber(stockOnHand)}</span>
+                            <span class="text-xs text-gray-500 ml-1">${entry.unit}</span>
                         </div>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                        <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(pct, 100)}%"></div>
+                    <div class="w-full min-w-0 bg-gray-200 rounded-full h-1.5 mb-2">
+                        <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.max(Math.min(pct, 100), 2)}%"></div>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-400">${dateStr}</span>
@@ -444,8 +434,6 @@ $(document).ready(function () {
         $('#edit_stock_id').val('');
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
-        $('#qtyUsedWrapper').addClass('hidden');
-        $('#qty_used').val(0);
     }
 
     function closeModal() {

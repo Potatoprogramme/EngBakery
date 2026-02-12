@@ -71,19 +71,13 @@
                                 <span class="flex items-center">Category</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Initial Qty</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Used</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Remaining</span>
+                                <span class="flex items-center">Stock On Hand</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Unit</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Date Added</span>
+                                <span class="flex items-center">Date Updated</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Actions</span>
@@ -145,20 +139,12 @@
                     <div>
                         <div class="flex">
                             <label for="initial_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
-                                Initial Quantity <span class="text-red-500">*</span>
+                                Stock On Hand <span class="text-red-500">*</span>
                             </label>
                         </div>
                         <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.01" required>
-                    </div>
-                    <div id="qtyUsedWrapper" class="hidden">
-                        <label for="qty_used" class="block text-sm font-medium text-gray-700 mb-1">
-                            Quantity Used
-                        </label>
-                        <input type="number" name="qty_used" id="qty_used"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0" min="0" step="0.01" value="0">
                     </div>
                 </div>
                 <div class="mb-4">
