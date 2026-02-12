@@ -23,7 +23,7 @@
                             Add Today's Inventory
                         </button>
                         <button id="btnDeleteTodaysInventory" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
                             Delete Today's Inventory
                         </button>
                     </div>
@@ -60,7 +60,7 @@
                     Add Inventory
                 </button>
                 <button id="btnDeleteTodaysInventoryMobile" type="button"
-                    class="flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    class="hidden flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
                     Delete
                 </button>
             </div>
@@ -615,15 +615,24 @@
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
+                        // Show delete buttons when inventory exists
+                        $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
+                        // Hide delete buttons when no inventory
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     }
                 },
                 error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
+                    // Hide delete buttons on error
+                    $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                 }
             });
         }
@@ -986,6 +995,9 @@
                         $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
+                        // Hide delete buttons since no inventory exists
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         // Reload the table
                         fetchAllStockitems();
                     } else {
