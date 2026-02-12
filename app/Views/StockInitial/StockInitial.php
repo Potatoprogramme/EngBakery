@@ -59,6 +59,22 @@
                 </button>
             </div>
 
+            <!-- Stock Level Legend -->
+            <div class="flex items-center gap-4 mb-3 px-1 text-xs text-gray-400">
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-red-500"></span>
+                    <span class="text-gray-500">Critical (≤10%)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span class="text-gray-500">Low (≤25%)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span class="text-gray-500">Healthy</span>
+                </span>
+            </div>
+
             <!-- Desktop Table View -->
             <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <table id="stockInitialTable" class="min-w-full text-sm text-left text-gray-500">
@@ -71,7 +87,13 @@
                                 <span class="flex items-center">Category</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Stock On Hand</span>
+                                <span class="flex items-center">Initial Qty</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                                <span class="flex items-center">Used</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                                <span class="flex items-center">Remaining</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Unit</span>

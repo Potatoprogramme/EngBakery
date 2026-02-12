@@ -616,7 +616,7 @@ class InventoryController extends BaseController
             $inventory['total_beginning'] = $totalBeginning;
             $inventory['total_ending'] = $totalEnding;
             $inventory['total_pull_out'] = $totalPullOut;
-            $inventory['total_sold'] = $totalBeginning - $totalEnding - $totalPullOut;
+            $inventory['total_sold'] = max(0, $totalBeginning - $totalEnding - $totalPullOut);
             $inventory['total_sales'] = $totalSales;
         }
 

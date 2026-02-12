@@ -85,11 +85,6 @@ class RawMaterialStockModel extends Model
         ]);
 
         if ($success) {
-            // Keep raw_materials.material_quantity in sync
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                [$initialQty, $materialId]
-            );
             return $this->getInsertID();
         }
 
@@ -111,34 +106,15 @@ class RawMaterialStockModel extends Model
             'unit'        => $data['unit'],
         ]);
 
-        if ($success) {
-            // Keep raw_materials.material_quantity in sync with initial_qty
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                [$initialQty, $materialId]
-            );
-        }
-
         return $success;
     }
 
     /**
-     * Delete a stock entry — also zeros out raw_materials.material_quantity
+     * Delete a stock entry
      */
     public function deleteEntry(int $stockId): bool
     {
-        // Get the material_id before deleting
-        $entry = $this->find($stockId);
-        $success = $this->delete($stockId);
-
-        if ($success && $entry) {
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = 0 WHERE material_id = ?",
-                [intval($entry['material_id'])]
-            );
-        }
-
-        return $success;
+        return $this->delete($stockId);
     }
 
     // ═══════════════════════════════════════════
@@ -147,12 +123,12 @@ class RawMaterialStockModel extends Model
 
     /**
      * Get stock by material ID.
-     * Uses raw_material_stock.initial_qty as the current available quantity (source of truth).
+     * current_quantity = initial_qty - qty_used (the remaining available stock).
      */
     public function getByMaterialId(int $materialId): ?array
     {
         $row = $this->db->query("
-            SELECT rms.*, rms.initial_qty as current_quantity
+            SELECT rms.*, GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             WHERE rms.material_id = ?
@@ -192,33 +168,20 @@ class RawMaterialStockModel extends Model
             ]) !== false;
         }
 
-        if ($success) {
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                [$quantity, $materialId]
-            );
-        }
-
         return $success;
     }
 
     /**
-     * Deduct from stock (decreases raw_material_stock.initial_qty AND raw_materials.material_quantity)
+     * Deduct from stock (increments qty_used only — initial_qty stays fixed)
      */
     public function deductStock(int $materialId, float $amount): bool
     {
         $amount = round($amount, 4);
         log_message('info', "DEDUCT: material_id={$materialId}, amount={$amount}");
 
-        // Primary: reduce initial_qty in raw_material_stock (source of truth), floor at 0
-        $this->db->query(
-            "UPDATE raw_material_stock SET initial_qty = GREATEST(0, initial_qty - ?) WHERE material_id = ?",
-            [$amount, $materialId]
-        );
-
-        // Mirror: keep raw_materials.material_quantity in sync, floor at 0
+        // Only increment qty_used — initial_qty is the fixed baseline and should not change
         $result = $this->db->query(
-            "UPDATE raw_materials SET material_quantity = GREATEST(0, material_quantity - ?) WHERE material_id = ?",
+            "UPDATE raw_material_stock SET qty_used = qty_used + ? WHERE material_id = ?",
             [$amount, $materialId]
         );
 
@@ -243,12 +206,6 @@ class RawMaterialStockModel extends Model
                 'unit'        => $unit,
             ]) !== false;
 
-            if ($inserted) {
-                $this->db->query(
-                    "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                    [$amount, $materialId]
-                );
-            }
             return $inserted;
         }
 
@@ -257,14 +214,6 @@ class RawMaterialStockModel extends Model
         $success = $this->update($existing['stock_id'], [
             'initial_qty' => $newInitial,
         ]);
-
-        if ($success) {
-            // Keep raw_materials in sync
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                [$newInitial, $materialId]
-            );
-        }
 
         return $success;
     }
@@ -281,10 +230,10 @@ class RawMaterialStockModel extends Model
         return $this->db->query("
             SELECT 
                 rms.*,
-                rms.initial_qty as current_quantity,
+                GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity,
                 rm.material_name,
                 rm.unit as material_unit,
-                (rms.initial_qty / NULLIF(rms.initial_qty, 0) * 100) as stock_percentage
+                (GREATEST(0, rms.initial_qty - rms.qty_used) / NULLIF(rms.initial_qty, 0) * 100) as stock_percentage
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             HAVING stock_percentage <= ?
@@ -301,7 +250,7 @@ class RawMaterialStockModel extends Model
             SELECT 
                 rms.stock_id,
                 rms.material_id,
-                rms.initial_qty as current_quantity,
+                GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity,
                 rms.updated_at,
                 rm.material_name,
                 rm.unit,
@@ -309,16 +258,16 @@ class RawMaterialStockModel extends Model
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN rms.initial_qty <= ? THEN 'critical'
-                    WHEN rms.initial_qty <= ? THEN 'warning'
+                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'critical'
+                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE rms.initial_qty <= ?
-            ORDER BY rms.initial_qty ASC
+            WHERE (rms.initial_qty - rms.qty_used) <= ?
+            ORDER BY (rms.initial_qty - rms.qty_used) ASC
         ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
     }
 
@@ -329,8 +278,8 @@ class RawMaterialStockModel extends Model
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN rms.initial_qty <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN rms.initial_qty > ? AND rms.initial_qty <= ? THEN 1 ELSE 0 END) as warning_count
+                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) > ? AND (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as warning_count
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
         ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();

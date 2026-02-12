@@ -218,20 +218,23 @@ $(document).ready(function () {
         tbody.empty();
 
         if (data.length === 0) {
-            tbody.html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
+            tbody.html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
             return;
         }
 
         data.forEach(function (entry) {
-            const remaining = parseFloat(entry.remaining) || 0;
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
+            const remaining = Math.max(0, initial - used);
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
-            // Health bar color
-            let barColor = 'bg-emerald-400';
-            if (pct <= 10) barColor = 'bg-red-500';
-            else if (pct <= 30) barColor = 'bg-amber-400';
+            // Health bar colors
+            let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+            let remainText = 'text-gray-700';
+            let barWidth = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+            if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; remainText = 'text-red-600 font-semibold'; }
+            else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainText = 'text-amber-600 font-semibold'; }
+            else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; }
 
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
@@ -245,17 +248,17 @@ $(document).ready(function () {
                             ${entry.category_name || '—'}
                         </span>
                     </td>
-                    <td class="px-6 py-3">${formatNumber(initial)} ${entry.unit}</td>
-                    <td class="px-6 py-3">${formatNumber(used)} ${entry.unit}</td>
+                    <td class="px-6 py-3 text-gray-700 tabular-nums text-sm">${formatNumber(initial)}</td>
+                    <td class="px-6 py-3 tabular-nums text-sm"><span class="text-orange-600">${formatNumber(used)}</span></td>
                     <td class="px-6 py-3">
-                        <div class="flex items-center gap-2">
-                            <span>${formatNumber(remaining)} ${entry.unit}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                            <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(pct, 100)}%"></div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="${remainText} tabular-nums text-sm min-w-[2.5rem]">${formatNumber(remaining)}</span>
+                            <div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ${barTrack} overflow-hidden">
+                                <div class="h-full rounded-full ${barColor} transition-all" style="width:${barWidth}%"></div>
+                            </div>
                         </div>
                     </td>
-                    <td class="px-6 py-3">${entry.unit}</td>
+                    <td class="px-6 py-3 text-gray-700">${entry.unit}</td>
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
                         <div class="flex items-center gap-2">
@@ -302,45 +305,56 @@ $(document).ready(function () {
         }
 
         pageItems.forEach(function (entry) {
-            const stockOnHand = parseFloat(entry.initial_qty) || 0;
             const initial = parseFloat(entry.initial_qty) || 0;
-            const pct = initial > 0 ? Math.min(100, (stockOnHand / initial) * 100) : 0;
+            const used = parseFloat(entry.qty_used) || 0;
+            const remaining = Math.max(0, initial - used);
+            const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
-            let barColor = 'bg-emerald-400';
-            if (stockOnHand <= 10) barColor = 'bg-red-500';
-            else if (stockOnHand <= 50) barColor = 'bg-amber-400';
+            let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+            let barW = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+            let remainTC = 'text-emerald-700';
+            if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; remainTC = 'text-red-600'; }
+            else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainTC = 'text-amber-600'; }
+            else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; remainTC = 'text-yellow-700'; }
 
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
 
             const card = `
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="font-semibold text-gray-900 text-sm">${entry.material_name}</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                            ${entry.category_name || '—'}
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between mb-2">
-                        <div>
-                            <span class="block text-xs text-gray-400">Stock On Hand</span>
-                            <span class="text-lg font-bold text-gray-800">${formatNumber(stockOnHand)}</span>
-                            <span class="text-xs text-gray-500 ml-1">${entry.unit}</span>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 text-base">${entry.material_name}</h3>
+                                <p class="text-sm text-gray-500">${entry.category_name || 'Uncategorized'}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="w-full min-w-0 bg-gray-200 rounded-full h-1.5 mb-2">
-                        <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.max(Math.min(pct, 100), 2)}%"></div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400">${dateStr}</span>
-                        <div class="flex items-center gap-3">
-                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
-                                <i class="fas fa-pen-to-square"></i>
-                            </button>
-                            <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <div class="bg-blue-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Initial</p>
+                                <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Used</p>
+                                <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
+                            </div>
+                            <div class="bg-emerald-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
+                                <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
+                                <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <span class="text-xs text-gray-400">${dateStr}</span>
+                            <div class="flex items-center gap-3">
+                                <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </button>
+                                <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
