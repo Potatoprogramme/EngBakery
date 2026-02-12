@@ -31,4 +31,33 @@ class DistributionModel extends Model
             ->groupBy('distributions.distribution_id')
             ->findAll();
     }
+
+    /**
+     * Get distribution records for a date range (for calendar view)
+     */
+    public function getDistributionByDateRange($startDate, $endDate)
+    {
+        return $this->select(
+            'distributions.*, 
+            products.product_id AS product_id, 
+            products.product_name, 
+            products.product_description, 
+            products.category'
+        )
+            ->join('products', 'distributions.product_id = products.product_id')
+            ->where('distribution_date >=', $startDate)
+            ->where('distribution_date <=', $endDate)
+            ->orderBy('distribution_date', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Check if a product already exists in the distribution for a given date
+     */
+    public function existsForDate($productId, $date)
+    {
+        return $this->where('product_id', $productId)
+            ->where('distribution_date', $date)
+            ->first();
+    }
 }

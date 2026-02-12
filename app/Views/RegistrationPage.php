@@ -150,20 +150,26 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                             <div class="relative z-0 w-full mb-5 group">
                                 <input type="password" name="password" id="password"
-                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+                                    class="block py-2.5 px-0 pr-8 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
                                     placeholder=" " required />
                                 <label for="password"
                                     class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Password
                                     <span class="text-red-500">*</span></label>
+                                <button type="button" class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700" data-target="password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
 
                             <div class="relative z-0 w-full mb-5 group">
                                 <input type="password" name="confirm_password" id="confirm_password"
-                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+                                    class="block py-2.5 px-0 pr-8 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
                                     placeholder=" " required />
                                 <label for="confirm_password"
                                     class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Confirm
                                     Password <span class="text-red-500">*</span></label>
+                                <button type="button" class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700" data-target="confirm_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -188,6 +194,25 @@
 </html>
 
 <script>
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+
     $(document).ready(function () {
         let isSubmitting = false;
 

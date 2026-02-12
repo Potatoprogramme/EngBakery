@@ -20,14 +20,14 @@ class DistributionController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
+            view('Template/Notification') .
             view('Distribution/Distribution', $data) .
             view('Template/Footer');
     }
 
     public function getDistributionByDate()
     {
-
-        $date = date('Y-m-d');
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
         
         $distributionData = $this->distributionModel->getDistributionByDate($date);
 
@@ -38,10 +38,54 @@ class DistributionController extends BaseController
             ]);
         }
 
+        // Check if inventory exists for this date
+        $inventoryExists = $this->dailyStockModel->checkInventoryExists($date) ? true : false;
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Distribution records retrieved successfully',
-            'data' => $distributionData
+            'data' => $distributionData,
+            'inventory_locked' => $inventoryExists
+        ]);
+    }
+
+    /**
+     * Check if inventory already exists for a given date.
+     * Used by the distribution page to lock editing.
+     */
+    public function checkInventoryByDate()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $inventory = $this->dailyStockModel->checkInventoryExists($date);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'inventory_exists' => $inventory ? true : false,
+            'date' => $date
+        ]);
+    }
+
+    /**
+     * Get distribution records for a date range (for calendar view).
+     */
+    public function getDistributionByDateRange()
+    {
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+
+        if (!$startDate || !$endDate) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'error' => 'start_date and end_date are required'
+            ]);
+        }
+
+        $distributionData = $this->distributionModel->getDistributionByDateRange($startDate, $endDate);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Distribution records retrieved successfully',
+            'data' => $distributionData ?: []
         ]);
     }
 
@@ -57,6 +101,23 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
         }
 
+        // Check if inventory already exists for this date — block changes
+        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
+                'inventory_locked' => true
+            ]);
+        }
+
+        // Check if this product already exists for the given date
+        $existing = $this->distributionModel->existsForDate($data->product_id, $data->distribution_date);
+        if ($existing) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'error' => 'This product is already scheduled for the selected date.',
+                'duplicate' => true
+            ]);
+        }
+
         // Insert distribution record
         $insertData = [
             'product_id' => $data->product_id,
@@ -66,7 +127,7 @@ class DistributionController extends BaseController
 
         try {
             $this->distributionModel->insert($insertData);
-            return $this->response->setJSON(['message' => 'Distribution record added successfully']);
+            return $this->response->setJSON(['success' => true, 'message' => 'Distribution record added successfully']);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution record']);
         }
@@ -74,6 +135,20 @@ class DistributionController extends BaseController
 
     public function deleteDistribution($id)
     {
+        // Look up the distribution record to get its date
+        $record = $this->distributionModel->find($id);
+        if (!$record) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution record not found']);
+        }
+
+        // Check if inventory already exists for this date — block deletion
+        if ($this->dailyStockModel->checkInventoryExists($record['distribution_date'])) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
+                'inventory_locked' => true
+            ]);
+        }
+
         try {
             $this->distributionModel->delete($id);
             return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
@@ -92,6 +167,14 @@ class DistributionController extends BaseController
         // Validate required fields
         if (!isset($data->product_id, $data->product_qnty, $data->distribution_date)) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
+        }
+
+        // Check if inventory already exists for this date — block updates
+        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
+                'inventory_locked' => true
+            ]);
         }
 
         // Update distribution record

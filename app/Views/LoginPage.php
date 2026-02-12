@@ -7,6 +7,8 @@
     <title>E n' G Bakery</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script>
         tailwind.config = {
             theme: {
@@ -67,7 +69,12 @@
 
                             <div>
                                 <label for="password" class="block mb-2 text-sm font-medium text-gray-700">Password</label>
-                                <input id="password" name="password" type="password" required class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007B4C] focus:border-transparent" placeholder="Enter your password">
+                                <div class="relative">
+                                    <input id="password" name="password" type="password" required class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007B4C] focus:border-transparent" placeholder="Enter your password">
+                                    <button type="button" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700" data-target="password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="flex items-right justify-end">
@@ -101,4 +108,23 @@
     </section>
 </body>
 
+<script>
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+</script>
 </html>

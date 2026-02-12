@@ -164,6 +164,12 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('/', 'DistributionController::index');
     $routes->post('AddDistribution', 'DistributionController::addDistribution');
     $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
+    $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
+    $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
+    $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
+    $routes->post('AddDistribution', 'DistributionController::addDistribution');
+    $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
+    $routes->post('UpdateDistribution/(:num)', 'DistributionController::updateDistribution/$1');
 });
 
 

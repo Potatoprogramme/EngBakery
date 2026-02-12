@@ -168,12 +168,10 @@ class ProductsController extends BaseController
                         'ingredients_count' => count($ingredients),
                     ],
                 ]);
-
             } catch (\Exception $e) {
                 $this->db->transRollback();
                 throw $e;
             }
-
         } catch (\Exception $e) {
             log_message('error', 'Error adding product: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return $this->response->setStatusCode(500)->setJSON([
@@ -431,6 +429,7 @@ class ProductsController extends BaseController
             ]);
         }
     }
+
     public function toggleProductStatus()
     {
         try {
@@ -487,7 +486,6 @@ class ProductsController extends BaseController
                     'message' => 'Failed to update product status. Please try again.'
                 ]);
             }
-
         } catch (\Exception $e) {
             log_message('error', 'Error toggling product: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON([
@@ -495,5 +493,19 @@ class ProductsController extends BaseController
                 'message' => 'An error occurred while updating product status: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function getAllBakeryDoughDrinksGrocery()
+    {
+        $bakeryProducts = $this->productModel->getBakeryProducts();
+        $doughProducts = $this->productModel->getDoughProducts();
+        $drinksProducts = $this->productModel->getDrinksProducts();
+        $groceryProducts = $this->productModel->getGroceryProducts();
+        
+        $products = array_merge($bakeryProducts, $doughProducts, $drinksProducts, $groceryProducts);
+        return $this->response->setStatusCode(200)->setJSON([
+            'success' => true,
+            'data' => $products,
+        ]);
     }
 }
