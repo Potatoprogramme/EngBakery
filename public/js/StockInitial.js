@@ -56,7 +56,7 @@ $(document).ready(function () {
         const payload = {
             material_id: $('#material_id').val(),
             initial_qty: $('#initial_qty').val(),
-            qty_used: $('#qty_used').val() || 0,
+            qty_used: 0,
             unit: $('#unit').val()
         };
 
@@ -111,9 +111,7 @@ $(document).ready(function () {
                         $('#edit_stock_id').val(d.stock_id);
                         $('#material_id').val(d.material_id);
                         $('#initial_qty').val(d.initial_qty);
-                        $('#qty_used').val(d.qty_used);
                         $('#unit').val(d.unit);
-                        $('#qtyUsedWrapper').removeClass('hidden');
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
@@ -225,15 +223,18 @@ $(document).ready(function () {
         }
 
         data.forEach(function (entry) {
-            const remaining = parseFloat(entry.remaining) || 0;
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
+            const remaining = Math.max(0, initial - used);
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
-            // Health bar color
-            let barColor = 'bg-emerald-400';
-            if (pct <= 10) barColor = 'bg-red-500';
-            else if (pct <= 30) barColor = 'bg-amber-400';
+            // Health bar colors
+            let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+            let remainText = 'text-gray-700';
+            let barWidth = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+            if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; remainText = 'text-red-600 font-semibold'; }
+            else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainText = 'text-amber-600 font-semibold'; }
+            else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; }
 
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
@@ -247,17 +248,17 @@ $(document).ready(function () {
                             ${entry.category_name || '—'}
                         </span>
                     </td>
-                    <td class="px-6 py-3">${formatNumber(initial)} ${entry.unit}</td>
-                    <td class="px-6 py-3">${formatNumber(used)} ${entry.unit}</td>
+                    <td class="px-6 py-3 text-gray-700 tabular-nums text-sm">${formatNumber(initial)}</td>
+                    <td class="px-6 py-3 tabular-nums text-sm"><span class="text-orange-600">${formatNumber(used)}</span></td>
                     <td class="px-6 py-3">
-                        <div class="flex items-center gap-2">
-                            <span>${formatNumber(remaining)} ${entry.unit}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                            <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(pct, 100)}%"></div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="${remainText} tabular-nums text-sm min-w-[2.5rem]">${formatNumber(remaining)}</span>
+                            <div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ${barTrack} overflow-hidden">
+                                <div class="h-full rounded-full ${barColor} transition-all" style="width:${barWidth}%"></div>
+                            </div>
                         </div>
                     </td>
-                    <td class="px-6 py-3">${entry.unit}</td>
+                    <td class="px-6 py-3 text-gray-700">${entry.unit}</td>
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
                         <div class="flex items-center gap-2">
@@ -304,53 +305,56 @@ $(document).ready(function () {
         }
 
         pageItems.forEach(function (entry) {
-            const remaining = parseFloat(entry.remaining) || 0;
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
+            const remaining = Math.max(0, initial - used);
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
-            let barColor = 'bg-emerald-400';
-            if (pct <= 10) barColor = 'bg-red-500';
-            else if (pct <= 30) barColor = 'bg-amber-400';
+            let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+            let barW = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+            let remainTC = 'text-emerald-700';
+            if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; remainTC = 'text-red-600'; }
+            else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainTC = 'text-amber-600'; }
+            else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; remainTC = 'text-yellow-700'; }
 
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
 
             const card = `
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="font-semibold text-gray-900 text-sm">${entry.material_name}</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                            ${entry.category_name || '—'}
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-2">
-                        <div>
-                            <span class="block text-gray-400">Initial</span>
-                            <span class="font-medium text-gray-700">${formatNumber(initial)} ${entry.unit}</span>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 text-base">${entry.material_name}</h3>
+                                <p class="text-sm text-gray-500">${entry.category_name || 'Uncategorized'}</p>
+                            </div>
                         </div>
-                        <div>
-                            <span class="block text-gray-400">Used</span>
-                            <span class="font-medium text-gray-700">${formatNumber(used)} ${entry.unit}</span>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <div class="bg-blue-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Initial</p>
+                                <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Used</p>
+                                <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
+                            </div>
+                            <div class="bg-emerald-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
+                                <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
+                                <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="block text-gray-400">Remaining</span>
-                            <span class="font-medium text-gray-700">${formatNumber(remaining)} ${entry.unit}</span>
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                        <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(pct, 100)}%"></div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400">${dateStr}</span>
-                        <div class="flex items-center gap-3">
-                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
-                                <i class="fas fa-pen-to-square"></i>
-                            </button>
-                            <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <span class="text-xs text-gray-400">${dateStr}</span>
+                            <div class="flex items-center gap-3">
+                                <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </button>
+                                <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -444,8 +448,6 @@ $(document).ready(function () {
         $('#edit_stock_id').val('');
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
-        $('#qtyUsedWrapper').addClass('hidden');
-        $('#qty_used').val(0);
     }
 
     function closeModal() {

@@ -47,6 +47,7 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->get('GetMaterial/(:num)', 'RawMaterialsController::getMaterial/$1');
     $routes->post('AddRawMaterial', 'RawMaterialsController::addRawMaterial');
     $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
+    $routes->post('RestockMaterial', 'RawMaterialsController::restockMaterial');
     $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
 });
@@ -87,6 +88,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
     $routes->post('AddProductToInventory', 'InventoryController::addProductToInventory');
     $routes->get('PreviewDeduction', 'InventoryController::previewDeduction');
+    $routes->get('PreviewBatchDeduction', 'InventoryController::previewBatchDeduction');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {

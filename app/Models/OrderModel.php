@@ -210,7 +210,7 @@ class OrderModel extends Model
             foreach ($orderItems as $item) {
                 $stockItem = $dailyStockItemsModel->getStockItemByProduct($dailyStockId, $item['product_id']);
                 if ($stockItem) {
-                    $dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amout']));
+                    $dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amount']));
                 }
             }
         }

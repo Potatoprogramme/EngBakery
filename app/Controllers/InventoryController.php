@@ -174,6 +174,19 @@ class InventoryController extends BaseController
             ]);
         }
 
+        // ── Pre-check: preview deductions to ensure raw materials are sufficient ──
+        $preview = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
+
+        if (!empty($preview['insufficient_products'])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot create inventory — insufficient raw material stock.',
+                'insufficient_products' => $preview['insufficient_products'],
+                'no_recipe_products'    => $preview['no_recipe_products'] ?? [],
+                'preview'               => $preview,
+            ]);
+        }
+
         // Create the daily stock record
         $insertData = [
             'inventory_date' => $today,
@@ -186,11 +199,27 @@ class InventoryController extends BaseController
 
             // Insert only products from distribution with their quantities as beginning stock
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
-                return $this->response->setStatusCode(201)->setJSON([
+
+                // All checks passed — actually deduct raw materials
+                $deductionResult = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems);
+
+                $responseData = [
                     'success' => true,
                     'message' => 'Today\'s inventory created from distribution data successfully.',
-                    'items_count' => count($distributionItems)
-                ]);
+                    'items_count' => count($distributionItems),
+                    'deduction' => $deductionResult,
+                ];
+
+                // Add warning messages for no-recipe products (informational only)
+                $warnings = [];
+                if (!empty($deductionResult['no_recipe_products'])) {
+                    $warnings[] = 'No recipe found for: ' . implode(', ', $deductionResult['no_recipe_products']);
+                }
+                if (!empty($warnings)) {
+                    $responseData['warnings'] = $warnings;
+                }
+
+                return $this->response->setStatusCode(201)->setJSON($responseData);
             } else {
                 // Rollback: delete the daily stock record since items failed
                 $this->dailyStockModel->delete($lastInsertId);
@@ -258,6 +287,27 @@ class InventoryController extends BaseController
 
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
 
+        // ── Pre-check: block if raw materials are insufficient ──
+        if ($beginningStock > 0) {
+            $preview = $this->rawMaterialStockModel->deductForProduction(
+                intval($json->product_id),
+                $beginningStock,
+                true // preview only
+            );
+
+            if (!empty($preview['has_insufficient'])) {
+                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot add product — insufficient raw material stock.',
+                    'insufficient_materials' => array_values($shortNames),
+                    'preview' => $preview,
+                ]);
+            }
+        }
+
         $result = $this->dailyStockItemsModel->addProductToInventory(
             $dailyStock['daily_stock_id'],
             intval($json->product_id),
@@ -267,7 +317,7 @@ class InventoryController extends BaseController
         if ($result) {
             $deductionResult = null;
 
-            // Auto-deduct raw materials if beginning stock > 0
+            // All checks passed — actually deduct raw materials
             if ($beginningStock > 0) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     intval($json->product_id),
@@ -399,12 +449,33 @@ class InventoryController extends BaseController
             'ending_stock' => $newEndingStock
         ];
 
+        // ── Pre-check: block if raw materials are insufficient for the increase ──
+        $stockIncrease = $newBeginning - $oldBeginning;
+        if ($stockIncrease > 0 && isset($item['product_id'])) {
+            $preview = $this->rawMaterialStockModel->deductForProduction(
+                intval($item['product_id']),
+                $stockIncrease,
+                true // preview only
+            );
+
+            if (!empty($preview['has_insufficient'])) {
+                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot update — insufficient raw material stock for the additional ' . $stockIncrease . ' pieces.',
+                    'insufficient_materials' => array_values($shortNames),
+                    'preview' => $preview,
+                ]);
+            }
+        }
+
         // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
             $deductionResult = null;
 
-            // Auto-deduct raw materials if beginning stock was increased
-            $stockIncrease = $newBeginning - $oldBeginning;
+            // All checks passed — actually deduct raw materials
             if ($stockIncrease > 0 && isset($item['product_id'])) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     intval($item['product_id']),
@@ -594,7 +665,7 @@ class InventoryController extends BaseController
             $inventory['total_beginning'] = $totalBeginning;
             $inventory['total_ending'] = $totalEnding;
             $inventory['total_pull_out'] = $totalPullOut;
-            $inventory['total_sold'] = $totalBeginning - $totalEnding - $totalPullOut;
+            $inventory['total_sold'] = max(0, $totalBeginning - $totalEnding - $totalPullOut);
             $inventory['total_sales'] = $totalSales;
         }
 
@@ -679,6 +750,29 @@ class InventoryController extends BaseController
         }
 
         $result = $this->rawMaterialStockModel->deductForProduction($productId, $pieces, true);
+
+        return $this->response->setJSON($result);
+    }
+
+    /**
+     * Preview raw material deductions for all products in today's distribution.
+     * GET /Inventory/PreviewBatchDeduction
+     */
+    public function previewBatchDeduction()
+    {
+        $today = date('Y-m-d');
+
+        // Fetch distribution records for today
+        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+
+        if (!$distributionItems || count($distributionItems) === 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today.'
+            ]);
+        }
+
+        $result = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
 
         return $this->response->setJSON($result);
     }

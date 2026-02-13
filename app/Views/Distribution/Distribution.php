@@ -465,11 +465,12 @@
                     data: { date: date },
                     dataType: 'json',
                     success: function(response) {
-                        if (response.success && response.data) {
+                        if (response.success) {
                             inventoryLocked = response.inventory_locked || false;
-                            renderDistributionList(response.data);
-                            renderMobileCards(response.data);
-                            updateSummaryCounts(response.data);
+                            const items = response.data || [];
+                            renderDistributionList(items);
+                            renderMobileCards(items);
+                            updateSummaryCounts(items);
                             updateInventoryLockState();
                         } else {
                             inventoryLocked = false;
@@ -554,6 +555,34 @@
                 }
             }
 
+            function addDistriutionItem(productId, quantity, date) {
+                $.ajax({
+                    url: baseUrl + 'Distribution/AddDistribution',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        product_id: productId,
+                        product_qnty: quantity,
+                        distribution_date: date
+                    }),
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Item added:', response);
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
+                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
+                            inventoryLocked = true;
+                            updateInventoryLockState();
+                        } else if (xhr.status === 409) {
+                            console.warn('Duplicate product for this date.');
+                        } else {
+                            console.error('Error adding item:', error);
+                        }
+                    }
+                });
+            }
+
             function deleteDistributionItem(itemId) {
                 $.ajax({
                     url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
@@ -602,6 +631,9 @@
                             showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
                             inventoryLocked = true;
                             updateInventoryLockState();
+                        } else if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                            showToast('danger', xhr.responseJSON.error, 4000);
+                            showInsufficientMaterialsAlert(xhr.responseJSON.insufficient_materials);
                         } else {
                             showToast('danger', 'Failed to update quantity. Please try again.', 3000);
                             console.error('Error updating item:', error);
@@ -1112,6 +1144,7 @@
                 let completed = 0;
                 let hasError = false;
                 let duplicateProducts = [];
+                let insufficientProducts = [];
 
                 itemsToAdd.forEach(function(item) {
                     $.ajax({
@@ -1127,7 +1160,7 @@
                         success: function(response) {
                             completed++;
                             if (completed === itemsToAdd.length) {
-                                onAllItemsAdded(hasError, duplicateProducts);
+                                onAllItemsAdded(hasError, duplicateProducts, insufficientProducts);
                             }
                         },
                         error: function(xhr, status, error) {
@@ -1137,25 +1170,41 @@
                                 const productName = productsData.find(p => p.product_id == item.product_id);
                                 duplicateProducts.push(productName ? productName.product_name : 'Unknown product');
                             }
+                            // Check if it's an insufficient materials error (400)
+                            if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                                const productName = productsData.find(p => p.product_id == item.product_id);
+                                insufficientProducts.push({
+                                    name: productName ? productName.product_name : 'Unknown product',
+                                    materials: xhr.responseJSON.insufficient_materials
+                                });
+                            }
                             console.error('Error adding item:', error);
                             if (completed === itemsToAdd.length) {
-                                onAllItemsAdded(hasError, duplicateProducts);
+                                onAllItemsAdded(hasError, duplicateProducts, insufficientProducts);
                             }
                         }
                     });
                 });
 
-                function onAllItemsAdded(hadError, duplicates) {
+                function onAllItemsAdded(hadError, duplicates, insufficients) {
                     $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Save to Schedule');
                     $('#addItemsModal').addClass('hidden');
 
                     $('#selectedDate').val(scheduleDate).trigger('change');
                     loadMonthDistributions();
 
+                    // Reset form
                     itemsToAddList = [];
                     renderAddedItemsList();
 
-                    if (duplicates && duplicates.length > 0) {
+                    if (insufficients && insufficients.length > 0) {
+                        let allMaterials = [];
+                        insufficients.forEach(function(p) {
+                            allMaterials = allMaterials.concat(p.materials);
+                        });
+                        showInsufficientMaterialsAlert(allMaterials);
+                        showToast('danger', 'Some items could not be added due to insufficient raw materials.', 4000);
+                    } else if (duplicates && duplicates.length > 0) {
                         showToast('warning', 'The following products are already scheduled for this date and were skipped: ' + duplicates.join(', '), 5000);
                     } else if (hadError) {
                         showToast('danger', 'Some items could not be added. Please check and try again.', 3000);
@@ -1243,5 +1292,52 @@
             $('#totalQuantityCount').text(totalQty);
             $('#mobileItemCount').text(total);
         }
+
+        /**
+         * Show a blocking alert with details of insufficient raw materials.
+         * @param {Array} materials - Array of strings describing each shortage
+         */
+        function showInsufficientMaterialsAlert(materials) {
+            let html = '';
+            html += '<div class="flex items-center gap-2 mb-3 p-3 bg-red-50 rounded-lg">';
+            html += '<i class="fas fa-ban text-red-500 text-xl"></i>';
+            html += '<span class="font-semibold text-red-700">Cannot add — insufficient raw material stock</span>';
+            html += '</div>';
+            html += '<p class="text-sm text-gray-600 mb-2">The following raw materials are short:</p>';
+            html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
+            materials.forEach(function(detail) {
+                html += '<li class="text-red-700">' + detail + '</li>';
+            });
+            html += '</ul>';
+            html += '<div class="mt-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">';
+            html += '<i class="fas fa-lightbulb mr-1"></i> Please restock raw materials in <strong>Stock Initial</strong> before proceeding.';
+            html += '</div>';
+
+            $('#insufficientMaterialContent').html(html);
+            $('#insufficientMaterialModal').removeClass('hidden');
+        }
     </script>
+
+<!-- Insufficient Materials Modal -->
+<div id="insufficientMaterialModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">
+                <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>Insufficient Raw Materials
+            </h3>
+            <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
+                class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="px-6 py-4 overflow-y-auto" id="insufficientMaterialContent">
+        </div>
+        <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
+            <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
+                class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
+                Got it
+            </button>
+        </div>
+    </div>
+</div>
 </body>

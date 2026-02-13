@@ -23,7 +23,7 @@
                             Add Today's Inventory
                         </button>
                         <button id="btnDeleteTodaysInventory" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
                             Delete Today's Inventory
                         </button>
                     </div>
@@ -60,7 +60,7 @@
                     Add Inventory
                 </button>
                 <button id="btnDeleteTodaysInventoryMobile" type="button"
-                    class="flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    class="hidden flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
                     Delete
                 </button>
             </div>
@@ -615,15 +615,24 @@
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
+                        // Show delete buttons when inventory exists
+                        $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
+                        // Hide delete buttons when no inventory
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     }
                 },
                 error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
+                    // Hide delete buttons on error
+                    $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                 }
             });
         }
@@ -671,6 +680,22 @@
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
+
+                        // Show deduction summary
+                        if (response.deduction) {
+                            const d = response.deduction;
+                            const deducted = d.products_deducted || 0;
+                            const total = d.total_products || 0;
+
+                            if (deducted > 0) {
+                                showToast('info', `Raw materials deducted for ${deducted} of ${total} products (${d.total_deductions} materials used).`, 4000);
+                            }
+                        }
+
+                        // Show warnings for products with no recipe or insufficient stock
+                        if (response.warnings && response.warnings.length > 0) {
+                            showDeductionWarningModal(response.warnings, response.deduction);
+                        }
                     } else {
                         showToast('error', response.message, 2000);
                     }
@@ -680,7 +705,13 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     }
-                    showToast('danger', errorMessage, 2000);
+
+                    // Show detailed insufficient materials modal
+                    if (xhr.responseJSON && xhr.responseJSON.insufficient_products) {
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('danger', errorMessage, 3000);
+                    }
                     console.log(xhr.responseJSON);
                 }
             });
@@ -775,15 +806,15 @@
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
-                    const ending_stock = beginning - pullOut - qtySold;
+                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
 
                     totalQty += qtySold;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.beginning_stock || 0) + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + (item.pull_out_quantity || 0) + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-3">';
@@ -838,7 +869,7 @@
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
-                    const ending_stock = beginning - pullOut - qtySold;
+                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
 
                     totalQty += qtySold;
 
@@ -935,7 +966,12 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    // Show detailed insufficient materials modal
+                    if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    }
                     console.log(xhr);
                 }
             });
@@ -959,6 +995,9 @@
                         $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
+                        // Hide delete buttons since no inventory exists
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         // Reload the table
                         fetchAllStockitems();
                     } else {
@@ -1237,12 +1276,32 @@
                         $('#addProductModal').addClass('hidden');
                         $('#addProductForm')[0].reset();
                         fetchAllStockitems(); // Reload the table
+
+                        // Show deduction info/warnings for the single product
+                        if (response.deduction) {
+                            if (response.deduction.success && response.deduction.deductions && response.deduction.deductions.length > 0) {
+                                var count = response.deduction.deductions.length;
+                                var msg = count + ' raw material' + (count > 1 ? 's' : '') + ' deducted for ' + response.deduction.pieces + ' pcs';
+                                if (response.deduction.has_insufficient) {
+                                    showToast('warning', msg + ' — some materials had insufficient stock', 4000);
+                                } else {
+                                    showToast('info', msg, 3000);
+                                }
+                            } else if (!response.deduction.success) {
+                                showToast('warning', 'Raw materials not deducted: ' + (response.deduction.message || 'No recipe found for this product'), 5000);
+                            }
+                        }
                     } else {
                         showToast('error', response.message, 2000);
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
+                    // Show detailed insufficient materials modal
+                    if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
+                    }
                 }
             });
         });
@@ -1273,4 +1332,120 @@
                 targetContent.classList.remove('hidden');
             }
         }
+
+        /**
+         * Show a BLOCKING modal when raw materials are insufficient.
+         * Prevents the operation from proceeding (400 response).
+         */
+        function showInsufficientStockModal(data) {
+            let html = '';
+
+            // Title message
+            html += '<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">';
+            html += '<p class="text-sm font-semibold text-red-700"><i class="fas fa-ban mr-2"></i>' + (data.message || 'Operation blocked due to insufficient raw materials.') + '</p>';
+            html += '</div>';
+
+            // Insufficient products (from batch/distribution endpoint)
+            if (data.insufficient_products && data.insufficient_products.length > 0) {
+                html += '<div class="mb-4">';
+                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
+                data.insufficient_products.forEach(function(name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Insufficient materials detail (from single-product endpoints)
+            if (data.insufficient_materials && data.insufficient_materials.length > 0) {
+                html += '<div class="mb-4">';
+                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
+                data.insufficient_materials.forEach(function(detail) {
+                    html += '<li>' + detail + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Tip
+            html += '<div class="mt-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">';
+            html += '<i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before proceeding.';
+            html += '</div>';
+
+            // Reuse the deduction warning modal
+            $('#deductionWarningContent').html(html);
+            $('#deductionWarningModal').removeClass('hidden');
+        }
+
+        /**
+         * Show a warning modal with deduction issues after inventory creation.
+         * Alerts for products with no recipe and/or insufficient raw material stock.
+         */
+        function showDeductionWarningModal(warnings, deduction) {
+            let html = '';
+
+            // Products with no recipe
+            if (deduction && deduction.no_recipe_products && deduction.no_recipe_products.length > 0) {
+                html += '<div class="mb-4">';
+                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
+                html += '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
+                deduction.no_recipe_products.forEach(function(name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Products with insufficient stock
+            if (deduction && deduction.insufficient_products && deduction.insufficient_products.length > 0) {
+                html += '<div class="mb-4">';
+                html += '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
+                html += '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
+                deduction.insufficient_products.forEach(function(name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Summary
+            if (deduction) {
+                html += '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">';
+                html += '<i class="fas fa-info-circle mr-1"></i> ';
+                html += 'Deducted raw materials for <strong>' + (deduction.products_deducted || 0) + '</strong> of <strong>' + (deduction.total_products || 0) + '</strong> products.';
+                html += '</div>';
+            }
+
+            // Use the deduction warning modal
+            $('#deductionWarningContent').html(html);
+            $('#deductionWarningModal').removeClass('hidden');
+        }
     </script>
+
+<!-- Deduction Warning Modal -->
+<div id="deductionWarningModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">
+                <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
+            </h3>
+            <button id="deductionWarningModalClose" onclick="$('#deductionWarningModal').addClass('hidden')"
+                class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="px-6 py-4 overflow-y-auto" id="deductionWarningContent">
+            <!-- Content injected by JS -->
+        </div>
+        <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
+            <button onclick="$('#deductionWarningModal').addClass('hidden')"
+                class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
+                Got it
+            </button>
+        </div>
+    </div>
+</div>

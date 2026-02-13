@@ -2154,8 +2154,8 @@
             }
 
             // Calculate cost per unit
-            $('#material_quantity, #total_cost').on('input', function () {
-                const qty = parseFloat($('#material_quantity').val()) || 0;
+            $('#initial_quantity, #total_cost').on('input', function () {
+                const qty = parseFloat($('#initial_quantity').val()) || 0;
                 const cost = parseFloat($('#total_cost').val()) || 0;
                 const perUnit = qty > 0 ? (cost / qty).toFixed(5) : '0.000';
                 $('#cost_per_unit_display').text(perUnit);

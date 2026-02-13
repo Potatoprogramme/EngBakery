@@ -59,6 +59,22 @@
                 </button>
             </div>
 
+            <!-- Stock Level Legend -->
+            <div class="flex items-center gap-4 mb-3 px-1 text-xs text-gray-400">
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-red-500"></span>
+                    <span class="text-gray-500">Critical (≤10%)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span class="text-gray-500">Low (≤25%)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span class="text-gray-500">Healthy</span>
+                </span>
+            </div>
+
             <!-- Desktop Table View -->
             <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
                 <table id="stockInitialTable" class="min-w-full text-sm text-left text-gray-500">
@@ -83,7 +99,7 @@
                                 <span class="flex items-center">Unit</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Date Added</span>
+                                <span class="flex items-center">Date Updated</span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Actions</span>
@@ -145,20 +161,12 @@
                     <div>
                         <div class="flex">
                             <label for="initial_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
-                                Initial Quantity <span class="text-red-500">*</span>
+                                Stock On Hand <span class="text-red-500">*</span>
                             </label>
                         </div>
                         <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.01" required>
-                    </div>
-                    <div id="qtyUsedWrapper" class="hidden">
-                        <label for="qty_used" class="block text-sm font-medium text-gray-700 mb-1">
-                            Quantity Used
-                        </label>
-                        <input type="number" name="qty_used" id="qty_used"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0" min="0" step="0.01" value="0">
                     </div>
                 </div>
                 <div class="mb-4">
