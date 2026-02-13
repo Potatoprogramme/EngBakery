@@ -387,6 +387,11 @@ class InventoryController extends BaseController
         if ($newEndingStock < 0)
             $newEndingStock = 0;
 
+        // Check if the item is a bread
+        if ($this->checkIfBread($item['product_id'])) {
+            $this->updateBreadStockItem($item_id, $oldBeginning, $newBeginning);
+        }
+
         // Prepare update data
         $updateData = [
             'beginning_stock' => $newBeginning,
@@ -422,6 +427,50 @@ class InventoryController extends BaseController
         }
     }
 
+    /** 
+     * Update Stock Item if bread
+     */
+    public function updateBreadStockItem($item_id, $oldBeginning, $newBeginning)
+    {
+        $item = $this->dailyStockItemsModel->find($item_id);
+        if (!$item) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory item not found'
+            ]);
+        }
+
+        $productId = $item['product_id'];
+        $ingredientsList = $this->productRecipeModel->where('product_id', $productId)
+            ->join('raw_materials rm', 'product_recipe.material_id = rm.material_id')
+            ->findAll();
+
+        foreach ($ingredientsList as $ingredient) {
+            $initialQty = $this->rawMaterialStockModel->where('material_id', $ingredient['material_id'])->first()['initial_qty'];
+            if ($initialQty === null || $initialQty <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Insufficient stock for ' . $ingredient['material_name'],
+                ]);
+            }
+        }
+        // // Update the item with the total quantity sold for that bread
+        // $updateData = [
+        //     'quantity_sold' => $breadSales['quantity_sold'] ?? 0,
+        //     'total_sales' => $breadSales['total_sales'] ?? 0
+        // ];
+
+        // $this->dailyStockItemsModel->update($item_id, $updateData);
+    }
+
+    /**  
+     * Check if Bread Item
+     */
+    private function checkIfBread($product_id)
+    {
+        $product = $this->productModel->find($product_id);
+        return $product && $product['category'] === 'bread';
+    }
     /**
      * Delete a single inventory item
      */
@@ -610,7 +659,7 @@ class InventoryController extends BaseController
     public function previewDeduction()
     {
         $productId = intval($this->request->getGet('product_id'));
-        $pieces    = intval($this->request->getGet('pieces'));
+        $pieces = intval($this->request->getGet('pieces'));
 
         if ($productId <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
