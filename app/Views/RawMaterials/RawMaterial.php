@@ -13,16 +13,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </li>
-                    <li class="text-gray-700">Raw Material</li>
+                    <li class="text-gray-700">Material Costing</li>
                 </ol>
             </nav>
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Raw Material Lists</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Material Costing Lists</h2>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" id="btnAddMaterial"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Raw Material
+                            Add Material Costing
                         </button>
                         </button>
                         <!-- Enable Export Button -->
@@ -81,7 +81,7 @@
             <div class="fixed bottom-6 left-0 right-0 flex justify-center z-30 sm:hidden">
                 <button type="button" id="btnAddMaterialMobile"
                     class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                    Add Raw Material
+                    Add Material Costing
                 </button>
             </div>
 
@@ -173,7 +173,7 @@
         <div class="relative w-full max-w-md max-h-42 mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white"
             style="max-width: 42rem;">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-primary" id="modalTitle">Add Raw Material</h3>
+                <h3 class="text-lg font-semibold text-primary" id="modalTitle">Add Material Costing</h3>
                 <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>

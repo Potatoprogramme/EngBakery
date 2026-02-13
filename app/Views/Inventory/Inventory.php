@@ -1427,7 +1427,7 @@
     </script>
 
 <!-- Deduction Warning Modal -->
-<div id="deductionWarningModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+<div id="deductionWarningModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800">
