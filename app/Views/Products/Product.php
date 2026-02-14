@@ -1421,7 +1421,7 @@
             // Load Ingredients (Raw Materials) for dropdown
             function loadIngredients() {
                 $.ajax({
-                    url: baseUrl + 'RawMaterials/GetAll',
+                    url: baseUrl + 'MaterialCosting/GetAll',
                     type: 'GET',
                     dataType: 'json',
                     success: function (response) {
@@ -2788,7 +2788,7 @@
             function openEditModal(productId) {
                 // Load RawMaterials and Products (for combined recipes dropdown) first
                 $.when(
-                    $.ajax({ url: baseUrl + 'RawMaterials/GetAll', type: 'GET', dataType: 'json' }),
+                    $.ajax({ url: baseUrl + 'MaterialCosting/GetAll', type: 'GET', dataType: 'json' }),
                     $.ajax({ url: baseUrl + 'Products/GetAll', type: 'GET', dataType: 'json' })
                 ).done(function (rawResp, prodResp) {
                     if (rawResp[0] && rawResp[0].success) allIngredientsData = rawResp[0].data;
