@@ -616,6 +616,8 @@ $(document).ready(function() {
             submitBtn.prop('disabled', true).text('Saving...');
         }
 
+        console.log('Submitting form to endpoint:', endpoint, 'with data:', formData);
+
         $.ajax({
             url: baseUrl + endpoint,
             type: 'POST',
@@ -627,8 +629,10 @@ $(document).ready(function() {
                     Toast.success(materialId ? 'Material updated successfully!' : 'Material added successfully!');
                     closeModal();
                     loadMaterials();
+                    console.log('Material saved successfully:', response.material_id);
                 } else {
                     Toast.error('Error: ' + response.message);
+
                 }
             },
             error: function(xhr, status, error) {
