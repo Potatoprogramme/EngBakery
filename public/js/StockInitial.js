@@ -65,8 +65,8 @@ $(document).ready(function () {
         }
 
         const url = isEdit
-            ? baseUrl + 'StockInitial/Update'
-            : baseUrl + 'StockInitial/Add';
+            ? baseUrl + 'MaterialStock/Update'
+            : baseUrl + 'MaterialStock/Add';
 
         $('#btnSaveEntry').prop('disabled', true).text('Saving...');
 
@@ -101,7 +101,7 @@ $(document).ready(function () {
         const entryId = $(this).data('id');
 
         $.ajax({
-            url: baseUrl + 'StockInitial/GetEntry/' + entryId,
+            url: baseUrl + 'MaterialStock/GetEntry/' + entryId,
             type: 'GET',
             dataType: 'json',
             success: function (res) {
@@ -140,7 +140,7 @@ $(document).ready(function () {
         if (!deleteEntryId) return;
 
         $.ajax({
-            url: baseUrl + 'StockInitial/Delete/' + deleteEntryId,
+            url: baseUrl + 'MaterialStock/Delete/' + deleteEntryId,
             type: 'POST',
             dataType: 'json',
             success: function (res) {
@@ -193,7 +193,7 @@ $(document).ready(function () {
 
     function loadEntries() {
         $.ajax({
-            url: baseUrl + 'StockInitial/GetAll',
+            url: baseUrl + 'MaterialStock/GetAll',
             type: 'GET',
             dataType: 'json',
             success: function (res) {
@@ -396,7 +396,7 @@ $(document).ready(function () {
 
     function loadFilterMaterials() {
         $.ajax({
-            url: baseUrl + 'StockInitial/GetMaterials',
+            url: baseUrl + 'MaterialStock/GetMaterials',
             type: 'GET',
             dataType: 'json',
             success: function (res) {
@@ -413,7 +413,7 @@ $(document).ready(function () {
 
     function loadMaterialsDropdown(callback) {
         $.ajax({
-            url: baseUrl + 'StockInitial/GetMaterials',
+            url: baseUrl + 'MaterialStock/GetMaterials',
             type: 'GET',
             dataType: 'json',
             success: function (res) {

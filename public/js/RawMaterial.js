@@ -50,7 +50,7 @@ $(document).ready(function() {
         // Debounce the check
         checkNameTimeout = setTimeout(function() {
             $.ajax({
-                url: baseUrl + 'RawMaterials/CheckMaterialName',
+                url: baseUrl + 'MaterialCosting/CheckMaterialName',
                 type: 'POST',
                 data: JSON.stringify({
                     material_name: materialName,
@@ -195,7 +195,7 @@ $(document).ready(function() {
     // Load Materials via AJAX
     function loadMaterials() {
         $.ajax({
-            url: baseUrl + 'RawMaterials/GetAll',
+            url: baseUrl + 'MaterialCosting/GetAll',
             type: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -602,10 +602,10 @@ $(document).ready(function() {
         }
 
         // Use Update endpoint if editing, Add endpoint if creating new
-        let endpoint = 'RawMaterials/AddRawMaterial';
+        let endpoint = 'MaterialCosting/AddRawMaterial';
         if (materialId) {
             formData.material_id = materialId;
-            endpoint = 'RawMaterials/UpdateRawMaterial';
+            endpoint = 'MaterialCosting/UpdateRawMaterial';
         }
 
         // Set loading state
@@ -651,7 +651,7 @@ $(document).ready(function() {
         const id = $(this).data('id');
 
         $.ajax({
-            url: baseUrl + 'RawMaterials/GetMaterial/' + id,
+            url: baseUrl + 'MaterialCosting/GetMaterial/' + id,
             type: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -705,7 +705,7 @@ $(document).ready(function() {
                 ButtonLoader.start(btn, '');
             }
             $.ajax({
-                url: baseUrl + 'RawMaterials/Delete/' + id,
+                url: baseUrl + 'MaterialCosting/Delete/' + id,
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
@@ -825,7 +825,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: baseUrl + 'RawMaterials/RestockMaterial',
+            url: baseUrl + 'MaterialCosting/RestockMaterial',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ material_id: materialId, restock_qty: restockQty }),
