@@ -1,5 +1,5 @@
 <!-- Toast Container - Position this where you want toasts to appear -->
-<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3"></div>
+<div id="toast-container" class="fixed top-5 right-5 z-[10001] flex flex-col gap-3"></div>
 
 <!-- Confirmation Modal -->
 <div id="confirm-modal" tabindex="-1" class="hidden fixed inset-0 z-[9998] flex items-center justify-center p-4">
