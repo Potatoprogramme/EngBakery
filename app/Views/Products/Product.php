@@ -2199,24 +2199,29 @@
                                 });
                             }
 
-                            // Apply disabled filter if viewing disabled products only
+                            // Filter based on disabled status
+                            // is_disabled: 1 = disabled, 0 or undefined = enabled
                             if (showDisabledOnly) {
+                                // Show only disabled products
                                 displayProducts = displayProducts.filter(function (product) {
-                                    return product.is_active === 0 || product.is_active === false;
+                                    return product.is_disabled == 1 || product.is_disabled === '1';
+                                });
+                            } else {
+                                // Show only enabled products (is_disabled is 0, null, or undefined)
+                                displayProducts = displayProducts.filter(function (product) {
+                                    return !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                                 });
                             }
 
                             filteredProducts = [...displayProducts];
 
                             // Count disabled products and update badge
-                            const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                            const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
                             $('#disabledProductsCount').text(disabledCount);
 
                             displayProducts.forEach(function (product) {
-                                const isActive = product.is_active !== undefined ? product.is_active : 1; // Default to active if not set
-
                                 // Desktop table rows
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-is-active="' + isActive + '">';
+                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
@@ -2225,8 +2230,8 @@
                                 rows += '<td class="px-6 py-4">';
                                 rows += '<div class="flex items-center gap-2">';
                                 rows += '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                // Toggle Enable/Disable button
-                                var isEnabled = product.is_enabled !== false && product.is_enabled !== 0; // Default to enabled
+                                // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
+                                var isEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                                 if (isEnabled) {
                                     rows += '<button class="text-green-600 h-10 w-12 flex items-center justify-center bg-green-50 rounded border border-green-300 hover:bg-green-100 btn-toggle" data-id="' + product.product_id + '" data-enabled="true" title="Click to Disable"><i class="fas fa-toggle-on text-lg"></i></button>';
                                 } else {
@@ -2338,8 +2343,8 @@
                     cards += '          <i class="fas fa-edit"></i> Edit';
                     cards += '        </button>';
                     cards += '        <div class="border-t border-gray-100 my-1"></div>';
-                    // Toggle Enable/Disable button
-                    var cardIsEnabled = product.is_enabled !== false && product.is_enabled !== 0;
+                    // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
+                    var cardIsEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                     if (cardIsEnabled) {
                         cards += '        <button class="btn-toggle w-full px-2 py-3 text-left text-base font-medium text-green-600 hover:bg-green-50 flex items-center gap-3" data-id="' + product.product_id + '" data-enabled="true">';
                         cards += '          <i class="fas fa-toggle-on text-xl"></i> Enabled';
@@ -2696,8 +2701,9 @@
                                 Toast.info('Product disabled successfully!');
                             }
 
-                            // Optionally reload the products list to reflect changes
-                            // loadMaterials();
+                            // Reload the products list to move product to correct list
+                            const categoryFilter = $('#filter-category').val();
+                            loadMaterials(categoryFilter, showingDisabledOnly);
                         } else {
                             Toast.error('Error: ' + (response.message || 'Failed to update product status'));
                         }
@@ -2761,7 +2767,7 @@
                     $(this).removeClass('bg-blue-600 hover:bg-blue-700')
                         .addClass('bg-gray-500 hover:bg-gray-600');
 
-                    const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                    const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
                     $(this).html(`
                         <div id="disabledProductsCount"
                             class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
