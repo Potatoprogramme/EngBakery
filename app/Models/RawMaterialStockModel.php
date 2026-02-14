@@ -346,6 +346,8 @@ class RawMaterialStockModel extends Model
             SELECT 
                 rms.stock_id,
                 rms.material_id,
+                rms.initial_qty,
+                rms.qty_used,
                 GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity,
                 rms.updated_at,
                 rm.material_name,

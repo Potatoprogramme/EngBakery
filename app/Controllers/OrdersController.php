@@ -215,6 +215,9 @@ class OrdersController extends BaseController
                 throw new \Exception('Transaction failed.');
             }
 
+            // Check for low stock and notify owners via email
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Payment processed successfully.',
