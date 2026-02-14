@@ -154,12 +154,13 @@ class RawMaterialsController extends BaseController
     {
         $data = $this->request->getJSON(true);
         
-        // Validate required fields — quantity is no longer editable (managed by deductions/restock)
+        // Validate required fields
         if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
             !isset($data['material_name']) || trim((string)$data['material_name']) === '' ||
             !isset($data['category_id']) || (string)$data['category_id'] === '' ||
             !isset($data['unit']) || trim((string)$data['unit']) === '' ||
-            !array_key_exists('total_cost', $data) || (string)$data['total_cost'] === '') {
+            !array_key_exists('total_cost', $data) || (string)$data['total_cost'] === '' ||
+            !array_key_exists('initial_quantity', $data) || (string)$data['initial_quantity'] === '') {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
@@ -170,6 +171,13 @@ class RawMaterialsController extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Total cost must be a number greater than or equal to 0.'
+            ]);
+        }
+
+        if (!is_numeric($data['initial_quantity']) || floatval($data['initial_quantity']) < 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Quantity must be a number greater than or equal to 0.'
             ]);
         }
 

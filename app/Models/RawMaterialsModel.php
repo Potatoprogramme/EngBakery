@@ -106,20 +106,51 @@ class RawMaterialsModel extends Model
 
         try {
             $materialId = intval($data['material_id']);
+            $newQty = isset($data['initial_quantity']) ? floatval($data['initial_quantity']) : null;
 
-            // Get stock quantity to compute cost_per_unit
-            $stock = $this->db->query(
-                "SELECT initial_qty FROM raw_material_stock WHERE material_id = ?",
-                [$materialId]
-            )->getRowArray();
-            $currentQty = floatval($stock['initial_qty'] ?? 0);
-            $costPerUnit = $currentQty > 0 ? floatval($data['total_cost']) / $currentQty : 0;
+            // If quantity was provided, sync it to both tables
+            if ($newQty !== null) {
+                // Update material_quantity in raw_materials
+                $this->db->query(
+                    "UPDATE raw_materials SET category_id = ?, material_name = ?, material_quantity = ?, unit = ? WHERE material_id = ?",
+                    [intval($data['category_id']), $data['material_name'], $newQty, $data['unit'], $materialId]
+                );
 
-            // Update name, category, unit — quantity is managed by deductions/restock
-            $this->db->query(
-                "UPDATE raw_materials SET category_id = ?, material_name = ?, unit = ? WHERE material_id = ?",
-                [intval($data['category_id']), $data['material_name'], $data['unit'], $materialId]
-            );
+                // Sync initial_qty in raw_material_stock
+                $stockExists = $this->db->query(
+                    "SELECT stock_id FROM raw_material_stock WHERE material_id = ?",
+                    [$materialId]
+                )->getRowArray();
+
+                if ($stockExists) {
+                    $this->db->query(
+                        "UPDATE raw_material_stock SET initial_qty = ?, unit = ? WHERE material_id = ?",
+                        [$newQty, $data['unit'], $materialId]
+                    );
+                } else {
+                    $this->db->query(
+                        "INSERT INTO raw_material_stock (material_id, initial_qty, qty_used, unit) VALUES (?, ?, 0, ?)",
+                        [$materialId, $newQty, $data['unit']]
+                    );
+                }
+
+                // Recalculate cost_per_unit = total_cost / qty
+                $costPerUnit = $newQty > 0 ? floatval($data['total_cost']) / $newQty : 0;
+            } else {
+                // No quantity change — just update name/category/unit
+                $this->db->query(
+                    "UPDATE raw_materials SET category_id = ?, material_name = ?, unit = ? WHERE material_id = ?",
+                    [intval($data['category_id']), $data['material_name'], $data['unit'], $materialId]
+                );
+
+                // Get existing stock quantity to compute cost_per_unit
+                $stock = $this->db->query(
+                    "SELECT initial_qty FROM raw_material_stock WHERE material_id = ?",
+                    [$materialId]
+                )->getRowArray();
+                $currentQty = floatval($stock['initial_qty'] ?? 0);
+                $costPerUnit = $currentQty > 0 ? floatval($data['total_cost']) / $currentQty : 0;
+            }
 
             $this->db->query(
                 "UPDATE raw_material_cost SET cost_per_unit = ? WHERE material_id = ?",
@@ -160,6 +191,12 @@ class RawMaterialsModel extends Model
                     [$materialId, $addQty]
                 );
             }
+
+            // Sync material_quantity in raw_materials
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = material_quantity + ? WHERE material_id = ?",
+                [$addQty, $materialId]
+            );
 
             $this->db->transComplete();
             return $this->db->transStatus();

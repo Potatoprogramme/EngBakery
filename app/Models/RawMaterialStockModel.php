@@ -106,6 +106,14 @@ class RawMaterialStockModel extends Model
             'unit'        => $data['unit'],
         ]);
 
+        // Sync material_quantity in raw_materials table
+        if ($success) {
+            $this->db->query(
+                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
+                [$initialQty, $materialId]
+            );
+        }
+
         return $success;
     }
 
