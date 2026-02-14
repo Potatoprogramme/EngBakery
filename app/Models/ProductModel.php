@@ -58,6 +58,7 @@ class ProductModel extends Model
             SELECT 
                 p.product_id,
                 p.product_name,
+                p.is_disabled,
                 p.product_description,
                 p.category,
                 pc.direct_cost,
@@ -338,20 +339,20 @@ class ProductModel extends Model
     public function getDoughProducts(): array
     {
         return $this->where('category', 'dough')
-        ->orderBy('product_id', 'DESC')
-        ->findAll();
+            ->orderBy('product_id', 'DESC')
+            ->findAll();
     }
     public function getGroceryProducts(): array
     {
         return $this->where('category', 'grocery')
-        ->orderBy('product_id', 'DESC')
-        ->findAll();
+            ->orderBy('product_id', 'DESC')
+            ->findAll();
     }
     public function getDrinksProducts(): array
     {
         return $this->where('category', 'drinks')
-        ->orderBy('product_id', 'DESC')
-        ->findAll();
+            ->orderBy('product_id', 'DESC')
+            ->findAll();
     }
 
     /**
@@ -360,8 +361,8 @@ class ProductModel extends Model
     public function getBakeryProducts(): array
     {
         return $this->where('category', 'bakery')
-        ->orderBy('product_id', 'DESC')
-        ->findAll();
+            ->orderBy('product_id', 'DESC')
+            ->findAll();
     }
 
     /**
