@@ -296,18 +296,31 @@
 
                         <div id="additionalRecipeInputs">
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add</label>
+                                <select id="combinedRecipeSelect"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                    <option value="">Select a recipe...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity in Grams (per
                                     piece)</label>
                                 <div class="flex gap-2">
-                                    <select id="combinedRecipeSelect"
-                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                                        <option value="">Select a recipe...</option>
-                                    </select>
+                                    <div class="relative flex-1">
+                                        <input type="number" id="combinedRecipeGrams" step="0.01" min="0"
+                                            placeholder="Enter grams per piece"
+                                            class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                        <span
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">g</span>
+                                    </div>
                                     <button type="button" id="btnAddCombinedRecipe"
                                         class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
+                                <p id="combinedRecipeGramsHint" class="text-xs text-gray-400 mt-1 hidden">
+                                    Source recipe: <span id="combinedRecipeSourceGrams">0</span>g/pc available
+                                </p>
                             </div>
                         </div>
                         <!-- Combined Recipes List -->
@@ -1173,6 +1186,14 @@
                 }
             });
 
+            // Allow Enter key in combined recipe grams field to add recipe
+            $('#combinedRecipeGrams').on('keypress', function (e) {
+                if (e.which === 13) { // Enter key
+                    e.preventDefault();
+                    $('#btnAddCombinedRecipe').click();
+                }
+            });
+
             // Close Product Modal
             $('#btnCloseModal, #btnCancelAdd').on('click', function () {
                 closeModal();
@@ -1209,6 +1230,9 @@
                 $('#combinedRecipeSection').addClass('hidden');
                 $('#combinedCostCard').addClass('hidden');
                 $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+                $('#combinedRecipeGrams').val('');
+                $('#combinedRecipeGramsHint').addClass('hidden');
+                $('#combinedRecipeSelect').val('');
 
                 updateIngredientsListDisplay();
                 updateCombinedRecipesListDisplay();
@@ -2051,6 +2075,16 @@
                 const gramsPerTray = parseFloat(selectedOption.data('grams-per-tray')) || 0;
                 const recipeName = selectedOption.data('name');
                 const recipeId = selectedOption.val();
+
+                // Auto-populate grams input with source recipe's grams per piece
+                if (recipeId && gramsPerPiece > 0) {
+                    $('#combinedRecipeGrams').val(gramsPerPiece);
+                    $('#combinedRecipeSourceGrams').text(gramsPerPiece.toFixed(2));
+                    $('#combinedRecipeGramsHint').removeClass('hidden');
+                } else {
+                    $('#combinedRecipeGrams').val('');
+                    $('#combinedRecipeGramsHint').addClass('hidden');
+                }
             });
 
             // Add Combined Recipe
@@ -2062,8 +2096,8 @@
                 const recipeTotalCost = parseFloat(selectedOption.data('cost')) || 0;
                 const recipeYield = parseFloat(selectedOption.data('yield')) || 0;
                 const recipePiecesPerYield = parseInt(selectedOption.data('pieces-per-yield')) || 0;
-                // Get grams per piece directly from the dropdown data attribute (from database)
-                const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
+                // Get grams per piece from the user input field
+                const gramsPerPiece = parseFloat($('#combinedRecipeGrams').val()) || 0;
 
                 // Get the new product's pieces and trays per yield
                 const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
@@ -2078,7 +2112,7 @@
                 }
 
                 if (gramsPerPiece <= 0) {
-                    Toast.warning('The selected recipe "' + recipeName + '" has no grams per piece data. Please set it up first.');
+                    Toast.warning('Please enter a valid quantity in grams per piece.');
                     return;
                 }
 
@@ -2118,8 +2152,10 @@
                 updateCombinedRecipesListDisplay();
                 updateCostingDisplay();
 
-                // Reset select
+                // Reset select and grams input
                 $('#combinedRecipeSelect').val('');
+                $('#combinedRecipeGrams').val('');
+                $('#combinedRecipeGramsHint').addClass('hidden');
             });
 
             // Remove Combined Recipe
