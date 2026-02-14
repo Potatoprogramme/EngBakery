@@ -13,13 +13,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </li>
-                    <li class="text-gray-700">Stock Initial</li>
+                    <li class="text-gray-700">Material Stock</li>
                 </ol>
             </nav>
 
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Raw Material Stock Initial</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Material Stock</h2>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" id="btnAddEntry"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">

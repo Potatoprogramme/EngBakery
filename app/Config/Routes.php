@@ -40,7 +40,7 @@ $routes->group('Dashboard', function (RouteCollection $routes) {
     $routes->get('/', 'DashboardController::dashboard');
 });
 
-$routes->group('RawMaterials', function (RouteCollection $routes) {
+$routes->group('MaterialCosting', function (RouteCollection $routes) {
     $routes->get('/', 'RawMaterialsController::rawMaterial');
     $routes->get('GetCategories', 'RawMaterialsController::getCategories');
     $routes->get('GetAll', 'RawMaterialsController::getAll');
@@ -52,7 +52,7 @@ $routes->group('RawMaterials', function (RouteCollection $routes) {
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
 });
 
-$routes->group('StockInitial', function (RouteCollection $routes) {
+$routes->group('MaterialStock', function (RouteCollection $routes) {
     $routes->get('/', 'RawMaterialStockInitialController::index');
     $routes->get('GetAll', 'RawMaterialStockInitialController::getAll');
     $routes->get('GetEntry/(:num)', 'RawMaterialStockInitialController::getEntry/$1');
@@ -70,7 +70,7 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
     $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
-
+    
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {
@@ -164,10 +164,10 @@ $routes->group('Utility', function (RouteCollection $routes) {
 
 $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('/', 'DistributionController::index');
-    $routes->post('AddDistribution', 'DistributionController::addDistribution');
     $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
     $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
     $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
+    $routes->get('CheckDistributionToday', 'DistributionController::checkDistributionToday');
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
     $routes->post('AddDistribution', 'DistributionController::addDistribution');
     $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
