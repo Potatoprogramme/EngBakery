@@ -167,11 +167,43 @@ class InventoryController extends BaseController
         // Fetch distribution records for today
         $distributionItems = $this->distributionModel->getDistributionByDate($today);
 
+        // If no distribution records, fall back to adding all products
         if (!$distributionItems || count($distributionItems) === 0) {
-            return $this->response->setStatusCode(404)->setJSON([
-                'success' => false,
-                'message' => 'No distribution records found for today. Please add distribution data first.'
-            ]);
+            // Create the daily stock record
+            $insertData = [
+                'inventory_date' => $today,
+                'time_start' => $data['time_start'],
+                'time_end' => $data['time_end'],
+            ];
+
+            if ($this->dailyStockModel->addTodaysInventory($insertData)) {
+                $lastInsertId = $this->dailyStockModel->getInsertID();
+
+                // Fetch ALL products for inventory tracking (fallback mode)
+                $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
+
+                // Insert all products into daily stock items model
+                if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+                    return $this->response->setStatusCode(201)->setJSON([
+                        'success' => true,
+                        'message' => 'Today\'s inventory added successfully (no distribution data found, added all products).',
+                        'fallback_mode' => true
+                    ]);
+                } else {
+                    // Rollback: delete the daily stock record since items failed
+                    $this->dailyStockModel->delete($lastInsertId);
+                    return $this->response->setStatusCode(500)->setJSON([
+                        'success' => false,
+                        'message' => 'Failed to add daily stock items.',
+                        'error' => $this->dailyStockItemsModel->errors(),
+                    ]);
+                }
+            } else {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to create today\'s inventory.'
+                ]);
+            }
         }
 
         // ── Pre-check: preview deductions to ensure raw materials are sufficient ──

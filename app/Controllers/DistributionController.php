@@ -249,4 +249,16 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution record']);
         }
     }
+
+    public function checkDistributionToday()
+    {
+        $today = date('Y-m-d');
+        $distributionData = $this->distributionModel->getDistributionByDate($today);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => $distributionData ? 'Distribution records retrieved successfully' : 'No distribution records for today',
+            'data' => $distributionData ?: []
+        ]);
+    }
 }
