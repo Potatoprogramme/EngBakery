@@ -8,11 +8,11 @@ class RawMaterialsController extends BaseController
     {
         $data = $this->getSessionData();
 
-        return  view('Template/Header', $data).
-                view('Template/SideNav', $data) . 
-                view('Template/notification', $data) .
-                view('RawMaterials/RawMaterial', $data) .
-                view('Template/Footer', $data);
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/notification', $data) .
+            view('RawMaterials/RawMaterial', $data) .
+            view('Template/Footer', $data);
     }
 
     /**
@@ -21,7 +21,7 @@ class RawMaterialsController extends BaseController
     public function getCategories()
     {
         $categories = $this->materialCategoryModel->findAll();
-        
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $categories
@@ -34,7 +34,7 @@ class RawMaterialsController extends BaseController
     public function getAll()
     {
         $materials = $this->rawMaterialsModel->getAllWithDetails();
-        
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $materials
@@ -47,7 +47,7 @@ class RawMaterialsController extends BaseController
     public function addRawMaterial()
     {
         $data = $this->request->getJSON(true);
-        
+
         // Validate required fields (allow numeric zero values)
         if (!isset($data['material_name']) || trim((string)$data['material_name']) === '' ||
             !isset($data['category_id']) || (string)$data['category_id'] === '' ||
@@ -105,7 +105,7 @@ class RawMaterialsController extends BaseController
     public function checkMaterialName()
     {
         $data = $this->request->getJSON(true);
-        
+
         if (empty($data['material_name'])) {
             return $this->response->setJSON([
                 'exists' => false
@@ -114,7 +114,7 @@ class RawMaterialsController extends BaseController
 
         $materialId = !empty($data['material_id']) ? intval($data['material_id']) : null;
         $exists = $this->rawMaterialsModel->nameExists($data['material_name'], $materialId);
-        
+
         return $this->response->setJSON([
             'exists' => $exists
         ]);
@@ -133,7 +133,7 @@ class RawMaterialsController extends BaseController
         }
 
         $material = $this->rawMaterialsModel->getMaterialById($id);
-        
+
         if (!$material) {
             return $this->response->setJSON([
                 'success' => false,
@@ -258,11 +258,18 @@ class RawMaterialsController extends BaseController
         }
 
         $material = $this->rawMaterialsModel->find($id);
-        
+
         if (!$material) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Material not found.'
+            ]);
+        }
+
+        if ($this->productRecipeModel->where('material_id', $id)->countAllResults() > 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Cannot delete material. It is used in a product recipe.'
             ]);
         }
 
