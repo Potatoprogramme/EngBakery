@@ -71,8 +71,8 @@ class RawMaterialsModel extends Model
             $costPerUnit = floatval($data['total_cost']) / $qty;
 
             $this->db->query(
-                "INSERT INTO raw_materials (category_id, material_name, unit) VALUES (?, ?, ?)",
-                [intval($data['category_id']), $data['material_name'], $data['unit']]
+                "INSERT INTO raw_materials (category_id, material_name, material_quantity, unit) VALUES (?, ?, ?, ?)",
+                [intval($data['category_id']), $data['material_name'], $qty, $data['unit']]
             );
             $materialId = $this->db->insertID();
 
@@ -88,7 +88,11 @@ class RawMaterialsModel extends Model
             );
 
             $this->db->transComplete();
-            return $this->db->transStatus() ? $materialId : false;
+            // return $this->db->transStatus() ? $materialId : false;
+            if ($this->db->transStatus()) {
+                return $this->getMaterialById($materialId);
+            }
+            return false;
 
         } catch (\Exception $e) {
             $this->db->transRollback();
