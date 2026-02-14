@@ -26,7 +26,6 @@ class OrdersController extends BaseController
 
     public function getProducts()
     {
-        // Use ProductModel method instead of raw query in controller
         $products = $this->productModel->getProductsForOrdering();
 
         return $this->response->setJSON([

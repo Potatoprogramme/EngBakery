@@ -33,7 +33,7 @@ class ProductModel extends Model
         $today = date('Y-m-d');
 
         return $this->db->query("
-            SELECT p.product_id, p.category, p.product_name, p.product_description,
+            SELECT p.product_id, p.category, p.product_name, p.product_description, p.is_disabled,
                    CASE 
                        WHEN p.category = 'bakery' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
                        ELSE pc.selling_price 
