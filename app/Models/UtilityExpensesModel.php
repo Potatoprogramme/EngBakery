@@ -17,7 +17,9 @@ class UtilityExpensesModel extends Model
         'quantity',
         'unit',
         'expense',
+        'days',
         'cost_per_unit',
+        'cost_per_day',
         'created_at',
         'billed_at',
     ];
