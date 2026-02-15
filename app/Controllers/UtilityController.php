@@ -70,6 +70,7 @@ class UtilityController extends BaseController
         }
 
         $type = $data['type'] ?? null;
+        $billing_period = $data['billing_period'] ?? null;
         $quantity = $data['quantity'] ?? null;
         $unit = $data['unit'] ?? null;
         $expense = $data['expense'] ?? null;
@@ -81,6 +82,7 @@ class UtilityController extends BaseController
 
         $insertData = [
             'type' => $type,
+            'billing_period' => $billing_period,
             'quantity' => $quantity,
             'unit' => $unit,
             'expense' => $expense,
