@@ -341,7 +341,7 @@ class RawMaterialStockModel extends Model
      * Get materials with low stock levels based on quantity thresholds
      * Critical: <= 10 units, Warning: <= 25 units
      */
-    public function getLowStockMaterials(float $criticalLevel = 10, float $warningLevel = 25): array
+    public function getLowStockMaterials(float $criticalPercent = 20, float $warningPercent = 40): array
     {
         return $this->db->query("
             SELECT 
@@ -357,31 +357,37 @@ class RawMaterialStockModel extends Model
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'critical'
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'warning'
+                    WHEN rms.initial_qty > 0 THEN ROUND(((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100, 1)
+                    ELSE 0
+                END as stock_percentage,
+                CASE 
+                    WHEN rms.initial_qty <= 0 THEN 'critical'
+                    WHEN ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 'critical'
+                    WHEN ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE (rms.initial_qty - rms.qty_used) <= ?
+            WHERE rms.initial_qty <= 0 
+               OR ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ?
             ORDER BY (rms.initial_qty - rms.qty_used) ASC
-        ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
+        ", [$criticalPercent, $warningPercent, $warningPercent])->getResultArray();
     }
 
     /**
      * Get count of low stock materials
      */
-    public function getLowStockCount(float $criticalLevel = 10, float $warningLevel = 25): array
+    public function getLowStockCount(float $criticalPercent = 20, float $warningPercent = 40): array
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) > ? AND (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as warning_count
+                SUM(CASE WHEN rms.initial_qty <= 0 OR ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN rms.initial_qty > 0 AND ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 > ? AND ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 1 ELSE 0 END) as warning_count
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
-        ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
+        ", [$criticalPercent, $criticalPercent, $warningPercent])->getRowArray();
 
         return [
             'critical' => intval($result['critical_count'] ?? 0),

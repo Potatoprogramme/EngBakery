@@ -11,13 +11,13 @@ class LowStockNotifier
      * Check for low stock raw materials and email all owners if any are critical.
      * Only sends one email per session to avoid spamming on every order.
      *
-     * @param float $criticalLevel  Stock quantity considered critical (default 10)
-     * @param float $warningLevel   Stock quantity considered warning (default 25)
+     * @param float $criticalPercent  Stock percentage considered critical (default 20%)
+     * @param float $warningPercent   Stock percentage considered warning (default 40%)
      */
-    public static function checkAndNotify(float $criticalLevel = 10, float $warningLevel = 25): void
+    public static function checkAndNotify(float $criticalPercent = 20, float $warningPercent = 40): void
     {
         $stockModel = new RawMaterialStockModel();
-        $lowStockItems = $stockModel->getLowStockMaterials($criticalLevel, $warningLevel);
+        $lowStockItems = $stockModel->getLowStockMaterials($criticalPercent, $warningPercent);
 
         if (empty($lowStockItems)) {
             return; // No low stock — nothing to report
@@ -76,6 +76,7 @@ class LowStockNotifier
             $initial   = isset($item['initial_qty']) ? round(floatval($item['initial_qty']), 2) : '—';
             $used      = isset($item['qty_used']) ? round(floatval($item['qty_used']), 2) : '—';
             $unit      = $item['unit'] ?? '';
+            $pct       = $item['stock_percentage'] ?? 0;
             $lastUpdate = isset($item['updated_at']) ? date('M d, Y h:i A', strtotime($item['updated_at'])) : '—';
             $criticalRows .= "
                 <tr style='background-color: #fff5f5;'>
@@ -84,6 +85,7 @@ class LowStockNotifier
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$initial} {$unit}</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$used} {$unit}</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right; color: #dc3545; font-weight: bold;'>{$remaining} {$unit}</td>
+                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; color: #dc3545; font-weight: bold;'>{$pct}%</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'><span style='background: #dc3545; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;'>CRITICAL</span></td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 12px; color: #888;'>{$lastUpdate}</td>
                 </tr>";
@@ -95,6 +97,7 @@ class LowStockNotifier
             $initial   = isset($item['initial_qty']) ? round(floatval($item['initial_qty']), 2) : '—';
             $used      = isset($item['qty_used']) ? round(floatval($item['qty_used']), 2) : '—';
             $unit      = $item['unit'] ?? '';
+            $pct       = $item['stock_percentage'] ?? 0;
             $lastUpdate = isset($item['updated_at']) ? date('M d, Y h:i A', strtotime($item['updated_at'])) : '—';
             $warningRows .= "
                 <tr>
@@ -103,6 +106,7 @@ class LowStockNotifier
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$initial} {$unit}</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$used} {$unit}</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right; color: #e67e22; font-weight: bold;'>{$remaining} {$unit}</td>
+                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; color: #e67e22; font-weight: bold;'>{$pct}%</td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'><span style='background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;'>LOW</span></td>
                     <td style='padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 12px; color: #888;'>{$lastUpdate}</td>
                 </tr>";
@@ -162,12 +166,12 @@ class LowStockNotifier
                         <tr>
                             <td style='padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px; text-align: center; width: 50%;'>
                                 <div style='font-size: 28px; font-weight: bold; color: #dc3545;'>{$totalCritical}</div>
-                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Critical (≤ 10 units)</div>
+                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Critical (≤ 20% remaining)</div>
                             </td>
                             <td style='width: 10px;'></td>
                             <td style='padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px; text-align: center; width: 50%;'>
                                 <div style='font-size: 28px; font-weight: bold; color: #f39c12;'>{$totalWarning}</div>
-                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Low (≤ 25 units)</div>
+                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Low (≤ 40% remaining)</div>
                             </td>
                         </tr>
                     </table>
@@ -181,6 +185,7 @@ class LowStockNotifier
                                 <th style='text-align: right;'>Initial Stock</th>
                                 <th style='text-align: right;'>Used</th>
                                 <th style='text-align: right;'>Remaining</th>
+                                <th style='text-align: center;'>% Left</th>
                                 <th>Status</th>
                                 <th>Last Updated</th>
                             </tr>

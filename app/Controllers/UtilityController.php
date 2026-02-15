@@ -29,7 +29,7 @@ class UtilityController extends BaseController
         session()->remove('low_stock_email_sent_at');
 
         // Check what materials are low first
-        $lowItems = $this->rawMaterialStockModel->getLowStockMaterials(10, 25);
+        $lowItems = $this->rawMaterialStockModel->getLowStockMaterials(20, 40);
 
         if (empty($lowItems)) {
             return $this->response->setJSON([
