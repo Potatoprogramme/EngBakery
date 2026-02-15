@@ -216,8 +216,8 @@ $(document).ready(function() {
                 } else {
                     allMaterials = [];
                     filteredMaterials = [];
-                    $('#materialsTableBody').html('');
-                    $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No raw materials found</p></div>');
+                    $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No material data available</p></td></tr>');
+                    $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No material data available</p></div>');
                     $('#mobilePagination').html('');
                 }
             },
@@ -348,7 +348,7 @@ $(document).ready(function() {
         const paginatedMaterials = filteredMaterials.slice(startIndex, endIndex);
 
         if (paginatedMaterials.length === 0) {
-            $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-search text-4xl mb-3"></i><p>No materials found</p></div>');
+            $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No material data available</p></div>');
             $('#mobilePagination').html('');
             return;
         }
@@ -741,7 +741,7 @@ $(document).ready(function() {
         if (filteredMaterials.length > 0) {
             renderDesktopTable(filteredMaterials);
         } else {
-            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No raw materials found</p></td></tr>');
+            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No material data available</p></td></tr>');
         }
         
         // Reset mobile cards

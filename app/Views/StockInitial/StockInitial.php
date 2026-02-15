@@ -35,10 +35,10 @@
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
                         <div class="flex items-center gap-2 w-full">
-                            <label for="filter-material" class="sr-only">Material</label>
-                            <select id="filter-material"
+                            <label for="filter-category" class="sr-only">Category</label>
+                            <select id="filter-category"
                                 class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                                <option value="">All Materials</option>
+                                <option value="">All Categories</option>
                             </select>
                         </div>
                     </div>
@@ -151,11 +151,19 @@
                 <input type="hidden" id="edit_stock_id" value="">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Raw Material <span class="text-red-500">*</span></label>
-                    <select name="material_id" id="material_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        required>
-                        <option value="">Select Material</option>
-                    </select>
+                    <div class="relative">
+                        <input type="text" id="material_search"
+                            class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="Search material..." autocomplete="off" required>
+                        <button type="button" id="btnClearMaterial"
+                            class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div id="material_dropdown"
+                            class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        </div>
+                        <input type="hidden" name="material_id" id="material_id">
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
