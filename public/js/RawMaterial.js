@@ -682,7 +682,7 @@ $(document).ready(function() {
                         Toast.success('Material deleted successfully!');
                         loadMaterials();
                     } else {
-                        Toast.error('Error: ' + response.message);
+                        Toast.error(response.message);
                     }
                 },
                 error: function(xhr, status, error) {
