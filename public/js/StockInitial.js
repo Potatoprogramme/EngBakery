@@ -15,7 +15,7 @@ $(document).ready(function () {
     //  Load data on page ready
     // ──────────────────────────────
     loadEntries();
-    loadFilterMaterials();
+    loadFilterCategories();
 
     // ──────────────────────────────
     //  Open Add Modal
@@ -23,7 +23,7 @@ $(document).ready(function () {
     $('#btnAddEntry, #btnAddEntryMobile').on('click', function () {
         resetModal();
         $('#stockInitialModal').removeClass('hidden');
-        loadMaterialsDropdown();
+        loadMaterialsList();
     });
 
     // ──────────────────────────────
@@ -34,21 +34,89 @@ $(document).ready(function () {
     });
 
     // ──────────────────────────────
-    //  Auto-fill unit when material selected
+    //  Searchable Material Dropdown
     // ──────────────────────────────
-    $('#material_id').on('change', function () {
-        const selected = $(this).find(':selected');
-        const unit = selected.data('unit');
-        if (unit) {
-            $('#unit').val(unit);
+    let allMaterialsData = [];
+
+    $('#material_search').on('focus', function () {
+        showMaterialDropdown($(this).val());
+    });
+
+    $('#material_search').on('input', function () {
+        // If user types after selecting, clear the selection
+        if ($('#material_id').val()) {
+            $('#material_id').val('');
+            $('#btnClearMaterial').addClass('hidden');
+        }
+        showMaterialDropdown($(this).val());
+    });
+
+    $(document).on('click', '.material-option', function () {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        const unit = $(this).data('unit');
+
+        $('#material_id').val(id);
+        $('#material_search').val(name);
+        $('#unit').val(unit);
+        $('#btnClearMaterial').removeClass('hidden');
+        hideMaterialDropdown();
+        $('#initial_qty').focus();
+    });
+
+    $('#btnClearMaterial').on('click', function () {
+        $('#material_id').val('');
+        $('#material_search').val('');
+        $(this).addClass('hidden');
+        $('#material_search').focus();
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#material_search, #material_dropdown').length) {
+            hideMaterialDropdown();
         }
     });
+
+    function showMaterialDropdown(searchTerm) {
+        searchTerm = (searchTerm || '').toLowerCase();
+        const filtered = allMaterialsData.filter(function (m) {
+            return !searchTerm || m.material_name.toLowerCase().includes(searchTerm);
+        });
+
+        let html = '';
+        if (filtered.length === 0) {
+            html = '<div class="px-3 py-2 text-sm text-gray-500">No materials found</div>';
+        } else {
+            filtered.forEach(function (m) {
+                html += '<div class="material-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
+                    'data-id="' + m.material_id + '" ' +
+                    'data-name="' + m.material_name + '" ' +
+                    'data-unit="' + m.unit + '">' +
+                    '<span class="font-medium">' + m.material_name + '</span>' +
+                    '<span class="text-xs text-gray-400 ml-2">(' + m.unit + ')</span>' +
+                    '</div>';
+            });
+        }
+
+        $('#material_dropdown').html(html).removeClass('hidden');
+    }
+
+    function hideMaterialDropdown() {
+        $('#material_dropdown').addClass('hidden');
+    }
 
     // ──────────────────────────────
     //  Submit Form (Add / Edit)
     // ──────────────────────────────
     $('#stockInitialForm').on('submit', function (e) {
         e.preventDefault();
+
+        // Validate material is selected
+        if (!$('#material_id').val()) {
+            showToast('Please select a raw material.', 'error');
+            $('#material_search').focus();
+            return;
+        }
 
         const entryId = $('#edit_stock_id').val();
         const isEdit = entryId !== '';
@@ -107,9 +175,15 @@ $(document).ready(function () {
             success: function (res) {
                 if (res.success) {
                     const d = res.data;
-                    loadMaterialsDropdown(function () {
+                    loadMaterialsList(function () {
                         $('#edit_stock_id').val(d.stock_id);
                         $('#material_id').val(d.material_id);
+                        // Find the material name to display in the search input
+                        const mat = allMaterialsData.find(m => String(m.material_id) === String(d.material_id));
+                        if (mat) {
+                            $('#material_search').val(mat.material_name);
+                            $('#btnClearMaterial').removeClass('hidden');
+                        }
                         $('#initial_qty').val(d.initial_qty);
                         $('#unit').val(d.unit);
                         $('#modalTitle').text('Edit Stock Entry');
@@ -169,7 +243,7 @@ $(document).ready(function () {
     });
 
     $('#reset-filters').on('click', function () {
-        $('#filter-material').val('');
+        $('#filter-category').val('');
         loadEntries();
     });
 
@@ -394,35 +468,31 @@ $(document).ready(function () {
         });
     }
 
-    function loadFilterMaterials() {
+    function loadFilterCategories() {
         $.ajax({
-            url: baseUrl + 'MaterialStock/GetMaterials',
+            url: baseUrl + 'MaterialCategory/FetchAll',
             type: 'GET',
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    const select = $('#filter-material');
+                    const select = $('#filter-category');
                     select.find('option:not(:first)').remove();
-                    res.data.forEach(function (m) {
-                        select.append(`<option value="${m.material_id}">${m.material_name}</option>`);
+                    res.data.forEach(function (cat) {
+                        select.append(`<option value="${cat.category_id}">${cat.category_name}</option>`);
                     });
                 }
             }
         });
     }
 
-    function loadMaterialsDropdown(callback) {
+    function loadMaterialsList(callback) {
         $.ajax({
             url: baseUrl + 'MaterialStock/GetMaterials',
             type: 'GET',
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    const select = $('#material_id');
-                    select.find('option:not(:first)').remove();
-                    res.data.forEach(function (m) {
-                        select.append(`<option value="${m.material_id}" data-unit="${m.unit}">${m.material_name}</option>`);
-                    });
+                    allMaterialsData = res.data;
                     if (typeof callback === 'function') callback();
                 }
             }
@@ -430,12 +500,12 @@ $(document).ready(function () {
     }
 
     function applyFilters() {
-        const materialId = $('#filter-material').val();
+        const categoryId = $('#filter-category').val();
 
-        if (!materialId) {
+        if (!categoryId) {
             filteredEntries = [...allEntries];
         } else {
-            filteredEntries = allEntries.filter(e => String(e.material_id) === String(materialId));
+            filteredEntries = allEntries.filter(e => String(e.category_id) === String(categoryId));
         }
 
         renderDesktopTable(filteredEntries);
@@ -446,6 +516,10 @@ $(document).ready(function () {
     function resetModal() {
         $('#stockInitialForm')[0].reset();
         $('#edit_stock_id').val('');
+        $('#material_id').val('');
+        $('#material_search').val('');
+        $('#btnClearMaterial').addClass('hidden');
+        hideMaterialDropdown();
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
     }

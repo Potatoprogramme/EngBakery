@@ -2290,7 +2290,7 @@
                             filteredProducts = [];
                             $('#mobileCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No products found</p></div>');
                             $('#mobilePagination').html('');
-                            $('#mobileNoResults').removeClass('hidden');
+                            $('#mobileNoResults').addClass('hidden');
                         }
 
                         $('#materialsTableBody').html(rows);

@@ -39,6 +39,7 @@ class RawMaterialStockModel extends Model
                 rms.unit,
                 rms.updated_at,
                 rm.material_name,
+                rm.category_id,
                 mc.category_name,
                 mc.label
             FROM raw_material_stock rms
