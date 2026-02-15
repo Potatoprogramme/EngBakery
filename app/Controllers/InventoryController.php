@@ -206,18 +206,7 @@ class InventoryController extends BaseController
             }
         }
 
-        // ── Pre-check: preview deductions to ensure raw materials are sufficient ──
-        $preview = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
-
-        if (!empty($preview['insufficient_products'])) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Cannot create inventory — insufficient raw material stock.',
-                'insufficient_products' => $preview['insufficient_products'],
-                'no_recipe_products' => $preview['no_recipe_products'] ?? [],
-                'preview' => $preview,
-            ]);
-        }
+        // Raw materials are already deducted at distribution time — no pre-check needed here
 
         // Create the daily stock record
         $insertData = [
@@ -232,24 +221,13 @@ class InventoryController extends BaseController
             // Insert only products from distribution with their quantities as beginning stock
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
 
-                // All checks passed — actually deduct raw materials
-                $deductionResult = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems);
+                // Raw materials are already deducted at distribution time — no deduction here
 
                 $responseData = [
                     'success' => true,
                     'message' => 'Today\'s inventory created from distribution data successfully.',
                     'items_count' => count($distributionItems),
-                    'deduction' => $deductionResult,
                 ];
-
-                // Add warning messages for no-recipe products (informational only)
-                $warnings = [];
-                if (!empty($deductionResult['no_recipe_products'])) {
-                    $warnings[] = 'No recipe found for: ' . implode(', ', $deductionResult['no_recipe_products']);
-                }
-                if (!empty($warnings)) {
-                    $responseData['warnings'] = $warnings;
-                }
 
                 return $this->response->setStatusCode(201)->setJSON($responseData);
             } else {
