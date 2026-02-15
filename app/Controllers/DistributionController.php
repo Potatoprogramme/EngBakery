@@ -151,6 +151,20 @@ class DistributionController extends BaseController
 
         try {
             $this->distributionModel->insert($insertData);
+
+            // Actually deduct raw materials now (not at inventory creation)
+            if ($quantity > 0) {
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($data->product_id),
+                    $quantity,
+                    false // actually deduct
+                );
+                log_message('info', 'Distribution deduction for product ' . $data->product_id . ' x' . $quantity . ': ' . json_encode($deductResult));
+            }
+
+            // Check for low stock and notify owners
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
             return $this->response->setJSON(['success' => true, 'message' => 'Distribution record added successfully']);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution record']);
@@ -174,6 +188,14 @@ class DistributionController extends BaseController
         }
 
         try {
+            // Restore raw materials before deleting the distribution
+            $productId = intval($record['product_id']);
+            $quantity  = intval($record['product_qnty']);
+            if ($quantity > 0) {
+                $restoreResult = $this->rawMaterialStockModel->restoreForProduction($productId, $quantity);
+                log_message('info', 'Distribution delete — restored materials for product ' . $productId . ' x' . $quantity . ': ' . json_encode($restoreResult));
+            }
+
             $this->distributionModel->delete($id);
             return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
         } catch (\Exception $e) {
@@ -243,7 +265,30 @@ class DistributionController extends BaseController
         ];
 
         try {
+            // Handle raw material delta: deduct increase or restore decrease
+            if ($qtyIncrease > 0) {
+                // Quantity went up — deduct the additional amount
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($data->product_id),
+                    $qtyIncrease,
+                    false
+                );
+                log_message('info', 'Distribution update — deducted for +' . $qtyIncrease . ' pieces of product ' . $data->product_id . ': ' . json_encode($deductResult));
+            } elseif ($qtyIncrease < 0) {
+                // Quantity went down — restore the difference
+                $restoreQty = abs($qtyIncrease);
+                $restoreResult = $this->rawMaterialStockModel->restoreForProduction(
+                    intval($data->product_id),
+                    $restoreQty
+                );
+                log_message('info', 'Distribution update — restored for -' . $restoreQty . ' pieces of product ' . $data->product_id . ': ' . json_encode($restoreResult));
+            }
+
             $this->distributionModel->update($id, $updateData);
+
+            // Check for low stock and notify owners
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
             return $this->response->setJSON(['message' => 'Distribution record updated successfully']);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution record']);
