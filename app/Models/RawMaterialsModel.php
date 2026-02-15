@@ -68,7 +68,7 @@ class RawMaterialsModel extends Model
 
         try {
             $qty = floatval($data['initial_quantity']);
-            $costPerUnit = floatval($data['total_cost']) / $qty;
+            $costPerUnit = $qty > 0 ? floatval($data['total_cost']) / $qty : 0;
 
             $this->db->query(
                 "INSERT INTO raw_materials (category_id, material_name, material_quantity, unit) VALUES (?, ?, ?, ?)",

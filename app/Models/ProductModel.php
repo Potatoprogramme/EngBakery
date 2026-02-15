@@ -45,6 +45,7 @@ class ProductModel extends Model
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
             LEFT JOIN daily_stock ds ON ds.inventory_date = ?
             LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
+            WHERE p.is_disabled = 0
             ORDER BY p.category, p.product_name
         ", [$today])->getResultArray();
     }

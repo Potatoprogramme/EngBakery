@@ -206,18 +206,7 @@ class InventoryController extends BaseController
             }
         }
 
-        // ── Pre-check: preview deductions to ensure raw materials are sufficient ──
-        $preview = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
-
-        if (!empty($preview['insufficient_products'])) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Cannot create inventory — insufficient raw material stock.',
-                'insufficient_products' => $preview['insufficient_products'],
-                'no_recipe_products' => $preview['no_recipe_products'] ?? [],
-                'preview' => $preview,
-            ]);
-        }
+        // Raw materials are already deducted at distribution time — no pre-check needed here
 
         // Create the daily stock record
         $insertData = [
@@ -232,24 +221,13 @@ class InventoryController extends BaseController
             // Insert only products from distribution with their quantities as beginning stock
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
 
-                // All checks passed — actually deduct raw materials
-                $deductionResult = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems);
+                // Raw materials are already deducted at distribution time — no deduction here
 
                 $responseData = [
                     'success' => true,
                     'message' => 'Today\'s inventory created from distribution data successfully.',
                     'items_count' => count($distributionItems),
-                    'deduction' => $deductionResult,
                 ];
-
-                // Add warning messages for no-recipe products (informational only)
-                $warnings = [];
-                if (!empty($deductionResult['no_recipe_products'])) {
-                    $warnings[] = 'No recipe found for: ' . implode(', ', $deductionResult['no_recipe_products']);
-                }
-                if (!empty($warnings)) {
-                    $responseData['warnings'] = $warnings;
-                }
 
                 return $this->response->setStatusCode(201)->setJSON($responseData);
             } else {
@@ -410,6 +388,29 @@ class InventoryController extends BaseController
             ]);
         }
 
+        // Restore raw materials from today's distribution before deleting inventory
+        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        if (!empty($distributionItems)) {
+            foreach ($distributionItems as $distItem) {
+                $productId = intval($distItem['product_id']);
+                $qty = intval($distItem['product_qnty']);
+                if ($qty > 0) {
+                    // Convert batch qty to pieces (same logic as distribution controller)
+                    $product = $this->productModel->find($productId);
+                    $category = $product['category'] ?? '';
+                    if (in_array($category, ['drinks', 'grocery'])) {
+                        $actualPieces = $qty;
+                    } else {
+                        $costData = model('ProductCostModel')->getCostByProductId($productId);
+                        $ppy = intval($costData['pieces_per_yield'] ?? 0);
+                        $actualPieces = $qty * ($ppy > 0 ? $ppy : 1);
+                    }
+                    $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
+                    log_message('info', 'Inventory delete — restored materials for product ' . $productId . ' x' . $qty . ' batches (' . $actualPieces . ' pieces)');
+                }
+            }
+        }
+
         // Safe to delete - no remittance and no transactions
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
             return $this->response->setStatusCode(200)->setJSON([
@@ -506,8 +507,9 @@ class InventoryController extends BaseController
         // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
             $deductionResult = null;
+            $restorationResult = null;
 
-            // All checks passed — actually deduct raw materials
+            // Beginning stock INCREASED → deduct additional raw materials
             if ($stockIncrease > 0 && isset($item['product_id'])) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     intval($item['product_id']),
@@ -515,11 +517,27 @@ class InventoryController extends BaseController
                 );
             }
 
+            // Beginning stock DECREASED → restore raw materials for the reduction
+            if ($stockIncrease < 0 && isset($item['product_id'])) {
+                $piecesToRestore = abs($stockIncrease);
+                $restorationResult = $this->rawMaterialStockModel->restoreForProduction(
+                    intval($item['product_id']),
+                    $piecesToRestore
+                );
+                log_message('info', 'Inventory update — restored materials for product ' . $item['product_id'] . ' x' . $piecesToRestore . ' pieces');
+            }
+
+            // Trigger low stock notification check
+            if ($stockIncrease != 0) {
+                \App\Libraries\LowStockNotifier::checkAndNotify();
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item updated successfully',
                 'data' => $updateData,
-                'deduction' => $deductionResult
+                'deduction' => $deductionResult,
+                'restoration' => $restorationResult
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
@@ -627,8 +645,23 @@ class InventoryController extends BaseController
             ]);
         }
 
+        // Restore raw materials for the beginning stock of this item before deleting
+        $beginningStock = intval($item['beginning_stock'] ?? 0);
+        if ($beginningStock > 0 && isset($item['product_id'])) {
+            $this->rawMaterialStockModel->restoreForProduction(
+                intval($item['product_id']),
+                $beginningStock
+            );
+            log_message('info', 'Inventory item delete — restored materials for product ' . $item['product_id'] . ' x' . $beginningStock . ' pieces');
+        }
+
         // Safe to delete - no remittance and no transactions
         if ($this->dailyStockItemsModel->delete($item_id)) {
+            // Check low stock notification
+            if ($beginningStock > 0) {
+                \App\Libraries\LowStockNotifier::checkAndNotify();
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item deleted successfully'

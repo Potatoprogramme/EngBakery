@@ -39,6 +39,7 @@ class RawMaterialStockModel extends Model
                 rms.unit,
                 rms.updated_at,
                 rm.material_name,
+                rm.category_id,
                 mc.category_name,
                 mc.label
             FROM raw_material_stock rms
@@ -180,6 +181,94 @@ class RawMaterialStockModel extends Model
     }
 
     /**
+     * Restore raw material stock (decrements qty_used) — used when voiding orders
+     */
+    public function restoreRawMaterialStock(int $materialId, float $amount): bool
+    {
+        $amount = round($amount, 4);
+        log_message('info', "RESTORE: material_id={$materialId}, amount={$amount}");
+
+        $result = $this->db->query(
+            "UPDATE raw_material_stock SET qty_used = GREATEST(0, qty_used - ?) WHERE material_id = ?",
+            [$amount, $materialId]
+        );
+
+        return $result !== false;
+    }
+
+    /**
+     * Restore raw materials for a product based on its recipe — used when voiding drink/grocery orders
+     */
+    public function restoreForProduction(int $productId, int $pieces): array
+    {
+        if ($pieces <= 0) {
+            return ['success' => false, 'message' => 'Pieces must be greater than 0'];
+        }
+
+        $productRecipeModel  = model('ProductRecipeModel');
+        $productCostModel    = model('ProductCostModel');
+        $combinedRecipeModel = model('ProductCombinedRecipeModel');
+
+        $costData = $productCostModel->getCostByProductId($productId);
+        $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+
+        if ($piecesPerYield <= 0) {
+            $product = model('ProductModel')->find($productId);
+            $category = $product['category'] ?? '';
+            if (in_array($category, ['drinks', 'grocery'])) {
+                $piecesPerYield = 1;
+            } else {
+                return ['success' => false, 'message' => 'No yield data found'];
+            }
+        }
+
+        $yieldsNeeded = $pieces / $piecesPerYield;
+        $recipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
+        $combinedRecipes = $combinedRecipeModel->getCombinedRecipesByProductId($productId);
+
+        if (empty($recipe) && empty($combinedRecipes)) {
+            return ['success' => false, 'message' => 'No recipe found'];
+        }
+
+        // Aggregate material needs (same logic as deductForProduction)
+        $materialNeeds = [];
+
+        foreach ($recipe as $ingredient) {
+            $materialId = intval($ingredient['material_id']);
+            $deductAmount = floatval($ingredient['quantity_needed']) * $yieldsNeeded;
+            if (!isset($materialNeeds[$materialId])) $materialNeeds[$materialId] = 0;
+            $materialNeeds[$materialId] += $deductAmount;
+        }
+
+        foreach ($combinedRecipes as $combined) {
+            $sourceProductId = intval($combined['source_product_id']);
+            $totalGramsNeeded = floatval($combined['grams_per_piece']) * $pieces;
+            $sourceCost = $productCostModel->getCostByProductId($sourceProductId);
+            $sourceYieldGrams = floatval($sourceCost['yield_grams'] ?? 0);
+
+            if ($sourceYieldGrams > 0) {
+                $sourceYieldsNeeded = $totalGramsNeeded / $sourceYieldGrams;
+                $sourceRecipe = $productRecipeModel->getRecipeWithMaterialDetails($sourceProductId);
+                foreach ($sourceRecipe as $ingredient) {
+                    $materialId = intval($ingredient['material_id']);
+                    $deductAmount = floatval($ingredient['quantity_needed']) * $sourceYieldsNeeded;
+                    if (!isset($materialNeeds[$materialId])) $materialNeeds[$materialId] = 0;
+                    $materialNeeds[$materialId] += $deductAmount;
+                }
+            }
+        }
+
+        // Restore each material
+        $this->db->transStart();
+        foreach ($materialNeeds as $materialId => $amount) {
+            $this->restoreRawMaterialStock($materialId, round($amount, 4));
+        }
+        $this->db->transComplete();
+
+        return ['success' => $this->db->transStatus() !== false, 'message' => 'Raw materials restored'];
+    }
+
+    /**
      * Deduct from stock (increments qty_used only — initial_qty stays fixed)
      */
     public function deductStock(int $materialId, float $amount): bool
@@ -252,12 +341,14 @@ class RawMaterialStockModel extends Model
      * Get materials with low stock levels based on quantity thresholds
      * Critical: <= 10 units, Warning: <= 25 units
      */
-    public function getLowStockMaterials(float $criticalLevel = 10, float $warningLevel = 25): array
+    public function getLowStockMaterials(float $criticalPercent = 20, float $warningPercent = 40): array
     {
         return $this->db->query("
             SELECT 
                 rms.stock_id,
                 rms.material_id,
+                rms.initial_qty,
+                rms.qty_used,
                 GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity,
                 rms.updated_at,
                 rm.material_name,
@@ -266,31 +357,37 @@ class RawMaterialStockModel extends Model
                 mc.label,
                 rmc.cost_per_unit,
                 CASE 
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'critical'
-                    WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 'warning'
+                    WHEN rms.initial_qty > 0 THEN ROUND(((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100, 1)
+                    ELSE 0
+                END as stock_percentage,
+                CASE 
+                    WHEN rms.initial_qty <= 0 THEN 'critical'
+                    WHEN ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 'critical'
+                    WHEN ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 'warning'
                     ELSE 'normal'
                 END as stock_status
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
-            WHERE (rms.initial_qty - rms.qty_used) <= ?
+            WHERE rms.initial_qty <= 0 
+               OR ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ?
             ORDER BY (rms.initial_qty - rms.qty_used) ASC
-        ", [$criticalLevel, $warningLevel, $warningLevel])->getResultArray();
+        ", [$criticalPercent, $warningPercent, $warningPercent])->getResultArray();
     }
 
     /**
      * Get count of low stock materials
      */
-    public function getLowStockCount(float $criticalLevel = 10, float $warningLevel = 25): array
+    public function getLowStockCount(float $criticalPercent = 20, float $warningPercent = 40): array
     {
         $result = $this->db->query("
             SELECT 
-                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as critical_count,
-                SUM(CASE WHEN (rms.initial_qty - rms.qty_used) > ? AND (rms.initial_qty - rms.qty_used) <= ? THEN 1 ELSE 0 END) as warning_count
+                SUM(CASE WHEN rms.initial_qty <= 0 OR ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 1 ELSE 0 END) as critical_count,
+                SUM(CASE WHEN rms.initial_qty > 0 AND ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 > ? AND ((rms.initial_qty - rms.qty_used) / rms.initial_qty) * 100 <= ? THEN 1 ELSE 0 END) as warning_count
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
-        ", [$criticalLevel, $criticalLevel, $warningLevel])->getRowArray();
+        ", [$criticalPercent, $criticalPercent, $warningPercent])->getRowArray();
 
         return [
             'critical' => intval($result['critical_count'] ?? 0),
@@ -395,11 +492,19 @@ class RawMaterialStockModel extends Model
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
 
         // Get pieces_per_yield from product_costs
+        // For drinks/groceries: default to 1 (1 order = 1 serving)
         $costData = $productCostModel->getCostByProductId($productId);
         $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
 
         if ($piecesPerYield <= 0) {
-            return ['success' => false, 'message' => 'No yield data found for this product', 'deductions' => []];
+            // Check if it's a drink or grocery — default to 1
+            $product = model('ProductModel')->find($productId);
+            $category = $product['category'] ?? '';
+            if (in_array($category, ['drinks', 'grocery'])) {
+                $piecesPerYield = 1;
+            } else {
+                return ['success' => false, 'message' => 'No yield data found for this product', 'deductions' => []];
+            }
         }
 
         // Calculate how many yields are needed
@@ -494,6 +599,12 @@ class RawMaterialStockModel extends Model
 
         try {
             foreach ($materialNeeds as $materialId => $need) {
+                // Skip free materials (cost_per_unit = 0) — e.g. water
+                $costRow = $this->db->query("SELECT cost_per_unit FROM raw_material_cost WHERE material_id = ?", [$materialId])->getRowArray();
+                if ($costRow && floatval($costRow['cost_per_unit']) == 0) {
+                    continue;
+                }
+
                 $stock      = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
                 $totalDeductForMaterial = round($need['total_deduct'], 4);

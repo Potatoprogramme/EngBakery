@@ -679,6 +679,36 @@
         }
     </script>
 
+    <!-- Insufficient Raw Materials Modal -->
+    <div id="insufficientStockModal"
+        class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full z-[70] flex items-center justify-center p-4">
+        <div class="relative w-full max-w-lg mx-auto border rounded-lg shadow-xl bg-white">
+            <div class="p-5 bg-red-50 border-b border-red-200 rounded-t-lg flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded-full mr-3">
+                        <i class="fas fa-exclamation-triangle text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-red-700">Insufficient Raw Materials</h3>
+                </div>
+                <button type="button" onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">The following items cannot be prepared because some ingredients are running low or out of stock:</p>
+                <div id="insufficientStockList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                <div class="mt-4 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
+                    <i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before placing this order.
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-b-lg text-right">
+                <button type="button" onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Understood</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Set base URL for JS modules -->
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';

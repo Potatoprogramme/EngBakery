@@ -113,10 +113,12 @@ class DistributionController extends BaseController
 
         // ── Pre-check: block if raw materials are insufficient ──
         $quantity = intval($data->product_qnty);
-        if ($quantity > 0) {
+        // Distribution qty = batches → convert to actual pieces for deduction
+        $actualPieces = $this->distributionQtyToPieces(intval($data->product_id), $quantity);
+        if ($actualPieces > 0) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 intval($data->product_id),
-                $quantity,
+                $actualPieces,
                 true // preview only — don't actually deduct
             );
 
@@ -151,6 +153,20 @@ class DistributionController extends BaseController
 
         try {
             $this->distributionModel->insert($insertData);
+
+            // Actually deduct raw materials now (not at inventory creation)
+            if ($actualPieces > 0) {
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($data->product_id),
+                    $actualPieces,
+                    false // actually deduct
+                );
+                log_message('info', 'Distribution deduction for product ' . $data->product_id . ' x' . $quantity . ' batches (' . $actualPieces . ' pieces): ' . json_encode($deductResult));
+            }
+
+            // Check for low stock and notify owners
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
             return $this->response->setJSON(['success' => true, 'message' => 'Distribution record added successfully']);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution record']);
@@ -174,6 +190,15 @@ class DistributionController extends BaseController
         }
 
         try {
+            // Restore raw materials before deleting the distribution
+            $productId = intval($record['product_id']);
+            $quantity  = intval($record['product_qnty']);
+            $actualPieces = $this->distributionQtyToPieces($productId, $quantity);
+            if ($actualPieces > 0) {
+                $restoreResult = $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
+                log_message('info', 'Distribution delete — restored materials for product ' . $productId . ' x' . $quantity . ' batches (' . $actualPieces . ' pieces): ' . json_encode($restoreResult));
+            }
+
             $this->distributionModel->delete($id);
             return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
         } catch (\Exception $e) {
@@ -206,11 +231,14 @@ class DistributionController extends BaseController
         $existingRecord = $this->distributionModel->find($id);
         $oldQty = intval($existingRecord['product_qnty'] ?? 0);
         $qtyIncrease = $newQty - $oldQty;
+        // Convert batch delta to actual pieces
+        $piecesIncrease = $this->distributionQtyToPieces(intval($data->product_id), abs($qtyIncrease));
+        if ($qtyIncrease < 0) $piecesIncrease = -$piecesIncrease;
 
-        if ($qtyIncrease > 0) {
+        if ($piecesIncrease > 0) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 intval($data->product_id),
-                $qtyIncrease,
+                $piecesIncrease,
                 true // preview only
             );
 
@@ -228,7 +256,7 @@ class DistributionController extends BaseController
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'error' => 'Cannot update — insufficient raw material stock for the additional ' . $qtyIncrease . ' pieces.',
+                    'error' => 'Cannot update — insufficient raw material stock for the additional ' . $qtyIncrease . ' batch(es).',
                     'insufficient_materials' => array_values($shortByMaterial),
                     'preview' => $preview,
                 ]);
@@ -243,11 +271,60 @@ class DistributionController extends BaseController
         ];
 
         try {
+            // Handle raw material delta: deduct increase or restore decrease
+            if ($piecesIncrease > 0) {
+                // Quantity went up — deduct the additional amount
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    intval($data->product_id),
+                    $piecesIncrease,
+                    false
+                );
+                log_message('info', 'Distribution update — deducted +' . $qtyIncrease . ' batches (' . $piecesIncrease . ' pieces) of product ' . $data->product_id);
+            } elseif ($piecesIncrease < 0) {
+                // Quantity went down — restore the difference
+                $restorePieces = abs($piecesIncrease);
+                $restoreResult = $this->rawMaterialStockModel->restoreForProduction(
+                    intval($data->product_id),
+                    $restorePieces
+                );
+                log_message('info', 'Distribution update — restored ' . abs($qtyIncrease) . ' batches (' . $restorePieces . ' pieces) of product ' . $data->product_id);
+            }
+
             $this->distributionModel->update($id, $updateData);
+
+            // Check for low stock and notify owners
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
             return $this->response->setJSON(['message' => 'Distribution record updated successfully']);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution record']);
         }
+    }
+
+    /**
+     * Convert distribution quantity to actual pieces.
+     * Distribution qty = batches/yields for bakery & dough products.
+     * For drinks/grocery, 1 qty = 1 piece (pieces_per_yield defaults to 1).
+     */
+    private function distributionQtyToPieces(int $productId, int $qty): int
+    {
+        $product = $this->productModel->find($productId);
+        $category = $product['category'] ?? '';
+
+        // Drinks & grocery: 1 distribution qty = 1 serving
+        if (in_array($category, ['drinks', 'grocery'])) {
+            return $qty;
+        }
+
+        // Bakery & dough: 1 distribution qty = 1 batch = pieces_per_yield pieces
+        $costData = model('ProductCostModel')->getCostByProductId($productId);
+        $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+
+        if ($piecesPerYield <= 0) {
+            $piecesPerYield = 1;
+        }
+
+        return $qty * $piecesPerYield;
     }
 
     public function checkDistributionToday()
