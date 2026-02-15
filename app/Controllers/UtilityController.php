@@ -43,8 +43,8 @@ class UtilityController extends BaseController
 
         // Get owner emails for confirmation
         $owners = $this->usersModel->where('employee_type', 'owner')
-                                   ->where('approved', 1)
-                                   ->findAll();
+            ->where('approved', 1)
+            ->findAll();
         $emails = array_column($owners, 'email');
 
         return $this->response->setJSON([
@@ -58,6 +58,76 @@ class UtilityController extends BaseController
                 'unit' => $item['unit'],
                 'status' => $item['stock_status'],
             ], $lowItems),
+        ]);
+    }
+
+    public function createUtilityExpense()
+    {
+        $data = $this->request->getJSON(true);
+
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
+        }
+
+        $type = $data['type'] ?? null;
+        $quantity = $data['quantity'] ?? null;
+        $unit = $data['unit'] ?? null;
+        $expense = $data['expense'] ?? null;
+        $billed_at = $data['billed_at'] ?? null;
+
+        $created_at = date('Y-m-d H:i:s');
+
+        $cost_per_unit = round($expense / $quantity, 5);
+
+        $insertData = [
+            'type' => $type,
+            'quantity' => $quantity,
+            'unit' => $unit,
+            'expense' => $expense,
+            'cost_per_unit' => $cost_per_unit,
+            'created_at' => $created_at,
+            'billed_at' => $billed_at,
+        ];
+
+
+        $this->utilityExpensesModel->insert($insertData);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Utility expense recorded successfully.',
+            'data' => $insertData,
+        ]);
+    }
+
+    public function deleteUtilityExpense()
+    {
+        $data = $this->request->getJSON(true);
+
+        if ($redirect = $this->redirectIfNotLoggedIn()) {
+            return $redirect;
+        }
+
+        $id = $data['id'] ?? null;
+
+        if ($this->utilityExpensesModel->find($id) === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'id expense not found.',
+            ]);
+        }
+
+        if (!$id) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Utility expense ID is required.',
+            ]);
+        }
+
+        $this->utilityExpensesModel->delete($id);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Utility expense deleted successfully.',
         ]);
     }
 }
