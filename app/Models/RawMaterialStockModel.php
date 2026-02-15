@@ -593,6 +593,12 @@ class RawMaterialStockModel extends Model
 
         try {
             foreach ($materialNeeds as $materialId => $need) {
+                // Skip free materials (cost_per_unit = 0) — e.g. water
+                $costRow = $this->db->query("SELECT cost_per_unit FROM raw_material_cost WHERE material_id = ?", [$materialId])->getRowArray();
+                if ($costRow && floatval($costRow['cost_per_unit']) == 0) {
+                    continue;
+                }
+
                 $stock      = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
                 $totalDeductForMaterial = round($need['total_deduct'], 4);

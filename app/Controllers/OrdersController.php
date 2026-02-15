@@ -81,38 +81,6 @@ class OrdersController extends BaseController
             ]);
         }
 
-        // ── Preview check: verify raw materials are sufficient for drinks & groceries ──
-        $insufficientItems = [];
-        foreach ($data['items'] as $item) {
-            $product = $this->productModel->find(intval($item['product_id']));
-            $category = $product['category'] ?? '';
-
-            if (in_array($category, ['drinks', 'grocery'])) {
-                $preview = $this->rawMaterialStockModel->deductForProduction(
-                    intval($item['product_id']),
-                    intval($item['quantity']),
-                    true // preview only — don't actually deduct
-                );
-
-                if (!empty($preview['has_insufficient'])) {
-                    $shortMaterials = [];
-                    foreach ($preview['deductions'] as $d) {
-                        if ($d['insufficient']) {
-                            $shortMaterials[] = $d['material_name'] . ' (need ' . round($d['total_needed'], 2) . ' ' . ($d['unit'] ?? '') . ', have ' . round($d['before'], 2) . ')';
-                        }
-                    }
-                    $insufficientItems[] = ($product['product_name'] ?? 'Product') . ': ' . implode(', ', array_unique($shortMaterials));
-                }
-            }
-        }
-
-        if (!empty($insufficientItems)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Insufficient raw materials: ' . implode(' | ', $insufficientItems)
-            ]);
-        }
-
         $this->db->transStart();
 
         try {
@@ -396,5 +364,51 @@ class OrdersController extends BaseController
             'success' => true,
             'data' => $stockItems
         ]);
+    }
+
+    /**
+     * Check if raw materials are sufficient for a drink/grocery product.
+     * Called via AJAX before adding to cart.
+     * GET /Order/CheckStock?product_id=X&quantity=Y
+     */
+    public function checkStock()
+    {
+        $productId = intval($this->request->getGet('product_id'));
+        $quantity   = intval($this->request->getGet('quantity'));
+
+        if ($productId <= 0 || $quantity <= 0) {
+            return $this->response->setJSON(['success' => true]); // nothing to check
+        }
+
+        $product = $this->productModel->find($productId);
+        if (!$product || !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
+            return $this->response->setJSON(['success' => true]); // only check drinks/grocery
+        }
+
+        // Also account for items already in the cart (sent as query param)
+        $existingQty = intval($this->request->getGet('existing_qty'));
+        $totalQty = $quantity + $existingQty;
+
+        $preview = $this->rawMaterialStockModel->deductForProduction($productId, $totalQty, true);
+
+        if (!empty($preview['has_insufficient'])) {
+            $shortMaterials = [];
+            foreach ($preview['deductions'] as $d) {
+                if ($d['insufficient']) {
+                    $shortMaterials[] = $d['material_name'] . ' (need ' . round($d['total_needed'], 2) . ' ' . ($d['unit'] ?? '') . ', have ' . round($d['before'], 2) . ')';
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'insufficient' => true,
+                'product_name' => $product['product_name'],
+                'insufficient_materials' => [
+                    ($product['product_name'] ?? 'Product') . ': ' . implode(', ', array_unique($shortMaterials))
+                ]
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => true]);
     }
 }

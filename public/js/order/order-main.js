@@ -229,10 +229,41 @@ function initProductModal() {
         }
     });
 
-    productOrderForm.addEventListener('submit', function(e) {
+    productOrderForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const productName = document.getElementById('productModalTitle').textContent;
         const quantity = parseInt(productQuantity.value);
+
+        // For drinks & grocery — check raw material stock BEFORE adding to cart
+        if (['drinks', 'grocery'].includes(currentProductCategory)) {
+            const btnAdd = productOrderForm.querySelector('button[type="submit"]');
+            const originalText = btnAdd.innerHTML;
+            btnAdd.disabled = true;
+            btnAdd.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Checking stock...';
+
+            try {
+                // Include quantity already in cart for this product
+                const cart = CartManager.getCart();
+                const existing = cart.find(item => item.product_id === currentProductId);
+                const existingQty = existing ? existing.quantity : 0;
+
+                const res = await fetch(BASE_URL + 'Order/CheckStock?product_id=' + currentProductId + '&quantity=' + quantity + '&existing_qty=' + existingQty);
+                const result = await res.json();
+
+                if (result.insufficient && result.insufficient_materials) {
+                    showInsufficientStockModal(result.insufficient_materials);
+                    btnAdd.disabled = false;
+                    btnAdd.innerHTML = originalText;
+                    return; // Don't add to cart
+                }
+            } catch (err) {
+                console.error('Stock check error:', err);
+                // If check fails, let them add anyway — checkout will catch it
+            } finally {
+                btnAdd.disabled = false;
+                btnAdd.innerHTML = originalText;
+            }
+        }
         
         CartManager.addItem(currentProductId, productName, currentProductPrice, quantity, currentProductCategory);
         
@@ -777,6 +808,30 @@ async function completeCheckout() {
 
 function showExitConfirmation() {
     document.getElementById('exitConfirmModal').classList.remove('hidden');
+}
+
+/**
+ * Show a modal listing which products have insufficient raw materials.
+ * Each entry is a string like "Spanish Latte: Fresh Milk (need 200 grams, have 50)"
+ */
+function showInsufficientStockModal(items) {
+    const listEl = document.getElementById('insufficientStockList');
+    let html = '';
+
+    items.forEach(function(entry) {
+        // entry format: "ProductName: Material1 (need X, have Y), Material2 ..."
+        const parts = entry.split(': ');
+        const productName = parts[0] || 'Unknown Product';
+        const details = parts.slice(1).join(': ') || 'Insufficient ingredients';
+
+        html += '<div class="p-3 bg-red-50 border border-red-200 rounded-lg">';
+        html += '<p class="font-semibold text-red-700 text-sm flex items-center"><i class="fas fa-times-circle mr-2"></i>' + productName + '</p>';
+        html += '<p class="text-xs text-gray-600 mt-1 ml-5">' + details + '</p>';
+        html += '</div>';
+    });
+
+    listEl.innerHTML = html;
+    document.getElementById('insufficientStockModal').classList.remove('hidden');
 }
 
 function closeCheckoutModal() {
