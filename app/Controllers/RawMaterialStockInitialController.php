@@ -144,8 +144,11 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        // Ensure qty_used defaults to 0
-        $data['qty_used'] = $data['qty_used'] ?? 0;
+        // Preserve existing qty_used — don't reset to 0 on edit
+        if (!isset($data['qty_used'])) {
+            $existing = $this->rawMaterialStockModel->find(intval($data['stock_id']));
+            $data['qty_used'] = $existing['qty_used'] ?? 0;
+        }
 
         try {
             $success = $this->rawMaterialStockModel->updateEntry(
