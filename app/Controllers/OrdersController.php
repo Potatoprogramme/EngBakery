@@ -26,7 +26,6 @@ class OrdersController extends BaseController
 
     public function getProducts()
     {
-        // Use ProductModel method instead of raw query in controller
         $products = $this->productModel->getProductsForOrdering();
 
         return $this->response->setJSON([
@@ -61,10 +60,21 @@ class OrdersController extends BaseController
             ]);
         }
 
+        // Check if order contains any items that need daily inventory (bakery/dough)
+        // Drinks and groceries don't need inventory — they deduct raw materials directly
+        $needsInventory = false;
+        foreach ($data['items'] as $item) {
+            $product = $this->productModel->find(intval($item['product_id']));
+            if ($product && !in_array($product['category'], ['drinks', 'grocery'])) {
+                $needsInventory = true;
+                break;
+            }
+        }
+
         // Check for today's inventory using model method
         $dailyStock = $this->dailyStockModel->getTodaysInventory();
 
-        if (!$dailyStock) {
+        if (!$dailyStock && $needsInventory) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'No inventory created for today. Please create inventory first.'
@@ -104,47 +114,55 @@ class OrdersController extends BaseController
 
             // Update stock and record sales for each item
             foreach ($data['items'] as $item) {
-                // Get product category to check if it's a drink (no stock tracking for drinks)
                 $product = $this->productModel->find(intval($item['product_id']));
-                $isDrink = $product && $product['category'] === 'drinks';
-                
-                $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], intval($item['product_id']));
+                $category = $product['category'] ?? '';
+                $productId = intval($item['product_id']);
+                $quantity = intval($item['quantity']);
 
-                if ($stockItem) {
-                    // Only deduct stock for non-drink items
-                    if (!$isDrink) {
-                        $this->dailyStockItemsModel->deductStock($stockItem['item_id'], intval($item['quantity']));
+                // Drinks & groceries: deduct raw materials directly via recipe
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $quantity);
+                    if (!$deductResult['success']) {
+                        log_message('warning', "Raw material deduction failed for product #{$productId}: " . ($deductResult['message'] ?? ''));
                     }
 
-                    // Record the sale in transactions table (for all items including drinks)
+                    // Still record in daily inventory for sales tracking if inventory exists
+                    if ($dailyStock) {
+                        $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $productId);
+                        if (!$stockItem) {
+                            $newItemId = $this->dailyStockItemsModel->addProductToInventory(
+                                $dailyStock['daily_stock_id'], $productId, 0
+                            );
+                            if ($newItemId) {
+                                $this->transactionsModel->recordSale($newItemId, $quantity, floatval($item['total']), $orderId);
+                            }
+                        } else {
+                            $this->transactionsModel->recordSale($stockItem['item_id'], $quantity, floatval($item['total']), $orderId);
+                        }
+                    }
+                    continue;
+                }
+
+                // Bakery / dough items: deduct from daily inventory as before
+                if (!$dailyStock) {
+                    continue;
+                }
+
+                $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $productId);
+
+                if ($stockItem) {
+                    $this->dailyStockItemsModel->deductStock($stockItem['item_id'], $quantity);
                     $this->transactionsModel->recordSale(
-                        $stockItem['item_id'],
-                        intval($item['quantity']),
-                        floatval($item['total']),
-                        $orderId
+                        $stockItem['item_id'], $quantity, floatval($item['total']), $orderId
                     );
                 } else {
-                    // Product not in inventory - auto-add it
-                    // For drinks: add with 0 beginning stock (no tracking)
-                    // For others: add with 0 beginning stock
                     $newItemId = $this->dailyStockItemsModel->addProductToInventory(
-                        $dailyStock['daily_stock_id'],
-                        intval($item['product_id']),
-                        0 // beginning_stock = 0
+                        $dailyStock['daily_stock_id'], $productId, 0
                     );
-                    
                     if ($newItemId) {
-                        // Only deduct for non-drink items
-                        if (!$isDrink) {
-                            $this->dailyStockItemsModel->deductStock($newItemId, intval($item['quantity']));
-                        }
-                        
-                        // Record sale for all items
+                        $this->dailyStockItemsModel->deductStock($newItemId, $quantity);
                         $this->transactionsModel->recordSale(
-                            $newItemId,
-                            intval($item['quantity']),
-                            floatval($item['total']),
-                            $orderId
+                            $newItemId, $quantity, floatval($item['total']), $orderId
                         );
                     }
                 }
@@ -164,6 +182,9 @@ class OrdersController extends BaseController
             if ($this->db->transStatus() === false) {
                 throw new \Exception('Transaction failed.');
             }
+
+            // Check for low stock and notify owners via email
+            \App\Libraries\LowStockNotifier::checkAndNotify();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -260,9 +281,21 @@ class OrdersController extends BaseController
             // Get today's inventory (optional - only restore stock if same day)
             $dailyStock = $this->dailyStockModel->getTodaysInventory();
 
-            // Restore stock if we have today's inventory
-            if ($dailyStock) {
-                foreach ($orderItems as $item) {
+            // Restore stock for each item
+            foreach ($orderItems as $item) {
+                $product = $this->productModel->find(intval($item['product_id']));
+                $category = $product['category'] ?? '';
+
+                // Drinks & groceries: restore raw materials via recipe
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $this->rawMaterialStockModel->restoreForProduction(
+                        intval($item['product_id']),
+                        intval($item['amount'])
+                    );
+                }
+
+                // Restore daily inventory stock if it exists (for all categories)
+                if ($dailyStock) {
                     $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
                     if ($stockItem) {
                         $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amount']));
@@ -331,5 +364,51 @@ class OrdersController extends BaseController
             'success' => true,
             'data' => $stockItems
         ]);
+    }
+
+    /**
+     * Check if raw materials are sufficient for a drink/grocery product.
+     * Called via AJAX before adding to cart.
+     * GET /Order/CheckStock?product_id=X&quantity=Y
+     */
+    public function checkStock()
+    {
+        $productId = intval($this->request->getGet('product_id'));
+        $quantity   = intval($this->request->getGet('quantity'));
+
+        if ($productId <= 0 || $quantity <= 0) {
+            return $this->response->setJSON(['success' => true]); // nothing to check
+        }
+
+        $product = $this->productModel->find($productId);
+        if (!$product || !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
+            return $this->response->setJSON(['success' => true]); // only check drinks/grocery
+        }
+
+        // Also account for items already in the cart (sent as query param)
+        $existingQty = intval($this->request->getGet('existing_qty'));
+        $totalQty = $quantity + $existingQty;
+
+        $preview = $this->rawMaterialStockModel->deductForProduction($productId, $totalQty, true);
+
+        if (!empty($preview['has_insufficient'])) {
+            $shortMaterials = [];
+            foreach ($preview['deductions'] as $d) {
+                if ($d['insufficient']) {
+                    $shortMaterials[] = $d['material_name'] . ' (need ' . round($d['total_needed'], 2) . ' ' . ($d['unit'] ?? '') . ', have ' . round($d['before'], 2) . ')';
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'insufficient' => true,
+                'product_name' => $product['product_name'],
+                'insufficient_materials' => [
+                    ($product['product_name'] ?? 'Product') . ': ' . implode(', ', array_unique($shortMaterials))
+                ]
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => true]);
     }
 }

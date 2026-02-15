@@ -11,15 +11,11 @@
                             <i class="fas fa-history mr-2"></i> History
                         </a>
                         <button id="btnAddProductToInventory" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
+                            class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
-                        <button id="btnAddTodaysInventoryFromDistribution" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Today's Inventory (From Distribution Table)
-                        </button>
                         <button id="btnAddTodaysInventory" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Add Today's Inventory
                         </button>
                         <button id="btnDeleteTodaysInventory" type="button"
@@ -56,11 +52,11 @@
             <!-- Floating buttons for mobile -->
             <div class="fixed bottom-6 left-0 right-0 flex justify-center gap-2 z-30 sm:hidden px-6">
                 <button id="btnAddTodaysInventoryMobile" type="button"
-                    class="flex-1 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                    class="hidden flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     Add Inventory
                 </button>
                 <button id="btnDeleteTodaysInventoryMobile" type="button"
-                    class="hidden flex-1 inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                    class="hidden flex-1 items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
                     Delete
                 </button>
             </div>
@@ -92,33 +88,33 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table id="bakeryTable" class="min-w-full text-sm text-left">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bakeryTableBody">
-                                <!-- Data will be loaded via AJAX -->
-                            </tbody>
-                            <tfoot class="bg-gray-50 border-t border-gray-200">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                        Total:</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table id="bakeryTable" class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bakeryTableBody">
+                                    <!-- Data will be loaded via AJAX -->
+                                </tbody>
+                                <tfoot class="bg-gray-50 border-t border-gray-200">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                            Total:</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
 
@@ -133,30 +129,30 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table id="drinksTable" class="min-w-full text-sm text-left">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="drinksTableBody">
-                                <!-- Data will be loaded via AJAX -->
-                            </tbody>
-                            <tfoot class="bg-gray-50 border-t border-gray-200">
-                                <tr>
-                                    <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                        Total:</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table id="drinksTable" class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="drinksTableBody">
+                                    <!-- Data will be loaded via AJAX -->
+                                </tbody>
+                                <tfoot class="bg-gray-50 border-t border-gray-200">
+                                    <tr>
+                                        <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                            Total:</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
 
@@ -171,33 +167,33 @@
                 <!-- Desktop Table View -->
                 <div class="hidden sm:block">
                     <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table id="groceryTable" class="min-w-full text-sm text-left">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="groceryTableBody">
-                                <!-- Data will be loaded via AJAX -->
-                            </tbody>
-                            <tfoot class="bg-gray-50 border-t border-gray-200">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                        Total:</td>
-                                    <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table id="groceryTable" class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groceryTableBody">
+                                    <!-- Data will be loaded via AJAX -->
+                                </tbody>
+                                <tfoot class="bg-gray-50 border-t border-gray-200">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                            Total:</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
 
@@ -372,7 +368,7 @@
         let inventoryExistsToday = false;
 
         // Delete Modal Script
-        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function () {
+        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function() {
             if (!inventoryExistsToday) {
                 showToast('warning', 'No inventory exists for today to delete.', 2000);
                 return;
@@ -381,12 +377,12 @@
         });
 
         // Close Delete Confirmation Modal
-        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function() {
             $('#deleteConfirmModal').addClass('hidden');
         });
 
         // Confirm Delete
-        $('#btnConfirmDelete').on('click', function () {
+        $('#btnConfirmDelete').on('click', function() {
             $('#deleteConfirmModal').addClass('hidden');
             deleteTodaysInventory(); // This calls your function
         });
@@ -426,7 +422,10 @@
     </style>
 
     <script>
-        $(document).ready(function () {
+        // Track which source to use for inventory: 'all' or 'distribution'
+        let inventorySource = 'all';
+
+        $(document).ready(function() {
             const baseUrl = '<?= base_url() ?>';
 
             // Display today's date
@@ -437,47 +436,45 @@
                 month: 'long',
                 day: 'numeric'
             });
+
+            // Check first for today's inventory
+            $(document).ready(function() {
+                checkIfDistributionExists();
+                checkIfInventoryExists();
+            });
+
             $('#todayDate').text(dateString);
 
             // Open Add Inventory Modal (Desktop & Mobile)
-            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
+            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
+                // Re-check distribution before opening modal to ensure we have the latest state
+                checkIfDistributionExists();
                 $('#timeInputModal').removeClass('hidden');
-                // Set default values: 08:00 AM for start, 17:00 PM for end
-                $('#time_start').val('08:00');  // 8:00 AM (morning)
-                $('#time_end').val('17:00');    // 5:00 PM (afternoon)
+                $('#time_start').val('08:00'); // 8:00 AM (morning)
+                $('#time_end').val('17:00'); // 5:00 PM (afternoon)
             });
 
             // Close Inventory Modal
-            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
+            $('#btnCloseModal, #btnCancelAdd').on('click', function() {
                 closeModal();
             });
 
             // Close modal on outside click
-            $('#addMaterialModal').on('click', function (e) {
+            $('#addMaterialModal').on('click', function(e) {
                 if (e.target === this) {
                     closeModal();
                 }
             });
 
-            // Add Today's Inventory Button - Open Modal
-            $('#btnAddTodaysInventory').on('click', function () {
-                $('#timeInputModal').removeClass('hidden');
-                // Set default values: 08:00 AM for start, 17:00 PM for end
-                $('#time_start').val('08:00');  // 8:00 AM (morning)
-                $('#time_end').val('17:00');    // 5:00 PM (afternoon)
-            });
-
             // Close Time Input Modal
-            $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
+            $('#timeInputModalClose, #timeInputModalCancel').on('click', function() {
                 $('#timeInputModal').addClass('hidden');
                 $('#timeInputForm')[0].reset();
                 inventorySource = 'all'; // Reset source on cancel
             });
 
             // Submit Time Input Form
-            let inventorySource = 'all'; // Track which button triggered the modal: 'all' or 'distribution'
-
-            $('#timeInputForm').on('submit', function (e) {
+            $('#timeInputForm').on('submit', function(e) {
                 e.preventDefault();
                 const timeStart = $('#time_start').val();
                 const timeEnd = $('#time_end').val();
@@ -500,21 +497,13 @@
                 $('#timeInputForm')[0].reset();
             });
 
-            
-            $('#btnAddTodaysInventoryFromDistribution').on('click', function () {
-                inventorySource = 'distribution';
-                $('#timeInputModal').removeClass('hidden');
-                $('#time_start').val('08:00');
-                $('#time_end').val('17:00');
-            });
-
             function closeModal() {
                 $('#addMaterialModal').addClass('hidden');
                 $('#addMaterialForm')[0].reset();
             }
 
             // Submit Add Inventory Form via AJAX
-            $('#addMaterialForm').on('submit', function (e) {
+            $('#addMaterialForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const formData = {
@@ -527,7 +516,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success) {
                             alert('Inventory added successfully!');
                             closeModal();
@@ -536,21 +525,21 @@
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         alert('Error adding inventory: ' + error);
                     }
                 });
             });
 
             // Delete Inventory Item
-            $(document).on('click', '.btn-delete', function () {
+            $(document).on('click', '.btn-delete', function() {
                 const id = $(this).data('id');
                 Confirm.delete('Are you sure you want to delete this inventory item?', () => {
                     $.ajax({
                         url: baseUrl + 'Inventory/Delete/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response.success) {
                                 showToast('success', 'Inventory item deleted successfully!', 2000);
                                 fetchAllStockitems();
@@ -558,7 +547,7 @@
                                 showToast('error', response.message, 3000);
                             }
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
                             showToast('danger', xhr.responseJSON.message || 'An error occured while deleting inventory', 3000);
                         }
                     });
@@ -566,11 +555,11 @@
             });
 
             // Apply Filter
-            $('#apply-filters').on('click', function () {
+            $('#apply-filters').on('click', function() {
                 const dateFrom = $('#filter-date-from').val();
                 const dateTo = $('#filter-date-to').val();
 
-                $('table tbody tr').each(function () {
+                $('table tbody tr').each(function() {
                     const rowDate = $(this).data('date');
                     let show = true;
 
@@ -590,17 +579,35 @@
             });
 
             // Reset Filter
-            $('#reset-filters').on('click', function () {
+            $('#reset-filters').on('click', function() {
                 $('#filter-date-from').val('');
                 $('#filter-date-to').val('');
                 $('table tbody tr').show();
             });
         });
 
-        // Check first for today's inventory
-        $(document).ready(function () {
-            checkIfInventoryExists();
-        });
+        function checkIfDistributionExists() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Distribution/CheckDistributionToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success.data === null) {
+                        inventorySource = 'all';
+                        console.log('No distribution found, will use all products');
+                    } else {
+                        inventorySource = 'distribution';
+                        console.log('Distribution found, will use distribution data');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // On error, default to 'all' to be safe
+                    inventorySource = 'all';
+                    console.log('Error checking distribution, defaulting to all products: ' + error);
+                }
+            });
+        }
 
         function checkIfInventoryExists() {
             const baseUrl = '<?= base_url() ?>';
@@ -608,31 +615,43 @@
                 url: baseUrl + 'Inventory/CheckInventoryToday',
                 type: 'GET',
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
-                        // Show delete buttons when inventory exists
+                        // Show delete buttons and add product button when inventory exists
                         $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnDeleteTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        // Hide add inventory buttons
+                        $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
-                        // Hide delete buttons when no inventory
+                        // Show add inventory buttons when no inventory
+                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        // Hide delete and add product buttons
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
-                    // Hide delete buttons on error
+                    // Show add inventory buttons on error (safe default)
+                    $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                    $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                    // Hide delete and add product buttons
                     $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                    $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
@@ -666,7 +685,7 @@
                 $('#timeRange').text(`${timeStart} - ${timeEnd}`);
             }
         }
-        
+
         function addTodaysInventoryFromDistribution(time_start, time_end) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
@@ -674,8 +693,11 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({ time_start: time_start, time_end: time_end }),
-                success: function (response) {
+                data: JSON.stringify({
+                    time_start: time_start,
+                    time_end: time_end
+                }),
+                success: function(response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
@@ -700,7 +722,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     let errorMessage = 'An error occurred while adding inventory from distribution';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
@@ -725,8 +747,11 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({ time_start: time_start, time_end: time_end }),
-                success: function (response) {
+                data: JSON.stringify({
+                    time_start: time_start,
+                    time_end: time_end
+                }),
+                success: function(response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
@@ -736,7 +761,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory', 2000);
                     console.log(xhr.responseJSON);
                 }
@@ -749,7 +774,7 @@
                 url: `${baseURL}Inventory/FetchAllStockItems`,
                 type: 'GET',
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     console.log(response);
                     if (response.success) {
                         // showToast('success', response.message, 2000);
@@ -759,7 +784,7 @@
                         console.log("Error: " + response.error);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error), 2000);
                     console.log(xhr.responseJSON);
                 }
@@ -800,7 +825,7 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function (item) {
+                items.forEach(function(item) {
                     const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
@@ -836,7 +861,7 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function (item) {
+                items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const qtySold = parseInt(item.quantity_sold) || 0;
 
@@ -864,7 +889,7 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function (item) {
+                items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
@@ -897,7 +922,7 @@
         function updateGrandTotals(items) {
             let grandQty = 0;
 
-            items.forEach(function (item) {
+            items.forEach(function(item) {
                 grandQty += parseInt(item.quantity_sold) || 0;
             });
 
@@ -905,7 +930,7 @@
         }
 
         // Edit Inventory Item - Open Modal
-        $(document).on('click', '.btn-edit', function () {
+        $(document).on('click', '.btn-edit', function() {
             const itemId = $(this).data('id');
 
             // Always get data from stored items array (more reliable)
@@ -926,13 +951,13 @@
         });
 
         // Close Edit Modal
-        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
+        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function() {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
         });
 
 
-        $('#editInventoryForm').on('submit', function (e) {
+        $('#editInventoryForm').on('submit', function(e) {
             e.preventDefault();
 
             const itemId = $('#editItemId').val();
@@ -955,7 +980,7 @@
                     beginning_stock: beginningStock,
                     pull_out_quantity: pullOutQuantity
                 }),
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         $('#editInventoryModal').addClass('hidden');
@@ -965,7 +990,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
@@ -986,8 +1011,10 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({ date: today }),
-                success: function (response) {
+                data: JSON.stringify({
+                    date: today
+                }),
+                success: function(response) {
                     if (response.success) {
                         inventoryExistsToday = false;
                         showToast('success', response.message, 2000);
@@ -995,16 +1022,22 @@
                         $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
-                        // Hide delete buttons since no inventory exists
+                        // Show add inventory buttons since no inventory exists
+                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        // Hide delete and add product buttons
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        // Re-check distribution status for next inventory creation
+                        checkIfDistributionExists();
                         // Reload the table
                         fetchAllStockitems();
                     } else {
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
                 }
@@ -1012,13 +1045,13 @@
         }
 
         // Add Product to Inventory functionality
-        $('#btnAddProductToInventory').on('click', function () {
+        $('#btnAddProductToInventory').on('click', function() {
             loadAvailableProducts();
             $('#addProductModal').removeClass('hidden');
         });
 
         // Close Add Product Modal
-        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
+        $('#addProductModalClose, #addProductModalCancel').on('click', function() {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
         });
@@ -1030,12 +1063,12 @@
                 url: baseUrl + 'Inventory/GetAvailableProducts',
                 type: 'GET',
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     const select = $('#selectProduct');
                     select.html('<option value="">-- Select a product --</option>');
 
                     if (response.success && response.data.length > 0) {
-                        response.data.forEach(function (product) {
+                        response.data.forEach(function(product) {
                             let categoryLabel = 'Unknown';
                             if (product.category === 'bakery') {
                                 categoryLabel = 'Bakery';
@@ -1057,14 +1090,14 @@
                         $('#btnSubmitAddProduct').prop('disabled', true);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     showToast('danger', 'Error loading products: ' + error, 2000);
                 }
             });
         }
 
         // Mobile Search functionality
-        $('#mobileSearchInput').on('input', function () {
+        $('#mobileSearchInput').on('input', function() {
             const searchTerm = $(this).val().toLowerCase().trim();
 
             if (searchTerm === '') {
@@ -1089,7 +1122,7 @@
             // Bakery cards
             let bakeryCards = '';
             if (bakeryItems.length > 0) {
-                bakeryItems.forEach(function (item) {
+                bakeryItems.forEach(function(item) {
                     bakeryCards += renderMobileCard(item, 'bakery');
                 });
             } else {
@@ -1100,7 +1133,7 @@
             // Drinks cards
             let drinksCards = '';
             if (drinksItems.length > 0) {
-                drinksItems.forEach(function (item) {
+                drinksItems.forEach(function(item) {
                     drinksCards += renderMobileCard(item, 'drinks');
                 });
             } else {
@@ -1111,7 +1144,7 @@
             // Grocery cards
             let groceryCards = '';
             if (groceryItems.length > 0) {
-                groceryItems.forEach(function (item) {
+                groceryItems.forEach(function(item) {
                     groceryCards += renderMobileCard(item, 'grocery');
                 });
             } else {
@@ -1121,9 +1154,9 @@
         }
 
         function renderMobileCard(item, category) {
-            const price = category === 'bakery' && item.selling_price_per_piece > 0
-                ? item.selling_price_per_piece
-                : item.selling_price;
+            const price = category === 'bakery' && item.selling_price_per_piece > 0 ?
+                item.selling_price_per_piece :
+                item.selling_price;
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
             const isDrink = category === 'drinks';
             const ending_stock = isDrink ? null : (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
@@ -1228,7 +1261,7 @@
         }
 
         // Mobile pagination click handler
-        $(document).on('click', '#mobilePagination button:not([disabled])', function () {
+        $(document).on('click', '#mobilePagination button:not([disabled])', function() {
             const page = $(this).data('page');
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
@@ -1249,7 +1282,7 @@
         });
 
         // Submit Add Product Form
-        $('#addProductForm').on('submit', function (e) {
+        $('#addProductForm').on('submit', function(e) {
             e.preventDefault();
 
             const productId = $('#selectProduct').val();
@@ -1270,7 +1303,7 @@
                     product_id: productId,
                     beginning_stock: beginningStock
                 }),
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         $('#addProductModal').addClass('hidden');
@@ -1295,7 +1328,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
@@ -1309,7 +1342,7 @@
         // Tab Switching Function
         function switchTab(tabName) {
             // Remove active state from all tab buttons
-            document.querySelectorAll('.tab-btn').forEach(function (btn) {
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
                 btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
                 btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
             });
@@ -1322,7 +1355,7 @@
             }
 
             // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(function (content) {
+            document.querySelectorAll('.tab-content').forEach(function(content) {
                 content.classList.add('hidden');
             });
 
@@ -1426,26 +1459,26 @@
         }
     </script>
 
-<!-- Deduction Warning Modal -->
-<div id="deductionWarningModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800">
-                <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
-            </h3>
-            <button id="deductionWarningModalClose" onclick="$('#deductionWarningModal').addClass('hidden')"
-                class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="px-6 py-4 overflow-y-auto" id="deductionWarningContent">
-            <!-- Content injected by JS -->
-        </div>
-        <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
-            <button onclick="$('#deductionWarningModal').addClass('hidden')"
-                class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
-                Got it
-            </button>
+    <!-- Deduction Warning Modal -->
+    <div id="deductionWarningModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
+                </h3>
+                <button id="deductionWarningModalClose" onclick="$('#deductionWarningModal').addClass('hidden')"
+                    class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4 overflow-y-auto" id="deductionWarningContent">
+                <!-- Content injected by JS -->
+            </div>
+            <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
+                <button onclick="$('#deductionWarningModal').addClass('hidden')"
+                    class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
+                    Got it
+                </button>
+            </div>
         </div>
     </div>
-</div>

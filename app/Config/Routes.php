@@ -70,7 +70,7 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
     $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
-    
+
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {
@@ -101,6 +101,7 @@ $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('GetTodaysSales', 'OrdersController::getTodaysSales');
     $routes->get('GetTodaysStockSummary', 'OrdersController::getTodaysStockSummary');
     $routes->post('VoidOrder/(:num)', 'OrdersController::voidOrder/$1');
+    $routes->get('CheckStock', 'OrdersController::checkStock');
 });
 
 $routes->group('MaterialCategory', function (RouteCollection $routes) {
@@ -160,6 +161,8 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
 
 $routes->group('Utility', function (RouteCollection $routes) {
     $routes->get('/', 'UtilityController::index');
+    $routes->get('TestLowStockEmail', 'UtilityController::testLowStockEmail');
+    $routes->post('CreateUtilityExpense', 'UtilityController::createUtilityExpense');
 });
 
 $routes->group('Distribution', function (RouteCollection $routes) {

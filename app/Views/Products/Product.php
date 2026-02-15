@@ -296,18 +296,31 @@
 
                         <div id="additionalRecipeInputs">
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add (per
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Recipe to Add</label>
+                                <select id="combinedRecipeSelect"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                    <option value="">Select a recipe...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity in Grams (per
                                     piece)</label>
                                 <div class="flex gap-2">
-                                    <select id="combinedRecipeSelect"
-                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                                        <option value="">Select a recipe...</option>
-                                    </select>
+                                    <div class="relative flex-1">
+                                        <input type="number" id="combinedRecipeGrams" step="0.01" min="0"
+                                            placeholder="Enter grams per piece"
+                                            class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                        <span
+                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">g</span>
+                                    </div>
                                     <button type="button" id="btnAddCombinedRecipe"
                                         class="px-3 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
+                                <p id="combinedRecipeGramsHint" class="text-xs text-gray-400 mt-1 hidden">
+                                    Source recipe: <span id="combinedRecipeSourceGrams">0</span>g/pc available
+                                </p>
                             </div>
                         </div>
                         <!-- Combined Recipes List -->
@@ -1173,6 +1186,14 @@
                 }
             });
 
+            // Allow Enter key in combined recipe grams field to add recipe
+            $('#combinedRecipeGrams').on('keypress', function (e) {
+                if (e.which === 13) { // Enter key
+                    e.preventDefault();
+                    $('#btnAddCombinedRecipe').click();
+                }
+            });
+
             // Close Product Modal
             $('#btnCloseModal, #btnCancelAdd').on('click', function () {
                 closeModal();
@@ -1209,6 +1230,9 @@
                 $('#combinedRecipeSection').addClass('hidden');
                 $('#combinedCostCard').addClass('hidden');
                 $('#directCostCard').removeClass('col-span-1').addClass('col-span-2');
+                $('#combinedRecipeGrams').val('');
+                $('#combinedRecipeGramsHint').addClass('hidden');
+                $('#combinedRecipeSelect').val('');
 
                 updateIngredientsListDisplay();
                 updateCombinedRecipesListDisplay();
@@ -2051,6 +2075,16 @@
                 const gramsPerTray = parseFloat(selectedOption.data('grams-per-tray')) || 0;
                 const recipeName = selectedOption.data('name');
                 const recipeId = selectedOption.val();
+
+                // Auto-populate grams input with source recipe's grams per piece
+                if (recipeId && gramsPerPiece > 0) {
+                    $('#combinedRecipeGrams').val(gramsPerPiece);
+                    $('#combinedRecipeSourceGrams').text(gramsPerPiece.toFixed(2));
+                    $('#combinedRecipeGramsHint').removeClass('hidden');
+                } else {
+                    $('#combinedRecipeGrams').val('');
+                    $('#combinedRecipeGramsHint').addClass('hidden');
+                }
             });
 
             // Add Combined Recipe
@@ -2062,8 +2096,8 @@
                 const recipeTotalCost = parseFloat(selectedOption.data('cost')) || 0;
                 const recipeYield = parseFloat(selectedOption.data('yield')) || 0;
                 const recipePiecesPerYield = parseInt(selectedOption.data('pieces-per-yield')) || 0;
-                // Get grams per piece directly from the dropdown data attribute (from database)
-                const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
+                // Get grams per piece from the user input field
+                const gramsPerPiece = parseFloat($('#combinedRecipeGrams').val()) || 0;
 
                 // Get the new product's pieces and trays per yield
                 const piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
@@ -2078,7 +2112,7 @@
                 }
 
                 if (gramsPerPiece <= 0) {
-                    Toast.warning('The selected recipe "' + recipeName + '" has no grams per piece data. Please set it up first.');
+                    Toast.warning('Please enter a valid quantity in grams per piece.');
                     return;
                 }
 
@@ -2118,8 +2152,10 @@
                 updateCombinedRecipesListDisplay();
                 updateCostingDisplay();
 
-                // Reset select
+                // Reset select and grams input
                 $('#combinedRecipeSelect').val('');
+                $('#combinedRecipeGrams').val('');
+                $('#combinedRecipeGramsHint').addClass('hidden');
             });
 
             // Remove Combined Recipe
@@ -2199,24 +2235,29 @@
                                 });
                             }
 
-                            // Apply disabled filter if viewing disabled products only
+                            // Filter based on disabled status
+                            // is_disabled: 1 = disabled, 0 or undefined = enabled
                             if (showDisabledOnly) {
+                                // Show only disabled products
                                 displayProducts = displayProducts.filter(function (product) {
-                                    return product.is_active === 0 || product.is_active === false;
+                                    return product.is_disabled == 1 || product.is_disabled === '1';
+                                });
+                            } else {
+                                // Show only enabled products (is_disabled is 0, null, or undefined)
+                                displayProducts = displayProducts.filter(function (product) {
+                                    return !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                                 });
                             }
 
                             filteredProducts = [...displayProducts];
 
                             // Count disabled products and update badge
-                            const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                            const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
                             $('#disabledProductsCount').text(disabledCount);
 
                             displayProducts.forEach(function (product) {
-                                const isActive = product.is_active !== undefined ? product.is_active : 1; // Default to active if not set
-
                                 // Desktop table rows
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '" data-is-active="' + isActive + '">';
+                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
@@ -2225,8 +2266,8 @@
                                 rows += '<td class="px-6 py-4">';
                                 rows += '<div class="flex items-center gap-2">';
                                 rows += '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                // Toggle Enable/Disable button
-                                var isEnabled = product.is_enabled !== false && product.is_enabled !== 0; // Default to enabled
+                                // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
+                                var isEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                                 if (isEnabled) {
                                     rows += '<button class="text-green-600 h-10 w-12 flex items-center justify-center bg-green-50 rounded border border-green-300 hover:bg-green-100 btn-toggle" data-id="' + product.product_id + '" data-enabled="true" title="Click to Disable"><i class="fas fa-toggle-on text-lg"></i></button>';
                                 } else {
@@ -2249,7 +2290,7 @@
                             filteredProducts = [];
                             $('#mobileCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No products found</p></div>');
                             $('#mobilePagination').html('');
-                            $('#mobileNoResults').removeClass('hidden');
+                            $('#mobileNoResults').addClass('hidden');
                         }
 
                         $('#materialsTableBody').html(rows);
@@ -2338,8 +2379,8 @@
                     cards += '          <i class="fas fa-edit"></i> Edit';
                     cards += '        </button>';
                     cards += '        <div class="border-t border-gray-100 my-1"></div>';
-                    // Toggle Enable/Disable button
-                    var cardIsEnabled = product.is_enabled !== false && product.is_enabled !== 0;
+                    // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
+                    var cardIsEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                     if (cardIsEnabled) {
                         cards += '        <button class="btn-toggle w-full px-2 py-3 text-left text-base font-medium text-green-600 hover:bg-green-50 flex items-center gap-3" data-id="' + product.product_id + '" data-enabled="true">';
                         cards += '          <i class="fas fa-toggle-on text-xl"></i> Enabled';
@@ -2696,8 +2737,9 @@
                                 Toast.info('Product disabled successfully!');
                             }
 
-                            // Optionally reload the products list to reflect changes
-                            // loadMaterials();
+                            // Reload the products list to move product to correct list
+                            const categoryFilter = $('#filter-category').val();
+                            loadMaterials(categoryFilter, showingDisabledOnly);
                         } else {
                             Toast.error('Error: ' + (response.message || 'Failed to update product status'));
                         }
@@ -2761,7 +2803,7 @@
                     $(this).removeClass('bg-blue-600 hover:bg-blue-700')
                         .addClass('bg-gray-500 hover:bg-gray-600');
 
-                    const disabledCount = allProducts.filter(p => p.is_active === 0 || p.is_active === false).length;
+                    const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
                     $(this).html(`
                         <div id="disabledProductsCount"
                             class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">

@@ -94,9 +94,7 @@ $(document).ready(function() {
         materialNameExists = false;
         $('#btnSaveMaterial').text('Save');
         
-        // Re-enable quantity field (may have been read-only from edit mode)
-        $('#initial_quantity').prop('readonly', false).removeClass('bg-gray-100 cursor-not-allowed');
-        $('label[for="initial_quantity"]').html('Quantity <span class="text-red-500">*</span>');
+        // Reset hint
         $('#qty_readonly_hint').addClass('hidden');
         
         // Reset calculated displays
@@ -218,8 +216,8 @@ $(document).ready(function() {
                 } else {
                     allMaterials = [];
                     filteredMaterials = [];
-                    $('#materialsTableBody').html('');
-                    $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No raw materials found</p></div>');
+                    $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No material data available</p></td></tr>');
+                    $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No material data available</p></div>');
                     $('#mobilePagination').html('');
                 }
             },
@@ -256,9 +254,7 @@ $(document).ready(function() {
             rows += '<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">' + mat.material_name + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + (mat.category_name || '-') + '</td>';
             rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + '</td>';
-            // initial_qty = fixed baseline (never changes on deduct)
-            // qty_used    = cumulative used (increases on deduct)
-            // remaining   = initial_qty - qty_used
+
             const initialQty = parseFloat(mat.initial_qty) || 0;
             const used = parseFloat(mat.qty_used) || 0;
             const remaining = Math.max(0, initialQty - used);
@@ -281,23 +277,13 @@ $(document).ready(function() {
                 barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100';
             }
 
-            // Initial Stock column
-            rows += '<td class="px-6 py-4 text-gray-700 tabular-nums text-sm">';
-            rows += hasStock ? initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) : '<span class="text-xs text-gray-400 italic">—</span>';
-            rows += '</td>';
-
-            // Used column
-            rows += '<td class="px-6 py-4 tabular-nums text-sm">';
-            rows += hasStock ? '<span class="text-orange-600">' + used.toLocaleString('en-US', {maximumFractionDigits: 2}) + '</span>' : '<span class="text-xs text-gray-400 italic">—</span>';
-            rows += '</td>';
-
-            // Remaining column (with bar)
+            // Stock column: remaining / initial + health bar
             rows += '<td class="px-6 py-4">';
             if (!hasStock) {
                 rows += '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Stock not set</span>';
             } else {
                 rows += '<div class="flex items-center gap-2.5">';
-                rows += '<span class="' + remainText + ' tabular-nums text-sm min-w-[2.5rem]">' + remaining.toLocaleString('en-US', {maximumFractionDigits: 2}) + '</span>';
+                rows += '<span class="' + remainText + ' tabular-nums text-sm min-w-[4rem]">' + remaining.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' / ' + initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + '</span>';
                 rows += '<div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden">';
                 rows += '<div class="h-full rounded-full ' + barColor + ' transition-all" style="width:' + barWidth + '%"></div>';
                 rows += '</div>';
@@ -311,7 +297,6 @@ $(document).ready(function() {
             rows += '<div class="text-gray-900 font-semibold">₱ ' + costPerUnit.toFixed(3) + '</div>';
             rows += '</td>';
             rows += '<td class="px-6 py-4 ">';
-            rows += '<button class="text-emerald-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-emerald-800 me-2 btn-restock" data-id="' + mat.material_id + '" data-name="' + mat.material_name + '" data-unit="' + mat.unit + '" data-initial="' + initialQty + '" data-remaining="' + remaining + '" title="Restock"><i class="fas fa-plus-circle"></i></button>';
             rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
             rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
             rows += '</td>';
@@ -363,7 +348,7 @@ $(document).ready(function() {
         const paginatedMaterials = filteredMaterials.slice(startIndex, endIndex);
 
         if (paginatedMaterials.length === 0) {
-            $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-search text-4xl mb-3"></i><p>No materials found</p></div>');
+            $('#materialsCardsContainer').html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No material data available</p></div>');
             $('#mobilePagination').html('');
             return;
         }
@@ -395,10 +380,6 @@ $(document).ready(function() {
             else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainTC = 'text-amber-600'; }
             else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; remainTC = 'text-yellow-700'; }
 
-            const initDisplay = hasStock ? initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit : '<span class="text-xs text-gray-400 italic">—</span>';
-            const usedDisplay = hasStock ? usedQ.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit : '<span class="text-xs text-gray-400 italic">—</span>';
-            const remainDisplay = hasStock ? remainQ.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit : '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Stock not set</span>';
-
             cards += `
                 <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
                     <div class="p-4">
@@ -409,33 +390,20 @@ $(document).ready(function() {
                             </div>
                             ${labelBadge}
                         </div>
-                        <div class="grid grid-cols-3 gap-2 mb-2">
-                            <div class="bg-blue-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Initial</p>
-                                <p class="font-semibold text-blue-700 text-sm">${initDisplay}</p>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Stock</p>
+                                ${hasStock ? `
+                                    <p class="font-semibold ${remainTC} text-sm">${remainQ.toLocaleString('en-US', {maximumFractionDigits: 2})} / ${initialQty.toLocaleString('en-US', {maximumFractionDigits: 2})} ${mat.unit}</p>
+                                    <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
+                                ` : `<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Stock not set</span>`}
                             </div>
-                            <div class="bg-orange-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Used</p>
-                                <p class="font-semibold text-orange-600 text-sm">${usedDisplay}</p>
-                            </div>
-                            <div class="bg-emerald-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
-                                <p class="font-semibold ${remainTC} text-sm">${remainDisplay}</p>
-                                ${hasStock ? `<div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>` : ''}
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 gap-2 mb-3">
                             <div class="bg-primary/10 rounded-lg p-2">
-                                <div class="flex justify-between items-center">
-                                    <p class="text-xs text-gray-500">Cost per Unit</p>
-                                    <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(3)}</p>
-                                </div>
+                                <p class="text-xs text-gray-500 mb-0.5">Cost per Unit</p>
+                                <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(3)}</p>
                             </div>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-gray-100">
-                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 btn-restock" data-id="${mat.material_id}" data-name="${mat.material_name}" data-unit="${mat.unit}" data-initial="${initialQty}" data-remaining="${remainQ}">
-                                <i class="fas fa-plus-circle"></i> Restock
-                            </button>
                             <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit" data-id="${mat.material_id}">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -593,13 +561,9 @@ $(document).ready(function() {
             material_name: $('#material_name').val(),
             category_id: $('#category_id').val(),
             unit: $('#unit').val(),
-            total_cost: $('#total_cost').val()
+            total_cost: $('#total_cost').val(),
+            initial_quantity: $('#initial_quantity').val()
         };
-
-        // Only include quantity for new materials (not edits — quantity is managed by deductions & restock)
-        if (!materialId) {
-            formData.initial_quantity = $('#initial_quantity').val();
-        }
 
         // Use Update endpoint if editing, Add endpoint if creating new
         let endpoint = 'MaterialCosting/AddRawMaterial';
@@ -665,11 +629,9 @@ $(document).ready(function() {
                     $('#material_name').val(mat.material_name);
                     $('#category_id').val(mat.category_id);
                     $('#unit').val(mat.unit);
-                    // Quantity shows initial_qty (the costing basis) — read-only in edit mode
+                    // Quantity shows initial_qty — editable, syncs to Stock Initial page
                     $('#initial_quantity').val(parseFloat(mat.initial_qty || 0));
-                    $('#initial_quantity').prop('readonly', true).addClass('bg-gray-100 cursor-not-allowed');
-                    $('label[for="initial_quantity"]').html('Initial Quantity <span class="text-xs text-gray-400 font-normal">(costing basis)</span> <span class="text-red-500">*</span>');
-                    $('#qty_readonly_hint').html('<i class="fas fa-info-circle"></i> This is the initial quantity used for costing. <strong>Cost per Unit</strong> = Total Cost ÷ Initial Qty.').removeClass('hidden');
+                    $('#qty_readonly_hint').html('<i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial page.').removeClass('hidden');
                     $('#total_cost').val(parseFloat(mat.total_cost || 0).toFixed(2));
                     $('#cost_per_unit').val(parseFloat(mat.cost_per_unit || 0).toFixed(3));
                     $('#modalTitle').text('Edit Raw Material');
@@ -755,7 +717,7 @@ $(document).ready(function() {
         if (filteredMaterials.length > 0) {
             renderDesktopTable(filteredMaterials);
         } else {
-            $('#materialsTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-filter text-4xl mb-3 block"></i><p>No materials found for the selected category</p></td></tr>');
+            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-filter text-4xl mb-3 block"></i><p>No materials found for the selected category</p></td></tr>');
         }
         
         // Reset mobile pagination and render cards
@@ -779,7 +741,7 @@ $(document).ready(function() {
         if (filteredMaterials.length > 0) {
             renderDesktopTable(filteredMaterials);
         } else {
-            $('#materialsTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No raw materials found</p></td></tr>');
+            $('#materialsTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3 block"></i><p>No material data available</p></td></tr>');
         }
         
         // Reset mobile cards
@@ -788,71 +750,4 @@ $(document).ready(function() {
         renderMobileCards();
     });
 
-    // ===== RESTOCK MATERIAL =====
-    $(document).on('click', '.btn-restock', function() {
-        const id = $(this).data('id');
-        const name = $(this).data('name');
-        const unit = $(this).data('unit');
-        const initialQty = parseFloat($(this).data('initial')) || 0;
-        const remaining = parseFloat($(this).data('remaining')) || 0;
-        const used = Math.max(0, initialQty - remaining);
-
-        $('#restock_material_id').val(id);
-        $('#restock_material_name').text(name);
-        $('#restock_initial_qty').text(initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + unit);
-        $('#restock_used_qty').text(used.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + unit);
-        $('#restock_remaining_qty').text(remaining.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + unit);
-        $('#restock_unit_label').text(unit);
-        $('#restock_qty').val('');
-        $('#restockModal').removeClass('hidden');
-    });
-
-    $('#btnCloseRestock, #btnCancelRestock').on('click', function() {
-        $('#restockModal').addClass('hidden');
-    });
-
-    $('#restockForm').on('submit', function(e) {
-        e.preventDefault();
-        const materialId = $('#restock_material_id').val();
-        const restockQty = parseFloat($('#restock_qty').val());
-        const submitBtn = $('#btnConfirmRestock');
-
-        if (!restockQty || restockQty <= 0) {
-            Toast.warning('Please enter a valid quantity greater than 0.');
-            return;
-        }
-
-        if (typeof ButtonLoader !== 'undefined') {
-            ButtonLoader.start(submitBtn, 'Restocking...');
-        } else {
-            submitBtn.prop('disabled', true).text('Restocking...');
-        }
-
-        $.ajax({
-            url: baseUrl + 'MaterialCosting/RestockMaterial',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ material_id: materialId, restock_qty: restockQty }),
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    Toast.success(response.message);
-                    $('#restockModal').addClass('hidden');
-                    loadMaterials();
-                } else {
-                    Toast.error(response.message);
-                }
-            },
-            error: function(xhr) {
-                Toast.error('Error restocking material.');
-            },
-            complete: function() {
-                if (typeof ButtonLoader !== 'undefined') {
-                    ButtonLoader.stop(submitBtn);
-                } else {
-                    submitBtn.prop('disabled', false).text('Confirm Restock');
-                }
-            }
-        });
-    });
 });
