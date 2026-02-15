@@ -124,12 +124,14 @@ $(document).ready(function () {
         const payload = {
             material_id: $('#material_id').val(),
             initial_qty: $('#initial_qty').val(),
-            qty_used: 0,
             unit: $('#unit').val()
         };
 
         if (isEdit) {
             payload.stock_id = entryId;
+            // Don't send qty_used on edit — preserve existing value
+        } else {
+            payload.qty_used = 0; // Only set to 0 for new entries
         }
 
         const url = isEdit
