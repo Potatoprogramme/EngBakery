@@ -534,7 +534,7 @@ $(document).ready(function () {
     function formatNumber(num) {
         const n = parseFloat(num);
         if (isNaN(n)) return '0';
-        return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
     }
 
     function showToast(message, type) {
