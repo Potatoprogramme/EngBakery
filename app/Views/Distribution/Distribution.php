@@ -102,7 +102,7 @@
                                     <i class="fas fa-boxes text-blue-500 text-sm"></i>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500">Pieces</p>
+                                    <p class="text-xs text-gray-500">Batches</p>
                                     <p id="totalQuantityCount" class="text-sm font-bold text-gray-900">0</p>
                                 </div>
                             </div>
@@ -242,8 +242,8 @@
                     <p class="text-xs text-gray-600">Items</p>
                 </div>
                 <div class="flex-1 bg-blue-50 rounded-lg p-3 text-center">
-                    <p class="text-2xl font-bold text-blue-600" id="modalPiecesCount">0</p>
-                    <p class="text-xs text-gray-600">Pieces</p>
+                    <p class="text-2xl font-bold text-blue-600" id="modalBatchesCount">0</p>
+                    <p class="text-xs text-gray-600">Batches</p>
                 </div>
             </div>
 
@@ -738,7 +738,7 @@
 
                 const totalQty = items.reduce((sum, item) => sum + parseInt(item.product_qnty || 0), 0);
                 $('#modalItemCount').text(items.length);
-                $('#modalPiecesCount').text(totalQty);
+                $('#modalBatchesCount').text(totalQty);
 
                 const listContainer = $('#calendarDayItemsList');
                 listContainer.empty();
@@ -759,7 +759,7 @@
                                     </div>
                                     <span class="text-sm font-medium text-gray-800">${item.product_name}</span>
                                 </div>
-                                <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">pcs</span></span>
+                                <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">batch</span></span>
                             </div>
                         `;
                         listContainer.append(row);
@@ -841,7 +841,7 @@
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-800">${item.product_name}</h4>
-                                        <span class="text-xs text-gray-500">${item.product_qnty} pcs</span>
+                                        <span class="text-xs text-gray-500">${item.product_qnty} batch</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
@@ -1026,7 +1026,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
-                                    <span class="text-xs text-gray-500">${item.quantity} pcs</span>
+                                    <span class="text-xs text-gray-500">${item.quantity} batch</span>
                                 </div>
                             </div>
                             <button type="button" class="btn-remove-added-item p-1.5 text-red-500 hover:bg-red-50 rounded-md flex-shrink-0" data-index="${index}" title="Remove">
