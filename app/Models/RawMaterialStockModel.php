@@ -17,8 +17,8 @@ class RawMaterialStockModel extends Model
     // Dates
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'updated_at';
-    protected $updatedField  = 'updated_at';
+    protected $createdField  = 'updated_at';  // Will set updated_at on INSERT
+    protected $updatedField  = 'updated_at';   // Will update updated_at on UPDATE
 
     // ═══════════════════════════════════════════
     //  STOCK PAGE CRUD
@@ -189,7 +189,7 @@ class RawMaterialStockModel extends Model
         log_message('info', "RESTORE: material_id={$materialId}, amount={$amount}");
 
         $result = $this->db->query(
-            "UPDATE raw_material_stock SET qty_used = GREATEST(0, qty_used - ?) WHERE material_id = ?",
+            "UPDATE raw_material_stock SET qty_used = GREATEST(0, qty_used - ?), updated_at = NOW() WHERE material_id = ?",
             [$amount, $materialId]
         );
 
@@ -278,7 +278,7 @@ class RawMaterialStockModel extends Model
 
         // Only increment qty_used — initial_qty is the fixed baseline and should not change
         $result = $this->db->query(
-            "UPDATE raw_material_stock SET qty_used = qty_used + ? WHERE material_id = ?",
+            "UPDATE raw_material_stock SET qty_used = qty_used + ?, updated_at = NOW() WHERE material_id = ?",
             [$amount, $materialId]
         );
 
