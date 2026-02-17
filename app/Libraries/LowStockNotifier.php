@@ -9,13 +9,26 @@ class LowStockNotifier
 {
     /**
      * Check for low stock raw materials and email all owners if any are critical.
-     * Only sends one email per session to avoid spamming on every order.
+     * Only sends once per day at/after 10 PM to avoid spamming.
      *
      * @param float $criticalPercent  Stock percentage considered critical (default 20%)
      * @param float $warningPercent   Stock percentage considered warning (default 40%)
      */
     public static function checkAndNotify(float $criticalPercent = 20, float $warningPercent = 40): void
     {
+        // Check if it's 10 PM or later
+        $currentHour = (int) date('H');
+        if ($currentHour < 22) {
+            return; // Only send at/after 10 PM
+        }
+
+        // Check if already sent today
+        $today = date('Y-m-d');
+        $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
+        if (file_exists($flagFile)) {
+            return; // Already sent today
+        }
+
         $stockModel = new RawMaterialStockModel();
         $lowStockItems = $stockModel->getLowStockMaterials($criticalPercent, $warningPercent);
 
@@ -52,6 +65,8 @@ class LowStockNotifier
             $emailService->setMailType('html');
 
             if ($emailService->send()) {
+                // Mark as sent for today
+                file_put_contents($flagFile, date('Y-m-d H:i:s'));
                 log_message('info', 'Low stock alert email sent to: ' . implode(', ', $ownerEmails));
             } else {
                 log_message('error', 'Failed to send low stock email: ' . $emailService->printDebugger(['headers']));
@@ -64,13 +79,13 @@ class LowStockNotifier
     /**
      * Build the HTML email body
      */
-    private static function buildEmailBody(array $criticalItems, array $warningItems): string
+    public static function buildEmailBody(array $criticalItems, array $warningItems): string
     {
         $reportDate = date('F d, Y');
         $reportTime = date('h:i A');
         $reportRef  = 'LSA-' . date('Ymd-His');
 
-        $criticalRows = '';
+        $criticalCards = '';
         foreach ($criticalItems as $item) {
             $remaining = round(floatval($item['current_quantity']), 2);
             $initial   = isset($item['initial_qty']) ? round(floatval($item['initial_qty']), 2) : '—';
@@ -78,20 +93,49 @@ class LowStockNotifier
             $unit      = $item['unit'] ?? '';
             $pct       = $item['stock_percentage'] ?? 0;
             $lastUpdate = isset($item['updated_at']) ? date('M d, Y h:i A', strtotime($item['updated_at'])) : '—';
-            $criticalRows .= "
-                <tr style='background-color: #fff5f5;'>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'>{$item['material_name']}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'>{$item['category_name']}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$initial} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$used} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right; color: #dc3545; font-weight: bold;'>{$remaining} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; color: #dc3545; font-weight: bold;'>{$pct}%</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'><span style='background: #dc3545; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;'>CRITICAL</span></td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 12px; color: #888;'>{$lastUpdate}</td>
-                </tr>";
+            $criticalCards .= "
+                <div style='background:#fff5f5;border:1px solid #dc3545;border-radius:8px;padding:15px;margin-bottom:12px;'>
+                    <div style='margin-bottom:12px;border-bottom:2px solid #dc3545;padding-bottom:10px;'>
+                        <div style='display:inline-block;'>
+                            <span style='font-size:16px;font-weight:bold;color:#333;'>{$item['material_name']}</span>
+                            <span style='font-size:12px;color:#888;margin-left:8px;'>({$item['category_name']})</span>
+                        </div>
+                        <div style='float:right;'>
+                            <span style='background:#dc3545;color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>CRITICAL</span>
+                        </div>
+                    </div>
+                    <table style='width:100%;border-collapse:collapse;'>
+                        <tr>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Initial Stock</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$initial} {$unit}</div>
+                            </td>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Used</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$used} {$unit}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Remaining</div>
+                                <div style='font-size:15px;font-weight:bold;color:#dc3545;margin-top:2px;'>{$remaining} {$unit}</div>
+                            </td>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Stock Level</div>
+                                <div style='font-size:15px;font-weight:bold;color:#dc3545;margin-top:2px;'>{$pct}%</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:8px 0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Last Updated</div>
+                                <div style='font-size:12px;color:#666;margin-top:2px;'>{$lastUpdate}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>";
         }
 
-        $warningRows = '';
+        $warningCards = '';
         foreach ($warningItems as $item) {
             $remaining = round(floatval($item['current_quantity']), 2);
             $initial   = isset($item['initial_qty']) ? round(floatval($item['initial_qty']), 2) : '—';
@@ -99,17 +143,46 @@ class LowStockNotifier
             $unit      = $item['unit'] ?? '';
             $pct       = $item['stock_percentage'] ?? 0;
             $lastUpdate = isset($item['updated_at']) ? date('M d, Y h:i A', strtotime($item['updated_at'])) : '—';
-            $warningRows .= "
-                <tr>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'>{$item['material_name']}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'>{$item['category_name']}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$initial} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right;'>{$used} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: right; color: #e67e22; font-weight: bold;'>{$remaining} {$unit}</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; color: #e67e22; font-weight: bold;'>{$pct}%</td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee;'><span style='background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;'>LOW</span></td>
-                    <td style='padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 12px; color: #888;'>{$lastUpdate}</td>
-                </tr>";
+            $warningCards .= "
+                <div style='background:#fff;border:1px solid #f39c12;border-radius:8px;padding:15px;margin-bottom:12px;'>
+                    <div style='margin-bottom:12px;border-bottom:2px solid #f39c12;padding-bottom:10px;'>
+                        <div style='display:inline-block;'>
+                            <span style='font-size:16px;font-weight:bold;color:#333;'>{$item['material_name']}</span>
+                            <span style='font-size:12px;color:#888;margin-left:8px;'>({$item['category_name']})</span>
+                        </div>
+                        <div style='float:right;'>
+                            <span style='background:#f39c12;color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>LOW</span>
+                        </div>
+                    </div>
+                    <table style='width:100%;border-collapse:collapse;'>
+                        <tr>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Initial Stock</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$initial} {$unit}</div>
+                            </td>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Used</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$used} {$unit}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Remaining</div>
+                                <div style='font-size:15px;font-weight:bold;color:#e67e22;margin-top:2px;'>{$remaining} {$unit}</div>
+                            </td>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Stock Level</div>
+                                <div style='font-size:15px;font-weight:bold;color:#e67e22;margin-top:2px;'>{$pct}%</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:8px 0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Last Updated</div>
+                                <div style='font-size:12px;color:#666;margin-top:2px;'>{$lastUpdate}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>";
         }
 
         $totalCritical = count($criticalItems);
@@ -176,25 +249,10 @@ class LowStockNotifier
                         </tr>
                     </table>
 
-                    <!-- Stock Details Table -->
-                    <table style='margin: 20px 0;'>
-                        <thead>
-                            <tr>
-                                <th>Material</th>
-                                <th>Category</th>
-                                <th style='text-align: right;'>Initial Stock</th>
-                                <th style='text-align: right;'>Used</th>
-                                <th style='text-align: right;'>Remaining</th>
-                                <th style='text-align: center;'>% Left</th>
-                                <th>Status</th>
-                                <th>Last Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {$criticalRows}
-                            {$warningRows}
-                        </tbody>
-                    </table>
+                    <!-- Stock Details Cards -->
+                    <h3 style='font-size:16px;color:#333;margin:25px 0 15px;'>Material Details</h3>
+                    {$criticalCards}
+                    {$warningCards}
 
                     <hr style='border: none; border-top: 1px solid #ddd; margin: 15px 0;'>
 

@@ -410,9 +410,9 @@ class SalesController extends BaseController
             }
         }
 
-        // Auto-send daily report if this is an end-of-day shift (>= 8 PM)
+        // Auto-send daily report if this is an end-of-day shift (>= 10 PM)
         $shiftEndTime = strtotime($remittanceDetails['shift_end']);
-        $endOfDayThreshold = strtotime('20:00:00'); // 8 PM
+        $endOfDayThreshold = strtotime('22:00:00'); // 10 PM
         
         if ($shiftEndTime >= $endOfDayThreshold) {
             \App\Libraries\DailyRemittanceReport::sendReport();
