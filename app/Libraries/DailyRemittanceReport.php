@@ -76,7 +76,7 @@ class DailyRemittanceReport
     /**
      * Build the HTML email body for the remittance summary.
      */
-    private static function buildEmailBody(array $remittances, string $date): string
+    public static function buildEmailBody(array $remittances, string $date): string
     {
         $reportDate = date('F d, Y', strtotime($date));
         $reportTime = date('h:i A');
@@ -112,8 +112,8 @@ class DailyRemittanceReport
 
         $shiftCount = count($remittances);
 
-        // Build individual shift rows
-        $shiftRows = '';
+        // Build individual shift cards
+        $shiftCards = '';
         foreach ($remittances as $i => $r) {
             $shiftNum    = $i + 1;
             $cashier     = $r['cashier_name'] ?? 'Unknown';
@@ -138,24 +138,60 @@ class DailyRemittanceReport
                 $varianceText  = '+₱' . number_format($variance, 2);
             }
 
-            $cashOutCell = floatval($r['cash_out']) > 0
-                ? '₱' . $cashOut . '<br><span style="font-size:11px;color:#888;">' . htmlspecialchars($r['cashout_reason'] ?? '') . '</span>'
-                : '—';
+            $cashOutDisplay = floatval($r['cash_out']) > 0
+                ? '₱' . $cashOut
+                : '₱0.00';
+            
+            $cashOutReason = !empty($r['cashout_reason']) 
+                ? '<div style="font-size:10px;color:#888;margin-top:2px;">' . htmlspecialchars($r['cashout_reason']) . '</div>'
+                : '';
 
-            $shiftRows .= "
-                <tr>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;text-align:center;font-weight:bold;'>{$shiftNum}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;'>{$cashier}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;'>{$outlet}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;'>{$shiftTime}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;text-align:right;'>₱{$sales}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;text-align:right;'>₱{$enclosed}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;text-align:center;'>{$cashOutCell}</td>
-                    <td style='padding:10px 12px;border-bottom:1px solid #eee;text-align:center;'>
-                        <span style='background:{$varianceColor};color:white;padding:2px 8px;border-radius:10px;font-size:11px;'>{$varianceLabel}</span><br>
-                        <span style='color:{$varianceColor};font-size:12px;font-weight:bold;'>{$varianceText}</span>
-                    </td>
-                </tr>";
+            $shiftCards .= "
+                <div style='background:#fff;border:1px solid #ddd;border-radius:8px;padding:15px;margin-bottom:12px;'>
+                    <div style='margin-bottom:12px;border-bottom:2px solid #007B4C;padding-bottom:10px;'>
+                        <div style='display:inline-block;'>
+                            <span style='background:#007B4C;color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;'>#{$shiftNum}</span>
+                            <span style='font-size:16px;font-weight:bold;color:#333;margin-left:10px;'>{$cashier}</span>
+                        </div>
+                        <div style='float:right;'>
+                            <span style='background:{$varianceColor};color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>{$varianceLabel}</span>
+                        </div>
+                    </div>
+                    
+                    <table style='width:100%;border-collapse:collapse;'>
+                        <tr>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Outlet</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$outlet}</div>
+                            </td>
+                            <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Shift Time</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$shiftTime}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Total Sales</div>
+                                <div style='font-size:15px;font-weight:bold;color:#007B4C;margin-top:2px;'>₱{$sales}</div>
+                            </td>
+                            <td style='padding:8px 0;border-bottom:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Cash Remitted</div>
+                                <div style='font-size:15px;font-weight:bold;color:#007B4C;margin-top:2px;'>₱{$enclosed}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Cash Out</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$cashOutDisplay}</div>
+                                {$cashOutReason}
+                            </td>
+                            <td style='padding:8px 0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Variance</div>
+                                <div style='font-size:15px;font-weight:bold;color:{$varianceColor};margin-top:2px;'>{$varianceText}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>";
         }
 
         // Totals row
@@ -177,6 +213,7 @@ class DailyRemittanceReport
         return "
         <html>
         <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
                 .container { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -185,6 +222,18 @@ class DailyRemittanceReport
                 table { width: 100%; border-collapse: collapse; }
                 th { background-color: #007B4C; color: white; padding: 10px 12px; text-align: left; font-size: 13px; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+                @media only screen and (max-width: 600px) {
+                    .container { padding: 10px !important; }
+                    .header { padding: 15px !important; }
+                    .header h1 { font-size: 18px !important; }
+                    .header p { font-size: 12px !important; }
+                    .content { padding: 15px !important; }
+                    th { padding: 8px 4px !important; font-size: 11px !important; }
+                    td { padding: 8px 4px !important; font-size: 11px !important; }
+                    .hide-mobile { display: none !important; }
+                    table { font-size: 11px !important; }
+                }
             </style>
         </head>
         <body>
@@ -259,32 +308,36 @@ class DailyRemittanceReport
                         </tr>
                     </table>
 
-                    <!-- Shift Details Table -->
-                    <h3 style='font-size:15px;color:#333;margin-bottom:10px;'>Shift Breakdown</h3>
-                    <table style='margin:0 0 20px;'>
-                        <thead>
+                    <!-- Shift Details Cards -->
+                    <h3 style='font-size:16px;color:#333;margin:25px 0 15px;'>Shift Breakdown</h3>
+                    {$shiftCards}
+                    
+                    <!-- Summary Totals -->
+                    <div style='background:#f8f9fa;border:2px solid #007B4C;border-radius:8px;padding:15px;margin-top:20px;'>
+                        <div style='font-size:14px;font-weight:bold;color:#007B4C;margin-bottom:10px;text-transform:uppercase;'>Daily Totals</div>
+                        <table style='width:100%;'>
                             <tr>
-                                <th style='text-align:center;width:40px;'>#</th>
-                                <th>Cashier</th>
-                                <th>Outlet</th>
-                                <th>Shift</th>
-                                <th style='text-align:right;'>Sales</th>
-                                <th style='text-align:right;'>Remitted</th>
-                                <th style='text-align:center;'>Cash Out</th>
-                                <th style='text-align:center;'>Variance</th>
+                                <td style='padding:6px 0;width:50%;'>
+                                    <div style='font-size:11px;color:#666;'>Total Sales</div>
+                                    <div style='font-size:18px;font-weight:bold;color:#007B4C;'>₱{$fmtTotalSales}</div>
+                                </td>
+                                <td style='padding:6px 0;width:50%;'>
+                                    <div style='font-size:11px;color:#666;'>Total Remitted</div>
+                                    <div style='font-size:18px;font-weight:bold;color:#007B4C;'>₱{$fmtTotalRemitted}</div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {$shiftRows}
-                            <tr style='background:#f0f0f0;font-weight:bold;'>
-                                <td colspan='4' style='padding:10px 12px;border-top:2px solid #007B4C;'>TOTALS</td>
-                                <td style='padding:10px 12px;border-top:2px solid #007B4C;text-align:right;'>₱{$fmtTotalSales}</td>
-                                <td style='padding:10px 12px;border-top:2px solid #007B4C;text-align:right;'>₱{$fmtTotalRemitted}</td>
-                                <td style='padding:10px 12px;border-top:2px solid #007B4C;text-align:center;'>₱{$fmtTotalCashOut}</td>
-                                <td style='padding:10px 12px;border-top:2px solid #007B4C;text-align:center;color:{$netVarianceColor};'>{$netVarianceText}</td>
+                            <tr>
+                                <td style='padding:6px 0;'>
+                                    <div style='font-size:11px;color:#666;'>Total Cash Out</div>
+                                    <div style='font-size:16px;font-weight:bold;color:#333;'>₱{$fmtTotalCashOut}</div>
+                                </td>
+                                <td style='padding:6px 0;'>
+                                    <div style='font-size:11px;color:#666;'>Net Variance</div>
+                                    <div style='font-size:18px;font-weight:bold;color:{$netVarianceColor};'>{$netVarianceText}</div>
+                                </td>
                             </tr>
-                        </tbody>
-                    </table>
+                        </table>
+                    </div>
 
                     <hr style='border:none;border-top:1px solid #ddd;margin:15px 0;'>
 

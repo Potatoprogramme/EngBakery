@@ -61,6 +61,63 @@ class UtilityController extends BaseController
         ]);
     }
 
+    /**
+     * Test endpoint to send remittance email to test recipient
+     * Visit: /Utility/TestRemittanceEmail
+     */
+    public function testRemittanceEmail()
+    {
+        // Force send email even if already sent today
+        $testEmail = 'jabarte@my.cspc.edu.ph';
+        
+        // Get today's remittances
+        $remittanceModel = new \App\Models\RemittanceDetailsModel();
+        $today = date('Y-m-d');
+        $remittances = $remittanceModel->getRemittancesByDate($today);
+        
+        if (empty($remittances)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "No remittances found for {$today}. Please create at least one remittance first.",
+            ]);
+        }
+        
+        // Attach denominations to each remittance
+        $denominationModel = new \App\Models\RemittanceDenominationsModel();
+        foreach ($remittances as &$rem) {
+            $rem['denominations'] = $denominationModel
+                ->where('remittance_id', $rem['remittance_id'])
+                ->findAll();
+        }
+        
+        // Build email body
+        $library = new \App\Libraries\DailyRemittanceReport();
+        $emailBody = $library->buildEmailBody($remittances, $today);
+        
+        // Send test email
+        $email = \Config\Services::email();
+        $email->setFrom('stephenandrewnoblesala30@gmail.com', 'E n\' G Bakery System');
+        $email->setTo($testEmail);
+        $email->setSubject('📋 [TEST] Daily Remittance Report — ' . date('F j, Y', strtotime($today)));
+        $email->setMessage($emailBody);
+        
+        if ($email->send()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Test remittance email sent successfully!',
+                'sent_to' => $testEmail,
+                'remittance_count' => count($remittances),
+                'date' => $today,
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Failed to send test email.',
+                'error' => $email->printDebugger(['headers']),
+            ]);
+        }
+    }
+
     public function createUtilityExpense()
     {
         $data = $this->request->getJSON(true);
