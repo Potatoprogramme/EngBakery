@@ -128,10 +128,25 @@ class DistributionController extends BaseController
 
         // ── Pre-check: block if raw materials are insufficient ──
         $quantity = intval($data->product_qnty);
-        // Distribution qty = batches → convert to actual pieces for deduction
-        $actualPieces = $this->distributionQtyToPieces(intval($data->product_id), $quantity);
-        log_message('info', 'DISTRIBUTION ADD: Converted {batches} batches to {pieces} pieces', [
-            'batches' => $quantity,
+        $qtyMode = $data->qty_mode ?? 'batch';
+
+        // Grocery & Drinks products can only be distributed by pieces
+        $product = $this->productModel->find(intval($data->product_id));
+        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks']) && $qtyMode !== 'pieces') {
+            log_message('warning', 'DISTRIBUTION ADD: Blocked batch mode for {category} product {id}', [
+                'category' => $product['category'],
+                'id' => $data->product_id
+            ]);
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.'
+            ]);
+        }
+
+        // Convert to actual pieces based on mode
+        $actualPieces = $this->distributionQtyToPieces(intval($data->product_id), $quantity, $qtyMode);
+        log_message('info', 'DISTRIBUTION ADD: Converted {qty} {mode} to {pieces} pieces', [
+            'qty' => $quantity,
+            'mode' => $qtyMode,
             'pieces' => $actualPieces
         ]);
 
@@ -172,6 +187,7 @@ class DistributionController extends BaseController
         $insertData = [
             'product_id' => $data->product_id,
             'product_qnty' => $data->product_qnty,
+            'qty_mode' => $qtyMode,
             'distribution_date' => $data->distribution_date,
         ];
 
@@ -239,7 +255,8 @@ class DistributionController extends BaseController
             // Restore raw materials before deleting the distribution
             $productId = intval($record['product_id']);
             $quantity  = intval($record['product_qnty']);
-            $actualPieces = $this->distributionQtyToPieces($productId, $quantity);
+            $qtyMode   = $record['qty_mode'] ?? 'batch';
+            $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
             
             if ($actualPieces > 0) {
                 log_message('info', 'DISTRIBUTION DELETE: Restoring {pieces} pieces to raw materials', [
@@ -298,12 +315,29 @@ class DistributionController extends BaseController
         $existingRecord = $this->distributionModel->find($id);
         $oldQty = intval($existingRecord['product_qnty'] ?? 0);
         $newQty = intval($data->product_qnty);
-        $oldPieces = $this->distributionQtyToPieces(intval($existingRecord['product_id']), $oldQty);
-        $newPieces = $this->distributionQtyToPieces(intval($data->product_id), $newQty);
+        $oldQtyMode = $existingRecord['qty_mode'] ?? 'batch';
+        $newQtyMode = $data->qty_mode ?? $oldQtyMode;
 
-        log_message('info', 'DISTRIBUTION UPDATE: Quantity change - Old: {old} batches ({oldPieces} pieces), New: {new} batches ({newPieces} pieces)', [
+        // Grocery & Drinks products can only be distributed by pieces
+        $product = $this->productModel->find(intval($data->product_id));
+        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks']) && $newQtyMode !== 'pieces') {
+            log_message('warning', 'DISTRIBUTION UPDATE: Blocked batch mode for {category} product {id}', [
+                'category' => $product['category'],
+                'id' => $data->product_id
+            ]);
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.'
+            ]);
+        }
+
+        $oldPieces = $this->distributionQtyToPieces(intval($existingRecord['product_id']), $oldQty, $oldQtyMode);
+        $newPieces = $this->distributionQtyToPieces(intval($data->product_id), $newQty, $newQtyMode);
+
+        log_message('info', 'DISTRIBUTION UPDATE: Quantity change - Old: {old} {oldMode} ({oldPieces} pieces), New: {new} {newMode} ({newPieces} pieces)', [
             'old' => $oldQty,
             'new' => $newQty,
+            'oldMode' => $oldQtyMode,
+            'newMode' => $newQtyMode,
             'oldPieces' => $oldPieces,
             'newPieces' => $newPieces
         ]);
@@ -361,7 +395,7 @@ class DistributionController extends BaseController
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'error' => 'Cannot update — insufficient raw material stock for ' . $newQty . ' batch(es).',
+                    'error' => 'Cannot update — insufficient raw material stock for ' . $newQty . ' ' . ($newQtyMode === 'pieces' ? 'piece(s)' : 'batch(es)') . '.',
                     'insufficient_materials' => array_values($shortByMaterial),
                     'preview' => $preview,
                 ]);
@@ -372,6 +406,7 @@ class DistributionController extends BaseController
         $updateData = [
             'product_id' => $data->product_id,
             'product_qnty' => $data->product_qnty,
+            'qty_mode' => $newQtyMode,
             'distribution_date' => $data->distribution_date,
         ];
 
@@ -408,11 +443,23 @@ class DistributionController extends BaseController
 
     /**
      * Convert distribution quantity to actual pieces.
-     * Distribution qty = batches/yields for bakery & dough products.
-     * For drinks/grocery, 1 qty = 1 piece (pieces_per_yield defaults to 1).
+     * 
+     * When qty_mode = 'batch':
+     *   Distribution qty = batches/yields for bakery & dough products.
+     *   For drinks/grocery, 1 qty = 1 piece (pieces_per_yield defaults to 1).
+     * 
+     * When qty_mode = 'pieces':
+     *   Distribution qty is already in pieces — no conversion needed.
+     *   Raw material deduction will compute yields = pieces / pieces_per_yield.
      */
-    private function distributionQtyToPieces(int $productId, int $qty): int
+    private function distributionQtyToPieces(int $productId, int $qty, string $qtyMode = 'batch'): int
     {
+        // If the owner entered pieces directly, qty IS the pieces count
+        if ($qtyMode === 'pieces') {
+            return $qty;
+        }
+
+        // --- batch mode (original logic) ---
         $product = $this->productModel->find($productId);
         $category = $product['category'] ?? '';
 

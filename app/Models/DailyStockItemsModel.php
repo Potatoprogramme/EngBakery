@@ -55,28 +55,35 @@ class DailyStockItemsModel extends Model
         
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
-            $distributionQty = intval($item['product_qnty'] ?? 0); // This is in batches
+            $distributionQty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = $item['qty_mode'] ?? 'batch';
             
-            // Convert batches to pieces
-            $product = $productModel->find($productId);
-            $category = $product['category'] ?? '';
-            
-            if (in_array($category, ['drinks', 'grocery'])) {
-                // For drinks/grocery: 1 distribution qty = 1 piece
+            // If qty_mode is 'pieces', the value is already in pieces — no conversion needed
+            if ($qtyMode === 'pieces') {
                 $beginningStockPieces = $distributionQty;
             } else {
-                // For bakery/dough: 1 distribution qty = 1 batch = pieces_per_yield pieces
-                $costData = $productCostModel->getCostByProductId($productId);
-                $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-                if ($piecesPerYield <= 0) {
-                    $piecesPerYield = 1;
+                // Convert batches to pieces
+                $product = $productModel->find($productId);
+                $category = $product['category'] ?? '';
+                
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    // For drinks/grocery: 1 distribution qty = 1 piece
+                    $beginningStockPieces = $distributionQty;
+                } else {
+                    // For bakery/dough: 1 distribution qty = 1 batch = pieces_per_yield pieces
+                    $costData = $productCostModel->getCostByProductId($productId);
+                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+                    if ($piecesPerYield <= 0) {
+                        $piecesPerYield = 1;
+                    }
+                    $beginningStockPieces = $distributionQty * $piecesPerYield;
                 }
-                $beginningStockPieces = $distributionQty * $piecesPerYield;
             }
             
-            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution Qty: {dist} batches → {pieces} pieces', [
+            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution Qty: {dist} {mode} → {pieces} pieces', [
                 'product' => $productId,
                 'dist' => $distributionQty,
+                'mode' => $qtyMode,
                 'pieces' => $beginningStockPieces
             ]);
             
