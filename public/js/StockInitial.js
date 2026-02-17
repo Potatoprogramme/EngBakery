@@ -113,7 +113,7 @@ $(document).ready(function () {
 
         // Validate material is selected
         if (!$('#material_id').val()) {
-            showToast('Please select a raw material.', 'error');
+            showToast('error', 'Please select a raw material.');
             $('#material_search').focus();
             return;
         }
@@ -148,15 +148,15 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    showToast(res.message, 'success');
+                    showToast('success', res.message);
                     closeModal();
                     loadEntries();
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             },
             error: function () {
-                showToast('Server error. Please try again.', 'error');
+                showToast('error', 'Server error. Please try again.');
             },
             complete: function () {
                 $('#btnSaveEntry').prop('disabled', false).text('Save');
@@ -193,7 +193,7 @@ $(document).ready(function () {
                         $('#stockInitialModal').removeClass('hidden');
                     });
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             }
         });
@@ -221,14 +221,14 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    showToast(res.message, 'success');
+                    showToast('success', res.message);
                     loadEntries();
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             },
             error: function () {
-                showToast('Server error. Please try again.', 'error');
+                showToast('error', 'Server error. Please try again.');
             },
             complete: function () {
                 deleteEntryId = null;
@@ -537,29 +537,5 @@ $(document).ready(function () {
         return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
     }
 
-    function showToast(message, type) {
-        const colors = {
-            success: 'bg-green-500',
-            error: 'bg-red-500',
-            warning: 'bg-amber-500'
-        };
-        const bgColor = colors[type] || 'bg-gray-700';
 
-        const toast = $(`
-            <div class="fixed top-20 right-4 z-[9999] px-4 py-3 rounded-lg shadow-lg text-white text-sm ${bgColor} transition-all duration-300 transform translate-x-full opacity-0">
-                ${message}
-            </div>
-        `);
-
-        $('body').append(toast);
-
-        // Animate in
-        setTimeout(() => toast.removeClass('translate-x-full opacity-0'), 50);
-
-        // Animate out
-        setTimeout(() => {
-            toast.addClass('translate-x-full opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 });
