@@ -57,6 +57,21 @@ class UtilityController extends BaseController
         ]);
     }
 
+    /**
+     * Force resend low stock email (layout check)
+     * Visit: /Utility/ResendLowStockEmail
+     */
+    public function resendLowStockEmail()
+    {
+        // Force send regardless of time/flag
+        \App\Libraries\LowStockNotifier::checkAndNotify(25, 40, true);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Low stock email resend triggered.',
+        ]);
+    }
+
     public function deleteUtilityExpense()
     {
         $data = $this->request->getJSON(true);

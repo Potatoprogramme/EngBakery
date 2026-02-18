@@ -9,24 +9,30 @@ class LowStockNotifier
 {
     /**
      * Check for low stock raw materials and email all owners if any are critical.
-     * Only sends once per day at/after 10 PM to avoid spamming.
+     * Only sends once per day at/after 10 PM to avoid spamming unless forced.
      *
-     * @param float $criticalPercent  Stock percentage considered critical (default 20%)
+     * @param float $criticalPercent  Stock percentage considered critical (default 25%)
      * @param float $warningPercent   Stock percentage considered warning (default 40%)
+     * @param bool  $forceSend        Force send regardless of time/flag
      */
-    public static function checkAndNotify(float $criticalPercent = 20, float $warningPercent = 40): void
+    public static function checkAndNotify(float $criticalPercent = 25, float $warningPercent = 40, bool $forceSend = false): void
     {
-        // Check if it's 10 PM or later
-        $currentHour = (int) date('H');
-        if ($currentHour < 22) {
-            return; // Only send at/after 10 PM
-        }
+        // Check if it's 10 PM or later (unless forced)
+        if (!$forceSend) {
+            $currentHour = (int) date('H');
+            if ($currentHour < 22) {
+                return; // Only send at/after 10 PM
+            }
 
-        // Check if already sent today
-        $today = date('Y-m-d');
-        $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
-        if (file_exists($flagFile)) {
-            return; // Already sent today
+            // Check if already sent today
+            $today = date('Y-m-d');
+            $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
+            if (file_exists($flagFile)) {
+                return; // Already sent today
+            }
+        } else {
+            $today = date('Y-m-d');
+            $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
         }
 
         $stockModel = new RawMaterialStockModel();
@@ -101,7 +107,7 @@ class LowStockNotifier
                             <span style='font-size:12px;color:#888;margin-left:8px;'>({$item['category_name']})</span>
                         </div>
                         <div style='float:right;'>
-                            <span style='background:#dc3545;color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>CRITICAL</span>
+                            <span style='background:#dc3545;color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>LOW</span>
                         </div>
                     </div>
                     <table style='width:100%;border-collapse:collapse;'>
@@ -239,12 +245,12 @@ class LowStockNotifier
                         <tr>
                             <td style='padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px; text-align: center; width: 50%;'>
                                 <div style='font-size: 28px; font-weight: bold; color: #dc3545;'>{$totalCritical}</div>
-                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Critical (≤ 20% remaining)</div>
+                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Low (≤ 25% remaining)</div>
                             </td>
                             <td style='width: 10px;'></td>
                             <td style='padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px; text-align: center; width: 50%;'>
                                 <div style='font-size: 28px; font-weight: bold; color: #f39c12;'>{$totalWarning}</div>
-                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Low (≤ 40% remaining)</div>
+                                <div style='font-size: 12px; color: #666; margin-top: 4px;'>Warning (≤ 40% remaining)</div>
                             </td>
                         </tr>
                     </table>

@@ -339,9 +339,9 @@ class RawMaterialStockModel extends Model
 
     /**
      * Get materials with low stock levels based on quantity thresholds
-     * Critical: <= 10 units, Warning: <= 25 units
+     * Low: <= 25%, Warning: <= 40%
      */
-    public function getLowStockMaterials(float $criticalPercent = 20, float $warningPercent = 40): array
+    public function getLowStockMaterials(float $criticalPercent = 25, float $warningPercent = 40): array
     {
         return $this->db->query("
             SELECT 

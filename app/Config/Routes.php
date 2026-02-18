@@ -161,6 +161,7 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
 
 $routes->group('Utility', function (RouteCollection $routes) {
     $routes->get('/', 'UtilityController::index');
+    $routes->get('ResendLowStockEmail', 'UtilityController::resendLowStockEmail');
     $routes->post('CreateUtilityExpense', 'UtilityController::createUtilityExpense');
 });
 
