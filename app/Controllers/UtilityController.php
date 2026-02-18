@@ -19,88 +19,182 @@ class UtilityController extends BaseController
             . view('Template/Footer', $data);
     }
 
-    public function createUtilityExpense()
+    /**
+     * Get all utility expenses (AJAX)
+     */
+    public function getAllUtilityExpenses()
     {
-        $data = $this->request->getJSON(true);
-
-        if ($redirect = $this->redirectIfNotLoggedIn()) {
-            return $redirect;
-        }
-
-        $type = $data['type'] ?? null;
-        $quantity = $data['quantity'] ?? null;
-        $unit = $data['unit'] ?? null;
-        $expense = $data['expense'] ?? null;
-        $billed_at = $data['billed_at'] ?? null;
-
-        $created_at = date('Y-m-d H:i:s');
-
-        $cost_per_unit = round($expense / $quantity, 5);
-
-        $insertData = [
-            'type' => $type,
-            'quantity' => $quantity,
-            'unit' => $unit,
-            'expense' => $expense,
-            'cost_per_unit' => $cost_per_unit,
-            'created_at' => $created_at,
-            'billed_at' => $billed_at,
-        ];
-
-
-        $this->utilityExpensesModel->insert($insertData);
+        $expenses = $this->utilityExpensesModel->orderBy('billed_at', 'DESC')->findAll();
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Utility expense recorded successfully.',
-            'data' => $insertData,
+            'data' => $expenses,
         ]);
     }
 
     /**
-     * Force resend low stock email (layout check)
-     * Visit: /Utility/ResendLowStockEmail
+     * Add a new utility expense (AJAX)
      */
-    public function resendLowStockEmail()
-    {
-        // Force send regardless of time/flag
-        \App\Libraries\LowStockNotifier::checkAndNotify(25, 40, true);
-
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Low stock email resend triggered.',
-        ]);
-    }
-
-    public function deleteUtilityExpense()
+    public function addUtilityExpense()
     {
         $data = $this->request->getJSON(true);
 
-        if ($redirect = $this->redirectIfNotLoggedIn()) {
-            return $redirect;
-        }
-
-        $id = $data['id'] ?? null;
-
-        if ($this->utilityExpensesModel->find($id) === null) {
+        // Validate required fields
+        if (empty($data['expense_category'])) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'id expense not found.',
+                'message' => 'Expense category is required.',
             ]);
         }
 
-        if (!$id) {
+        if (!isset($data['expense_amount']) || $data['expense_amount'] === '' || !is_numeric($data['expense_amount']) || floatval($data['expense_amount']) < 0) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Utility expense ID is required.',
+                'message' => 'A valid expense amount is required.',
             ]);
         }
 
-        $this->utilityExpensesModel->delete($id);
+        if (empty($data['expense_date'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense date is required.',
+            ]);
+        }
 
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Utility expense deleted successfully.',
-        ]);
+        try {
+            $insertData = [
+                'type'           => $data['expense_category'],
+                'expense'        => floatval($data['expense_amount']),
+                'billing_period' => $data['billing_period'] ?? 'monthly',
+                'quantity'       => $data['quantity'] ?? 0,
+                'unit'           => $data['unit'] ?? '',
+                'days'           => $data['days'] ?? 0,
+                'cost_per_unit'  => $data['cost_per_unit'] ?? 0,
+                'cost_per_day'   => $data['cost_per_day'] ?? 0,
+                'billed_at'      => $data['expense_date'],
+                'created_at'     => date('Y-m-d H:i:s'),
+            ];
+
+            $this->utilityExpensesModel->insert($insertData);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Expense added successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Update an existing utility expense (AJAX)
+     */
+    public function updateUtilityExpense()
+    {
+        $data = $this->request->getJSON(true);
+
+        // Validate expense ID
+        if (empty($data['expense_id'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense ID is required.',
+            ]);
+        }
+
+        // Check if expense exists
+        $existing = $this->utilityExpensesModel->find($data['expense_id']);
+        if (!$existing) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense not found.',
+            ]);
+        }
+
+        // Validate required fields
+        if (empty($data['expense_category'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense category is required.',
+            ]);
+        }
+
+        if (!isset($data['expense_amount']) || $data['expense_amount'] === '' || !is_numeric($data['expense_amount']) || floatval($data['expense_amount']) < 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'A valid expense amount is required.',
+            ]);
+        }
+
+        if (empty($data['expense_date'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense date is required.',
+            ]);
+        }
+
+        try {
+            $updateData = [
+                'type'           => $data['expense_category'],
+                'expense'        => floatval($data['expense_amount']),
+                'billing_period' => $data['billing_period'] ?? 'monthly',
+                'quantity'       => $data['quantity'] ?? $existing['quantity'],
+                'unit'           => $data['unit'] ?? $existing['unit'],
+                'days'           => $data['days'] ?? $existing['days'],
+                'cost_per_unit'  => $data['cost_per_unit'] ?? $existing['cost_per_unit'],
+                'cost_per_day'   => $data['cost_per_day'] ?? $existing['cost_per_day'],
+                'billed_at'      => $data['expense_date'],
+            ];
+
+            $this->utilityExpensesModel->update($data['expense_id'], $updateData);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Expense updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Delete a utility expense (AJAX)
+     */
+    public function deleteUtilityExpense($id = null)
+    {
+        if (empty($id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense ID is required.',
+            ]);
+        }
+
+        // Check if expense exists
+        $existing = $this->utilityExpensesModel->find($id);
+        if (!$existing) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Expense not found.',
+            ]);
+        }
+
+        try {
+            $this->utilityExpensesModel->delete($id);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Expense deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -13,10 +13,13 @@ class UtilityExpensesModel extends Model
 
     protected $allowedFields = [
         'type',
+        'billing_period',
         'quantity',
         'unit',
         'expense',
+        'days',
         'cost_per_unit',
+        'cost_per_day',
         'created_at',
         'billed_at',
     ];

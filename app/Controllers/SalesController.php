@@ -144,6 +144,18 @@ class SalesController extends BaseController
         return view('Sales/RemittancePrint');
     }
 
+    public function getTotalSalesByMonth($date = null)
+    {
+        $date = $date ?? date('Y-m-d');
+        $dateFrom = date('Y-m-01', strtotime($date));
+        $dateTo   = date('Y-m-t', strtotime($date));
+        $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
+        return $this->response->setJSON([
+            'success' => true,
+            'total_sales' => floatval($totalSales)
+        ]);
+    }
+
     public function getTodaysSummary()
     {
         $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
