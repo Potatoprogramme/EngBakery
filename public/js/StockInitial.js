@@ -126,6 +126,15 @@ $(document).ready(function () {
 
         const entryId = $('#edit_stock_id').val();
         const isEdit = entryId !== '';
+        
+        let initialQty = parseFloat($('#initial_qty').val()) || 0;
+        const remainingQty = parseFloat($('#remaining_qty').val());
+
+        // If remaining field has value (in edit mode), recalculate
+        if (isEdit && !isNaN(remainingQty)) {
+            // qty_used = initial_qty - remaining_qty
+            // This will be calculated server-side for data integrity
+        }
 
         const payload = {
             material_id: $('#material_id').val(),
@@ -135,7 +144,12 @@ $(document).ready(function () {
 
         if (isEdit) {
             payload.stock_id = entryId;
-            // Don't send qty_used on edit — preserve existing value
+            // If remaining field has value, send it for auto-calculation
+            if (!isNaN(remainingQty)) {
+                payload.remaining_qty = remainingQty;
+            } else {
+                // Preserve existing qty_used if no remaining provided
+            }
         } else {
             payload.qty_used = 0; // Only set to 0 for new entries
         }
@@ -194,6 +208,14 @@ $(document).ready(function () {
                         }
                         $('#initial_qty').val(d.initial_qty);
                         $('#unit').val(d.unit);
+                        
+                        // Show remaining field and calculate current remaining
+                        const initialQty = parseFloat(d.initial_qty) || 0;
+                        const qtyUsed = parseFloat(d.qty_used) || 0;
+                        const remaining = initialQty - qtyUsed;
+                        $('#remaining_qty').val(remaining);
+                        $('#remaining_qty_wrapper').removeClass('hidden');
+                        
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
@@ -527,6 +549,8 @@ $(document).ready(function () {
         $('#material_id').val('');
         $('#material_search').val('');
         $('#btnClearMaterial').addClass('hidden');
+        $('#remaining_qty_wrapper').addClass('hidden');
+        $('#remaining_qty').val('');
         hideMaterialDropdown();
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');

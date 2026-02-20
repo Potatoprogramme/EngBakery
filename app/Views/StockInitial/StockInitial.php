@@ -140,7 +140,8 @@
     <!-- Add/Edit Modal -->
     <div id="stockInitialModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-md mx-auto p-4 border shadow-lg rounded-md bg-white" style="max-width: 42rem;">
+        <div class="relative w-full max-w-md mx-auto p-4 border shadow-lg rounded-md bg-white"
+            style="max-width: 42rem;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-primary" id="modalTitle">Add Stock Entry</h3>
                 <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-gray-600">
@@ -150,7 +151,8 @@
             <form id="stockInitialForm">
                 <input type="hidden" id="edit_stock_id" value="">
                 <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Raw Material <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Raw Material <span
+                            class="text-red-500">*</span></label>
                     <div class="relative">
                         <input type="text" id="material_search"
                             class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -176,9 +178,20 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.01" required>
                     </div>
+                    <div id="remaining_qty_wrapper" class="hidden">
+                        <div class="flex">
+                            <label for="remaining_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
+                                Remaining
+                            </label>
+                        </div>
+                        <input type="number" name="remaining_qty" id="remaining_qty"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="0" min="0" step="0.01">
+                    </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit <span
+                            class="text-red-500">*</span></label>
                     <select name="unit" id="unit"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                         required>
@@ -206,7 +219,8 @@
                     <i class="fas fa-exclamation-triangle text-red-600"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Entry</h3>
-                <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete this stock entry? This action cannot be undone.</p>
+                <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete this stock entry? This action
+                    cannot be undone.</p>
                 <div class="flex gap-3 justify-center">
                     <button type="button" id="btnCancelDelete"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
@@ -219,6 +233,6 @@
 
     <!-- App Scripts -->
     <script>
-        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
     </script>
     <script src="<?= base_url('js/StockInitial.js') ?>"></script>
