@@ -140,7 +140,7 @@
                             <tr>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b">Category</th>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Monthly Amount</th>
-                                <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Daily Rate</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Cost Per Unit</th>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">% of Total</th>
                             </tr>
                         </thead>

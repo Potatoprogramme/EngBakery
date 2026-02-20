@@ -318,7 +318,7 @@ $(document).ready(function() {
             // Add Tailwind classes for scrolling (only table content scrolls)
             const container = document.querySelector('.datatable-container');
             if (container) {
-                container.classList.add('max-h-96', 'overflow-y-auto', 'overflow-x-auto');
+                container.classList.add('max-h-[36rem]', 'overflow-y-auto', 'overflow-x-auto');
             }
 
             // Add sticky header classes

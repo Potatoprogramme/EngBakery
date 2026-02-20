@@ -79,8 +79,14 @@ $(document).ready(function () {
 
     function showMaterialDropdown(searchTerm) {
         searchTerm = (searchTerm || '').toLowerCase();
+        const editingMaterialId = $('#edit_stock_id').val() ? $('#material_id').val() : null;
+        const existingMaterialIds = allEntries.map(function (e) { return String(e.material_id); });
+
         const filtered = allMaterialsData.filter(function (m) {
-            return !searchTerm || m.material_name.toLowerCase().includes(searchTerm);
+            const matchesSearch = !searchTerm || m.material_name.toLowerCase().includes(searchTerm);
+            const isCurrentEdit = editingMaterialId && String(m.material_id) === String(editingMaterialId);
+            const alreadyExists = existingMaterialIds.includes(String(m.material_id));
+            return matchesSearch && (!alreadyExists || isCurrentEdit);
         });
 
         let html = '';
