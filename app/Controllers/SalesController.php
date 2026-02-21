@@ -144,6 +144,18 @@ class SalesController extends BaseController
         return view('Sales/RemittancePrint');
     }
 
+    public function getTotalSalesByMonth($date = null)
+    {
+        $date = $date ?? date('Y-m-d');
+        $dateFrom = date('Y-m-01', strtotime($date));
+        $dateTo   = date('Y-m-t', strtotime($date));
+        $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
+        return $this->response->setJSON([
+            'success' => true,
+            'total_sales' => floatval($totalSales)
+        ]);
+    }
+
     public function getTodaysSummary()
     {
         $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
@@ -408,6 +420,14 @@ class SalesController extends BaseController
                     log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
                 }
             }
+        }
+
+        // Auto-send daily report if this is an end-of-day shift (>= 10 PM)
+        $shiftEndTime = strtotime($remittanceDetails['shift_end']);
+        $endOfDayThreshold = strtotime('22:00:00'); // 10 PM
+        
+        if ($shiftEndTime >= $endOfDayThreshold) {
+            \App\Libraries\DailyRemittanceReport::sendReport();
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);

@@ -81,8 +81,9 @@ function createProductCard(product) {
     // Drinks don't track stock - always available
     const isDrink = category === 'drinks';
     const isOutOfStock = !isDrink && stock <= 0;
+    const isDisabled = product.is_disabled === '1';
     
-    if (isOutOfStock) {
+    if (isOutOfStock && !isDisabled) {
         return `
             <div class="product-card-disabled bg-gray-100 p-2 border border-dashed border-gray-300 rounded-lg cursor-not-allowed text-center">
                 <p class="text-xs font-semibold text-gray-400 truncate">${product.product_name}</p>
@@ -90,6 +91,8 @@ function createProductCard(product) {
                 <p class="text-[10px] text-red-400 mt-1">No Stock</p>
             </div>
         `;
+    } else if (isDisabled) {
+        return ``;
     }
     
     // Stock display: drinks show "Available", others show count

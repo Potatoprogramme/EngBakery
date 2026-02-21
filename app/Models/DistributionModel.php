@@ -14,6 +14,7 @@ class DistributionModel extends Model
     protected $allowedFields = [
         'product_id',
         'product_qnty',
+        'qty_mode',
         'distribution_date',
     ];
 

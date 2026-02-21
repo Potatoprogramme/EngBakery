@@ -84,7 +84,7 @@
                     </div>
 
                     <!-- Summary Cards -->
-                    <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="grid grid-cols-3 gap-2 mb-4">
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
                             <div class="flex items-center">
                                 <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-2">
@@ -98,12 +98,23 @@
                         </div>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
                             <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-2">
+                                    <i class="fas fa-boxes text-gray-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Batches</p>
+                                    <p id="totalBatchCount" class="text-sm font-bold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
+                            <div class="flex items-center">
                                 <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center mr-2">
-                                    <i class="fas fa-boxes text-blue-500 text-sm"></i>
+                                    <i class="fas fa-puzzle-piece text-blue-500 text-sm"></i>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">Pieces</p>
-                                    <p id="totalQuantityCount" class="text-sm font-bold text-gray-900">0</p>
+                                    <p id="totalPiecesCount" class="text-sm font-bold text-gray-900">0</p>
                                 </div>
                             </div>
                         </div>
@@ -199,7 +210,21 @@
                             <span class="text-xs opacity-80">Baking List</span>
                             <h3 id="mobileDateHeader" class="font-semibold"><?= date('F d, Y') ?></h3>
                         </div>
-                        <span class="text-2xl font-bold" id="mobileItemCount">0</span>
+                        <div class="flex items-center gap-3 text-right">
+                            <div>
+                                <span class="text-2xl font-bold" id="mobileItemCount">0</span>
+                                <span class="text-[10px] opacity-70 block">items</span>
+                            </div>
+                            <div class="w-px h-8 bg-white/30"></div>
+                            <div>
+                                <span class="text-lg font-bold" id="mobileBatchCount">0</span>
+                                <span class="text-[10px] opacity-70 block">batches</span>
+                            </div>
+                            <div>
+                                <span class="text-lg font-bold" id="mobilePiecesCount">0</span>
+                                <span class="text-[10px] opacity-70 block">pieces</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -240,6 +265,10 @@
                 <div class="flex-1 bg-primary/10 rounded-lg p-3 text-center">
                     <p class="text-2xl font-bold text-primary" id="modalItemCount">0</p>
                     <p class="text-xs text-gray-600">Items</p>
+                </div>
+                <div class="flex-1 bg-gray-100 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-gray-700" id="modalBatchesCount">0</p>
+                    <p class="text-xs text-gray-600">Batches</p>
                 </div>
                 <div class="flex-1 bg-blue-50 rounded-lg p-3 text-center">
                     <p class="text-2xl font-bold text-blue-600" id="modalPiecesCount">0</p>
@@ -327,13 +356,43 @@
                         </div>
                     </div>
 
+                    <!-- Product Info (pieces per yield) -->
+                    <div id="productYieldInfo" class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                        <div class="flex items-center gap-2 text-sm text-blue-700">
+                            <i class="fas fa-info-circle"></i>
+                            <span>1 batch = <strong id="piecesPerYieldDisplay">0</strong> pieces</span>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Mode & Quantity (shown after product is selected) -->
+                    <div id="qtyModeSection" class="hidden">
+
+                    <!-- Quantity Mode Toggle -->
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Mode</label>
+                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button type="button" id="btnModeBatch" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors" data-mode="batch">
+                                <i class="fas fa-boxes mr-1"></i>Batches
+                            </button>
+                            <button type="button" id="btnModePieces" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-mode="pieces">
+                                <i class="fas fa-puzzle-piece mr-1"></i>Pieces
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedQtyMode" value="batch">
+                    </div>
+
                     <!-- Quantity -->
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity (pieces) <span class="text-red-500">*</span></label>
+                        <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (batches) <span class="text-red-500">*</span></label>
                         <input type="number" id="addProductQty" min="1" value="10" step="1"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="10">
+                        <p id="piecesConversionHint" class="hidden mt-1 text-xs text-gray-500">
+                            <i class="fas fa-calculator mr-1"></i><span id="conversionText"></span>
+                        </p>
                     </div>
+
+                    </div><!-- /qtyModeSection -->
 
                     <!-- Add Product Button -->
                     <button type="button" id="btnAddProductToList"
@@ -381,17 +440,19 @@
 
             <form id="editQtyForm">
                 <input type="hidden" id="editItemId" name="item_id">
+                <input type="hidden" id="editItemQtyMode" name="qty_mode" value="batch">
 
                 <div class="text-center mb-4">
                     <div class="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-2 flex items-center justify-center">
                         <i class="fas fa-bread-slice text-primary text-2xl"></i>
                     </div>
                     <h4 id="editProductName" class="font-semibold text-gray-800">Spanish Bread</h4>
+                    <span id="editQtyModeBadge" class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary">batch</span>
                 </div>
 
                 <div class="mb-6">
-                    <label for="editQuantity" class="block text-sm font-medium text-gray-700 mb-2 text-center">
-                        Quantity (pieces)
+                    <label for="editQuantity" id="editQtyLabel" class="block text-sm font-medium text-gray-700 mb-2 text-center">
+                        Quantity (batches)
                     </label>
                     <div class="flex items-center justify-center gap-3">
                         <button type="button" id="btnEditQtyDec"
@@ -609,6 +670,7 @@
             function updateDistributionItem(itemId, quantity) {
                 const row = $('[data-id="' + itemId + '"]');
                 const productId = row.data('product-id');
+                const qtyMode = row.data('qty-mode') || 'batch';
                 const date = $('#selectedDate').val();
 
                 $.ajax({
@@ -618,6 +680,7 @@
                     data: JSON.stringify({
                         product_id: productId,
                         product_qnty: quantity,
+                        qty_mode: qtyMode,
                         distribution_date: date
                     }),
                     dataType: 'json',
@@ -681,11 +744,16 @@
 
                     let itemsPreview = '';
                     if (hasItems) {
-                        const totalQty = dayData.reduce((sum, item) => sum + parseInt(item.product_qnty || 0), 0);
+                        const batchQty = dayData.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
+                        const piecesQty = dayData.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
+                        let qtyParts = [];
+                        if (batchQty > 0) qtyParts.push(batchQty + 'b');
+                        if (piecesQty > 0) qtyParts.push(piecesQty + 'p');
+                        const qtyLabel = qtyParts.length > 0 ? qtyParts.join('/') : '0';
                         itemsPreview = `
                             <div class="mt-0.5 sm:mt-1 leading-tight">
                                 <span class="text-[8px] sm:text-[10px] md:text-xs ${isSelected ? 'text-white/80' : 'text-primary'} font-medium block sm:inline">${dayData.length}</span>
-                                <span class="hidden sm:inline text-[10px] md:text-xs ${isSelected ? 'text-white/60' : 'text-gray-500'}">(${totalQty})</span>
+                                <span class="hidden sm:inline text-[10px] md:text-xs ${isSelected ? 'text-white/60' : 'text-gray-500'}">(${qtyLabel})</span>
                             </div>
                         `;
                     }
@@ -736,9 +804,11 @@
                 $('#calendarDayModalDate').text(formatted);
                 $('#calendarDayModal').data('selected-date', dateStr);
 
-                const totalQty = items.reduce((sum, item) => sum + parseInt(item.product_qnty || 0), 0);
+                const batchTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
+                const piecesTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
                 $('#modalItemCount').text(items.length);
-                $('#modalPiecesCount').text(totalQty);
+                $('#modalBatchesCount').text(batchTotal);
+                $('#modalPiecesCount').text(piecesTotal);
 
                 const listContainer = $('#calendarDayItemsList');
                 listContainer.empty();
@@ -759,7 +829,7 @@
                                     </div>
                                     <span class="text-sm font-medium text-gray-800">${item.product_name}</span>
                                 </div>
-                                <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">pcs</span></span>
+                                <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">${(item.qty_mode || 'batch') === 'pieces' ? 'pcs' : 'batch'}</span></span>
                             </div>
                         `;
                         listContainer.append(row);
@@ -797,16 +867,23 @@
                 $('#emptyState').addClass('hidden');
 
                 items.forEach(function(item) {
+                    const qtyMode = item.qty_mode || 'batch';
+                    const modeLabel = qtyMode === 'pieces' ? 'pcs' : 'batch';
+                    const modeBadgeColor = qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600';
                     const row = `
-                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-id="${item.distribution_id}" data-product-id="${item.product_id}" data-qty-mode="${qtyMode}">
                             <div class="flex items-center gap-2 min-w-0 flex-1">
                                 <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-bread-slice text-primary text-xs"></i>
                                 </div>
-                                <span class="text-sm font-medium text-gray-800 truncate">${item.product_name}</span>
+                                <div class="min-w-0">
+                                    <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full ${modeBadgeColor} font-medium">${qtyMode}</span>
+                                </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-bold text-gray-800">${item.product_qnty}</span>
+                                <span class="text-xs text-gray-500">${modeLabel}</span>
                                 <button type="button" class="btn-edit-qty p-1.5 text-primary hover:bg-primary/10 rounded" title="Edit">
                                     <i class="fas fa-edit text-xs"></i>
                                 </button>
@@ -832,8 +909,11 @@
                 $('#mobileNoResults').addClass('hidden');
 
                 items.forEach(function(item) {
+                    const qtyMode = item.qty_mode || 'batch';
+                    const modeLabel = qtyMode === 'pieces' ? 'pcs' : 'batch';
+                    const modeBadgeColor = qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600';
                     const card = `
-                        <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-id="${item.distribution_id}" data-product-id="${item.product_id}">
+                        <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-id="${item.distribution_id}" data-product-id="${item.product_id}" data-qty-mode="${qtyMode}">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -841,7 +921,10 @@
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-800">${item.product_name}</h4>
-                                        <span class="text-xs text-gray-500">${item.product_qnty} pcs</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xs text-gray-500">${item.product_qnty} ${modeLabel}</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${modeBadgeColor} font-medium">${qtyMode}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
@@ -899,6 +982,17 @@
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
                 $('#addProductQty').val(10);
+                $('#productYieldInfo').addClass('hidden');
+                $('#piecesConversionHint').addClass('hidden');
+                $('#qtyModeSection').addClass('hidden');
+                // Reset mode toggle to batch and re-enable buttons
+                $('#btnModeBatch').removeClass('hidden');
+                $('#btnModePieces').removeClass('pointer-events-none w-full');
+                $('.qty-mode-btn').prop('disabled', false).removeClass('cursor-not-allowed bg-gray-200 text-gray-400');
+                $('#selectedQtyMode').val('batch');
+                $('.qty-mode-btn').removeClass('bg-primary text-white').addClass('bg-white text-gray-600 hover:bg-gray-50');
+                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass('bg-primary text-white');
+                $('#addQtyLabel').html('Quantity (batches) <span class="text-red-500">*</span>');
                 hideProductDropdown();
                 $('#addItemsModal').removeClass('hidden');
             });
@@ -932,6 +1026,28 @@
                 $('#productSearch').val(name);
                 $('#btnClearProduct').removeClass('hidden');
                 hideProductDropdown();
+
+                // Show pieces_per_yield info for the selected product
+                const product = productsData.find(p => p.product_id == id);
+                if (product && product.pieces_per_yield > 0) {
+                    $('#piecesPerYieldDisplay').text(product.pieces_per_yield);
+                    $('#productYieldInfo').removeClass('hidden');
+                } else {
+                    $('#productYieldInfo').addClass('hidden');
+                }
+
+                // Grocery & Drinks: force pieces mode, disable batch toggle
+                if (product && isPiecesOnlyCategory(product.category)) {
+                    forceQtyMode('pieces');
+                } else {
+                    unlockQtyModeToggle();
+                }
+
+                // Show quantity mode & quantity fields
+                $('#qtyModeSection').removeClass('hidden');
+
+                updateConversionHint();
+
                 $('#addProductQty').focus();
             });
 
@@ -939,6 +1055,10 @@
                 $('#selectedProductId').val('');
                 $('#productSearch').val('');
                 $(this).addClass('hidden');
+                $('#productYieldInfo').addClass('hidden');
+                $('#piecesConversionHint').addClass('hidden');
+                $('#qtyModeSection').addClass('hidden');
+                unlockQtyModeToggle();
                 $('#productSearch').focus();
             });
 
@@ -959,7 +1079,13 @@
                     filtered.forEach(function(product) {
                         const alreadyAdded = itemsToAddList.some(i => i.product_id == product.product_id);
                         const disabledClass = alreadyAdded ? 'opacity-50 pointer-events-none' : 'hover:bg-primary/10 cursor-pointer';
-                        const badge = alreadyAdded ? '<span class="text-xs text-green-600 font-medium">Added</span>' : '';
+                        const piecesOnly = isPiecesOnlyCategory(product.category);
+                        let badge = '';
+                        if (alreadyAdded) {
+                            badge = '<span class="text-xs text-green-600 font-medium">Added</span>';
+                        } else if (piecesOnly) {
+                            badge = '<span class="text-[10px] text-blue-500 font-medium">pieces only</span>';
+                        }
                         html += `<div class="product-option px-3 py-2 text-sm ${disabledClass} flex items-center justify-between" data-id="${product.product_id}" data-name="${product.product_name}">
                             <span>${product.product_name}</span>
                             ${badge}
@@ -973,10 +1099,102 @@
                 $('#productDropdown').addClass('hidden');
             }
 
+            // ===== QUANTITY MODE TOGGLE =====
+
+            /**
+             * Check whether a product category only supports pieces mode (no batches).
+             */
+            function isPiecesOnlyCategory(category) {
+                const cat = (category || '').toLowerCase();
+                return cat === 'grocery' || cat === 'drinks';
+            }
+
+            /**
+             * Force the qty mode to pieces-only: hide the batch button, show pieces
+             * as a non-clickable label so the user sees the mode without interacting.
+             */
+            function forceQtyMode(mode) {
+                $('#selectedQtyMode').val(mode);
+                // Hide batch button, show only pieces as a static label
+                $('#btnModeBatch').addClass('hidden');
+                $('#btnModePieces').removeClass('hidden bg-white text-gray-600 hover:bg-gray-50')
+                    .addClass('bg-primary text-white pointer-events-none w-full');
+                $('.qty-mode-btn').prop('disabled', true);
+                $('#addQtyLabel').html('Quantity (pieces) <span class="text-red-500">*</span>');
+            }
+
+            /**
+             * Unlock the qty mode toggle buttons so the user can freely switch.
+             */
+            function unlockQtyModeToggle() {
+                // Restore both buttons to normal interactive state
+                $('#btnModeBatch').removeClass('hidden');
+                $('#btnModePieces').removeClass('pointer-events-none w-full');
+                $('.qty-mode-btn').prop('disabled', false).removeClass('cursor-not-allowed bg-gray-200 text-gray-400');
+                // Reset to batch mode when unlocking
+                $('#selectedQtyMode').val('batch');
+                $('.qty-mode-btn').removeClass('bg-primary text-white').addClass('bg-white text-gray-600 hover:bg-gray-50');
+                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass('bg-primary text-white');
+                $('#addQtyLabel').html('Quantity (batches) <span class="text-red-500">*</span>');
+            }
+
+            $('.qty-mode-btn').on('click', function() {
+                if ($(this).prop('disabled')) return;
+                const mode = $(this).data('mode');
+                $('#selectedQtyMode').val(mode);
+
+                // Update toggle button styles
+                $('.qty-mode-btn').removeClass('bg-primary text-white').addClass('bg-white text-gray-600 hover:bg-gray-50');
+                $(this).removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass('bg-primary text-white');
+
+                // Update quantity label
+                if (mode === 'pieces') {
+                    $('#addQtyLabel').html('Quantity (pieces) <span class="text-red-500">*</span>');
+                } else {
+                    $('#addQtyLabel').html('Quantity (batches) <span class="text-red-500">*</span>');
+                }
+
+                updateConversionHint();
+            });
+
+            // Update conversion hint when quantity changes
+            $('#addProductQty').on('input', function() {
+                updateConversionHint();
+            });
+
+            function updateConversionHint() {
+                const productId = $('#selectedProductId').val();
+                const mode = $('#selectedQtyMode').val();
+                const qty = parseInt($('#addProductQty').val()) || 0;
+
+                if (!productId || qty <= 0) {
+                    $('#piecesConversionHint').addClass('hidden');
+                    return;
+                }
+
+                const product = productsData.find(p => p.product_id == productId);
+                const piecesPerYield = product ? parseInt(product.pieces_per_yield || 0) : 0;
+
+                if (piecesPerYield <= 0) {
+                    $('#piecesConversionHint').addClass('hidden');
+                    return;
+                }
+
+                if (mode === 'batch') {
+                    const totalPieces = qty * piecesPerYield;
+                    $('#conversionText').text(qty + ' batch(es) × ' + piecesPerYield + ' pcs/batch = ' + totalPieces + ' pieces total');
+                } else {
+                    const batches = (qty / piecesPerYield).toFixed(2);
+                    $('#conversionText').text(qty + ' pieces ÷ ' + piecesPerYield + ' pcs/batch = ' + batches + ' batch(es) of raw materials used');
+                }
+                $('#piecesConversionHint').removeClass('hidden');
+            }
+
             $('#btnAddProductToList').on('click', function() {
                 const productId = $('#selectedProductId').val();
                 const productName = $('#productSearch').val();
                 const quantity = parseInt($('#addProductQty').val()) || 0;
+                const qtyMode = $('#selectedQtyMode').val();
 
                 if (!productId) {
                     showToast('warning', 'Please search and select a product first.', 3000);
@@ -991,12 +1209,25 @@
                     return;
                 }
 
-                itemsToAddList.push({ product_id: productId, product_name: productName, quantity: quantity });
+                // Get pieces_per_yield for display purposes
+                const product = productsData.find(p => p.product_id == productId);
+                const piecesPerYield = product ? parseInt(product.pieces_per_yield || 0) : 0;
+
+                itemsToAddList.push({
+                    product_id: productId,
+                    product_name: productName,
+                    quantity: quantity,
+                    qty_mode: qtyMode,
+                    pieces_per_yield: piecesPerYield
+                });
                 renderAddedItemsList();
 
                 $('#productSearch').val('');
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
+                $('#productYieldInfo').addClass('hidden');
+                $('#piecesConversionHint').addClass('hidden');
+                $('#qtyModeSection').addClass('hidden');
                 $('#addProductQty').val(10);
                 $('#productSearch').focus();
             });
@@ -1018,6 +1249,8 @@
                 }
 
                 itemsToAddList.forEach(function(item, index) {
+                    const modeLabel = item.qty_mode === 'pieces' ? 'pcs' : 'batch';
+                    const modeBadgeColor = item.qty_mode === 'pieces' ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary';
                     const row = `
                         <div class="flex items-center justify-between p-2 bg-white rounded-md border border-gray-200">
                             <div class="flex items-center gap-2 min-w-0">
@@ -1026,7 +1259,10 @@
                                 </div>
                                 <div class="min-w-0">
                                     <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
-                                    <span class="text-xs text-gray-500">${item.quantity} pcs</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-xs text-gray-500">${item.quantity} ${modeLabel}</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${modeBadgeColor} font-medium">${item.qty_mode}</span>
+                                    </div>
                                 </div>
                             </div>
                             <button type="button" class="btn-remove-added-item p-1.5 text-red-500 hover:bg-red-50 rounded-md flex-shrink-0" data-index="${index}" title="Remove">
@@ -1074,10 +1310,15 @@
                 const row = $(this).closest('[data-id]');
                 const productName = row.find('span.font-medium, span.truncate').first().text();
                 const qty = row.find('.font-bold').first().text();
+                const qtyMode = row.data('qty-mode') || 'batch';
 
                 $('#editProductName').text(productName);
                 $('#editQuantity').val(parseInt(qty));
                 $('#editItemId').val(row.data('id'));
+                $('#editItemQtyMode').val(qtyMode);
+                $('#editQtyModeBadge').text(qtyMode).removeClass('bg-primary/10 text-primary bg-blue-100 text-blue-700')
+                    .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary');
+                $('#editQtyLabel').text('Quantity (' + (qtyMode === 'pieces' ? 'pieces' : 'batches') + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
@@ -1088,12 +1329,17 @@
                 }
                 const card = $(this).closest('[data-id]');
                 const productName = card.find('h4').text();
-                const qtyText = card.find('.text-xs.text-gray-500').text();
+                const qtyText = card.find('.text-xs.text-gray-500').first().text();
                 const qty = parseInt(qtyText) || 0;
+                const qtyMode = card.data('qty-mode') || 'batch';
 
                 $('#editProductName').text(productName);
                 $('#editQuantity').val(qty);
                 $('#editItemId').val(card.data('id'));
+                $('#editItemQtyMode').val(qtyMode);
+                $('#editQtyModeBadge').text(qtyMode).removeClass('bg-primary/10 text-primary bg-blue-100 text-blue-700')
+                    .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary');
+                $('#editQtyLabel').text('Quantity (' + (qtyMode === 'pieces' ? 'pieces' : 'batches') + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
@@ -1136,7 +1382,7 @@
                 }
 
                 const itemsToAdd = itemsToAddList.map(function(item) {
-                    return { product_id: item.product_id, quantity: item.quantity };
+                    return { product_id: item.product_id, quantity: item.quantity, qty_mode: item.qty_mode };
                 });
 
                 $('#btnSaveItems').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Saving...');
@@ -1154,6 +1400,7 @@
                         data: JSON.stringify({
                             product_id: item.product_id,
                             product_qnty: item.quantity,
+                            qty_mode: item.qty_mode,
                             distribution_date: scheduleDate
                         }),
                         dataType: 'json',
@@ -1281,16 +1528,25 @@
 
         function updateSummaryCounts(items) {
             const total = items ? items.length : 0;
-            let totalQty = 0;
+            let totalBatches = 0;
+            let totalPieces = 0;
             if (items) {
                 items.forEach(function(item) {
-                    totalQty += parseInt(item.product_qnty) || 0;
+                    const qty = parseInt(item.product_qnty) || 0;
+                    if ((item.qty_mode || 'batch') === 'pieces') {
+                        totalPieces += qty;
+                    } else {
+                        totalBatches += qty;
+                    }
                 });
             }
 
             $('#totalItemsCount').text(total);
-            $('#totalQuantityCount').text(totalQty);
+            $('#totalBatchCount').text(totalBatches);
+            $('#totalPiecesCount').text(totalPieces);
             $('#mobileItemCount').text(total);
+            $('#mobileBatchCount').text(totalBatches);
+            $('#mobilePiecesCount').text(totalPieces);
         }
 
         /**

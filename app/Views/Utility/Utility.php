@@ -44,9 +44,7 @@
                             <select id="filter-month"
                                 class="w-full sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                                 <option value="">All Months</option>
-                                <option value="01" selected>January 2026</option>
-                                <option value="02">February 2026</option>
-                                <option value="03">March 2026</option>
+                                <!-- Dynamically populated by populateMonthFilter() -->
                             </select>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -72,96 +70,8 @@
             </div>
 
             <!-- Monthly Summary Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
-                <!-- Gas Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Gas</p>
-                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱3,500.00</p>
-                        </div>
-                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-fire text-orange-600 text-sm sm:text-base"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
-                        <span class="text-orange-600 font-medium">
-                            <i class="fas fa-chart-line mr-1"></i>Monthly
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Water Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Water</p>
-                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱1,200.00</p>
-                        </div>
-                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-tint text-blue-600 text-sm sm:text-base"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
-                        <span class="text-blue-600 font-medium">
-                            <i class="fas fa-chart-line mr-1"></i>Monthly
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Electricity Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Electricity</p>
-                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱8,500.00</p>
-                        </div>
-                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-bolt text-yellow-600 text-sm sm:text-base"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
-                        <span class="text-yellow-600 font-medium">
-                            <i class="fas fa-chart-line mr-1"></i>Monthly
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Labor Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Labor</p>
-                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱25,000.00</p>
-                        </div>
-                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-users text-green-600 text-sm sm:text-base"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
-                        <span class="text-green-600 font-medium">
-                            <i class="fas fa-chart-line mr-1"></i>Monthly
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Rent Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Rent</p>
-                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">₱15,000.00</p>
-                        </div>
-                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center ml-2">
-                            <i class="fas fa-home text-purple-600 text-sm sm:text-base"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
-                        <span class="text-purple-600 font-medium">
-                            <i class="fas fa-chart-line mr-1"></i>Monthly
-                        </span>
-                    </div>
-                </div>
+            <div id="summaryCards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
+                <!-- Dynamically populated by getExpenses() -->
             </div>
 
             <!-- Overhead Evaluation Section -->
@@ -179,7 +89,7 @@
                         <div class="h-12 w-px bg-gray-200"></div>
                         <div class="text-right">
                             <div class="text-xs text-gray-500 uppercase tracking-wide">Recommended</div>
-                            <div class="text-2xl font-bold text-green-600">27%</div>
+                            <div id="recommendedOverhead" class="text-2xl font-bold text-green-600">--%</div>
                         </div>
                     </div>
                 </div>
@@ -189,20 +99,20 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
                         <span class="text-xs text-gray-500 uppercase tracking-wide">Total Monthly Expenses</span>
-                        <div class="text-lg font-semibold text-gray-800 mt-1">₱ 53,200.00</div>
+                        <div id="overheadTotalMonthly" class="text-lg font-semibold text-gray-800 mt-1">₱ 0.00</div>
                     </div>
                     <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
                         <span class="text-xs text-gray-500 uppercase tracking-wide">Daily Average</span>
-                        <div class="text-lg font-semibold text-gray-800 mt-1">₱ 1,773.33</div>
+                        <div id="overheadDailyAvg" class="text-lg font-semibold text-gray-800 mt-1">₱ 0.00</div>
                     </div>
                     <div class="p-3 rounded-lg border border-gray-200 bg-gray-50">
                         <span class="text-xs text-gray-500 uppercase tracking-wide">Overhead Collected (Est.)</span>
-                        <div class="text-lg font-semibold text-green-600 mt-1">₱ 48,750.00</div>
+                        <div id="overheadCollected" class="text-lg font-semibold text-green-600 mt-1">₱ 0.00</div>
                     </div>
-                    <div class="p-3 rounded-lg border border-amber-200 bg-amber-50">
+                    <div id="overheadDifferenceCard" class="p-3 rounded-lg border border-amber-200 bg-amber-50">
                         <span class="text-xs text-amber-600 uppercase tracking-wide">Difference</span>
-                        <div class="text-lg font-semibold text-amber-600 mt-1">- ₱ 4,450.00</div>
-                        <div class="text-xs text-amber-500">Overhead may be insufficient</div>
+                        <div id="overheadDifference" class="text-lg font-semibold text-amber-600 mt-1">₱ 0.00</div>
+                        <div id="overheadDifferenceNote" class="text-xs text-amber-500"></div>
                     </div>
                 </div>
             </div>
@@ -230,92 +140,18 @@
                             <tr>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b">Category</th>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Monthly Amount</th>
-                                <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Daily Rate</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Cost Per Unit</th>
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">% of Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-orange-100 rounded">
-                                            <i class="fas fa-fire text-orange-500 text-xs"></i>
-                                        </div>
-                                        Gas
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 3,500.00</td>
-                                <td class="px-4 py-3 text-right text-gray-600">₱ 116.67</td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">6.6%</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-blue-100 rounded">
-                                            <i class="fas fa-tint text-blue-500 text-xs"></i>
-                                        </div>
-                                        Water
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 1,200.00</td>
-                                <td class="px-4 py-3 text-right text-gray-600">₱ 40.00</td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">2.3%</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-yellow-100 rounded">
-                                            <i class="fas fa-bolt text-yellow-500 text-xs"></i>
-                                        </div>
-                                        Electricity
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 8,500.00</td>
-                                <td class="px-4 py-3 text-right text-gray-600">₱ 283.33</td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">16.0%</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-green-100 rounded">
-                                            <i class="fas fa-users text-green-500 text-xs"></i>
-                                        </div>
-                                        Labor
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 25,000.00</td>
-                                <td class="px-4 py-3 text-right text-gray-600">₱ 833.33</td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">47.0%</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-purple-100 rounded">
-                                            <i class="fas fa-home text-purple-500 text-xs"></i>
-                                        </div>
-                                        Rent
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 15,000.00</td>
-                                <td class="px-4 py-3 text-right text-gray-600">₱ 500.00</td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">28.2%</span>
-                                </td>
-                            </tr>
+                        <tbody id="dailyBreakdownBody">
+                            <!-- Dynamically populated -->
                         </tbody>
-                        <tfoot class="bg-gray-100">
+                        <tfoot class="bg-gray-100" id="dailyBreakdownFoot">
                             <tr>
                                 <td class="px-4 py-3 font-semibold text-gray-800">Total</td>
-                                <td class="px-4 py-3 text-right font-bold text-gray-800">₱ 53,200.00</td>
-                                <td class="px-4 py-3 text-right font-bold text-gray-800">₱ 1,773.33</td>
+                                <td id="dailyTotalMonthly" class="px-4 py-3 text-right font-bold text-gray-800">₱ 0.00</td>
+                                <td id="dailyTotalDaily" class="px-4 py-3 text-right font-bold text-gray-800">₱ 0.00</td>
                                 <td class="px-4 py-3 text-right">
                                     <span class="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">100%</span>
                                 </td>
@@ -338,45 +174,10 @@
                                 <th class="px-4 py-3 font-semibold text-gray-700 border-b text-right">Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3 font-medium">January 2026</td>
-                                <td class="px-4 py-3 text-right">₱ 3,500</td>
-                                <td class="px-4 py-3 text-right">₱ 1,200</td>
-                                <td class="px-4 py-3 text-right">₱ 8,500</td>
-                                <td class="px-4 py-3 text-right">₱ 25,000</td>
-                                <td class="px-4 py-3 text-right">₱ 15,000</td>
-                                <td class="px-4 py-3 text-right font-bold text-primary">₱ 53,200</td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50 bg-gray-50">
-                                <td class="px-4 py-3 font-medium">December 2025</td>
-                                <td class="px-4 py-3 text-right">₱ 3,200</td>
-                                <td class="px-4 py-3 text-right">₱ 1,150</td>
-                                <td class="px-4 py-3 text-right">₱ 9,200</td>
-                                <td class="px-4 py-3 text-right">₱ 25,000</td>
-                                <td class="px-4 py-3 text-right">₱ 15,000</td>
-                                <td class="px-4 py-3 text-right font-bold text-primary">₱ 53,550</td>
-                            </tr>
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3 font-medium">November 2025</td>
-                                <td class="px-4 py-3 text-right">₱ 3,100</td>
-                                <td class="px-4 py-3 text-right">₱ 1,100</td>
-                                <td class="px-4 py-3 text-right">₱ 7,800</td>
-                                <td class="px-4 py-3 text-right">₱ 25,000</td>
-                                <td class="px-4 py-3 text-right">₱ 15,000</td>
-                                <td class="px-4 py-3 text-right font-bold text-primary">₱ 52,000</td>
-                            </tr>
+                        <tbody id="monthlyBreakdownBody">
+                            <!-- Dynamically populated -->
                         </tbody>
-                        <tfoot class="bg-gray-100">
-                            <tr>
-                                <td class="px-4 py-3 font-semibold text-gray-800">Average</td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 3,267</td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 1,150</td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 8,500</td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 25,000</td>
-                                <td class="px-4 py-3 text-right font-medium">₱ 15,000</td>
-                                <td class="px-4 py-3 text-right font-bold text-gray-800">₱ 52,917</td>
-                            </tr>
+                        <tfoot class="bg-gray-100" id="monthlyBreakdownFoot">
                         </tfoot>
                     </table>
                 </div>
@@ -395,9 +196,6 @@
                                 <span class="flex items-center">Category</span>
                             </th>
                             <th scope="col" class="px-6 py-3">
-                                <span class="flex items-center">Description</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">Amount</span>
                             </th>
                             <th scope="col" class="px-6 py-3">
@@ -406,76 +204,7 @@
                         </tr>
                     </thead>
                     <tbody id="expenseTableBody">
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 text-gray-700">Jan 31, 2026</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Labor</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Monthly staff salary</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">₱ 25,000.00</td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <button class="btn-edit-expense text-blue-600 hover:text-blue-800" data-id="1" data-category="labor" data-description="Monthly staff salary" data-amount="25000" data-date="2026-01-31" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="1"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 text-gray-700">Jan 28, 2026</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">Rent</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Monthly shop rental</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">₱ 15,000.00</td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <button class="btn-edit-expense text-blue-600 hover:text-blue-800" data-id="2" data-category="rent" data-description="Monthly shop rental" data-amount="15000" data-date="2026-01-28" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="2"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 text-gray-700">Jan 25, 2026</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Electricity</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Electric bill - January</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">₱ 8,500.00</td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <button class="btn-edit-expense text-blue-600 hover:text-blue-800" data-id="3" data-category="electricity" data-description="Electric bill - January" data-amount="8500" data-date="2026-01-25" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="3"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 text-gray-700">Jan 20, 2026</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">Gas</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">LPG refill - 3 tanks</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">₱ 3,500.00</td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <button class="btn-edit-expense text-blue-600 hover:text-blue-800" data-id="4" data-category="gas" data-description="LPG refill - 3 tanks" data-amount="3500" data-date="2026-01-20" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="4"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 text-gray-700">Jan 15, 2026</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">Water</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Water bill - January</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">₱ 1,200.00</td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <button class="btn-edit-expense text-blue-600 hover:text-blue-800" data-id="5" data-category="water" data-description="Water bill - January" data-amount="1200" data-date="2026-01-15" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="5"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Dynamically populated by getExpenses() -->
                     </tbody>
                 </table>
             </div>
@@ -495,85 +224,7 @@
 
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-3">
-                    <!-- Card 1 -->
-                    <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Labor</span>
-                            <span class="text-xs text-gray-500">Jan 31, 2026</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">Monthly staff salary</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-800">₱ 25,000.00</span>
-                            <div class="flex gap-2">
-                                <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="1" data-category="labor" data-description="Monthly staff salary" data-amount="25000" data-date="2026-01-31" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="1"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-purple-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">Rent</span>
-                            <span class="text-xs text-gray-500">Jan 28, 2026</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">Monthly shop rental</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-800">₱ 15,000.00</span>
-                            <div class="flex gap-2">
-                                <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="2" data-category="rent" data-description="Monthly shop rental" data-amount="15000" data-date="2026-01-28" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="2"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-yellow-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Electricity</span>
-                            <span class="text-xs text-gray-500">Jan 25, 2026</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">Electric bill - January</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-800">₱ 8,500.00</span>
-                            <div class="flex gap-2">
-                                <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="3" data-category="electricity" data-description="Electric bill - January" data-amount="8500" data-date="2026-01-25" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="3"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 4 -->
-                    <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-orange-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">Gas</span>
-                            <span class="text-xs text-gray-500">Jan 20, 2026</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">LPG refill - 3 tanks</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-800">₱ 3,500.00</span>
-                            <div class="flex gap-2">
-                                <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="4" data-category="gas" data-description="LPG refill - 3 tanks" data-amount="3500" data-date="2026-01-20" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="4"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 5 -->
-                    <div class="p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">Water</span>
-                            <span class="text-xs text-gray-500">Jan 15, 2026</span>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-2">Water bill - January</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-gray-800">₱ 1,200.00</span>
-                            <div class="flex gap-2">
-                                <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="5" data-category="water" data-description="Water bill - January" data-amount="1200" data-date="2026-01-15" data-period="monthly"><i class="fas fa-edit"></i></button>
-                                <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="5"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Dynamically populated by getExpenses() -->
                 </div>
 
                 <!-- Mobile Pagination -->
@@ -610,12 +261,6 @@
                 <input type="hidden" id="expense_mode" name="expense_mode" value="add">
                 
                 <div class="mb-4">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-gray-700">Expense Category <span class="text-red-500">*</span></label>
-                        <button type="button" id="btnManageCategories" class="text-xs text-primary hover:text-secondary hover:underline">
-                            <i class="fas fa-cog mr-1"></i>Manage Categories
-                        </button>
-                    </div>
                     <select name="expense_category" id="expense_category"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                         <option value="">Select Category</option>
@@ -625,13 +270,6 @@
                         <option value="labor">Labor</option>
                         <option value="rent">Rent</option>
                     </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <input type="text" name="expense_description" id="expense_description"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="e.g., Electric bill - January">
                 </div>
 
                 <div class="mb-4">
@@ -674,249 +312,42 @@
         </div>
     </div>
 
-    <!-- Category Management Modal -->
-    <div id="categoryModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-lg mx-auto p-4 sm:p-6 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-primary">Manage Expense Categories</h3>
-                <button type="button" id="btnCloseCategoryModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <!-- Add New Category -->
-            <div class="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">Add New Category</h4>
-                <form id="addCategoryForm" class="space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Category Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="category_name" name="category_name"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                                placeholder="e.g., Maintenance" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                            <select id="category_color" name="category_color"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                                <option value="orange">Orange</option>
-                                <option value="blue">Blue</option>
-                                <option value="yellow">Yellow</option>
-                                <option value="green">Green</option>
-                                <option value="purple">Purple</option>
-                                <option value="red">Red</option>
-                                <option value="pink">Pink</option>
-                                <option value="indigo">Indigo</option>
-                                <option value="teal">Teal</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <button type="submit" id="btnAddCategory"
-                            class="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-plus mr-2"></i>Add Category
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Categories List -->
-            <div class="border border-gray-200 rounded-lg">
-                <div class="p-3 bg-gray-50 border-b border-gray-200">
-                    <h4 class="text-sm font-semibold text-gray-700">Existing Categories</h4>
-                </div>
-                <div id="categoriesList" class="divide-y divide-gray-200 max-h-64 overflow-y-auto">
-                    <!-- Gas -->
-                    <div class="p-3 flex items-center justify-between hover:bg-gray-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-orange-500"></div>
-                            <div>
-                                <span class="font-medium text-gray-800">Gas</span>
-                                <span class="ml-2 px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded-full">orange</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="btn-edit-category p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="1" data-name="Gas" data-color="orange">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete-category p-2 text-red-600 hover:bg-red-50 rounded" data-id="1">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Water -->
-                    <div class="p-3 flex items-center justify-between hover:bg-gray-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-blue-500"></div>
-                            <div>
-                                <span class="font-medium text-gray-800">Water</span>
-                                <span class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">blue</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="btn-edit-category p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="2" data-name="Water" data-color="blue">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete-category p-2 text-red-600 hover:bg-red-50 rounded" data-id="2">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Electricity -->
-                    <div class="p-3 flex items-center justify-between hover:bg-gray-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-yellow-500"></div>
-                            <div>
-                                <span class="font-medium text-gray-800">Electricity</span>
-                                <span class="ml-2 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded-full">yellow</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="btn-edit-category p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="3" data-name="Electricity" data-color="yellow">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete-category p-2 text-red-600 hover:bg-red-50 rounded" data-id="3">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Labor -->
-                    <div class="p-3 flex items-center justify-between hover:bg-gray-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-green-500"></div>
-                            <div>
-                                <span class="font-medium text-gray-800">Labor</span>
-                                <span class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">green</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="btn-edit-category p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="4" data-name="Labor" data-color="green">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete-category p-2 text-red-600 hover:bg-red-50 rounded" data-id="4">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Rent -->
-                    <div class="p-3 flex items-center justify-between hover:bg-gray-50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-4 h-4 rounded-full bg-purple-500"></div>
-                            <div>
-                                <span class="font-medium text-gray-800">Rent</span>
-                                <span class="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">purple</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="btn-edit-category p-2 text-blue-600 hover:bg-blue-50 rounded" data-id="5" data-name="Rent" data-color="purple">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete-category p-2 text-red-600 hover:bg-red-50 rounded" data-id="5">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end mt-4">
-                <button type="button" id="btnCloseCategoryModalBottom"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Category Modal -->
-    <div id="editCategoryModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-md mx-auto p-4 sm:p-6 border shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-primary">Edit Category</h3>
-                <button type="button" id="btnCloseEditCategoryModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <form id="editCategoryForm">
-                <input type="hidden" id="edit_category_id" name="edit_category_id" value="">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category Name <span class="text-red-500">*</span></label>
-                    <input type="text" id="edit_category_name" name="edit_category_name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="e.g., Maintenance" required>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                    <select id="edit_category_color" name="edit_category_color"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="orange">Orange</option>
-                        <option value="blue">Blue</option>
-                        <option value="yellow">Yellow</option>
-                        <option value="green">Green</option>
-                        <option value="purple">Purple</option>
-                        <option value="red">Red</option>
-                        <option value="pink">Pink</option>
-                        <option value="indigo">Indigo</option>
-                        <option value="teal">Teal</option>
-                    </select>
-                </div>
-
-                <!-- Preview -->
-                <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Preview</label>
-                    <div class="flex items-center gap-3">
-                        <div id="editCategoryPreviewColor" class="w-4 h-4 rounded-full bg-orange-500"></div>
-                        <span id="editCategoryPreviewName" class="font-medium text-gray-800">Category Name</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mt-6">
-                    <button type="button" id="btnCancelEditCategory"
-                        class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                        Cancel
-                    </button>
-                    <button type="submit" id="btnUpdateCategory"
-                        class="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                        Update Category
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteConfirmModal"
-        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[70] flex items-center justify-center p-4 sm:p-0">
-        <div class="relative w-full max-w-sm mx-auto p-4 sm:p-6 border shadow-lg rounded-md bg-white">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm Delete</h3>
-                <p id="deleteConfirmMessage" class="text-sm text-gray-600 mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
-                <input type="hidden" id="delete_item_id" value="">
-                <input type="hidden" id="delete_item_type" value="">
-                <div class="flex gap-2">
-                    <button type="button" id="btnCancelDelete"
-                        class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                        Cancel
-                    </button>
-                    <button type="button" id="btnConfirmDelete"
-                        class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Toggle Daily/Monthly View
+        const base_url = '<?= base_url() ?>';
+        let allExpenses = []; // Store all fetched expenses
+
+        // ================== Category Config ==================
+        const categoryConfig = {
+            gas:         { label: 'Gas',         icon: 'fa-fire',  bgColor: 'orange', bgClass: 'bg-orange-100', textClass: 'text-orange-600', borderClass: 'border-orange-500', badgeBg: 'bg-orange-100', badgeText: 'text-orange-700' },
+            water:       { label: 'Water',       icon: 'fa-tint',  bgColor: 'blue',   bgClass: 'bg-blue-100',   textClass: 'text-blue-600',   borderClass: 'border-blue-500',   badgeBg: 'bg-blue-100',   badgeText: 'text-blue-700' },
+            electricity: { label: 'Electricity', icon: 'fa-bolt',  bgColor: 'yellow', bgClass: 'bg-yellow-100', textClass: 'text-yellow-600', borderClass: 'border-yellow-500', badgeBg: 'bg-yellow-100', badgeText: 'text-yellow-700' },
+            labor:       { label: 'Labor',       icon: 'fa-users', bgColor: 'green',  bgClass: 'bg-green-100',  textClass: 'text-green-600',  borderClass: 'border-green-500',  badgeBg: 'bg-green-100',  badgeText: 'text-green-700' },
+            rent:        { label: 'Rent',        icon: 'fa-home',  bgColor: 'purple', bgClass: 'bg-purple-100', textClass: 'text-purple-600', borderClass: 'border-purple-500', badgeBg: 'bg-purple-100', badgeText: 'text-purple-700' },
+            internet:    { label: 'Internet',    icon: 'fa-wifi',  bgColor: 'indigo', bgClass: 'bg-indigo-100', textClass: 'text-indigo-600', borderClass: 'border-indigo-500', badgeBg: 'bg-indigo-100', badgeText: 'text-indigo-700' },
+        };
+
+        function getCategoryConfig(type) {
+            return categoryConfig[type] || { label: type, icon: 'fa-receipt', bgColor: 'gray', bgClass: 'bg-gray-100', textClass: 'text-gray-600', borderClass: 'border-gray-500', badgeBg: 'bg-gray-100', badgeText: 'text-gray-700' };
+        }
+
+        function formatCurrency(amount) {
+            return '₱ ' + parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatDateISO(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        // ================== Toggle Daily/Monthly View ==================
         document.getElementById('viewDaily').addEventListener('click', function() {
             document.getElementById('dailyBreakdown').classList.remove('hidden');
             document.getElementById('monthlyBreakdown').classList.add('hidden');
@@ -940,7 +371,6 @@
         const openExpenseModalBtns = [document.getElementById('btnAddExpense'), document.getElementById('btnAddExpenseMobile')];
         const closeExpenseModalBtns = [document.getElementById('btnCloseModal'), document.getElementById('btnCancelExpense')];
 
-        // Open Add Expense Modal
         openExpenseModalBtns.forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
@@ -953,7 +383,6 @@
             }
         });
 
-        // Close Expense Modal
         closeExpenseModalBtns.forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
@@ -962,160 +391,551 @@
             }
         });
 
-        // Close modal when clicking outside
         expenseModal.addEventListener('click', (e) => {
             if (e.target === expenseModal) {
                 expenseModal.classList.add('hidden');
             }
         });
 
-        // Reset expense form
+        // Handle form submission
+        document.getElementById('addExpenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const mode = document.getElementById('expense_mode').value;
+            if (mode === 'edit') {
+                updateExpense();
+            } else {
+                addExpense();
+            }
+        });
+
         function resetExpenseForm() {
             document.getElementById('addExpenseForm').reset();
             document.getElementById('expense_id').value = '';
             document.getElementById('expense_mode').value = 'add';
         }
 
-        // Edit Expense - attach to edit buttons
-        document.querySelectorAll('.btn-edit-expense').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const category = this.dataset.category;
-                const description = this.dataset.description;
-                const amount = this.dataset.amount;
-                const date = this.dataset.date;
-                const period = this.dataset.period;
+        // ================== CRUD Functions ==================
+        function addExpense() {
+            const formData = {
+                expense_category: $('#expense_category').val(),
+                expense_amount: $('#expense_amount').val(),
+                expense_date: $('#expense_date').val(),
+                billing_period: $('#billing_period').val(),
+            };
 
-                document.getElementById('expense_id').value = id;
-                document.getElementById('expense_mode').value = 'edit';
-                document.getElementById('expense_category').value = category;
-                document.getElementById('expense_description').value = description;
-                document.getElementById('expense_amount').value = amount;
-                document.getElementById('expense_date').value = date;
-                document.getElementById('billing_period').value = period;
-                document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
-                document.getElementById('btnSaveExpense').textContent = 'Update Expense';
-                
-                expenseModal.classList.remove('hidden');
-            });
-        });
-
-        // ================== Category Modal ==================
-        const categoryModal = document.getElementById('categoryModal');
-        const btnManageCategories = document.getElementById('btnManageCategories');
-        const closeCategoryModalBtns = [document.getElementById('btnCloseCategoryModal'), document.getElementById('btnCloseCategoryModalBottom')];
-
-        if (btnManageCategories) {
-            btnManageCategories.addEventListener('click', () => {
-                categoryModal.classList.remove('hidden');
+            $.ajax({
+                url: base_url + '/Utility/AddUtilityExpense',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        expenseModal.classList.add('hidden');
+                        resetExpenseForm();
+                        Toast.success(response.message);
+                        getExpenses();
+                    } else {
+                        Toast.error(response.message || 'Failed to add expense.');
+                    }
+                },
+                error: function() {
+                    Toast.error('An error occurred while saving the expense. Please try again.');
+                }
             });
         }
 
-        closeCategoryModalBtns.forEach(btn => {
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    categoryModal.classList.add('hidden');
-                });
-            }
-        });
+        function updateExpense() {
+            const formData = {
+                expense_id: $('#expense_id').val(),
+                expense_category: $('#expense_category').val(),
+                expense_amount: $('#expense_amount').val(),
+                expense_date: $('#expense_date').val(),
+                billing_period: $('#billing_period').val(),
+            };
 
-        categoryModal.addEventListener('click', (e) => {
-            if (e.target === categoryModal) {
-                categoryModal.classList.add('hidden');
-            }
-        });
-
-        // ================== Edit Category Modal ==================
-        const editCategoryModal = document.getElementById('editCategoryModal');
-        const closeEditCategoryBtns = [document.getElementById('btnCloseEditCategoryModal'), document.getElementById('btnCancelEditCategory')];
-
-        // Open Edit Category Modal
-        document.querySelectorAll('.btn-edit-category').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                const color = this.dataset.color;
-
-                document.getElementById('edit_category_id').value = id;
-                document.getElementById('edit_category_name').value = name;
-                document.getElementById('edit_category_color').value = color;
-
-                updateCategoryPreview();
-                editCategoryModal.classList.remove('hidden');
+            $.ajax({
+                url: base_url + '/Utility/UpdateUtilityExpense',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        expenseModal.classList.add('hidden');
+                        resetExpenseForm();
+                        Toast.success(response.message);
+                        getExpenses();
+                    } else {
+                        Toast.error(response.message || 'Failed to update expense.');
+                    }
+                },
+                error: function() {
+                    Toast.error('An error occurred while updating the expense. Please try again.');
+                }
             });
-        });
-
-        closeEditCategoryBtns.forEach(btn => {
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    editCategoryModal.classList.add('hidden');
-                });
-            }
-        });
-
-        editCategoryModal.addEventListener('click', (e) => {
-            if (e.target === editCategoryModal) {
-                editCategoryModal.classList.add('hidden');
-            }
-        });
-
-        // Update category preview
-        function updateCategoryPreview() {
-            const name = document.getElementById('edit_category_name').value || 'Category Name';
-            const color = document.getElementById('edit_category_color').value || 'orange';
-
-            document.getElementById('editCategoryPreviewName').textContent = name;
-            document.getElementById('editCategoryPreviewColor').className = 'w-4 h-4 rounded-full bg-' + color + '-500';
         }
 
-        // Live preview updates
-        document.getElementById('edit_category_name').addEventListener('input', updateCategoryPreview);
-        document.getElementById('edit_category_color').addEventListener('change', updateCategoryPreview);
-
-        // ================== Delete Confirmation Modal ==================
-        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-
-        // Delete Category
-        document.querySelectorAll('.btn-delete-category').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                document.getElementById('delete_item_id').value = id;
-                document.getElementById('delete_item_type').value = 'category';
-                document.getElementById('deleteConfirmMessage').textContent = 'Are you sure you want to delete this category? All expenses in this category will need to be reassigned.';
-                deleteConfirmModal.classList.remove('hidden');
+        function deleteExpense(id) {
+            $.ajax({
+                url: base_url + '/Utility/DeleteUtilityExpense/' + id,
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Toast.success(response.message);
+                        getExpenses();
+                    } else {
+                        Toast.error(response.message || 'Failed to delete expense.');
+                    }
+                },
+                error: function() {
+                    Toast.error('An error occurred while deleting the expense. Please try again.');
+                }
             });
-        });
+        }
 
-        // Delete Expense
-        document.querySelectorAll('.btn-delete-expense').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                document.getElementById('delete_item_id').value = id;
-                document.getElementById('delete_item_type').value = 'expense';
-                document.getElementById('deleteConfirmMessage').textContent = 'Are you sure you want to delete this expense? This action cannot be undone.';
-                deleteConfirmModal.classList.remove('hidden');
+        // ================== Get & Render Expenses ==================
+        function getExpenses() {
+            $.ajax({
+                url: base_url + '/Utility/GetUtilityExpenses',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        allExpenses = response.data || [];
+                        populateMonthFilter();
+                        applyFiltersAndRender();
+                    } else {
+                        Toast.error(response.message || 'Failed to fetch expenses.');
+                    }
+                },
+                error: function() {
+                    Toast.error('An error occurred while fetching expenses. Please try again.');
+                }
             });
-        });
+        }
 
-        document.getElementById('btnCancelDelete').addEventListener('click', () => {
-            deleteConfirmModal.classList.add('hidden');
-        });
+        // ================== Populate Month Filter Dynamically ==================
+        function populateMonthFilter() {
+            const select = document.getElementById('filter-month');
+            const currentValue = select.value; // preserve existing selection
 
-        document.getElementById('btnConfirmDelete').addEventListener('click', () => {
-            const id = document.getElementById('delete_item_id').value;
-            const type = document.getElementById('delete_item_type').value;
-            
-            // Here you would make AJAX call to delete
-            console.log('Deleting ' + type + ' with ID: ' + id);
-            
-            deleteConfirmModal.classList.add('hidden');
-            // Refresh page or update UI after deletion
-        });
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                 'July', 'August', 'September', 'October', 'November', 'December'];
 
-        deleteConfirmModal.addEventListener('click', (e) => {
-            if (e.target === deleteConfirmModal) {
-                deleteConfirmModal.classList.add('hidden');
+            // Collect unique year-month keys from all expenses
+            const monthSet = new Set();
+            allExpenses.forEach(exp => {
+                const date = new Date(exp.billed_at);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                monthSet.add(year + '-' + month);
+            });
+
+            // Always include the current month even if no expenses yet
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+            monthSet.add(currentYear + '-' + currentMonth);
+
+            // Sort descending (newest first)
+            const sortedMonths = [...monthSet].sort().reverse();
+
+            // Rebuild options
+            select.innerHTML = '<option value="">All Months</option>';
+            sortedMonths.forEach(key => {
+                const [year, month] = key.split('-');
+                const label = monthNames[parseInt(month, 10) - 1] + ' ' + year;
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = label;
+                select.appendChild(option);
+            });
+
+            // Restore previous selection if still valid, otherwise default to current month
+            const validValues = sortedMonths.map(k => k.split('-')[1]);
+            if (currentValue && validValues.includes(currentValue)) {
+                select.value = currentValue;
+            } else {
+                select.value = currentMonth;
             }
+        }
+
+        function applyFiltersAndRender() {
+            const filterMonth = document.getElementById('filter-month').value;
+            const filterCategory = document.getElementById('filter-category').value;
+
+            let filtered = [...allExpenses];
+
+            // Filter by month
+            if (filterMonth) {
+                filtered = filtered.filter(exp => {
+                    const date = new Date(exp.billed_at);
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    return month === filterMonth;
+                });
+            }
+
+            // Filter by category
+            if (filterCategory) {
+                filtered = filtered.filter(exp => exp.type === filterCategory);
+            }
+
+            renderSummaryCards(filtered);
+            renderDailyBreakdown(filtered);
+            renderMonthlyBreakdown(allExpenses, filterMonth);
+            renderOverheadEvaluation(filtered);
+            renderExpenseTable(filtered);
+            renderMobileCards(filtered);
+            bindExpenseEvents();
+        }
+
+        // ================== Render: Summary Cards ==================
+        function renderSummaryCards(expenses) {
+            const container = document.getElementById('summaryCards');
+            const categories = ['gas', 'water', 'electricity', 'labor', 'rent'];
+            let html = '';
+
+            categories.forEach(cat => {
+                const config = getCategoryConfig(cat);
+                const total = expenses.filter(e => e.type === cat).reduce((sum, e) => sum + parseFloat(e.expense), 0);
+
+                html += `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">${config.label}</p>
+                            <p class="text-base lg:text-lg font-bold text-gray-900 mt-1">${formatCurrency(total)}</p>
+                        </div>
+                        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 ${config.bgClass} rounded-full flex items-center justify-center ml-2">
+                            <i class="fas ${config.icon} ${config.textClass} text-sm sm:text-base"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 sm:mt-3 flex items-center text-xs">
+                        <span class="${config.textClass} font-medium">
+                            <i class="fas fa-chart-line mr-1"></i>${total > 0 ? 'Active' : 'No expenses'}
+                        </span>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ================== Render: Daily Breakdown ==================
+        function renderDailyBreakdown(expenses) {
+            const tbody = document.getElementById('dailyBreakdownBody');
+            const grandTotal = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
+            const daysInMonth = 30;
+
+            // Group by category
+            const grouped = {};
+            expenses.forEach(exp => {
+                if (!grouped[exp.type]) grouped[exp.type] = 0;
+                grouped[exp.type] += parseFloat(exp.expense);
+            });
+
+            let html = '';
+            Object.keys(grouped).forEach(cat => {
+                const config = getCategoryConfig(cat);
+                const amount = grouped[cat];
+                const daily = amount / daysInMonth;
+                const pct = grandTotal > 0 ? ((amount / grandTotal) * 100).toFixed(1) : '0.0';
+
+                html += `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="p-1.5 ${config.bgClass} rounded">
+                                <i class="fas ${config.icon} ${config.textClass} text-xs"></i>
+                            </div>
+                            ${config.label}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right font-medium">${formatCurrency(amount)}</td>
+                    <td class="px-4 py-3 text-right text-gray-600">${formatCurrency(daily)}</td>
+                    <td class="px-4 py-3 text-right">
+                        <span class="px-2 py-1 text-xs font-medium ${config.badgeBg} ${config.badgeText} rounded-full">${pct}%</span>
+                    </td>
+                </tr>`;
+            });
+
+            if (Object.keys(grouped).length === 0) {
+                html = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No expenses found for the selected period.</td></tr>';
+            }
+
+            tbody.innerHTML = html;
+
+            // Update footer
+            const dailyTotal = grandTotal / daysInMonth;
+            document.getElementById('dailyTotalMonthly').textContent = formatCurrency(grandTotal);
+            document.getElementById('dailyTotalDaily').textContent = formatCurrency(dailyTotal);
+        }
+
+        // ================== Render: Monthly Breakdown ==================
+        function renderMonthlyBreakdown(expenses, filterMonth) {
+            const tbody = document.getElementById('monthlyBreakdownBody');
+            const tfoot = document.getElementById('monthlyBreakdownFoot');
+            const categories = ['gas', 'water', 'electricity', 'labor', 'rent'];
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            // Group by month-year
+            const monthlyData = {};
+            expenses.forEach(exp => {
+                const date = new Date(exp.billed_at);
+                const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+                if (!monthlyData[key]) {
+                    monthlyData[key] = { label: monthNames[date.getMonth()] + ' ' + date.getFullYear(), totals: {} };
+                    categories.forEach(c => monthlyData[key].totals[c] = 0);
+                }
+                if (categories.includes(exp.type)) {
+                    monthlyData[key].totals[exp.type] += parseFloat(exp.expense);
+                }
+            });
+
+            // Sort by key descending
+            const sortedKeys = Object.keys(monthlyData).sort().reverse();
+
+            let html = '';
+            const avgTotals = {};
+            categories.forEach(c => avgTotals[c] = 0);
+            let grandAvgTotal = 0;
+
+            sortedKeys.forEach((key, idx) => {
+                const data = monthlyData[key];
+                let rowTotal = 0;
+                categories.forEach(c => rowTotal += data.totals[c]);
+
+                categories.forEach(c => avgTotals[c] += data.totals[c]);
+                grandAvgTotal += rowTotal;
+
+                html += `<tr class="border-b hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}">
+                    <td class="px-4 py-3 font-medium">${data.label}</td>`;
+                categories.forEach(c => {
+                    html += `<td class="px-4 py-3 text-right">${formatCurrency(data.totals[c])}</td>`;
+                });
+                html += `<td class="px-4 py-3 text-right font-bold text-primary">${formatCurrency(rowTotal)}</td></tr>`;
+            });
+
+            if (sortedKeys.length === 0) {
+                html = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No monthly data available.</td></tr>';
+            }
+
+            tbody.innerHTML = html;
+
+            // Render footer averages
+            const count = sortedKeys.length || 1;
+            let footHtml = '<tr><td class="px-4 py-3 font-semibold text-gray-800">Average</td>';
+            categories.forEach(c => {
+                footHtml += `<td class="px-4 py-3 text-right font-medium">${formatCurrency(avgTotals[c] / count)}</td>`;
+            });
+            footHtml += `<td class="px-4 py-3 text-right font-bold text-gray-800">${formatCurrency(grandAvgTotal / count)}</td></tr>`;
+            tfoot.innerHTML = footHtml;
+        }
+
+        function getTotalSales(callback) {
+            // Build a YYYY-MM-01 date from the selected filter month (or current month)
+            const now = new Date();
+            const selectedMonth = document.getElementById('filter-month').value;
+            const year = now.getFullYear();
+            const month = selectedMonth ? selectedMonth : String(now.getMonth() + 1).padStart(2, '0');
+            const dateSegment = year + '-' + month + '-01';
+
+            $.ajax({
+                url: base_url + 'Utility/GetTotalSales/' + dateSegment,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const totalSales = parseFloat(response.total_sales) || 0;
+                        if (typeof callback === 'function') callback(totalSales);
+                    } else {
+                        Toast.error(response.message || 'Failed to fetch total sales.');
+                        if (typeof callback === 'function') callback(0);
+                    }
+                },
+                error: function() {
+                    Toast.error('An error occurred while fetching total sales. Please try again.');
+                    if (typeof callback === 'function') callback(0);
+                }
+            });
+        }
+
+        // ================== Render: Overhead Evaluation ==================
+        function renderOverheadEvaluation(expenses) {
+            const totalMonthly = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
+            const daysInMonth = 30;
+            const dailyAvg = totalMonthly / daysInMonth;
+            const overheadPct = 25;
+
+            document.getElementById('overheadTotalMonthly').textContent = formatCurrency(totalMonthly);
+            document.getElementById('overheadDailyAvg').textContent = formatCurrency(dailyAvg);
+
+            getTotalSales(function(totalSales) {
+                // Overhead collected = 25% of total sales
+                const estimatedCollected = totalSales * (overheadPct / 100);
+                document.getElementById('overheadCollected').textContent = formatCurrency(estimatedCollected);
+
+                const difference = estimatedCollected - totalMonthly;
+                const diffEl = document.getElementById('overheadDifference');
+                const noteEl = document.getElementById('overheadDifferenceNote');
+                const cardEl = document.getElementById('overheadDifferenceCard');
+
+                if (difference >= 0) {
+                    diffEl.textContent = '+ ' + formatCurrency(difference);
+                    diffEl.className = 'text-lg font-semibold text-green-600 mt-1';
+                    noteEl.textContent = 'Overhead is sufficient';
+                    noteEl.className = 'text-xs text-green-500';
+                    cardEl.className = 'p-3 rounded-lg border border-green-200 bg-green-50';
+                } else {
+                    diffEl.textContent = '- ' + formatCurrency(Math.abs(difference));
+                    diffEl.className = 'text-lg font-semibold text-amber-600 mt-1';
+                    noteEl.textContent = 'Overhead may be insufficient';
+                    noteEl.className = 'text-xs text-amber-500';
+                    cardEl.className = 'p-3 rounded-lg border border-amber-200 bg-amber-50';
+                }
+
+                // Recommended overhead: what % of sales would cover expenses
+                const recommended = totalSales > 0 ? Math.ceil((totalMonthly / totalSales) * 100) : overheadPct;
+                document.getElementById('recommendedOverhead').textContent = (recommended || overheadPct) + '%';
+            });
+        }
+
+        // ================== Render: Desktop Expense Table ==================
+        function renderExpenseTable(expenses) {
+            const tbody = document.getElementById('expenseTableBody');
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">No expense records found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            expenses.forEach(exp => {
+                const config = getCategoryConfig(exp.type);
+                const dateFormatted = formatDate(exp.billed_at);
+                const dateISO = formatDateISO(exp.billed_at);
+                const amount = parseFloat(exp.expense);
+
+                html += `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 text-gray-700">${dateFormatted}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-medium ${config.badgeBg} ${config.badgeText} rounded-full">${config.label}</span>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-800">${formatCurrency(amount)}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <button class="btn-edit-expense text-blue-600 hover:text-blue-800"
+                                data-id="${exp.u_id}" data-category="${exp.type}"
+                                data-amount="${amount}" data-date="${dateISO}" data-period="${exp.billing_period}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-delete-expense text-red-600 hover:text-red-800" data-id="${exp.u_id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // ================== Render: Mobile Cards ==================
+        function renderMobileCards(expenses) {
+            const container = document.getElementById('mobileCardsContainer');
+
+            if (expenses.length === 0) {
+                container.innerHTML = '<div class="p-6 text-center text-gray-400">No expense records found.</div>';
+                return;
+            }
+
+            let html = '';
+            expenses.forEach(exp => {
+                const config = getCategoryConfig(exp.type);
+                const dateFormatted = formatDate(exp.billed_at);
+                const dateISO = formatDateISO(exp.billed_at);
+                const amount = parseFloat(exp.expense);
+
+                html += `
+                <div class="p-4 bg-white rounded-lg shadow-md border-l-4 ${config.borderClass}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-1 text-xs font-medium ${config.badgeBg} ${config.badgeText} rounded-full">${config.label}</span>
+                        <span class="text-xs text-gray-500">${dateFormatted}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-bold text-gray-800">${formatCurrency(amount)}</span>
+                        <div class="flex gap-2">
+                            <button class="btn-edit-expense p-2 text-blue-600 hover:bg-blue-50 rounded"
+                                data-id="${exp.u_id}" data-category="${exp.type}"
+                                data-amount="${amount}" data-date="${dateISO}" data-period="${exp.billing_period}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-delete-expense p-2 text-red-600 hover:bg-red-50 rounded" data-id="${exp.u_id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ================== Bind Edit/Delete Events (after dynamic render) ==================
+        function bindExpenseEvents() {
+            // Edit buttons
+            document.querySelectorAll('.btn-edit-expense').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('expense_id').value = this.dataset.id;
+                    document.getElementById('expense_mode').value = 'edit';
+                    document.getElementById('expense_category').value = this.dataset.category;
+                    document.getElementById('expense_amount').value = this.dataset.amount;
+                    document.getElementById('expense_date').value = this.dataset.date;
+                    document.getElementById('billing_period').value = this.dataset.period;
+                    document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
+                    document.getElementById('btnSaveExpense').textContent = 'Update Expense';
+                    expenseModal.classList.remove('hidden');
+                });
+            });
+
+            // Delete buttons
+            document.querySelectorAll('.btn-delete-expense').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    Confirm.delete('Are you sure you want to delete this expense?', function() {
+                        deleteExpense(id);
+                    });
+                });
+            });
+        }
+
+        // ================== Filters ==================
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            applyFiltersAndRender();
+        });
+
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            document.getElementById('filter-month').value = '';
+            document.getElementById('filter-category').value = '';
+            applyFiltersAndRender();
+        });
+
+        // Mobile search
+        document.getElementById('mobileSearchInput').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const cards = document.querySelectorAll('#mobileCardsContainer > div');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // ================== Init: Load data on page load ==================
+        $(document).ready(function() {
+            getExpenses();
         });
     </script>
         

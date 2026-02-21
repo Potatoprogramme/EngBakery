@@ -161,8 +161,11 @@ $routes->group('DeliveryLog', function (RouteCollection $routes) {
 
 $routes->group('Utility', function (RouteCollection $routes) {
     $routes->get('/', 'UtilityController::index');
-    $routes->get('TestLowStockEmail', 'UtilityController::testLowStockEmail');
-    $routes->post('CreateUtilityExpense', 'UtilityController::createUtilityExpense');
+    $routes->get('GetTotalSales/(:segment)', 'SalesController::getTotalSalesByMonth/$1');
+    $routes->get('GetUtilityExpenses', 'UtilityController::getAllUtilityExpenses');
+    $routes->post('AddUtilityExpense', 'UtilityController::addUtilityExpense');
+    $routes->post('UpdateUtilityExpense', 'UtilityController::updateUtilityExpense');
+    $routes->post('DeleteUtilityExpense/(:num)', 'UtilityController::deleteUtilityExpense/$1');
 });
 
 $routes->group('Distribution', function (RouteCollection $routes) {

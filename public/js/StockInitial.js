@@ -79,8 +79,14 @@ $(document).ready(function () {
 
     function showMaterialDropdown(searchTerm) {
         searchTerm = (searchTerm || '').toLowerCase();
+        const editingMaterialId = $('#edit_stock_id').val() ? $('#material_id').val() : null;
+        const existingMaterialIds = allEntries.map(function (e) { return String(e.material_id); });
+
         const filtered = allMaterialsData.filter(function (m) {
-            return !searchTerm || m.material_name.toLowerCase().includes(searchTerm);
+            const matchesSearch = !searchTerm || m.material_name.toLowerCase().includes(searchTerm);
+            const isCurrentEdit = editingMaterialId && String(m.material_id) === String(editingMaterialId);
+            const alreadyExists = existingMaterialIds.includes(String(m.material_id));
+            return matchesSearch && (!alreadyExists || isCurrentEdit);
         });
 
         let html = '';
@@ -113,23 +119,39 @@ $(document).ready(function () {
 
         // Validate material is selected
         if (!$('#material_id').val()) {
-            showToast('Please select a raw material.', 'error');
+            showToast('error', 'Please select a raw material.');
             $('#material_search').focus();
             return;
         }
 
         const entryId = $('#edit_stock_id').val();
         const isEdit = entryId !== '';
+        
+        let initialQty = parseFloat($('#initial_qty').val()) || 0;
+        const remainingQty = parseFloat($('#remaining_qty').val());
+
+        // If remaining field has value (in edit mode), recalculate
+        if (isEdit && !isNaN(remainingQty)) {
+            // qty_used = initial_qty - remaining_qty
+            // This will be calculated server-side for data integrity
+        }
 
         const payload = {
             material_id: $('#material_id').val(),
             initial_qty: $('#initial_qty').val(),
-            qty_used: 0,
             unit: $('#unit').val()
         };
 
         if (isEdit) {
             payload.stock_id = entryId;
+            // If remaining field has value, send it for auto-calculation
+            if (!isNaN(remainingQty)) {
+                payload.remaining_qty = remainingQty;
+            } else {
+                // Preserve existing qty_used if no remaining provided
+            }
+        } else {
+            payload.qty_used = 0; // Only set to 0 for new entries
         }
 
         const url = isEdit
@@ -146,15 +168,15 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    showToast(res.message, 'success');
+                    showToast('success', res.message);
                     closeModal();
                     loadEntries();
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             },
             error: function () {
-                showToast('Server error. Please try again.', 'error');
+                showToast('error', 'Server error. Please try again.');
             },
             complete: function () {
                 $('#btnSaveEntry').prop('disabled', false).text('Save');
@@ -186,12 +208,20 @@ $(document).ready(function () {
                         }
                         $('#initial_qty').val(d.initial_qty);
                         $('#unit').val(d.unit);
+                        
+                        // Show remaining field and calculate current remaining
+                        const initialQty = parseFloat(d.initial_qty) || 0;
+                        const qtyUsed = parseFloat(d.qty_used) || 0;
+                        const remaining = initialQty - qtyUsed;
+                        $('#remaining_qty').val(remaining);
+                        $('#remaining_qty_wrapper').removeClass('hidden');
+                        
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
                     });
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             }
         });
@@ -219,14 +249,14 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    showToast(res.message, 'success');
+                    showToast('success', res.message);
                     loadEntries();
                 } else {
-                    showToast(res.message, 'error');
+                    showToast('error', res.message);
                 }
             },
             error: function () {
-                showToast('Server error. Please try again.', 'error');
+                showToast('error', 'Server error. Please try again.');
             },
             complete: function () {
                 deleteEntryId = null;
@@ -519,6 +549,8 @@ $(document).ready(function () {
         $('#material_id').val('');
         $('#material_search').val('');
         $('#btnClearMaterial').addClass('hidden');
+        $('#remaining_qty_wrapper').addClass('hidden');
+        $('#remaining_qty').val('');
         hideMaterialDropdown();
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
@@ -532,32 +564,8 @@ $(document).ready(function () {
     function formatNumber(num) {
         const n = parseFloat(num);
         if (isNaN(n)) return '0';
-        return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
     }
 
-    function showToast(message, type) {
-        const colors = {
-            success: 'bg-green-500',
-            error: 'bg-red-500',
-            warning: 'bg-amber-500'
-        };
-        const bgColor = colors[type] || 'bg-gray-700';
 
-        const toast = $(`
-            <div class="fixed top-20 right-4 z-[9999] px-4 py-3 rounded-lg shadow-lg text-white text-sm ${bgColor} transition-all duration-300 transform translate-x-full opacity-0">
-                ${message}
-            </div>
-        `);
-
-        $('body').append(toast);
-
-        // Animate in
-        setTimeout(() => toast.removeClass('translate-x-full opacity-0'), 50);
-
-        // Animate out
-        setTimeout(() => {
-            toast.addClass('translate-x-full opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 });

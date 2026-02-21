@@ -503,6 +503,14 @@ class ProductsController extends BaseController
         $groceryProducts = $this->productModel->getGroceryProducts();
         
         $products = array_merge($bakeryProducts, $doughProducts, $drinksProducts, $groceryProducts);
+
+        // Enrich each product with pieces_per_yield from product_costs
+        foreach ($products as &$product) {
+            $costData = $this->productCostModel->getCostByProductId(intval($product['product_id']));
+            $product['pieces_per_yield'] = intval($costData['pieces_per_yield'] ?? 0);
+        }
+        unset($product);
+
         return $this->response->setStatusCode(200)->setJSON([
             'success' => true,
             'data' => $products,

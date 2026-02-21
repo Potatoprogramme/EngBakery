@@ -148,7 +148,6 @@ class InventoryController extends BaseController
         $data = $this->request->getJSON(true);
         $today = date('Y-m-d');
 
-        // Validate time inputs
         if (empty($data['time_start']) || empty($data['time_end'])) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -156,7 +155,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if inventory already exists for today
         if ($this->dailyStockModel->checkInventoryExists($today)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -164,12 +162,10 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Fetch distribution records for today
         $distributionItems = $this->distributionModel->getDistributionByDate($today);
 
-        // If no distribution records, fall back to adding all products
+        // No distribution records — fall back to adding all products
         if (!$distributionItems || count($distributionItems) === 0) {
-            // Create the daily stock record
             $insertData = [
                 'inventory_date' => $today,
                 'time_start' => $data['time_start'],
@@ -178,11 +174,8 @@ class InventoryController extends BaseController
 
             if ($this->dailyStockModel->addTodaysInventory($insertData)) {
                 $lastInsertId = $this->dailyStockModel->getInsertID();
-
-                // Fetch ALL products for inventory tracking (fallback mode)
                 $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
 
-                // Insert all products into daily stock items model
                 if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
                     return $this->response->setStatusCode(201)->setJSON([
                         'success' => true,
@@ -190,7 +183,6 @@ class InventoryController extends BaseController
                         'fallback_mode' => true
                     ]);
                 } else {
-                    // Rollback: delete the daily stock record since items failed
                     $this->dailyStockModel->delete($lastInsertId);
                     return $this->response->setStatusCode(500)->setJSON([
                         'success' => false,
@@ -206,9 +198,7 @@ class InventoryController extends BaseController
             }
         }
 
-        // Raw materials are already deducted at distribution time — no pre-check needed here
-
-        // Create the daily stock record
+        // Raw materials are already deducted at distribution time
         $insertData = [
             'inventory_date' => $today,
             'time_start' => $data['time_start'],
@@ -218,20 +208,13 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // Insert only products from distribution with their quantities as beginning stock
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
-
-                // Raw materials are already deducted at distribution time — no deduction here
-
-                $responseData = [
+                return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => 'Today\'s inventory created from distribution data successfully.',
                     'items_count' => count($distributionItems),
-                ];
-
-                return $this->response->setStatusCode(201)->setJSON($responseData);
+                ]);
             } else {
-                // Rollback: delete the daily stock record since items failed
                 $this->dailyStockModel->delete($lastInsertId);
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
@@ -297,7 +280,7 @@ class InventoryController extends BaseController
 
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
 
-        // ── Pre-check: block if raw materials are insufficient ──
+        // Pre-check: block if raw materials are insufficient
         if ($beginningStock > 0) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 intval($json->product_id),
@@ -327,7 +310,6 @@ class InventoryController extends BaseController
         if ($result) {
             $deductionResult = null;
 
-            // All checks passed — actually deduct raw materials
             if ($beginningStock > 0) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     intval($json->product_id),
@@ -353,7 +335,6 @@ class InventoryController extends BaseController
     {
         $today = date('Y-m-d');
 
-        // Check if daily stock exists
         $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
 
         if (!$dailyStock) {
@@ -363,7 +344,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if there's a remittance for today
         $remittance = $this->remittanceDetailsModel
             ->where('DATE(remittance_date)', $today)
             ->get()
@@ -388,7 +368,18 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Safe to delete - no remittance and no transactions
+        // Restore raw materials for remaining inventory items before deleting
+        $stockItems = $this->dailyStockItemsModel->where('daily_stock_id', $dailyStock['daily_stock_id'])->findAll();
+        if (!empty($stockItems)) {
+            foreach ($stockItems as $stockItem) {
+                $beginningStock = intval($stockItem['beginning_stock'] ?? 0);
+                $productId = intval($stockItem['product_id']);
+                if ($beginningStock > 0 && $productId > 0) {
+                    $this->rawMaterialStockModel->restoreForProduction($productId, $beginningStock);
+                }
+            }
+        }
+
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -406,7 +397,6 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        // Validate input
         if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -414,7 +404,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Validate that values are non-negative
         if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -422,7 +411,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Get the item to verify it exists
         $item = $this->dailyStockItemsModel->find($item_id);
 
         if (!$item) {
@@ -432,39 +420,40 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Calculate how many were sold (old beginning - old pull_out - old ending)
+        // Get old values
         $oldBeginning = intval($item['beginning_stock']);
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
+
+        $newBeginning = intval($json->beginning_stock);
+        $newPullOut = intval($json->pull_out_quantity);
+
         $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
         if ($quantitySold < 0)
             $quantitySold = 0;
 
-        // Calculate new ending stock = new beginning - new pull_out - quantity already sold
-        $newBeginning = intval($json->beginning_stock);
-        $newPullOut = intval($json->pull_out_quantity);
         $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
         if ($newEndingStock < 0)
             $newEndingStock = 0;
 
-        // Check if the item is a bread
-        // if ($this->checkIfBread($item['product_id'])) {
-        //     $this->updateBreadStockItem($item_id, $oldBeginning, $newBeginning);
-        // }
+        $beginningDelta = $newBeginning - $oldBeginning;
+        $pullOutDelta = $newPullOut - $oldPullOut;
 
-        // Prepare update data
         $updateData = [
             'beginning_stock' => $newBeginning,
             'pull_out_quantity' => $newPullOut,
             'ending_stock' => $newEndingStock
         ];
 
-        // ── Pre-check: block if raw materials are insufficient for the increase ──
-        $stockIncrease = $newBeginning - $oldBeginning;
-        if ($stockIncrease > 0 && isset($item['product_id'])) {
+        // Only beginning stock changes affect raw materials
+        // (Pull out has NO effect — products are already made)
+        $netRawMaterialChange = $beginningDelta;
+
+        // Pre-check: block if raw materials are insufficient for the increase
+        if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 intval($item['product_id']),
-                $stockIncrease,
+                $netRawMaterialChange,
                 true // preview only
             );
 
@@ -474,30 +463,48 @@ class InventoryController extends BaseController
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Cannot update — insufficient raw material stock for the additional ' . $stockIncrease . ' pieces.',
+                    'message' => 'Cannot update — insufficient raw material stock for the additional ' . $netRawMaterialChange . ' pieces.',
                     'insufficient_materials' => array_values($shortNames),
                     'preview' => $preview,
                 ]);
             }
         }
 
-        // Update the item
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
             $deductionResult = null;
+            $restorationResult = null;
 
-            // All checks passed — actually deduct raw materials
-            if ($stockIncrease > 0 && isset($item['product_id'])) {
+            // Beginning increase → deduct raw materials
+            if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     intval($item['product_id']),
-                    $stockIncrease
+                    $netRawMaterialChange
                 );
+            }
+
+            // Beginning decrease → restore raw materials
+            if ($netRawMaterialChange < 0 && isset($item['product_id'])) {
+                $restorationResult = $this->rawMaterialStockModel->restoreForProduction(
+                    intval($item['product_id']),
+                    abs($netRawMaterialChange)
+                );
+            }
+
+            if ($netRawMaterialChange != 0) {
+                \App\Libraries\LowStockNotifier::checkAndNotify();
             }
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item updated successfully',
                 'data' => $updateData,
-                'deduction' => $deductionResult
+                'deduction' => $deductionResult,
+                'restoration' => $restorationResult,
+                'raw_material_change' => [
+                    'beginning_delta' => $beginningDelta,
+                    'pullout_delta' => $pullOutDelta,
+                    'net_change' => $netRawMaterialChange
+                ]
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
@@ -508,56 +515,11 @@ class InventoryController extends BaseController
         }
     }
 
-    /** 
-     * Update Stock Item if bread
-     */
-    // public function updateBreadStockItem($item_id, $oldBeginning, $newBeginning)
-    // {
-    //     $item = $this->dailyStockItemsModel->find($item_id);
-    //     if (!$item) {
-    //         return $this->response->setStatusCode(404)->setJSON([
-    //             'success' => false,
-    //             'message' => 'Inventory item not found'
-    //         ]);
-    //     }
-
-    //     $productId = $item['product_id'];
-    //     $ingredientsList = $this->productRecipeModel->where('product_id', $productId)
-    //         ->join('raw_materials rm', 'product_recipe.material_id = rm.material_id')
-    //         ->findAll();
-
-    //     foreach ($ingredientsList as $ingredient) {
-    //         $initialQty = $this->rawMaterialStockModel->where('material_id', $ingredient['material_id'])->first()['initial_qty'];
-    //         if ($initialQty === null || $initialQty <= 0) {
-    //             return $this->response->setStatusCode(400)->setJSON([
-    //                 'success' => false,
-    //                 'message' => 'Insufficient stock for ' . $ingredient['material_name'],
-    //             ]);
-    //         }
-    //     }
-    //     // // Update the item with the total quantity sold for that bread
-    //     // $updateData = [
-    //     //     'quantity_sold' => $breadSales['quantity_sold'] ?? 0,
-    //     //     'total_sales' => $breadSales['total_sales'] ?? 0
-    //     // ];
-
-    //     // $this->dailyStockItemsModel->update($item_id, $updateData);
-    // }
-
-    /**  
-     * Check if Bread Item
-     */
-    // private function checkIfBread($product_id)
-    // {
-    //     $product = $this->productModel->find($product_id);
-    //     return $product && $product['category'] === 'bakery';
-    // }
     /**
      * Delete a single inventory item
      */
     public function deleteStockItem($item_id)
     {
-        // Get the item to verify it exists
         $item = $this->dailyStockItemsModel->find($item_id);
 
         if (!$item) {
@@ -567,7 +529,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Get the daily stock to check the date
         $dailyStock = $this->dailyStockModel->find($item['daily_stock_id']);
 
         if (!$dailyStock) {
@@ -605,8 +566,20 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Safe to delete - no remittance and no transactions
+        // Restore raw materials for the beginning stock before deleting
+        $beginningStock = intval($item['beginning_stock'] ?? 0);
+        if ($beginningStock > 0 && isset($item['product_id'])) {
+            $this->rawMaterialStockModel->restoreForProduction(
+                intval($item['product_id']),
+                $beginningStock
+            );
+        }
+
         if ($this->dailyStockItemsModel->delete($item_id)) {
+            if ($beginningStock > 0) {
+                \App\Libraries\LowStockNotifier::checkAndNotify();
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory item deleted successfully'
