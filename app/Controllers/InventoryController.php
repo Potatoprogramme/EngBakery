@@ -115,7 +115,7 @@ class InventoryController extends BaseController
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
             // fetch ALL products for inventory tracking
-            $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
+            $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->where('deleted_at IS NULL')->findColumn("product_id");
 
             // insert all products into daily stock items model
             if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
@@ -174,7 +174,7 @@ class InventoryController extends BaseController
 
             if ($this->dailyStockModel->addTodaysInventory($insertData)) {
                 $lastInsertId = $this->dailyStockModel->getInsertID();
-                $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
+                $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->where('deleted_at IS NULL')->findColumn("product_id");
 
                 if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
                     return $this->response->setStatusCode(201)->setJSON([
