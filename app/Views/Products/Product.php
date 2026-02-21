@@ -828,6 +828,10 @@
                     class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
                     <i class="fas fa-edit me-1"></i> Edit Product
                 </button>
+                <button type="button" id="btnViewDelete"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                    <i class="fas fa-trash me-1"></i> Delete Product
+                </button>
             </div>
         </div>
     </div>
@@ -2629,16 +2633,20 @@
                 });
             });
 
-            /* Delete Product (commented out - replaced with toggle)
-            $(document).on('click', '.btn-delete', function () {
-                const id = $(this).data('id');
+            $('#btnViewDelete').on('click', function () {
+                const id = currentViewProductId;
                 const btn = $(this);
-                
+
+                if (!id) {
+                    Toast.error('No product selected to delete.');
+                    return;
+                }
+
                 // Prevent double click
                 if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
                     return;
                 }
-                
+
                 Confirm.delete('Are you sure you want to delete this product?', function () {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.start(btn, '');
@@ -2653,6 +2661,7 @@
                             }
                             if (response.success) {
                                 Toast.success('Product deleted successfully!');
+                                closeViewModal();
                                 loadMaterials();
                             } else {
                                 Toast.error('Error: ' + response.message);
@@ -2667,7 +2676,7 @@
                     });
                 });
             });
-            */
+
 
             // Toggle Enable/Disable Product (Frontend only - no backend)
             $(document).on('click', '.btn-toggle', function (e) {
