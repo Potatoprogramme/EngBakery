@@ -72,12 +72,12 @@ class ProductsController extends BaseController
             }
 
             // Check if product name already exists
-            // if ($this->productModel->nameExists($productName)) {
-            //     return $this->response->setStatusCode(400)->setJSON([
-            //         'success' => false,
-            //         'message' => 'A product with this name already exists.',
-            //     ]);
-            // }
+            if ($this->productModel->nameExists($productName)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'A product with this name already exists.',
+                ]);
+            }
 
             // Start database transaction
             $this->db->transStart();
@@ -244,6 +244,23 @@ class ProductsController extends BaseController
                 'message' => 'An error occurred while fetching the product.',
             ]);
         }
+    }
+
+    /**
+     * Check if a product name already exists (excludes deleted products)
+     */
+    public function checkNameExists()
+    {
+        $name = $this->request->getGet('name');
+        $excludeId = $this->request->getGet('exclude_id');
+
+        if (empty($name)) {
+            return $this->response->setJSON(['exists' => false]);
+        }
+
+        $exists = $this->productModel->nameExists($name, $excludeId ? (int)$excludeId : null);
+
+        return $this->response->setJSON(['exists' => $exists]);
     }
 
     /**

@@ -211,6 +211,7 @@
                         <input type="text" name="material_name" id="material_name"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="e.g., Cafe Latte" required>
+                        <span id="nameExistsError" class="text-red-500 text-xs mt-1 hidden">A product with this name already exists.</span>
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700">Product Category <span
@@ -887,6 +888,37 @@
             // Load data on page load
             loadMaterials();
             loadFilterCategories();
+
+            // Real-time product name duplicate check
+            let nameCheckTimer = null;
+            $('#material_name').on('input', function () {
+                clearTimeout(nameCheckTimer);
+                const nameInput = $(this);
+                const name = nameInput.val().trim();
+                const errorSpan = $('#nameExistsError');
+                const mode = $('#product_mode').val() || 'add';
+                const excludeId = mode === 'edit' ? $('#product_id').val() : '';
+
+                if (!name) {
+                    errorSpan.addClass('hidden');
+                    nameInput.removeClass('border-red-500').addClass('border-gray-300');
+                    return;
+                }
+
+                nameCheckTimer = setTimeout(function () {
+                    $.get(baseUrl + 'Products/CheckNameExists', { name: name, exclude_id: excludeId }, function (res) {
+                        if (res.exists) {
+                            errorSpan.removeClass('hidden');
+                            nameInput.removeClass('border-gray-300').addClass('border-red-500');
+                            $('#btnNextStep').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                        } else {
+                            errorSpan.addClass('hidden');
+                            nameInput.removeClass('border-red-500').addClass('border-gray-300');
+                            $('#btnNextStep').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                        }
+                    });
+                }, 400);
+            });
 
             // Helper function to get category badge HTML
             function getCategoryBadge(category) {
@@ -2568,6 +2600,12 @@
                 // Validate required fields
                 if (!formData.product_name || formData.product_name.trim() === '') {
                     Toast.error('Product name is required.');
+                    return;
+                }
+                // Block save if duplicate name detected
+                if ($('#nameExistsError').is(':visible')) {
+                    Toast.error('A product with this name already exists.');
+                    $('#material_name').focus();
                     return;
                 }
                 if (!formData.category) {

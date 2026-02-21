@@ -70,7 +70,7 @@ $routes->group('Products', function (RouteCollection $routes) {
     $routes->post('UpdateProduct', 'ProductsController::updateProduct');
     $routes->post('DeleteProduct/(:num)', 'ProductsController::deleteProduct/$1');
     $routes->post('ToggleProductStatus', 'ProductsController::toggleProductStatus');
-
+    $routes->get('CheckNameExists', 'ProductsController::checkNameExists');
 });
 
 $routes->group('Inventory', function (RouteCollection $routes) {

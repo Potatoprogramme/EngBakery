@@ -145,6 +145,7 @@ class ProductModel extends Model
     {
         $builder = $this->db->table('products');
         $builder->where('LOWER(product_name)', strtolower(trim($name)));
+        $builder->where('deleted_at', null);
 
         if ($excludeId) {
             $builder->where('product_id !=', $excludeId);
