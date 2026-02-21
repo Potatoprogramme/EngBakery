@@ -18,6 +18,7 @@ class ProductModel extends Model
         'product_description',
         'is_disabled',
         'date_created',
+        'deleted_at',
     ];
 
     // Dates
@@ -45,7 +46,7 @@ class ProductModel extends Model
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
             LEFT JOIN daily_stock ds ON ds.inventory_date = ?
             LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
-            WHERE p.is_disabled = 0
+            WHERE p.is_disabled = 0 AND p.deleted_at IS NULL
             ORDER BY p.category, p.product_name
         ", [$today])->getResultArray();
     }
@@ -76,6 +77,7 @@ class ProductModel extends Model
                 p.date_created
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
+            WHERE p.deleted_at IS NULL
             ORDER BY p.product_id DESC
         ")->getResultArray();
     }
@@ -165,6 +167,7 @@ class ProductModel extends Model
                 'category' => $data['category'],
                 'product_name' => $data['product_name'],
                 'product_description' => $data['product_description'] ?? '',
+                'deleted_at' => null,
             ];
 
             $this->db->table('products')->insert($productData);

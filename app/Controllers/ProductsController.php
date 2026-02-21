@@ -72,12 +72,12 @@ class ProductsController extends BaseController
             }
 
             // Check if product name already exists
-            if ($this->productModel->nameExists($productName)) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'A product with this name already exists.',
-                ]);
-            }
+            // if ($this->productModel->nameExists($productName)) {
+            //     return $this->response->setStatusCode(400)->setJSON([
+            //         'success' => false,
+            //         'message' => 'A product with this name already exists.',
+            //     ]);
+            // }
 
             // Start database transaction
             $this->db->transStart();
@@ -88,6 +88,7 @@ class ProductsController extends BaseController
                     'category' => $category,
                     'product_name' => trim($productName),
                     'product_description' => trim($data['product_description'] ?? ''),
+                    'deleted_at' => null,
                 ];
 
                 $this->db->table('products')->insert($productData);
@@ -408,13 +409,17 @@ class ProductsController extends BaseController
             }
 
             // Delete product
-            $result = $this->productModel->deleteProduct($id);
+            $result = $this->productModel->update($id, [
+                'deleted_at' => date('Y-m-d H:i:s'),
+            ]);
 
             if (!$result) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to delete product. Please try again.',
                 ]);
+            } else {
+                log_message('info', "Product #{$id} ({$product['product_name']}) has been deleted.");
             }
 
             return $this->response->setStatusCode(200)->setJSON([
@@ -501,7 +506,7 @@ class ProductsController extends BaseController
         $doughProducts = $this->productModel->getDoughProducts();
         $drinksProducts = $this->productModel->getDrinksProducts();
         $groceryProducts = $this->productModel->getGroceryProducts();
-        
+
         $products = array_merge($bakeryProducts, $doughProducts, $drinksProducts, $groceryProducts);
 
         // Enrich each product with pieces_per_yield from product_costs
