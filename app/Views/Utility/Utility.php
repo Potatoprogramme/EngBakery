@@ -627,7 +627,13 @@
         function renderDailyBreakdown(expenses) {
             const tbody = document.getElementById('dailyBreakdownBody');
             const grandTotal = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
-            const daysInMonth = 30;
+            const now = new Date();
+            const selectedMonth = document.getElementById('filter-month').value;
+            const year = now.getFullYear();
+            const month = selectedMonth ? parseInt(selectedMonth, 10) : now.getMonth() + 1;
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            console.log('Rendering Daily Breakdown - Total:', grandTotal, 'Days in Month:', daysInMonth);
 
             // Group by category
             const grouped = {};
@@ -765,7 +771,11 @@
         // ================== Render: Overhead Evaluation ==================
         function renderOverheadEvaluation(expenses) {
             const totalMonthly = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
-            const daysInMonth = 30;
+            const now = new Date();
+            const selectedMonth = document.getElementById('filter-month').value;
+            const year = now.getFullYear();
+            const month = selectedMonth ? parseInt(selectedMonth, 10) : now.getMonth() + 1;
+            const daysInMonth = new Date(year, month, 0).getDate();
             const dailyAvg = totalMonthly / daysInMonth;
             const overheadPct = 25;
 
