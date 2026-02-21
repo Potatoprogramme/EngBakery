@@ -109,6 +109,7 @@ class DailyStockItemsModel extends Model
             ->select('daily_stock_items.*, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece')
             ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
             ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
+            ->where('products.deleted_at IS NULL')
             ->orderBy('products.category', 'ASC')
             ->orderBy('products.product_name', 'ASC')
             ->findAll();
@@ -194,7 +195,8 @@ class DailyStockItemsModel extends Model
         return $db->query("
             SELECT p.product_id, p.product_name, p.category
             FROM products p
-            WHERE p.product_id NOT IN (
+            WHERE p.deleted_at IS NULL
+            AND p.product_id NOT IN (
                 SELECT dsi.product_id FROM daily_stock_items dsi WHERE dsi.daily_stock_id = ?
             )
             ORDER BY p.category, p.product_name

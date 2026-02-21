@@ -344,18 +344,21 @@ class ProductModel extends Model
     public function getDoughProducts(): array
     {
         return $this->where('category', 'dough')
+            ->where('deleted_at IS NULL')
             ->orderBy('product_id', 'DESC')
             ->findAll();
     }
     public function getGroceryProducts(): array
     {
         return $this->where('category', 'grocery')
+            ->where('deleted_at IS NULL')
             ->orderBy('product_id', 'DESC')
             ->findAll();
     }
     public function getDrinksProducts(): array
     {
         return $this->where('category', 'drinks')
+            ->where('deleted_at IS NULL')
             ->orderBy('product_id', 'DESC')
             ->findAll();
     }
@@ -366,6 +369,7 @@ class ProductModel extends Model
     public function getBakeryProducts(): array
     {
         return $this->where('category', 'bakery')
+            ->where('deleted_at IS NULL')
             ->orderBy('product_id', 'DESC')
             ->findAll();
     }
