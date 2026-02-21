@@ -33,6 +33,14 @@
                             </div>
                             Disabled Products
                         </button>
+                        <button type="button" id="viewDisabledProductsMobile"
+                            class="sm:hidden inline-flex items-center rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                            <div id="disabledProductsCountMobile"
+                                class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
+                                0
+                            </div>
+                            Disabled Products
+                        </button>
                         <!-- Enable Export Button -->
                         <!-- <button type="button" id="btnExport"
                             class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
@@ -107,7 +115,7 @@
                                     Selling Price
                                 </span>
                             </th>
-                            <th scope="col" class="px-6 py-3">
+                            <th scope="col" class="px-6 py-3 w-px whitespace-nowrap">
                                 <span class="flex items-center">Actions</span>
                             </th>
                         </tr>
@@ -211,7 +219,6 @@
                         <input type="text" name="material_name" id="material_name"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="e.g., Cafe Latte" required>
-                        <span id="nameExistsError" class="text-red-500 text-xs mt-1 hidden">A product with this name already exists.</span>
                     </div>
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-700">Product Category <span
@@ -827,11 +834,11 @@
                 </button>
                 <button type="button" id="btnViewEdit"
                     class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
-                    <i class="fas fa-edit me-1"></i> Edit Product
+                    <i class="fas fa-edit me-1"></i> Edit
                 </button>
                 <button type="button" id="btnViewDelete"
                     class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
-                    <i class="fas fa-trash me-1"></i> Delete Product
+                    <i class="fas fa-trash me-1"></i> Delete
                 </button>
             </div>
         </div>
@@ -888,37 +895,6 @@
             // Load data on page load
             loadMaterials();
             loadFilterCategories();
-
-            // Real-time product name duplicate check
-            let nameCheckTimer = null;
-            $('#material_name').on('input', function () {
-                clearTimeout(nameCheckTimer);
-                const nameInput = $(this);
-                const name = nameInput.val().trim();
-                const errorSpan = $('#nameExistsError');
-                const mode = $('#product_mode').val() || 'add';
-                const excludeId = mode === 'edit' ? $('#product_id').val() : '';
-
-                if (!name) {
-                    errorSpan.addClass('hidden');
-                    nameInput.removeClass('border-red-500').addClass('border-gray-300');
-                    return;
-                }
-
-                nameCheckTimer = setTimeout(function () {
-                    $.get(baseUrl + 'Products/CheckNameExists', { name: name, exclude_id: excludeId }, function (res) {
-                        if (res.exists) {
-                            errorSpan.removeClass('hidden');
-                            nameInput.removeClass('border-gray-300').addClass('border-red-500');
-                            $('#btnNextStep').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
-                        } else {
-                            errorSpan.addClass('hidden');
-                            nameInput.removeClass('border-red-500').addClass('border-gray-300');
-                            $('#btnNextStep').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
-                        }
-                    });
-                }, 400);
-            });
 
             // Helper function to get category badge HTML
             function getCategoryBadge(category) {
@@ -2290,6 +2266,7 @@
                             // Count disabled products and update badge
                             const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
                             $('#disabledProductsCount').text(disabledCount);
+                            $('#disabledProductsCountMobile').text(disabledCount);
 
                             displayProducts.forEach(function (product) {
                                 // Desktop table rows
@@ -2299,9 +2276,11 @@
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.total_cost || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.selling_price || 0).toFixed(2) + '</td>';
-                                rows += '<td class="px-6 py-4">';
+                                rows += '<td class="px-6 py-4 w-px whitespace-nowrap">';
                                 rows += '<div class="flex items-center gap-2">';
                                 rows += '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
+                                // Delete button (commented out)
+                                rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
                                 var isEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
                                 if (isEnabled) {
@@ -2309,8 +2288,6 @@
                                 } else {
                                     rows += '<button class="text-gray-400 h-10 w-12 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:bg-gray-200 btn-toggle" data-id="' + product.product_id + '" data-enabled="false" title="Click to Enable"><i class="fas fa-toggle-off text-lg"></i></button>';
                                 }
-                                // Delete button (commented out)
-                                // rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + product.product_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                                 rows += '</div>';
                                 rows += '</td>';
                                 rows += '</tr>';
@@ -2353,6 +2330,7 @@
 
                         // Reset disabled products count
                         $('#disabledProductsCount').text('0');
+                        $('#disabledProductsCountMobile').text('0');
 
                         // Still initialize DataTable on error to show controls
                         if (dataTable) {
@@ -2414,6 +2392,9 @@
                     cards += '        <button class="btn-edit w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' + product.product_id + '">';
                     cards += '          <i class="fas fa-edit"></i> Edit';
                     cards += '        </button>';
+                    cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
+                    cards += '          <i class="fas fa-trash"></i> Delete';
+                    cards += '        </button>';
                     cards += '        <div class="border-t border-gray-100 my-1"></div>';
                     // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
                     var cardIsEnabled = !product.is_disabled || product.is_disabled == 0 || product.is_disabled === '0';
@@ -2426,10 +2407,6 @@
                         cards += '          <i class="fas fa-toggle-off text-xl"></i> Disabled';
                         cards += '        </button>';
                     }
-                    // Delete button (commented out)
-                    // cards += '        <button class="btn-delete w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" data-id="' + product.product_id + '">';
-                    // cards += '          <i class="fas fa-trash"></i> Delete';
-                    // cards += '        </button>';
                     cards += '      </div>';
                     cards += '    </div>';
                     cards += '  </div>';
@@ -2602,12 +2579,6 @@
                     Toast.error('Product name is required.');
                     return;
                 }
-                // Block save if duplicate name detected
-                if ($('#nameExistsError').is(':visible')) {
-                    Toast.error('A product with this name already exists.');
-                    $('#material_name').focus();
-                    return;
-                }
                 if (!formData.category) {
                     Toast.error('Product category is required.');
                     return;
@@ -2668,6 +2639,50 @@
                         }
                         Toast.error((mode === 'edit' ? 'Error updating product: ' : 'Error adding product: ') + error);
                     }
+                });
+            });
+
+            // Delete button in table row / mobile card
+            $(document).on('click', '.btn-delete', function (e) {
+                e.stopPropagation();
+                const btn = $(this);
+                const id = btn.data('id');
+
+                if (!id) {
+                    Toast.error('No product selected to delete.');
+                    return;
+                }
+
+                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                    return;
+                }
+
+                Confirm.delete('Are you sure you want to delete this product?', function () {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.start(btn, '');
+                    }
+                    $.ajax({
+                        url: baseUrl + 'Products/DeleteProduct/' + id,
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
+                            if (response.success) {
+                                Toast.success('Product deleted successfully!');
+                                loadMaterials();
+                            } else {
+                                Toast.error('Error: ' + response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
+                            Toast.error('Error deleting product: ' + error);
+                        }
+                    });
                 });
             });
 
@@ -2815,8 +2830,8 @@
                 $('#mobileSearchInput').val('');
             });
 
-            // View Disabled Products Button Click
-            $('#viewDisabledProducts').on('click', function () {
+            // View Disabled Products Button Click (Desktop & Mobile)
+            $('#viewDisabledProducts, #viewDisabledProductsMobile').on('click', function () {
                 showingDisabledOnly = !showingDisabledOnly;
                 const categoryFilter = $('#filter-category').val();
 
@@ -2828,10 +2843,18 @@
                     // Change title to "Disabled Product Lists"
                     $('#productListTitle').text('Disabled Product Lists');
 
-                    // Update button appearance to show "Back to All Products"
-                    $(this).removeClass('bg-gray-500 hover:bg-gray-600')
+                    // Update desktop button appearance
+                    $('#viewDisabledProducts').removeClass('bg-gray-500 hover:bg-gray-600')
                         .addClass('bg-blue-600 hover:bg-blue-700');
-                    $(this).html(`
+                    $('#viewDisabledProducts').html(`
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to All Products
+                    `);
+
+                    // Update mobile button appearance
+                    $('#viewDisabledProductsMobile').removeClass('bg-gray-500 hover:bg-gray-600')
+                        .addClass('bg-blue-600 hover:bg-blue-700');
+                    $('#viewDisabledProductsMobile').html(`
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to All Products
                     `);
@@ -2846,13 +2869,24 @@
                     // Change title back to "Product Lists"
                     $('#productListTitle').text('Product Lists');
 
-                    // Update button appearance to show "View Disabled Products"
-                    $(this).removeClass('bg-blue-600 hover:bg-blue-700')
-                        .addClass('bg-gray-500 hover:bg-gray-600');
-
                     const disabledCount = allProducts.filter(p => p.is_disabled == 1 || p.is_disabled === '1').length;
-                    $(this).html(`
+
+                    // Update desktop button appearance
+                    $('#viewDisabledProducts').removeClass('bg-blue-600 hover:bg-blue-700')
+                        .addClass('bg-gray-500 hover:bg-gray-600');
+                    $('#viewDisabledProducts').html(`
                         <div id="disabledProductsCount"
+                            class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
+                            ${disabledCount}
+                        </div>
+                        Disabled Products
+                    `);
+
+                    // Update mobile button appearance
+                    $('#viewDisabledProductsMobile').removeClass('bg-blue-600 hover:bg-blue-700')
+                        .addClass('bg-gray-500 hover:bg-gray-600');
+                    $('#viewDisabledProductsMobile').html(`
+                        <div id="disabledProductsCountMobile"
                             class="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-full bg-white text-sm font-semibold text-gray-800">
                             ${disabledCount}
                         </div>
