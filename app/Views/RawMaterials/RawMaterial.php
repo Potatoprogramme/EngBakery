@@ -139,7 +139,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
-                        <input type="text" id="mobileSearch" placeholder="Search materials..." 
+                        <input type="text" id="mobileSearch" placeholder="Search materials..."
                             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                     </div>
                 </div>
@@ -217,7 +217,8 @@
                             </select>
                         </div>
                         <p id="qty_readonly_hint" class="text-xs text-gray-400 mt-1 hidden">
-                            <i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial page.
+                            <i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial
+                            page.
                         </p>
                     </div>
 
@@ -244,7 +245,7 @@
                             </div>
                             <input type="number" name="total_cost" id="total_cost"
                                 class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="1350.00" step="1.0" min="0" required>
+                                placeholder="1350.00" step="0.00001" min="0" required>
                         </div>
                     </div>
                     <div>
@@ -302,8 +303,8 @@
 
     <!-- App Scripts -->
     <script>
-        // Set base URL for JS modules
-        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+    // Set base URL for JS modules
+    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
     </script>
     <script src="<?= base_url('js/CategoryModal.js') ?>"></script>
     <script src="<?= base_url('js/RawMaterial.js') ?>"></script>
