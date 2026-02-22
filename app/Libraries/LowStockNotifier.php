@@ -9,37 +9,44 @@ class LowStockNotifier
 {
     /**
      * Check for low stock raw materials and email all owners if any are critical.
-     * Only sends once per day at/after 10 PM to avoid spamming unless forced.
+     * For critical items (≤25%), always sends email. For warning items only (≤40%), sends once per day.
      *
      * @param float $criticalPercent  Stock percentage considered critical (default 25%)
      * @param float $warningPercent   Stock percentage considered warning (default 40%)
-     * @param bool  $forceSend        Force send regardless of time/flag
+     * @param bool  $forceSend        Force send regardless of flag
      */
     public static function checkAndNotify(float $criticalPercent = 25, float $warningPercent = 40, bool $forceSend = false): void
     {
-        // Check if it's 10 PM or later (unless forced)
-        if (!$forceSend) {
-            $currentHour = (int) date('H');
-            if ($currentHour < 22) {
-                return; // Only send at/after 10 PM
-            }
-
-            // Check if already sent today
-            $today = date('Y-m-d');
-            $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
-            if (file_exists($flagFile)) {
-                return; // Already sent today
-            }
-        } else {
-            $today = date('Y-m-d');
-            $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
-        }
-
+        log_message('info', 'Low stock check initiated at ' . date('Y-m-d H:i:s'));
+        
         $stockModel = new RawMaterialStockModel();
         $lowStockItems = $stockModel->getLowStockMaterials($criticalPercent, $warningPercent);
 
         if (empty($lowStockItems)) {
+            log_message('info', 'No low stock items found. No notification needed.');
             return; // No low stock — nothing to report
+        }
+        
+        log_message('info', 'Found ' . count($lowStockItems) . ' low stock item(s). Checking if notification needed.');
+
+        // Separate critical and warning items
+        $criticalItems = array_filter($lowStockItems, fn($item) => $item['stock_status'] === 'critical');
+        $warningItems  = array_filter($lowStockItems, fn($item) => $item['stock_status'] === 'warning');
+        
+        // Check if already sent today (only applies to warning-only alerts)
+        $today = date('Y-m-d');
+        $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
+        
+        // If there are critical items, ALWAYS send the email
+        $hasCritical = !empty($criticalItems);
+        
+        if (!$forceSend && !$hasCritical && file_exists($flagFile)) {
+            log_message('info', 'Low stock notification already sent today (warning items only). Skipping.');
+            return; // Already sent today for warning-only items
+        }
+        
+        if ($hasCritical) {
+            log_message('warning', 'CRITICAL: Found ' . count($criticalItems) . ' critical stock item(s). Sending immediate alert.');
         }
 
         // Get all owner emails
@@ -54,26 +61,29 @@ class LowStockNotifier
         }
 
         $ownerEmails = array_column($owners, 'email');
+        log_message('info', 'Sending low stock alert to ' . count($ownerEmails) . ' owner(s): ' . implode(', ', $ownerEmails));
 
         // Build the email
-        $criticalItems = array_filter($lowStockItems, fn($item) => $item['stock_status'] === 'critical');
-        $warningItems  = array_filter($lowStockItems, fn($item) => $item['stock_status'] === 'warning');
-
         $emailBody = self::buildEmailBody($criticalItems, $warningItems);
+        
+        $subjectPrefix = $hasCritical ? '🚨 CRITICAL' : '⚠';
+        $emailSubject = $subjectPrefix . ' Low Stock Alert — ' . count($lowStockItems) . ' material(s) running low';
 
         // Send
         try {
             $emailService = \Config\Services::email();
             $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery");
             $emailService->setTo($ownerEmails);
-            $emailService->setSubject('⚠ Low Stock Alert — ' . count($lowStockItems) . ' material(s) running low');
+            $emailService->setSubject($emailSubject);
             $emailService->setMessage($emailBody);
             $emailService->setMailType('html');
 
             if ($emailService->send()) {
-                // Mark as sent for today
-                file_put_contents($flagFile, date('Y-m-d H:i:s'));
-                log_message('info', 'Low stock alert email sent to: ' . implode(', ', $ownerEmails));
+                // Mark as sent for today (only for non-critical alerts)
+                if (!$hasCritical) {
+                    file_put_contents($flagFile, date('Y-m-d H:i:s'));
+                }
+                log_message('info', 'Low stock alert email sent successfully to: ' . implode(', ', $ownerEmails));
             } else {
                 log_message('error', 'Failed to send low stock email: ' . $emailService->printDebugger(['headers']));
             }

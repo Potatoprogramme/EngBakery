@@ -9,7 +9,7 @@ class ProductsController extends BaseController
     {
         return view('Template/Header') .
             view('Template/SideNav') .
-            view('Template/notification') .
+            view('Template/Notification') .
             view('Products/ProductTest') .
             view('Template/Footer');
     }
@@ -19,7 +19,7 @@ class ProductsController extends BaseController
         $data = $this->getSessionData();
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Products/Product', $data) .
             view('Template/Footer', $data);
     }
@@ -72,12 +72,12 @@ class ProductsController extends BaseController
             }
 
             // Check if product name already exists
-            // if ($this->productModel->nameExists($productName)) {
-            //     return $this->response->setStatusCode(400)->setJSON([
-            //         'success' => false,
-            //         'message' => 'A product with this name already exists.',
-            //     ]);
-            // }
+            if ($this->productModel->nameExists($productName)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'A product with this name already exists.',
+                ]);
+            }
 
             // Start database transaction
             $this->db->transStart();
@@ -244,6 +244,23 @@ class ProductsController extends BaseController
                 'message' => 'An error occurred while fetching the product.',
             ]);
         }
+    }
+
+    /**
+     * Check if a product name already exists (excludes deleted products)
+     */
+    public function checkNameExists()
+    {
+        $name = $this->request->getGet('name');
+        $excludeId = $this->request->getGet('exclude_id');
+
+        if (empty($name)) {
+            return $this->response->setJSON(['exists' => false]);
+        }
+
+        $exists = $this->productModel->nameExists($name, $excludeId ? (int)$excludeId : null);
+
+        return $this->response->setJSON(['exists' => $exists]);
     }
 
     /**

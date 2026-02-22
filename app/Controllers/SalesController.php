@@ -13,7 +13,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/Sales', $data) .
             view('Template/Footer', $data);
     }
@@ -27,7 +27,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/SalesHistory', $data) .
             view('Template/Footer', $data);
     }
@@ -42,7 +42,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/RemittanceHistory', $data) .
             view('Template/Footer', $data);
     }
@@ -422,13 +422,8 @@ class SalesController extends BaseController
             }
         }
 
-        // Auto-send daily report if this is an end-of-day shift (>= 10 PM)
-        $shiftEndTime = strtotime($remittanceDetails['shift_end']);
-        $endOfDayThreshold = strtotime('22:00:00'); // 10 PM
-        
-        if ($shiftEndTime >= $endOfDayThreshold) {
-            \App\Libraries\DailyRemittanceReport::sendReport();
-        }
+        // Send daily remittance report email whenever a remittance is saved
+        \App\Libraries\DailyRemittanceReport::sendReport();
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
     }

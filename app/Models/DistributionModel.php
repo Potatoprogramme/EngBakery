@@ -29,6 +29,7 @@ class DistributionModel extends Model
         )
             ->join('products', 'distributions.product_id = products.product_id')
             ->where('distribution_date', $date)
+            ->where('products.deleted_at IS NULL')
             ->groupBy('distributions.distribution_id')
             ->findAll();
     }
@@ -48,6 +49,7 @@ class DistributionModel extends Model
             ->join('products', 'distributions.product_id = products.product_id')
             ->where('distribution_date >=', $startDate)
             ->where('distribution_date <=', $endDate)
+            ->where('products.deleted_at IS NULL')
             ->orderBy('distribution_date', 'ASC')
             ->findAll();
     }

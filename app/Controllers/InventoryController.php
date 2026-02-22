@@ -27,7 +27,7 @@ class InventoryController extends BaseController
             view('Template/SideNav', $data) .
             view('Inventory/AddInventory', $data) .
             view('Template/Footer', $data);
-    }
+     }
 
     public function fetchTodaysInventory()
     {
