@@ -51,7 +51,7 @@ class OrderModel extends Model
         return false;
     }
 
-    public function getOrderHistory(string $dateFrom = null, string $dateTo = null): array
+    public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $builder = $this->builder();
         $builder->select('orders.*, 
