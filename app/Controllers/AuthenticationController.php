@@ -6,9 +6,15 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class AuthenticationController extends BaseController
 {
-    // Google OAuth Configuration
-    private const GOOGLE_CLIENT_ID = '89803932415-79qpupmj3ks8g8gnfttnclh688q4dfpk.apps.googleusercontent.com';
-    private const GOOGLE_CLIENT_SECRET = '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';
+    // Google OAuth Configuration (loaded from .env)
+    private string $googleClientId;
+    private string $googleClientSecret;
+
+    public function __construct()
+    {
+        $this->googleClientId = env('GOOGLE_CLIENT_ID', '');
+        $this->googleClientSecret = env('GOOGLE_CLIENT_SECRET', '');
+    }
 
     public function registrationPage(): string
     {
@@ -76,7 +82,7 @@ class AuthenticationController extends BaseController
         $redirectUri = base_url('Auth/Google/Callback');
 
         $params = [
-            'client_id' => self::GOOGLE_CLIENT_ID,
+            'client_id' => $this->googleClientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
             'scope' => 'openid email profile',
@@ -192,8 +198,8 @@ class AuthenticationController extends BaseController
         $response = $client->post('https://oauth2.googleapis.com/token', [
             'form_params' => [
                 'code' => $code,
-                'client_id' => self::GOOGLE_CLIENT_ID,
-                'client_secret' => self::GOOGLE_CLIENT_SECRET,
+                'client_id' => $this->googleClientId,
+                'client_secret' => $this->googleClientSecret,
                 'redirect_uri' => base_url('Auth/Google/Callback'),
                 'grant_type' => 'authorization_code',
             ],
