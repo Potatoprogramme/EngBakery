@@ -9,7 +9,7 @@ class OrdersController extends BaseController
         $data = $this->getSessionData();
         return  view('Template/Header', $data).
                 view('Template/SideNav', $data) . 
-                view('Template/notification', $data) .
+                view('Template/Notification', $data) .
                 view('Orders/Order', $data) .
                 view('Template/Footer', $data);
     }
@@ -19,7 +19,7 @@ class OrdersController extends BaseController
         $data = $this->getSessionData();
         return  view('Template/Header', $data).
                 view('Template/SideNav', $data) . 
-                view('Template/notification', $data) .
+                view('Template/Notification', $data) .
                 view('Orders/OrderHistory', $data) .
                 view('Template/Footer', $data);
     }

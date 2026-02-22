@@ -13,7 +13,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/Sales', $data) .
             view('Template/Footer', $data);
     }
@@ -27,7 +27,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/SalesHistory', $data) .
             view('Template/Footer', $data);
     }
@@ -42,7 +42,7 @@ class SalesController extends BaseController
 
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Sales/RemittanceHistory', $data) .
             view('Template/Footer', $data);
     }

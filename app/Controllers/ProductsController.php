@@ -9,7 +9,7 @@ class ProductsController extends BaseController
     {
         return view('Template/Header') .
             view('Template/SideNav') .
-            view('Template/notification') .
+            view('Template/Notification') .
             view('Products/ProductTest') .
             view('Template/Footer');
     }
@@ -19,7 +19,7 @@ class ProductsController extends BaseController
         $data = $this->getSessionData();
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
-            view('Template/notification', $data) .
+            view('Template/Notification', $data) .
             view('Products/Product', $data) .
             view('Template/Footer', $data);
     }
