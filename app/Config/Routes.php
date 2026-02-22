@@ -179,5 +179,3 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
     $routes->post('UpdateDistribution/(:num)', 'DistributionController::updateDistribution/$1');
 });
-
-

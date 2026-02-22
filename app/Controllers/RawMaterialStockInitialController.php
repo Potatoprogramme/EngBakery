@@ -99,6 +99,9 @@ class RawMaterialStockInitialController extends BaseController
             $entryId = $this->rawMaterialStockModel->addEntry($data);
 
             if ($entryId) {
+                // Check for low stock and notify owners
+                \App\Libraries\LowStockNotifier::checkAndNotify();
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Stock entry added successfully.',
@@ -162,6 +165,9 @@ class RawMaterialStockInitialController extends BaseController
             );
 
             if ($success) {
+                // Check for low stock and notify owners
+                \App\Libraries\LowStockNotifier::checkAndNotify();
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Entry updated successfully.'
@@ -204,6 +210,9 @@ class RawMaterialStockInitialController extends BaseController
 
         try {
             $this->rawMaterialStockModel->deleteEntry($id);
+
+            // Check for low stock and notify owners
+            \App\Libraries\LowStockNotifier::checkAndNotify();
 
             return $this->response->setJSON([
                 'success' => true,

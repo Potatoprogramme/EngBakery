@@ -41,6 +41,13 @@ class DashboardController extends BaseController
             return $redirect;
         }
 
+        // Automatically check for low stock and notify owners on dashboard load
+        try {
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+        } catch (\Exception $e) {
+            log_message('error', 'LowStockNotifier error on dashboard: ' . $e->getMessage());
+        }
+
         return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Dashboard', $data) .
