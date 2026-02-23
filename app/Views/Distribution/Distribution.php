@@ -384,7 +384,7 @@
                     <!-- Quantity -->
                     <div class="mb-3">
                         <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (batches) <span class="text-red-500">*</span></label>
-                        <input type="number" id="addProductQty" min="1" value="10" step="1"
+                        <input type="number" id="addProductQty" min="1" value="10" step="0.00001"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="10">
                         <p id="piecesConversionHint" class="hidden mt-1 text-xs text-gray-500">
@@ -459,7 +459,7 @@
                             class="w-12 h-12 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-xl font-semibold rounded-lg hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="editQuantity" name="quantity" min="1" value="10" required
+                        <input type="number" id="editQuantity" name="quantity" min="1" value="10" step="0.00001" required
                             class="w-24 px-4 py-3 border border-gray-300 rounded-lg text-center text-xl font-bold focus:ring-2 focus:ring-primary focus:border-primary">
                         <button type="button" id="btnEditQtyInc"
                             class="w-12 h-12 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-xl font-semibold rounded-lg hover:bg-gray-200">

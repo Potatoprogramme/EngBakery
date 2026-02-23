@@ -278,7 +278,7 @@
                                     <i class="fas fa-mobile-alt text-blue-600 text-base"></i>
                                     <span class="text-sm font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00"
+                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001"
                                     class="w-full sm:w-40 lg:w-48 text-right border border-blue-300 rounded-lg px-2 py-1.5 text-base font-bold text-blue-600 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -287,7 +287,7 @@
                                     <span class="text-sm font-medium text-gray-700">CASH OUT:</span>
                                 </div>
                                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                                    <input type="number" id="cashOutAmount" min="0" placeholder="0.00"
+                                    <input type="number" id="cashOutAmount" min="0" placeholder="0.00" step="0.00001"
                                         class="w-1/2 sm:w-28 lg:w-36 text-right border border-gray-300 rounded-lg px-2 py-1.5 text-base font-semibold focus:ring-2 focus:ring-primary focus:border-primary">
                                     <input type="text" id="cashOutReason" placeholder="Reason"
                                         class="w-1/2 sm:w-32 lg:w-40 border border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary">
