@@ -278,7 +278,7 @@
                         <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                         <input type="number" name="expense_amount" id="expense_amount"
                             class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0.00" min="0" step="0.01" required>
+                            placeholder="0.00" min="0" step="0.00001" required>
                     </div>
                 </div>
 
