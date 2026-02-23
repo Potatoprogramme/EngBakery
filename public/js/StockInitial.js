@@ -476,17 +476,51 @@ $(document).ready(function () {
 
         if (totalPages <= 1) return;
 
-        // Prev
-        pag.append(`<button class="px-3 py-1 rounded text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
-            ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">&laquo;</button>`);
+        // Build page numbers with ellipsis to prevent overflow
+        const maxVisible = 5; // max page buttons (excluding prev/next)
+        let pages = [];
 
-        for (let i = 1; i <= totalPages; i++) {
-            pag.append(`<button class="px-3 py-1 rounded text-sm ${i === currentPage ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}" 
-                data-page="${i}">${i}</button>`);
+        if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            // Always show first page
+            pages.push(1);
+
+            let start = Math.max(2, currentPage - 1);
+            let end = Math.min(totalPages - 1, currentPage + 1);
+
+            // Adjust window to show up to 3 middle pages
+            if (currentPage <= 3) {
+                start = 2;
+                end = Math.min(4, totalPages - 1);
+            } else if (currentPage >= totalPages - 2) {
+                start = Math.max(totalPages - 3, 2);
+                end = totalPages - 1;
+            }
+
+            if (start > 2) pages.push('...');
+            for (let i = start; i <= end; i++) pages.push(i);
+            if (end < totalPages - 1) pages.push('...');
+
+            // Always show last page
+            pages.push(totalPages);
         }
 
+        // Prev
+        pag.append(`<button class="px-2 py-1 rounded text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
+            ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">&laquo;</button>`);
+
+        pages.forEach(function (p) {
+            if (p === '...') {
+                pag.append(`<span class="px-1 py-1 text-sm text-gray-400">&hellip;</span>`);
+            } else {
+                pag.append(`<button class="px-2 py-1 rounded text-sm min-w-[28px] ${p === currentPage ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}" 
+                    data-page="${p}">${p}</button>`);
+            }
+        });
+
         // Next
-        pag.append(`<button class="px-3 py-1 rounded text-sm ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
+        pag.append(`<button class="px-2 py-1 rounded text-sm ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
             ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">&raquo;</button>`);
 
         pag.find('button').on('click', function () {
