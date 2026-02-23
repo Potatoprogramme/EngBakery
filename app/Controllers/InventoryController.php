@@ -117,11 +117,20 @@ class InventoryController extends BaseController
             // fetch ALL products for inventory tracking
             $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
 
+            // Get yesterday's remaining stock (carryover)
+            $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
+
             // insert all products into daily stock items model
-            if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+            if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds, $carryover)) {
+                $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
+                $message = 'Today\'s inventory added successfully.';
+                if ($carryoverCount > 0) {
+                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
+                }
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
-                    'message' => 'Today\'s inventory added successfully.'
+                    'message' => $message,
+                    'carryover_count' => $carryoverCount
                 ]);
             } else {
                 return $this->response->setStatusCode(500)->setJSON([
@@ -176,11 +185,20 @@ class InventoryController extends BaseController
                 $lastInsertId = $this->dailyStockModel->getInsertID();
                 $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
 
-                if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds)) {
+                // Get yesterday's remaining stock (carryover)
+                $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
+
+                if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds, $carryover)) {
+                    $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
+                    $message = 'Today\'s inventory added successfully (no distribution data found, added all products).';
+                    if ($carryoverCount > 0) {
+                        $message .= " Carried over remaining stock for {$carryoverCount} product(s).";
+                    }
                     return $this->response->setStatusCode(201)->setJSON([
                         'success' => true,
-                        'message' => 'Today\'s inventory added successfully (no distribution data found, added all products).',
-                        'fallback_mode' => true
+                        'message' => $message,
+                        'fallback_mode' => true,
+                        'carryover_count' => $carryoverCount
                     ]);
                 } else {
                     $this->dailyStockModel->delete($lastInsertId);
@@ -208,11 +226,20 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems)) {
+            // Get yesterday's remaining stock (carryover)
+            $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
+
+            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems, $carryover)) {
+                $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
+                $message = 'Today\'s inventory created from distribution data successfully.';
+                if ($carryoverCount > 0) {
+                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
+                }
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
-                    'message' => 'Today\'s inventory created from distribution data successfully.',
+                    'message' => $message,
                     'items_count' => count($distributionItems),
+                    'carryover_count' => $carryoverCount,
                 ]);
             } else {
                 $this->dailyStockModel->delete($lastInsertId);
@@ -758,5 +785,45 @@ class InventoryController extends BaseController
         $result = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
 
         return $this->response->setJSON($result);
+    }
+
+    /**
+     * Get yesterday's (or most recent previous day's) remaining stock.
+     * Returns product-level carryover data for display before creating inventory.
+     * GET /Inventory/GetYesterdayRemaining
+     */
+    public function getYesterdayRemaining()
+    {
+        $today = date('Y-m-d');
+        $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
+
+        if (empty($carryover)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [],
+                'message' => 'No remaining stock from previous day.'
+            ]);
+        }
+
+        // Enrich with product names
+        $enrichedData = [];
+        foreach ($carryover as $productId => $remaining) {
+            $product = $this->productModel->find($productId);
+            if ($product) {
+                $enrichedData[] = [
+                    'product_id' => $productId,
+                    'product_name' => $product['product_name'],
+                    'category' => $product['category'] ?? '',
+                    'remaining_stock' => $remaining,
+                ];
+            }
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $enrichedData,
+            'total_products' => count($enrichedData),
+            'message' => count($enrichedData) . ' product(s) have remaining stock from previous day.'
+        ]);
     }
 }

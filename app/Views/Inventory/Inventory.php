@@ -206,7 +206,24 @@
                         <i class="fas fa-times text-lg"></i>
                     </button>
                     <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-5">Set the operating hours for today.</p>
+                    <p class="text-xs text-gray-500 mb-3">Set the operating hours for today.</p>
+
+                    <!-- Carryover Preview -->
+                    <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-boxes-stacked text-amber-600"></i>
+                            <span class="text-sm font-semibold text-amber-700">Yesterday's Remaining Stock</span>
+                        </div>
+                        <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
+                        <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be automatically added to today's beginning stock.</p>
+                    </div>
+                    <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-box-open text-gray-400"></i>
+                            <span class="text-xs text-gray-500">No remaining stock from previous day.</span>
+                        </div>
+                    </div>
+
                     <form id="timeInputForm">
                         <div class="mb-4">
                             <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start
@@ -449,6 +466,7 @@
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
                 // Re-check distribution before opening modal to ensure we have the latest state
                 checkIfDistributionExists();
+                fetchYesterdayRemaining(); // Load carryover preview
                 $('#timeInputModal').removeClass('hidden');
                 $('#time_start').val('08:00'); // 8:00 AM (morning)
                 $('#time_end').val('17:00'); // 5:00 PM (afternoon)
@@ -585,6 +603,37 @@
                 $('table tbody tr').show();
             });
         });
+
+        function fetchYesterdayRemaining() {
+            const baseUrl = '<?= base_url() ?>';
+            $('#carryoverPreview').addClass('hidden');
+            $('#noCarryoverPreview').addClass('hidden');
+            $('#carryoverList').empty();
+
+            $.ajax({
+                url: baseUrl + 'Inventory/GetYesterdayRemaining',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        let html = '';
+                        response.data.forEach(function(item) {
+                            html += '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
+                            html += '<span class="text-gray-700">' + item.product_name + ' <span class="text-gray-400">(' + item.category + ')</span></span>';
+                            html += '<span class="font-semibold text-amber-700">' + item.remaining_stock + ' pcs</span>';
+                            html += '</div>';
+                        });
+                        $('#carryoverList').html(html);
+                        $('#carryoverPreview').removeClass('hidden');
+                    } else {
+                        $('#noCarryoverPreview').removeClass('hidden');
+                    }
+                },
+                error: function() {
+                    $('#noCarryoverPreview').removeClass('hidden');
+                }
+            });
+        }
 
         function checkIfDistributionExists() {
             const baseUrl = '<?= base_url() ?>';

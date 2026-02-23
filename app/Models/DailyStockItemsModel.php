@@ -24,16 +24,17 @@ class DailyStockItemsModel extends Model
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
 
-    public function insertDailyStockItems($dailyStockId, $productIds)
+    public function insertDailyStockItems($dailyStockId, $productIds, array $carryover = [])
     {
         $insertData = [];
         foreach ($productIds as $productId) {
+            $carryoverQty = $carryover[intval($productId)] ?? 0;
             $insertData[] = [
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
-                'beginning_stock' => 0,
+                'beginning_stock' => $carryoverQty,
                 'pull_out_quantity' => 0,
-                'ending_stock' => 0,
+                'ending_stock' => $carryoverQty,
             ];
         }
         return $this->insertBatch($insertData);
@@ -47,14 +48,18 @@ class DailyStockItemsModel extends Model
      * @param array $distributionItems Array of distribution records with product_id and product_qnty
      * @return int|false Number of rows inserted or false on failure
      */
-    public function insertDailyStockItemsFromDistribution(int $dailyStockId, array $distributionItems)
+    public function insertDailyStockItemsFromDistribution(int $dailyStockId, array $distributionItems, array $carryover = [])
     {
         $insertData = [];
         $productModel = model('ProductModel');
         $productCostModel = model('ProductCostModel');
         
+        // Track which products come from distribution
+        $distributedProductIds = [];
+        
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
+            $distributedProductIds[] = $productId;
             $distributionQty = intval($item['product_qnty'] ?? 0);
             $qtyMode = $item['qty_mode'] ?? 'batch';
             
@@ -80,20 +85,44 @@ class DailyStockItemsModel extends Model
                 }
             }
             
-            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution Qty: {dist} {mode} → {pieces} pieces', [
+            // Add yesterday's remaining stock (carryover)
+            $carryoverQty = $carryover[$productId] ?? 0;
+            $totalBeginning = $beginningStockPieces + $carryoverQty;
+            
+            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution: {dist} {mode} → {pieces} pcs + Carryover: {carryover} = {total}', [
                 'product' => $productId,
                 'dist' => $distributionQty,
                 'mode' => $qtyMode,
-                'pieces' => $beginningStockPieces
+                'pieces' => $beginningStockPieces,
+                'carryover' => $carryoverQty,
+                'total' => $totalBeginning
             ]);
             
             $insertData[] = [
                 'daily_stock_id' => $dailyStockId,
                 'product_id'     => $productId,
-                'beginning_stock' => $beginningStockPieces, // Now in pieces!
+                'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
-                'ending_stock'    => $beginningStockPieces,
+                'ending_stock'    => $totalBeginning,
             ];
+        }
+        
+        // Add carryover-only products (not in today's distribution but had remaining stock yesterday)
+        foreach ($carryover as $productId => $carryoverQty) {
+            if (!in_array($productId, $distributedProductIds) && $carryoverQty > 0) {
+                log_message('info', 'INVENTORY ITEMS INSERT (carryover only): Product {product}, Carryover: {carryover}', [
+                    'product' => $productId,
+                    'carryover' => $carryoverQty
+                ]);
+                
+                $insertData[] = [
+                    'daily_stock_id' => $dailyStockId,
+                    'product_id'     => $productId,
+                    'beginning_stock' => $carryoverQty,
+                    'pull_out_quantity' => 0,
+                    'ending_stock'    => $carryoverQty,
+                ];
+            }
         }
 
         if (empty($insertData)) {
@@ -201,5 +230,50 @@ class DailyStockItemsModel extends Model
             )
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
+    }
+
+    /**
+     * Get the most recent previous day's ending_stock per product (carryover).
+     * Returns an associative array keyed by product_id => ending_stock.
+     *
+     * @param string $beforeDate  Only look at inventory dates strictly before this date (Y-m-d)
+     * @return array<int, int>    [product_id => ending_stock]
+     */
+    public function getCarryoverStock(string $beforeDate): array
+    {
+        $db = \Config\Database::connect();
+
+        // Find the most recent inventory date before the given date
+        $previousStock = $db->query("
+            SELECT ds.inventory_date
+            FROM daily_stock ds
+            WHERE ds.inventory_date < ?
+            ORDER BY ds.inventory_date DESC
+            LIMIT 1
+        ", [$beforeDate])->getRowArray();
+
+        if (!$previousStock) {
+            return [];
+        }
+
+        $previousDate = $previousStock['inventory_date'];
+
+        // Get all ending_stock values from that day
+        $items = $db->query("
+            SELECT dsi.product_id, dsi.ending_stock
+            FROM daily_stock_items dsi
+            JOIN daily_stock ds ON dsi.daily_stock_id = ds.daily_stock_id
+            WHERE ds.inventory_date = ?
+        ", [$previousDate])->getResultArray();
+
+        $carryover = [];
+        foreach ($items as $item) {
+            $remaining = intval($item['ending_stock']);
+            if ($remaining > 0) {
+                $carryover[intval($item['product_id'])] = $remaining;
+            }
+        }
+
+        return $carryover;
     }
 }
