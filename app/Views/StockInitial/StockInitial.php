@@ -131,7 +131,7 @@
                 </div>
 
                 <!-- Mobile Pagination -->
-                <div id="mobilePagination" class="mt-4 flex items-center justify-center gap-2">
+                <div id="mobilePagination" class="mt-4 flex flex-wrap items-center justify-center gap-1">
                 </div>
             </div>
         </div>
