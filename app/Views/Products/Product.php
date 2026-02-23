@@ -1129,8 +1129,8 @@
                         $('#piecesPerYield').prop('disabled', false);
 
                         // Disable Grams per Tray/Piece inputs for bakery (they should not be editable)
-                        $('#gramsPerTray').prop('disabled', true);
-                        $('#gramsPerPiece').prop('disabled', true);
+                        // $('#gramsPerTray').prop('disabled', true);
+                        // $('#gramsPerPiece').prop('disabled', true);
 
                         // Bread uses 2 columns layout
                         $('#yieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
