@@ -244,7 +244,7 @@
                             </div>
                             <input type="number" name="total_cost" id="total_cost"
                                 class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="1350.00" step="1.0" min="0" required>
+                                placeholder="1350.00" step="0.00001" min="0" required>
                         </div>
                     </div>
                     <div>

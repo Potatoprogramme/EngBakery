@@ -256,14 +256,14 @@
                 <div class="mb-4">
                     <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="editBeginningStock" name="beginning_stock" required min="0"
+                    <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="0.00001"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
                 <div class="mb-6">
                     <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
-                    <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0"
+                    <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="0.00001"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
@@ -306,7 +306,7 @@
                 <div class="mb-6">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0"
+                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0" step="0.00001"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
                 </div>
