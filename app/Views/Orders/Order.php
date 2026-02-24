@@ -28,6 +28,10 @@
                 </div>
             </div>
 
+            <!-- Search Bar -->
+            <div class="mb-4 flex justify-end">
+                <input type="text" id="orderSearchInput" placeholder="Search item..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
             <!-- Floating Cart Button -->
             <div id="floatingCartContainer" class="fixed bottom-6 right-6 z-40">
                 <!-- Mini Cart Panel (Hidden by default) -->
