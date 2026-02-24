@@ -131,7 +131,7 @@
                 </div>
 
                 <!-- Mobile Pagination -->
-                <div id="mobilePagination" class="mt-4 flex items-center justify-center gap-2">
+                <div id="mobilePagination" class="mt-4 flex flex-wrap items-center justify-center gap-1">
                 </div>
             </div>
         </div>
@@ -176,7 +176,7 @@
                         </div>
                         <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0" min="0" step="0.01" required>
+                            placeholder="0" min="0" step="0.00001" required>
                     </div>
                     <div id="remaining_qty_wrapper" class="hidden">
                         <div class="flex">
@@ -186,7 +186,7 @@
                         </div>
                         <input type="number" name="remaining_qty" id="remaining_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0" min="0" step="0.01">
+                            placeholder="0" min="0" step="0.00001">
                     </div>
                 </div>
                 <div class="mb-4">

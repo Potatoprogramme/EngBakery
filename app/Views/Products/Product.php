@@ -264,7 +264,7 @@
                                         class="text-red-500">*</span></label>
                                 <input type="number" name="ingredient_quantity" id="ingredient_quantity"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="100" min="1" step="1">
+                                    placeholder="100" min="0.01" step="any">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
@@ -315,7 +315,7 @@
                                     piece)</label>
                                 <div class="flex gap-2">
                                     <div class="relative flex-1">
-                                        <input type="number" id="combinedRecipeGrams" step="0.01" min="0"
+                                        <input type="number" id="combinedRecipeGrams" step="any" min="0"
                                             placeholder="Enter grams per piece"
                                             class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                                         <span
@@ -367,7 +367,7 @@
                                     class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                 <input type="number" id="groceryDirectCost"
                                     class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-green-500 font-semibold text-green-700"
-                                    placeholder="0.00" min="0" step="1">
+                                    placeholder="0.00" min="0" step="any">
                             </div>
                         </div>
                     </div>
@@ -413,7 +413,7 @@
                                 <div class="flex w-full sm:w-32">
                                     <input type="number" id="overheadCost"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                        placeholder="0" min="0">
+                                        placeholder="0" min="0" step="any">
                                     <span
                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
                                         %
@@ -459,12 +459,11 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="gramsPerTray" class="text-sm text-gray-600">Grams per
-                                                    Tray</label>
+                                                <label for="gramsPerTray" class="text-sm text-gray-600">Grams per Tray</label>
                                                 <div class="flex w-32">
                                                     <input type="number" id="gramsPerTray"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1">
+                                                        placeholder="0" min="0" step="any">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
                                                 </div>
@@ -511,7 +510,7 @@
                                                 <div class="flex w-32">
                                                     <input type="number" id="gramsPerPiece"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="0" min="0" step="1">
+                                                        placeholder="0" min="0" step="any">
                                                     <span
                                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-xs font-medium">g</span>
                                                 </div>
@@ -549,7 +548,7 @@
                                 <div class="flex w-full sm:w-28">
                                     <input type="number" id="profitMargin"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                        placeholder="30" min="0" max="99.99" value="30">
+                                        placeholder="30" min="0" max="99.99" step="any" value="30">
                                     <span
                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
                                         %
@@ -580,7 +579,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPriceOverall"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-primary"
-                                        placeholder="0.00" step="1" min="0">
+                                        placeholder="0.00" step="any" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -597,7 +596,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPricePerTray"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-purple-600"
-                                        placeholder="0.00" step="1" min="0">
+                                        placeholder="0.00" step="any" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -614,7 +613,7 @@
                                         class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">₱</span>
                                     <input type="number" id="sellingPricePerPiece"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-r-md focus:outline-none focus:ring-1 focus:ring-primary font-semibold text-blue-600"
-                                        placeholder="0.00" step="0.01" min="0">
+                                        placeholder="0.00" step="any" min="0">
                                 </div>
                             </div>
                             <div class="text-xs text-gray-500 text-right mt-1">Recommended: <span
@@ -1129,8 +1128,8 @@
                         $('#piecesPerYield').prop('disabled', false);
 
                         // Disable Grams per Tray/Piece inputs for bakery (they should not be editable)
-                        $('#gramsPerTray').prop('disabled', true);
-                        $('#gramsPerPiece').prop('disabled', true);
+                        // $('#gramsPerTray').prop('disabled', true);
+                        // $('#gramsPerPiece').prop('disabled', true);
 
                         // Bread uses 2 columns layout
                         $('#yieldGridContainer').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1');
@@ -1765,8 +1764,8 @@
                     let gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
                     let gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
 
-                    // Unit price per gram - based only on yield-contributing ingredients (5 decimal places)
-                    const unitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
+                    // Unit price per gram - includes overhead cost (5 decimal places)
+                    const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
 
                     // Flexible Yield Computation Logic:
                     let unitPricePerPiece = 0;
@@ -1778,12 +1777,20 @@
                         // User entered grams per tray - calculate number of trays (whole numbers only)
                         traysPerYield = Math.floor(totalYieldGrams / gramsPerTray);
                         $('#traysPerYield').val(traysPerYield);
+                    } else if (changedField === 'gramsPerTray' && gramsPerTray === 0) {
+                        // User cleared grams per tray - reset trays to 0 as well
+                        traysPerYield = 0;
+                        $('#traysPerYield').val(0);
                     } else if (changedField === 'traysPerYield' && traysPerYield > 0 && totalYieldGrams > 0) {
                         // User entered trays - calculate grams per tray
                         gramsPerTray = totalYieldGrams / traysPerYield;
                         $('#gramsPerTray').val(gramsPerTray.toFixed(2));
-                    } else if (traysPerYield > 0 && totalYieldGrams > 0 && gramsPerTray === 0) {
-                        // Default: calculate grams per tray from trays
+                    } else if (changedField === 'traysPerYield' && traysPerYield === 0) {
+                        // User cleared trays - reset grams per tray to 0 as well
+                        gramsPerTray = 0;
+                        $('#gramsPerTray').val(0);
+                    } else if (traysPerYield > 0 && totalYieldGrams > 0 && gramsPerTray === 0 && changedField !== 'gramsPerTray') {
+                        // Default: calculate grams per tray from trays (only when gramsPerTray was not explicitly cleared)
                         gramsPerTray = totalYieldGrams / traysPerYield;
                         $('#gramsPerTray').val(gramsPerTray.toFixed(2));
                     }
@@ -1816,8 +1823,15 @@
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
                         $('#gramsPerPiece').val(gramsPerPiece.toFixed(2));
-                    }
-                    else if (piecesPerYield > 0 && gramsPerPiece === 0 && changedField !== 'gramsPerPiece') {
+                    } else if (changedField === 'piecesPerYield' && piecesPerYield === 0) {
+                        // User cleared pieces - reset grams per piece to 0 as well
+                        gramsPerPiece = 0;
+                        $('#gramsPerPiece').val(0);
+                    } else if (changedField === 'gramsPerPiece' && gramsPerPiece === 0) {
+                        // User cleared grams per piece - reset pieces to 0 as well
+                        piecesPerYield = 0;
+                        $('#piecesPerYield').val(0);
+                    } else if (piecesPerYield > 0 && gramsPerPiece === 0 && changedField !== 'gramsPerPiece') {
                         // Only auto-calculate grams per piece if it's currently 0 (not user-entered)
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerTray = piecesPerYield;
@@ -1836,8 +1850,8 @@
                         if (category === 'dough') {
                             // For dough: multiply grams per piece by unit price per gram
                             // Use INPUT value to ensure consistency regardless of rounding
-                            // Use yieldContributingCost (direct cost only, no overhead) for accurate per-gram pricing
-                            const doughUnitPricePerGram = totalYieldGrams > 0 ? yieldContributingCost / totalYieldGrams : 0;
+                            // Use totalCost (includes overhead) for per-gram pricing
+                            const doughUnitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
                             unitPricePerPiece = inputGramsPerPiece * doughUnitPricePerGram;
                         } else if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
@@ -1986,42 +2000,10 @@
                 updateCostingDisplay('traysPerYield');
             });
 
-            // Handle gramsPerPiece input for dough products
-            // Handle gramsPerPiece input for dough products
+            // Handle gramsPerPiece input for all product categories
             $('#gramsPerPiece').on('input', function () {
-                const category = $('#category_id').val();
-                const gramsPerPiece = parseFloat($(this).val()) || 0;
-
-                if (category === 'dough' && gramsPerPiece > 0) {
-                    const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                    let totalYieldGrams = 0;
-
-                    ingredientsList.forEach(item => {
-                        if (allowedUnitsForYield.includes(item.unit.toLowerCase())) {
-                            totalYieldGrams += item.quantity;
-                        }
-                    });
-
-                    if (totalYieldGrams > 0) {
-                        const piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
-                        $('#piecesPerYield').val(piecesPerYield);
-
-                        const directCost = ingredientsList.reduce((sum, item) => sum + item.totalCost, 0);
-                        const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
-                        const totalCost = directCost + overheadCost;
-
-                        const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
-                        const unitPricePerPiece = gramsPerPiece * unitPricePerGram;
-
-                        // Display unit price per gram with 5 decimal places
-                        $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(5));
-
-                        // Display unit price per piece with 5 decimal places
-                        $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(5) : '₱ 0.00000');
-
-                        updateCostingDisplay('gramsPerPiece');
-                    }
-                }
+                recalculateCombinedRecipes();
+                updateCostingDisplay('gramsPerPiece');
             });
 
             $('#gramsPerTray').on('input', function () {
