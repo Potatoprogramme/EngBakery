@@ -49,6 +49,7 @@ $routes->group('MaterialCosting', function (RouteCollection $routes) {
     $routes->post('UpdateRawMaterial', 'RawMaterialsController::updateRawMaterial');
     $routes->post('RestockMaterial', 'RawMaterialsController::restockMaterial');
     $routes->post('CheckMaterialName', 'RawMaterialsController::checkMaterialName');
+    $routes->post('UpdateQuantityInline', 'RawMaterialsController::updateQuantityInline');
     $routes->post('Delete/(:num)', 'RawMaterialsController::delete/$1');
 });
 
