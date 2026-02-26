@@ -296,6 +296,10 @@ $(document).ready(function() {
             rows += '<td class="px-6 py-4">';
             rows += '<div class="text-gray-900 font-semibold">₱ ' + costPerUnit.toFixed(3) + '</div>';
             rows += '</td>';
+            const totalCost = parseFloat(mat.total_cost || 0);
+            rows += '<td class="px-6 py-4">';
+            rows += '<div class="text-gray-900 font-semibold">₱ ' + totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div>';
+            rows += '</td>';
             rows += '<td class="px-6 py-4 ">';
             rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
             rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
@@ -401,6 +405,12 @@ $(document).ready(function() {
                             <div class="bg-primary/10 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Cost per Unit</p>
                                 <p class="font-bold text-primary">₱ ${parseFloat(mat.cost_per_unit || 0).toFixed(3)}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-2 mb-2">
+                            <div class="bg-green-50 rounded-lg p-2">
+                                <p class="text-xs text-gray-500 mb-0.5">Total Cost</p>
+                                <p class="font-bold text-green-700">₱ ${parseFloat(mat.total_cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                             </div>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-gray-100">

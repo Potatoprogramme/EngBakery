@@ -120,6 +120,11 @@
                                     Cost per Unit
                                 </span>
                             </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap min-w-[120px]">
+                                <span class="flex items-center">
+                                    Total Cost
+                                </span>
+                            </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Actions</span>
                             </th>
