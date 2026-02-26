@@ -301,6 +301,7 @@ $(document).ready(function() {
             rows += '<div class="text-gray-900 font-semibold">₱ ' + totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div>';
             rows += '</td>';
             rows += '<td class="px-6 py-4 ">';
+            rows += '<button class="text-gray-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-gray-800 me-2 btn-view" data-id="' + mat.material_id + '" title="View"><i class="fas fa-eye"></i></button>';
             rows += '<button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit" data-id="' + mat.material_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
             rows += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + mat.material_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
             rows += '</td>';
@@ -414,6 +415,9 @@ $(document).ready(function() {
                             </div>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-gray-100">
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 btn-view" data-id="${mat.material_id}">
+                                <i class="fas fa-eye"></i> View
+                            </button>
                             <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit" data-id="${mat.material_id}">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -622,6 +626,201 @@ $(document).ready(function() {
                 }
             }
         });
+    });
+
+    // Store current viewing material ID
+    let currentViewMaterialId = null;
+
+    // View Material
+    $(document).on('click', '.btn-view', function() {
+        const id = $(this).data('id');
+        openViewMaterialModal(id);
+    });
+
+    function openViewMaterialModal(materialId) {
+        $.ajax({
+            url: baseUrl + 'MaterialCosting/GetMaterial/' + materialId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    const mat = response.data;
+                    currentViewMaterialId = mat.material_id;
+
+                    // Material name
+                    $('#view_material_name').text(mat.material_name);
+
+                    // Category badge
+                    $('#view_category').text(mat.category_name || 'Uncategorized');
+
+                    // Label badge
+                    const labelColors = {
+                        'drinks': 'bg-blue-100 text-blue-800',
+                        'bread': 'bg-amber-100 text-amber-800',
+                        'grocery': 'bg-green-100 text-green-800',
+                        'general': 'bg-gray-100 text-gray-800'
+                    };
+                    const lc = labelColors[mat.label] || 'bg-gray-100 text-gray-800';
+                    $('#view_label_badge').html(mat.label ? '<span class="text-xs px-2 py-0.5 rounded-full ' + lc + '">' + mat.label + '</span>' : '');
+
+                    // Stock section
+                    const initQty = parseFloat(mat.initial_qty) || 0;
+                    const usedQty = parseFloat(mat.qty_used) || 0;
+                    const remain = Math.max(0, initQty - usedQty);
+                    const hasStock = parseInt(mat.has_stock) === 1;
+
+                    let stockHtml = '';
+                    if (!hasStock) {
+                        stockHtml = '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Stock not set</span>';
+                    } else {
+                        const pct = initQty > 0 ? (remain / initQty) * 100 : 100;
+                        let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100', txtColor = 'text-emerald-700';
+                        let statusLabel = 'Healthy';
+                        let statusBg = 'bg-emerald-100 text-emerald-700';
+                        if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; txtColor = 'text-red-600'; statusLabel = 'Critical'; statusBg = 'bg-red-100 text-red-700'; }
+                        else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; txtColor = 'text-amber-600'; statusLabel = 'Low'; statusBg = 'bg-amber-100 text-amber-700'; }
+                        else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; txtColor = 'text-yellow-700'; statusLabel = 'Moderate'; statusBg = 'bg-yellow-100 text-yellow-700'; }
+                        const barW = initQty > 0 ? Math.min(100, (remain / initQty) * 100) : 0;
+
+                        stockHtml += '<div class="flex items-center justify-between mb-2">';
+                        stockHtml += '<span class="text-sm font-semibold ' + txtColor + '">' + remain.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit + ' remaining</span>';
+                        stockHtml += '<span class="text-xs px-2 py-0.5 rounded-full font-medium ' + statusBg + '">' + statusLabel + '</span>';
+                        stockHtml += '</div>';
+                        stockHtml += '<div class="h-2.5 rounded-full ' + barTrack + ' overflow-hidden mb-1.5">';
+                        stockHtml += '<div class="h-full rounded-full ' + barColor + ' transition-all" style="width:' + barW + '%"></div>';
+                        stockHtml += '</div>';
+                        stockHtml += '<div class="flex justify-between text-xs text-gray-400">';
+                        stockHtml += '<span>Used: ' + usedQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit + '</span>';
+                        stockHtml += '<span>Initial: ' + initQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + mat.unit + '</span>';
+                        stockHtml += '</div>';
+                    }
+                    $('#view_stock_section').html(stockHtml);
+
+                    // Cost breakdown
+                    const costPU = parseFloat(mat.cost_per_unit || 0);
+                    const totCost = parseFloat(mat.total_cost || 0);
+                    const unit = mat.unit;
+
+                    // Quantity
+                    $('#view_quantity').text(initQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + unit);
+
+                    // Cost per unit label
+                    const unitLabel = unit === 'pcs' ? 'per pc' : 'per ' + (unit === 'grams' ? 'gram' : unit);
+                    $('#view_cost_per_unit').text('\u20B1 ' + costPU.toFixed(3) + ' ' + unitLabel);
+
+                    // Converted quantity & cost
+                    const convMap = { 'grams': { largeUnit: 'kg', factor: 1000 }, 'ml': { largeUnit: 'liters', factor: 1000 } };
+                    const conv = convMap[unit];
+                    if (conv && initQty > 0) {
+                        const convertedQty = (initQty / conv.factor).toFixed(2);
+                        $('#view_converted_qty').text(convertedQty + ' ' + conv.largeUnit);
+                        $('#view_converted_qty_row').removeClass('hidden');
+
+                        const costPerLarge = (costPU * conv.factor).toFixed(2);
+                        $('#view_converted_cost').text('\u20B1 ' + parseFloat(costPerLarge).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        $('#view_converted_cost_label').text('Cost per ' + conv.largeUnit);
+                        $('#view_converted_cost_row').removeClass('hidden');
+                    } else {
+                        $('#view_converted_qty_row').addClass('hidden');
+                        $('#view_converted_cost_row').addClass('hidden');
+                    }
+
+                    // Total cost
+                    $('#view_total_cost').text('\u20B1 ' + totCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+
+                    // Unit badge
+                    $('#view_unit').text(unit);
+
+                    // Show modal
+                    $('#viewMaterialModal').removeClass('hidden');
+                } else {
+                    Toast.error('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                Toast.error('Error loading material details: ' + error);
+            }
+        });
+    }
+
+    // Close View Modal
+    $('#btnCloseViewModal, #btnCloseViewBottom').on('click', function() {
+        $('#viewMaterialModal').addClass('hidden');
+        currentViewMaterialId = null;
+    });
+
+    // Close View Modal on overlay click
+    $('#viewMaterialModal').on('click', function(e) {
+        if (e.target === this) {
+            $(this).addClass('hidden');
+            currentViewMaterialId = null;
+        }
+    });
+
+    // Edit from View Modal
+    $('#btnViewEditMaterial').on('click', function() {
+        if (currentViewMaterialId) {
+            $('#viewMaterialModal').addClass('hidden');
+            // Trigger edit for this material
+            $('.btn-edit[data-id="' + currentViewMaterialId + '"]').first().trigger('click');
+            // Fallback: if button not found in DOM (paginated), load directly
+            if ($('.btn-edit[data-id="' + currentViewMaterialId + '"]').length === 0) {
+                const editId = currentViewMaterialId;
+                currentViewMaterialId = null;
+                $.ajax({
+                    url: baseUrl + 'MaterialCosting/GetMaterial/' + editId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            const mat = response.data;
+                            $('#edit_material_id').val(mat.material_id);
+                            $('#material_name').val(mat.material_name);
+                            $('#unit').val(mat.unit);
+                            $('#initial_quantity').val(parseFloat(mat.initial_qty || 0));
+                            $('#qty_readonly_hint').html('<i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial page.').removeClass('hidden');
+                            $('#total_cost').val(parseFloat(mat.total_cost || 0).toFixed(2));
+                            $('#cost_per_unit').val(parseFloat(mat.cost_per_unit || 0).toFixed(3));
+                            $('#modalTitle').text('Edit Raw Material');
+                            $('#btnSaveMaterial').text('Update');
+                            loadCategories();
+                            $('#addMaterialModal').removeClass('hidden');
+                            setTimeout(function() {
+                                $('#category_id').val(mat.category_id);
+                                updateCostCalculations();
+                            }, 300);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    // Delete from View Modal
+    $('#btnViewDeleteMaterial').on('click', function() {
+        if (currentViewMaterialId) {
+            const deleteId = currentViewMaterialId;
+            Confirm.delete('Are you sure you want to delete this material?', function() {
+                $.ajax({
+                    url: baseUrl + 'MaterialCosting/Delete/' + deleteId,
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            Toast.success('Material deleted successfully!');
+                            $('#viewMaterialModal').addClass('hidden');
+                            currentViewMaterialId = null;
+                            loadMaterials();
+                        } else {
+                            Toast.error(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Toast.error('Error deleting material: ' + error);
+                    }
+                });
+            });
+        }
     });
 
     // Edit Material
