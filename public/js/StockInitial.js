@@ -322,7 +322,7 @@ $(document).ready(function () {
         tbody.empty();
 
         if (data.length === 0) {
-            tbody.html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
+            tbody.html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
             return;
         }
 
@@ -331,6 +331,9 @@ $(document).ready(function () {
             const used = parseFloat(entry.qty_used) || 0;
             const remaining = Math.max(0, initial - used);
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
+            const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
+            const initialCost = initial * costPerUnit;
+            const remainingCost = remaining * costPerUnit;
 
             // Health bar colors
             let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
@@ -363,6 +366,8 @@ $(document).ready(function () {
                         </div>
                     </td>
                     <td class="px-6 py-3 text-gray-700">${entry.unit}</td>
+                    <td class="px-6 py-3 text-green-700 tabular-nums text-sm">₱${formatNumber(initialCost)}</td>
+                    <td class="px-6 py-3 text-blue-700 tabular-nums text-sm">₱${formatNumber(remainingCost)}</td>
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
                         <div class="flex items-center gap-2">
@@ -413,6 +418,9 @@ $(document).ready(function () {
             const used = parseFloat(entry.qty_used) || 0;
             const remaining = Math.max(0, initial - used);
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
+            const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
+            const initialCost = initial * costPerUnit;
+            const remainingCost = remaining * costPerUnit;
 
             let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
             let barW = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
@@ -438,6 +446,7 @@ $(document).ready(function () {
                             <div class="bg-blue-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Initial</p>
                                 <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
+                                <p class="text-xs text-green-700 mt-1">Cost: ₱${formatNumber(initialCost)}</p>
                             </div>
                             <div class="bg-orange-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Used</p>
@@ -447,6 +456,7 @@ $(document).ready(function () {
                                 <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
                                 <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
                                 <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
+                                <p class="text-xs text-blue-700 mt-1">Cost: ₱${formatNumber(remainingCost)}</p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between pt-2 border-t border-gray-100">

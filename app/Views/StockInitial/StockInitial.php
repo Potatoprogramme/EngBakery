@@ -98,6 +98,12 @@
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Unit</span>
                             </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-green-700">
+                                <span class="flex items-center">Initial Cost</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-blue-700">
+                                <span class="flex items-center">Remaining Cost</span>
+                            </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Date Updated</span>
                             </th>
