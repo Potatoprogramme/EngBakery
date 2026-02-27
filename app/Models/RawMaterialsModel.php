@@ -25,6 +25,7 @@ class RawMaterialsModel extends Model
                    mc.category_name, mc.label, rmc.cost_per_unit,
                    COALESCE(rms.initial_qty, 0) as initial_qty,
                    COALESCE(rms.qty_used, 0) as qty_used,
+                   COALESCE(rms.initial_qty * rmc.cost_per_unit, 0) as total_cost,
                    CASE WHEN rms.stock_id IS NULL THEN 0 ELSE 1 END as has_stock
             FROM raw_materials rm
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
