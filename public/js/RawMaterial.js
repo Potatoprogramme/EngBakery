@@ -277,24 +277,15 @@ $(document).ready(function() {
                 barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100';
             }
 
-            // Quantity column: remaining / initial + health bar + inline edit
+            // Quantity column: remaining / initial + health bar
             rows += '<td class="px-6 py-4">';
             if (!hasStock) {
                 rows += '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Qty not set</span>';
             } else {
-                rows += '<div class="inline-qty-display flex items-center gap-2.5 cursor-pointer group" data-id="' + mat.material_id + '" data-qty="' + initialQty + '" title="Click to edit quantity">';
-                rows += '<span class="' + remainText + ' tabular-nums text-sm min-w-[4rem] group-hover:text-primary group-hover:underline">' + remaining.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' / ' + initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + '</span>';
+                rows += '<div class="flex items-center gap-2.5">';
+                rows += '<span class="' + remainText + ' tabular-nums text-sm min-w-[4rem]">' + remaining.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' / ' + initialQty.toLocaleString('en-US', {maximumFractionDigits: 2}) + '</span>';
                 rows += '<div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden">';
                 rows += '<div class="h-full rounded-full ' + barColor + ' transition-all" style="width:' + barWidth + '%"></div>';
-                rows += '</div>';
-                rows += '<i class="fas fa-pencil-alt text-xs text-gray-300 group-hover:text-primary transition-colors"></i>';
-                rows += '</div>';
-                // Hidden inline editor
-                rows += '<div class="inline-qty-editor hidden" data-id="' + mat.material_id + '">';
-                rows += '<div class="flex items-center gap-1">';
-                rows += '<input type="number" class="inline-qty-input w-24 px-2 py-1 text-sm border border-primary rounded focus:outline-none focus:ring-2 focus:ring-primary" value="' + initialQty + '" min="0" step="0.00001">';
-                rows += '<button class="inline-qty-save px-2 py-1 text-xs text-white bg-primary rounded hover:bg-secondary" data-id="' + mat.material_id + '"><i class="fas fa-check"></i></button>';
-                rows += '<button class="inline-qty-cancel px-2 py-1 text-xs text-gray-600 bg-gray-200 rounded hover:bg-gray-300" data-id="' + mat.material_id + '"><i class="fas fa-times"></i></button>';
                 rows += '</div>';
                 rows += '</div>';
             }
@@ -406,23 +397,11 @@ $(document).ready(function() {
                         </div>
                         <div class="grid grid-cols-2 gap-2 mb-2">
                             <div class="bg-gray-50 rounded-lg p-2">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-xs text-gray-500 mb-0.5">Quantity</p>
-                                    ${hasStock ? `<button class="mobile-qty-edit-btn text-xs text-primary hover:text-secondary" data-id="${mat.material_id}" data-qty="${initialQty}"><i class="fas fa-pencil-alt"></i></button>` : ''}
-                                </div>
-                                <div class="mobile-qty-display" data-id="${mat.material_id}">
+                                <p class="text-xs text-gray-500 mb-0.5">Quantity</p>
                                 ${hasStock ? `
                                     <p class="font-semibold ${remainTC} text-sm">${remainQ.toLocaleString('en-US', {maximumFractionDigits: 2})} / ${initialQty.toLocaleString('en-US', {maximumFractionDigits: 2})} ${mat.unit}</p>
                                     <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
                                 ` : `<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Qty not set</span>`}
-                                </div>
-                                <div class="mobile-qty-editor hidden" data-id="${mat.material_id}">
-                                    <div class="flex items-center gap-1 mt-1">
-                                        <input type="number" class="mobile-qty-input flex-1 px-2 py-1 text-sm border border-primary rounded focus:outline-none focus:ring-2 focus:ring-primary" value="${initialQty}" min="0" step="0.00001">
-                                        <button class="mobile-qty-save px-2 py-1 text-xs text-white bg-primary rounded hover:bg-secondary" data-id="${mat.material_id}"><i class="fas fa-check"></i></button>
-                                        <button class="mobile-qty-cancel px-2 py-1 text-xs text-gray-600 bg-gray-200 rounded hover:bg-gray-300" data-id="${mat.material_id}"><i class="fas fa-times"></i></button>
-                                    </div>
-                                </div>
                             </div>
                             <div class="bg-primary/10 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Cost per Unit</p>
@@ -979,124 +958,5 @@ $(document).ready(function() {
         $('#mobileSearch').val('');
         renderMobileCards();
     });
-
-    // ──────────────────────────────────────────
-    //  Inline Quantity Editing (Desktop)
-    // ──────────────────────────────────────────
-
-    // Click display to show editor
-    $(document).on('click', '.inline-qty-display', function() {
-        const id = $(this).data('id');
-        $(this).addClass('hidden');
-        $(`.inline-qty-editor[data-id="${id}"]`).removeClass('hidden');
-        $(`.inline-qty-editor[data-id="${id}"] .inline-qty-input`).focus().select();
-    });
-
-    // Cancel inline edit
-    $(document).on('click', '.inline-qty-cancel', function() {
-        const id = $(this).data('id');
-        $(`.inline-qty-editor[data-id="${id}"]`).addClass('hidden');
-        $(`.inline-qty-display[data-id="${id}"]`).removeClass('hidden');
-    });
-
-    // Save inline edit
-    $(document).on('click', '.inline-qty-save', function() {
-        const id = $(this).data('id');
-        const newQty = parseFloat($(`.inline-qty-editor[data-id="${id}"] .inline-qty-input`).val());
-        if (isNaN(newQty) || newQty < 0) {
-            Toast.error('Quantity must be 0 or greater.');
-            return;
-        }
-        saveInlineQuantity(id, newQty);
-    });
-
-    // Press Enter to save, Escape to cancel (desktop)
-    $(document).on('keydown', '.inline-qty-input', function(e) {
-        const id = $(this).closest('.inline-qty-editor').data('id');
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const newQty = parseFloat($(this).val());
-            if (isNaN(newQty) || newQty < 0) {
-                Toast.error('Quantity must be 0 or greater.');
-                return;
-            }
-            saveInlineQuantity(id, newQty);
-        } else if (e.key === 'Escape') {
-            $(`.inline-qty-editor[data-id="${id}"]`).addClass('hidden');
-            $(`.inline-qty-display[data-id="${id}"]`).removeClass('hidden');
-        }
-    });
-
-    // ──────────────────────────────────────────
-    //  Inline Quantity Editing (Mobile)
-    // ──────────────────────────────────────────
-
-    // Tap edit button to show editor
-    $(document).on('click', '.mobile-qty-edit-btn', function(e) {
-        e.stopPropagation();
-        const id = $(this).data('id');
-        $(`.mobile-qty-display[data-id="${id}"]`).addClass('hidden');
-        $(`.mobile-qty-editor[data-id="${id}"]`).removeClass('hidden');
-        $(`.mobile-qty-editor[data-id="${id}"] .mobile-qty-input`).focus().select();
-    });
-
-    // Cancel mobile inline edit
-    $(document).on('click', '.mobile-qty-cancel', function() {
-        const id = $(this).data('id');
-        $(`.mobile-qty-editor[data-id="${id}"]`).addClass('hidden');
-        $(`.mobile-qty-display[data-id="${id}"]`).removeClass('hidden');
-    });
-
-    // Save mobile inline edit
-    $(document).on('click', '.mobile-qty-save', function() {
-        const id = $(this).data('id');
-        const newQty = parseFloat($(`.mobile-qty-editor[data-id="${id}"] .mobile-qty-input`).val());
-        if (isNaN(newQty) || newQty < 0) {
-            Toast.error('Quantity must be 0 or greater.');
-            return;
-        }
-        saveInlineQuantity(id, newQty);
-    });
-
-    // Press Enter to save, Escape to cancel (mobile)
-    $(document).on('keydown', '.mobile-qty-input', function(e) {
-        const id = $(this).closest('.mobile-qty-editor').data('id');
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const newQty = parseFloat($(this).val());
-            if (isNaN(newQty) || newQty < 0) {
-                Toast.error('Quantity must be 0 or greater.');
-                return;
-            }
-            saveInlineQuantity(id, newQty);
-        } else if (e.key === 'Escape') {
-            $(`.mobile-qty-editor[data-id="${id}"]`).addClass('hidden');
-            $(`.mobile-qty-display[data-id="${id}"]`).removeClass('hidden');
-        }
-    });
-
-    // ──────────────────────────────────────────
-    //  AJAX: Save Inline Quantity
-    // ──────────────────────────────────────────
-    function saveInlineQuantity(materialId, quantity) {
-        $.ajax({
-            url: baseUrl + 'MaterialCosting/UpdateQuantityInline',
-            type: 'POST',
-            data: JSON.stringify({ material_id: materialId, quantity: quantity }),
-            contentType: 'application/json',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    Toast.success('Quantity updated!');
-                    loadMaterials();
-                } else {
-                    Toast.error(response.message || 'Failed to update quantity.');
-                }
-            },
-            error: function(xhr, status, error) {
-                Toast.error('Error updating quantity: ' + error);
-            }
-        });
-    }
 
 });
