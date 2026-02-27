@@ -333,6 +333,7 @@ $(document).ready(function () {
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
             const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
             const initialCost = initial * costPerUnit;
+            const usedCost = used * costPerUnit;
             const remainingCost = remaining * costPerUnit;
 
             // Health bar colors
@@ -367,6 +368,7 @@ $(document).ready(function () {
                     </td>
                     <td class="px-6 py-3 text-gray-700">${entry.unit}</td>
                     <td class="px-6 py-3 text-green-700 tabular-nums text-sm">₱${formatNumber(initialCost)}</td>
+                    <td class="px-6 py-3 text-orange-700 tabular-nums text-sm">₱${formatNumber(usedCost)}</td>
                     <td class="px-6 py-3 text-blue-700 tabular-nums text-sm">₱${formatNumber(remainingCost)}</td>
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
@@ -420,6 +422,7 @@ $(document).ready(function () {
             const pct = initial > 0 ? (remaining / initial * 100) : 0;
             const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
             const initialCost = initial * costPerUnit;
+            const usedCost = used * costPerUnit;
             const remainingCost = remaining * costPerUnit;
 
             let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
@@ -451,6 +454,7 @@ $(document).ready(function () {
                             <div class="bg-orange-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Used</p>
                                 <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
+                                <p class="text-xs text-orange-700 mt-1">Cost: ₱${formatNumber(usedCost)}</p>
                             </div>
                             <div class="bg-emerald-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
