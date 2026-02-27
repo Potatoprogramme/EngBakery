@@ -1,6 +1,7 @@
 /**
  * Stock Initial Page Handler
  * Handles CRUD operations for raw material stock initial entries
+ * ALL costs and remaining values are computed DYNAMICALLY from cost_per_unit
  */
 $(document).ready(function () {
     const baseUrl = window.BASE_URL || '/';
@@ -43,9 +44,9 @@ $(document).ready(function () {
     });
 
     $('#material_search').on('input', function () {
-        // If user types after selecting, clear the selection
         if ($('#material_id').val()) {
             $('#material_id').val('');
+            $('#edit_cost_per_unit').val(0);
             $('#btnClearMaterial').addClass('hidden');
         }
         showMaterialDropdown($(this).val());
@@ -55,20 +56,25 @@ $(document).ready(function () {
         const id = $(this).data('id');
         const name = $(this).data('name');
         const unit = $(this).data('unit');
+        const cost = parseFloat($(this).data('cost')) || 0;
 
         $('#material_id').val(id);
         $('#material_search').val(name);
         $('#unit').val(unit);
+        $('#edit_cost_per_unit').val(cost);
         $('#btnClearMaterial').removeClass('hidden');
         hideMaterialDropdown();
+        recalcModal();
         $('#initial_qty').focus();
     });
 
     $('#btnClearMaterial').on('click', function () {
         $('#material_id').val('');
         $('#material_search').val('');
+        $('#edit_cost_per_unit').val(0);
         $(this).addClass('hidden');
         $('#material_search').focus();
+        recalcModal();
     });
 
     $(document).on('click', function (e) {
@@ -94,12 +100,15 @@ $(document).ready(function () {
             html = '<div class="px-3 py-2 text-sm text-gray-500">No materials found</div>';
         } else {
             filtered.forEach(function (m) {
+                const cost = parseFloat(m.cost_per_unit) || 0;
                 html += '<div class="material-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
                     'data-id="' + m.material_id + '" ' +
                     'data-name="' + m.material_name + '" ' +
-                    'data-unit="' + m.unit + '">' +
+                    'data-unit="' + m.unit + '" ' +
+                    'data-cost="' + cost + '">' +
                     '<span class="font-medium">' + m.material_name + '</span>' +
                     '<span class="text-xs text-gray-400 ml-2">(' + m.unit + ')</span>' +
+                    (cost > 0 ? '<span class="text-xs text-green-600 ml-2">₱' + cost.toFixed(2) + '/unit</span>' : '') +
                     '</div>';
             });
         }
@@ -112,12 +121,41 @@ $(document).ready(function () {
     }
 
     // ──────────────────────────────
+    //  DYNAMIC RECALCULATION
+    //  Fires on every keystroke in initial_qty or qty_used
+    // ──────────────────────────────
+    $('#initial_qty, #qty_used').on('input change', function () {
+        recalcModal();
+    });
+
+    function recalcModal() {
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        const used = parseFloat($('#qty_used').val()) || 0;
+        const costPerUnit = parseFloat($('#edit_cost_per_unit').val()) || 0;
+
+        // Clamp used to not exceed initial
+        const clampedUsed = Math.min(used, initial);
+        const remaining = Math.max(0, initial - clampedUsed);
+
+        // Update remaining field
+        $('#remaining_qty').val(formatNumber(remaining));
+
+        // Update cost displays
+        const initialCost = initial * costPerUnit;
+        const usedCost = clampedUsed * costPerUnit;
+        const remainingCost = remaining * costPerUnit;
+
+        $('#display_initial_cost').text('₱' + initialCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $('#display_used_cost').text('₱' + usedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $('#display_remaining_cost').text('₱' + remainingCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    }
+
+    // ──────────────────────────────
     //  Submit Form (Add / Edit)
     // ──────────────────────────────
     $('#stockInitialForm').on('submit', function (e) {
         e.preventDefault();
 
-        // Validate material is selected
         if (!$('#material_id').val()) {
             showToast('error', 'Please select a raw material.');
             $('#material_search').focus();
@@ -126,14 +164,15 @@ $(document).ready(function () {
 
         const entryId = $('#edit_stock_id').val();
         const isEdit = entryId !== '';
-        
-        let initialQty = parseFloat($('#initial_qty').val()) || 0;
-        const remainingQty = parseFloat($('#remaining_qty').val());
 
-        // If remaining field has value (in edit mode), recalculate
-        if (isEdit && !isNaN(remainingQty)) {
-            // qty_used = initial_qty - remaining_qty
-            // This will be calculated server-side for data integrity
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        const used = parseFloat($('#qty_used').val()) || 0;
+
+        // Validate: used cannot exceed initial
+        if (isEdit && used > initial) {
+            showToast('error', 'Used quantity cannot exceed Stock On Hand.');
+            $('#qty_used').focus();
+            return;
         }
 
         const payload = {
@@ -144,14 +183,9 @@ $(document).ready(function () {
 
         if (isEdit) {
             payload.stock_id = entryId;
-            // If remaining field has value, send it for auto-calculation
-            if (!isNaN(remainingQty)) {
-                payload.remaining_qty = remainingQty;
-            } else {
-                // Preserve existing qty_used if no remaining provided
-            }
+            payload.qty_used = Math.min(used, initial); // Send used directly
         } else {
-            payload.qty_used = 0; // Only set to 0 for new entries
+            payload.qty_used = 0;
         }
 
         const url = isEdit
@@ -200,22 +234,31 @@ $(document).ready(function () {
                     loadMaterialsList(function () {
                         $('#edit_stock_id').val(d.stock_id);
                         $('#material_id').val(d.material_id);
+                        const costPerUnit = parseFloat(d.cost_per_unit) || 0;
+                        $('#edit_cost_per_unit').val(costPerUnit);
+
                         // Find the material name to display in the search input
                         const mat = allMaterialsData.find(m => String(m.material_id) === String(d.material_id));
                         if (mat) {
                             $('#material_search').val(mat.material_name);
                             $('#btnClearMaterial').removeClass('hidden');
                         }
+
                         $('#initial_qty').val(d.initial_qty);
                         $('#unit').val(d.unit);
-                        
-                        // Show remaining field and calculate current remaining
-                        const initialQty = parseFloat(d.initial_qty) || 0;
+
+                        // Set qty_used directly
                         const qtyUsed = parseFloat(d.qty_used) || 0;
-                        const remaining = initialQty - qtyUsed;
-                        $('#remaining_qty').val(remaining);
+                        $('#qty_used').val(qtyUsed);
+
+                        // Show edit-only fields
+                        $('#qty_used_wrapper').removeClass('hidden');
                         $('#remaining_qty_wrapper').removeClass('hidden');
-                        
+                        $('#cost_breakdown_wrapper').removeClass('hidden');
+
+                        // Trigger recalculation to fill remaining & costs
+                        recalcModal();
+
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
@@ -322,7 +365,7 @@ $(document).ready(function () {
         tbody.empty();
 
         if (data.length === 0) {
-            tbody.html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
+            tbody.html('<tr><td colspan="11" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
             return;
         }
 
@@ -330,11 +373,14 @@ $(document).ready(function () {
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
             const remaining = Math.max(0, initial - used);
-            const pct = initial > 0 ? (remaining / initial * 100) : 0;
             const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
+
+            // DYNAMIC cost calculations: qty * cost_per_unit
             const initialCost = initial * costPerUnit;
             const usedCost = used * costPerUnit;
             const remainingCost = remaining * costPerUnit;
+
+            const pct = initial > 0 ? (remaining / initial * 100) : 0;
 
             // Health bar colors
             let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
@@ -419,12 +465,14 @@ $(document).ready(function () {
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
             const remaining = Math.max(0, initial - used);
-            const pct = initial > 0 ? (remaining / initial * 100) : 0;
             const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
+
+            // DYNAMIC cost calculations
             const initialCost = initial * costPerUnit;
             const usedCost = used * costPerUnit;
             const remainingCost = remaining * costPerUnit;
 
+            const pct = initial > 0 ? (remaining / initial * 100) : 0;
             let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
             let barW = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
             let remainTC = 'text-emerald-700';
@@ -490,37 +538,23 @@ $(document).ready(function () {
 
         if (totalPages <= 1) return;
 
-        // Build page numbers with ellipsis to prevent overflow
-        const maxVisible = 5; // max page buttons (excluding prev/next)
+        const maxVisible = 5;
         let pages = [];
 
         if (totalPages <= maxVisible) {
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
-            // Always show first page
             pages.push(1);
-
             let start = Math.max(2, currentPage - 1);
             let end = Math.min(totalPages - 1, currentPage + 1);
-
-            // Adjust window to show up to 3 middle pages
-            if (currentPage <= 3) {
-                start = 2;
-                end = Math.min(4, totalPages - 1);
-            } else if (currentPage >= totalPages - 2) {
-                start = Math.max(totalPages - 3, 2);
-                end = totalPages - 1;
-            }
-
+            if (currentPage <= 3) { start = 2; end = Math.min(4, totalPages - 1); }
+            else if (currentPage >= totalPages - 2) { start = Math.max(totalPages - 3, 2); end = totalPages - 1; }
             if (start > 2) pages.push('...');
             for (let i = start; i <= end; i++) pages.push(i);
             if (end < totalPages - 1) pages.push('...');
-
-            // Always show last page
             pages.push(totalPages);
         }
 
-        // Prev
         pag.append(`<button class="px-2 py-1 rounded text-sm ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
             ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">&laquo;</button>`);
 
@@ -533,7 +567,6 @@ $(document).ready(function () {
             }
         });
 
-        // Next
         pag.append(`<button class="px-2 py-1 rounded text-sm ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-primary hover:bg-primary/10'}" 
             ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">&raquo;</button>`);
 
@@ -594,11 +627,18 @@ $(document).ready(function () {
     function resetModal() {
         $('#stockInitialForm')[0].reset();
         $('#edit_stock_id').val('');
+        $('#edit_cost_per_unit').val(0);
         $('#material_id').val('');
         $('#material_search').val('');
         $('#btnClearMaterial').addClass('hidden');
+        $('#qty_used_wrapper').addClass('hidden');
         $('#remaining_qty_wrapper').addClass('hidden');
-        $('#remaining_qty').val('');
+        $('#cost_breakdown_wrapper').addClass('hidden');
+        $('#qty_used').val(0);
+        $('#remaining_qty').val(0);
+        $('#display_initial_cost').text('₱0.00');
+        $('#display_used_cost').text('₱0.00');
+        $('#display_remaining_cost').text('₱0.00');
         hideMaterialDropdown();
         $('#modalTitle').text('Add Stock Entry');
         $('#btnSaveEntry').text('Save');
@@ -614,6 +654,4 @@ $(document).ready(function () {
         if (isNaN(n)) return '0';
         return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
     }
-
-
 });
