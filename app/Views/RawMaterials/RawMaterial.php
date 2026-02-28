@@ -107,7 +107,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">
-                                    Stock
+                                    Quantity
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
@@ -118,6 +118,11 @@
                             <th scope="col" class="px-6 py-3 whitespace-nowrap min-w-[120px]">
                                 <span class="flex items-center">
                                     Cost per Unit
+                                </span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap min-w-[120px]">
+                                <span class="flex items-center">
+                                    Total Cost
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
@@ -293,6 +298,93 @@
                         class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- View Material Modal -->
+    <div id="viewMaterialModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
+        <div class="relative w-full max-w-md mx-auto p-4 sm:p-6 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
+            style="max-width: 42rem;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-primary">Material Details</h3>
+                <button type="button" id="btnCloseViewModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Material Name & Category -->
+            <div class="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                <h2 id="view_material_name" class="text-xl font-bold text-gray-800 mb-1"></h2>
+                <div class="flex items-center gap-2">
+                    <span id="view_category"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                    </span>
+                    <span id="view_label_badge"></span>
+                </div>
+            </div>
+
+            <!-- Stock Information -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                    Stock Information
+                </h4>
+                <div id="view_stock_section" class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                    Cost Breakdown
+                </h4>
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-3 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Quantity</span>
+                        <span id="view_quantity" class="text-sm font-medium text-gray-900">0</span>
+                    </div>
+                    <div id="view_converted_qty_row" class="flex justify-between items-center hidden">
+                        <span class="text-sm text-gray-600">Converted</span>
+                        <span id="view_converted_qty" class="text-sm font-medium text-gray-500">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Cost per Unit</span>
+                        <span id="view_cost_per_unit" class="text-sm font-medium text-gray-900">₱ 0.000</span>
+                    </div>
+                    <div id="view_converted_cost_row" class="flex justify-between items-center hidden">
+                        <span class="text-sm text-gray-600" id="view_converted_cost_label">Cost per kg</span>
+                        <span id="view_converted_cost" class="text-sm font-medium text-gray-500">₱ 0.00</span>
+                    </div>
+                    <div class="border-t border-gray-300 pt-2 flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-700">Total Cost</span>
+                        <span id="view_total_cost" class="text-sm font-bold text-primary">₱ 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unit of Measure -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                    Unit of Measure
+                </h4>
+                <span id="view_unit" class="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium border border-gray-200"></span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 justify-end border-t border-gray-200 pt-4">
+                <button type="button" id="btnCloseViewBottom"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                    Close
+                </button>
+                <button type="button" id="btnViewEditMaterial"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </button>
+                <button type="button" id="btnViewDeleteMaterial"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+            </div>
         </div>
     </div>
 

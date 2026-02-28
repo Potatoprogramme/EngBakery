@@ -22,7 +22,7 @@ let miniCartOpen = false;
 document.addEventListener('DOMContentLoaded', function() {
     // Load products on page load
     loadProducts();
-    
+
     // Initialize all modules
     initTabs();
     initProductModal();
@@ -30,11 +30,49 @@ document.addEventListener('DOMContentLoaded', function() {
     initEditOrderModal();
     initCheckoutModal();
     initFloatingCart();
-    
+
     // Initialize cart badge and mini cart on load (restore from localStorage)
     updateCartBadge();
     renderMiniCart();
+
+    // Initialize search bar
+    initOrderSearchBar();
 });
+
+// ==========================================
+// Search Bar for Filtering Products
+// ==========================================
+function initOrderSearchBar() {
+    const searchInput = document.getElementById('orderSearchInput');
+    if (!searchInput) return;
+    searchInput.addEventListener('input', function() {
+        const query = searchInput.value.trim().toLowerCase();
+        filterProducts(query);
+    });
+}
+
+function filterProducts(query) {
+    // If no query, render all
+    if (!query) {
+        renderProducts();
+        return;
+    }
+    // Filter productsData by name
+    const breadsGrid = document.getElementById('breads-grid');
+    const drinksGrid = document.getElementById('drinks-grid');
+    const groceryGrid = document.getElementById('grocery-grid');
+
+    const breads = productsData.filter(p => p.category === 'bakery' && p.product_name.toLowerCase().includes(query));
+    const drinks = productsData.filter(p => p.category === 'drinks' && p.product_name.toLowerCase().includes(query));
+    const grocery = productsData.filter(p => p.category === 'grocery' && p.product_name.toLowerCase().includes(query));
+
+    breadsGrid.innerHTML = breads.length > 0 ? breads.map(p => createProductCard(p)).join('') : noProductsHtml('bakery');
+    drinksGrid.innerHTML = drinks.length > 0 ? drinks.map(p => createProductCard(p)).join('') : noProductsHtml('drinks');
+    groceryGrid.innerHTML = grocery.length > 0 ? grocery.map(p => createProductCard(p)).join('') : noProductsHtml('grocery');
+
+    // Re-attach click handlers to new product cards
+    attachProductCardHandlers();
+}
 
 // ==========================================
 // Products Loading and Rendering

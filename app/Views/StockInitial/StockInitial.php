@@ -98,6 +98,15 @@
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Unit</span>
                             </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-green-700">
+                                <span class="flex items-center">Initial Cost</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-orange-700">
+                                <span class="flex items-center">Used Cost</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-blue-700">
+                                <span class="flex items-center">Remaining Cost</span>
+                            </th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">
                                 <span class="flex items-center">Date Updated</span>
                             </th>
@@ -150,6 +159,7 @@
             </div>
             <form id="stockInitialForm">
                 <input type="hidden" id="edit_stock_id" value="">
+                <input type="hidden" id="edit_cost_per_unit" value="0">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Raw Material <span
                             class="text-red-500">*</span></label>
@@ -169,24 +179,45 @@
                 </div>
                 <div class="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
                     <div>
-                        <div class="flex">
-                            <label for="initial_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
-                                Stock On Hand <span class="text-red-500">*</span>
-                            </label>
-                        </div>
+                        <label for="initial_qty" class="block text-sm font-medium text-gray-700 mb-1">
+                            Stock On Hand <span class="text-red-500">*</span>
+                        </label>
                         <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.00001" required>
                     </div>
-                    <div id="remaining_qty_wrapper" class="hidden">
-                        <div class="flex">
-                            <label for="remaining_qty" class="flex-1 block text-sm font-medium text-gray-700 mb-1">
-                                Remaining
-                            </label>
+                    <div id="qty_used_wrapper" class="hidden">
+                        <label for="qty_used" class="block text-sm font-medium text-orange-600 mb-1">
+                            Used <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="qty_used" id="qty_used"
+                            class="w-full px-3 py-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
+                            placeholder="0" min="0" step="0.00001" value="0">
+                    </div>
+                </div>
+                <!-- Remaining (auto-calculated, read-only) -->
+                <div id="remaining_qty_wrapper" class="hidden mb-3">
+                    <label class="block text-sm font-medium text-blue-600 mb-1">Remaining (auto-calculated)</label>
+                    <input type="text" id="remaining_qty" readonly
+                        class="w-full px-3 py-2 border border-blue-200 rounded-md bg-blue-50 text-blue-700 font-semibold cursor-not-allowed"
+                        value="0">
+                </div>
+                <!-- Dynamic Cost Breakdown (edit mode only) -->
+                <div id="cost_breakdown_wrapper" class="hidden mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cost Breakdown</label>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-2">
+                            <p class="text-xs text-gray-500">Initial Cost</p>
+                            <p id="display_initial_cost" class="text-sm font-bold text-green-700">₱0.00</p>
                         </div>
-                        <input type="number" name="remaining_qty" id="remaining_qty"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="0" min="0" step="0.00001">
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                            <p class="text-xs text-gray-500">Used Cost</p>
+                            <p id="display_used_cost" class="text-sm font-bold text-orange-700">₱0.00</p>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                            <p class="text-xs text-gray-500">Remaining Cost</p>
+                            <p id="display_remaining_cost" class="text-sm font-bold text-blue-700">₱0.00</p>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-4">

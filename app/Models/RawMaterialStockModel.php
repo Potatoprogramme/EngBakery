@@ -41,10 +41,12 @@ class RawMaterialStockModel extends Model
                 rm.material_name,
                 rm.category_id,
                 mc.category_name,
-                mc.label
+                mc.label,
+                rmc.cost_per_unit
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
             LEFT JOIN material_category mc ON rm.category_id = mc.category_id
+            LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
             ORDER BY rms.updated_at DESC
         ")->getResultArray();
     }
@@ -60,12 +62,14 @@ class RawMaterialStockModel extends Model
                 rms.material_id,
                 rms.initial_qty,
                 rms.qty_used,
-                (rms.initial_qty - rms.qty_used) as remaining,
+                GREATEST(0, rms.initial_qty - rms.qty_used) as remaining,
                 rms.unit,
                 rms.updated_at,
-                rm.material_name
+                rm.material_name,
+                COALESCE(rmc.cost_per_unit, 0) as cost_per_unit
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
+            LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
             WHERE rms.stock_id = ?
         ", [$id])->getRowArray();
     }
@@ -213,13 +217,10 @@ class RawMaterialStockModel extends Model
         $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
 
         if ($piecesPerYield <= 0) {
-            $product = model('ProductModel')->find($productId);
-            $category = $product['category'] ?? '';
-            if (in_array($category, ['drinks', 'grocery'])) {
-                $piecesPerYield = 1;
-            } else {
-                return ['success' => false, 'message' => 'No yield data found'];
-            }
+            // Default to 1 for all product types (1 distribution qty = 1 yield)
+            // This matches the logic in DistributionController::distributionQtyToPieces()
+            $piecesPerYield = 1;
+            log_message('info', "restoreForProduction: pieces_per_yield is 0 for product {$productId}, defaulting to 1");
         }
 
         $yieldsNeeded = $pieces / $piecesPerYield;
@@ -497,14 +498,10 @@ class RawMaterialStockModel extends Model
         $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
 
         if ($piecesPerYield <= 0) {
-            // Check if it's a drink or grocery — default to 1
-            $product = model('ProductModel')->find($productId);
-            $category = $product['category'] ?? '';
-            if (in_array($category, ['drinks', 'grocery'])) {
-                $piecesPerYield = 1;
-            } else {
-                return ['success' => false, 'message' => 'No yield data found for this product', 'deductions' => []];
-            }
+            // Default to 1 for all product types (1 distribution qty = 1 yield)
+            // This matches the logic in DistributionController::distributionQtyToPieces()
+            $piecesPerYield = 1;
+            log_message('info', "deductForProduction: pieces_per_yield is 0 for product {$productId}, defaulting to 1");
         }
 
         // Calculate how many yields are needed

@@ -147,11 +147,13 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
-        // If remaining_qty is provided, calculate qty_used = initial_qty - remaining_qty
-        if (array_key_exists('remaining_qty', $data) && is_numeric($data['remaining_qty'])) {
-            $initialQty = floatval($data['initial_qty']);
-            $remainingQty = floatval($data['remaining_qty']);
-            $data['qty_used'] = max(0, $initialQty - $remainingQty);
+        // qty_used is sent directly from the form
+        if (array_key_exists('qty_used', $data) && is_numeric($data['qty_used'])) {
+            $data['qty_used'] = max(0, floatval($data['qty_used']));
+            // Clamp: used cannot exceed initial
+            if ($data['qty_used'] > floatval($data['initial_qty'])) {
+                $data['qty_used'] = floatval($data['initial_qty']);
+            }
         } else {
             // Preserve existing qty_used — don't reset to 0 on edit
             $existing = $this->rawMaterialStockModel->find(intval($data['stock_id']));

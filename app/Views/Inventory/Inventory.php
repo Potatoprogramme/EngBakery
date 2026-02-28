@@ -55,9 +55,9 @@
                     class="hidden flex-1 items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     Add Inventory
                 </button>
-                <button id="btnDeleteTodaysInventoryMobile" type="button"
-                    class="hidden flex-1 items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
-                    Delete
+                <button id="btnAddProductToInventoryMobile" type="button"
+                    class="hidden flex-1 items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <i class="fas fa-plus mr-2"></i> Add Product
                 </button>
             </div>
 
@@ -135,6 +135,9 @@
                                     <tr>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                     </tr>
@@ -144,7 +147,7 @@
                                 </tbody>
                                 <tfoot class="bg-gray-50 border-t border-gray-200">
                                     <tr>
-                                        <td colspan="2" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                             Total:</td>
                                         <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
                                         <td></td>
@@ -206,7 +209,24 @@
                         <i class="fas fa-times text-lg"></i>
                     </button>
                     <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-5">Set the operating hours for today.</p>
+                    <p class="text-xs text-gray-500 mb-3">Set the operating hours for today.</p>
+
+                    <!-- Carryover Preview -->
+                    <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-boxes-stacked text-amber-600"></i>
+                            <span class="text-sm font-semibold text-amber-700">Yesterday's Remaining Stock</span>
+                        </div>
+                        <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
+                        <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be automatically added to today's beginning stock.</p>
+                    </div>
+                    <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-box-open text-gray-400"></i>
+                            <span class="text-xs text-gray-500">No remaining stock from previous day.</span>
+                        </div>
+                    </div>
+
                     <form id="timeInputForm">
                         <div class="mb-4">
                             <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start
@@ -256,14 +276,14 @@
                 <div class="mb-4">
                     <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="0.00001"
+                    <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
                 <div class="mb-6">
                     <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
-                    <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="0.00001"
+                    <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
@@ -306,7 +326,7 @@
                 <div class="mb-6">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0" step="0.00001"
+                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
                 </div>
@@ -368,7 +388,7 @@
         let inventoryExistsToday = false;
 
         // Delete Modal Script
-        $('#btnDeleteTodaysInventory, #btnDeleteTodaysInventoryMobile').on('click', function() {
+        $('#btnDeleteTodaysInventory').on('click', function() {
             if (!inventoryExistsToday) {
                 showToast('warning', 'No inventory exists for today to delete.', 2000);
                 return;
@@ -449,6 +469,7 @@
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
                 // Re-check distribution before opening modal to ensure we have the latest state
                 checkIfDistributionExists();
+                fetchYesterdayRemaining(); // Load carryover preview
                 $('#timeInputModal').removeClass('hidden');
                 $('#time_start').val('08:00'); // 8:00 AM (morning)
                 $('#time_end').val('17:00'); // 5:00 PM (afternoon)
@@ -586,6 +607,37 @@
             });
         });
 
+        function fetchYesterdayRemaining() {
+            const baseUrl = '<?= base_url() ?>';
+            $('#carryoverPreview').addClass('hidden');
+            $('#noCarryoverPreview').addClass('hidden');
+            $('#carryoverList').empty();
+
+            $.ajax({
+                url: baseUrl + 'Inventory/GetYesterdayRemaining',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        let html = '';
+                        response.data.forEach(function(item) {
+                            html += '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
+                            html += '<span class="text-gray-700">' + item.product_name + ' <span class="text-gray-400">(' + item.category + ')</span></span>';
+                            html += '<span class="font-semibold text-amber-700">' + item.remaining_stock + ' pcs</span>';
+                            html += '</div>';
+                        });
+                        $('#carryoverList').html(html);
+                        $('#carryoverPreview').removeClass('hidden');
+                    } else {
+                        $('#noCarryoverPreview').removeClass('hidden');
+                    }
+                },
+                error: function() {
+                    $('#noCarryoverPreview').removeClass('hidden');
+                }
+            });
+        }
+
         function checkIfDistributionExists() {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
@@ -624,7 +676,7 @@
                         fetchAllStockitems();
                         // Show delete buttons and add product button when inventory exists
                         $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                        $('#btnDeleteTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
                         // Hide add inventory buttons
                         $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
@@ -638,7 +690,7 @@
                         $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         // Hide delete and add product buttons
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
@@ -650,7 +702,7 @@
                     $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                     // Hide delete and add product buttons
                     $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                    $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
@@ -863,21 +915,28 @@
             if (items && items.length > 0) {
                 items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
+                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
 
                     totalQty += qtySold;
 
                     rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-3">';
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
             }
 
             $('#drinksTableBody').html(rows);
@@ -1027,7 +1086,7 @@
                         $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         // Hide delete and add product buttons
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnDeleteTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                         // Re-check distribution status for next inventory creation
                         checkIfDistributionExists();
@@ -1045,7 +1104,7 @@
         }
 
         // Add Product to Inventory functionality
-        $('#btnAddProductToInventory').on('click', function() {
+        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function() {
             loadAvailableProducts();
             $('#addProductModal').removeClass('hidden');
         });
@@ -1158,8 +1217,7 @@
                 item.selling_price_per_piece :
                 item.selling_price;
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-            const isDrink = category === 'drinks';
-            const ending_stock = isDrink ? null : (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+            const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
 
             let borderColor = 'border-gray-200';
             if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
@@ -1172,26 +1230,17 @@
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
 
-            if (isDrink) {
-                card += '  <div class="flex items-center justify-between text-xs text-gray-500 mb-2">';
-                card += '    <span>Qty: <span class="text-gray-700 font-medium">' + (item.quantity_sold || 0) + '</span></span>';
-                card += '    <span>Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
-                card += '  </div>';
-            } else {
-                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
-                card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
-                card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
-                card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
-                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
-                card += '  </div>';
-            }
+            card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+            card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
+            card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+            card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
+            card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
+            card += '  </div>';
 
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-            if (!isDrink) {
-                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
-                card += '      <i class="fas fa-edit mr-1"></i>Edit';
-                card += '    </button>';
-            }
+            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
+            card += '      <i class="fas fa-edit mr-1"></i>Edit';
+            card += '    </button>';
             card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
             card += '      <i class="fas fa-trash mr-1"></i>Delete';
             card += '    </button>';
