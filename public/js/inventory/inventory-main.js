@@ -164,6 +164,13 @@ function deleteTodaysInventory() {
                 safeToast('success', response.message, 2000);
                 InventoryTable.clear();
                 $('#timeRange').text('--:-- - --:--');
+                // Show add inventory buttons, hide inventory-exists buttons
+                $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
                 fetchAllStockItems();
             } else {
                 safeToast('error', response.message, 2000);

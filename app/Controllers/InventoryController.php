@@ -258,6 +258,101 @@ class InventoryController extends BaseController
     }
 
     /**
+     * Load distribution data into existing inventory.
+     * Updates beginning_stock for products already in inventory,
+     * adds new items for products not yet in inventory.
+     */
+    public function loadFromDistribution()
+    {
+        $today = date('Y-m-d');
+
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No inventory exists for today. Create inventory first.'
+            ]);
+        }
+
+        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        if (!$distributionItems || count($distributionItems) === 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today.'
+            ]);
+        }
+
+        $dailyStockId = $dailyStock['daily_stock_id'];
+        $productCostModel = model('ProductCostModel');
+        $updated = 0;
+        $added = 0;
+
+        foreach ($distributionItems as $item) {
+            $productId = intval($item['product_id']);
+            $distributionQty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = $item['qty_mode'] ?? 'batch';
+
+            // Convert to pieces
+            if ($qtyMode === 'pieces') {
+                $pieces = $distributionQty;
+            } else {
+                $product = $this->productModel->find($productId);
+                $category = $product['category'] ?? '';
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $pieces = $distributionQty;
+                } else {
+                    $costData = $productCostModel->getCostByProductId($productId);
+                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+                    $pieces = $distributionQty * ($piecesPerYield > 0 ? $piecesPerYield : 1);
+                }
+            }
+
+            // Check if product already exists in today's inventory
+            $existingItem = $this->dailyStockItemsModel
+                ->where('daily_stock_id', $dailyStockId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if ($existingItem) {
+                // Update: add distribution pieces to current beginning_stock
+                $newBeginning = intval($existingItem['beginning_stock']) + $pieces;
+                $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
+                $this->dailyStockItemsModel->update($existingItem['item_id'], [
+                    'beginning_stock' => $newBeginning,
+                    'ending_stock' => $newBeginning - $pullOut,
+                ]);
+                $updated++;
+                log_message('info', 'LOAD FROM DISTRIBUTION: Updated Product {product} - added {pieces} pieces, new beginning: {new}', [
+                    'product' => $productId,
+                    'pieces' => $pieces,
+                    'new' => $newBeginning
+                ]);
+            } else {
+                // Insert new item
+                $this->dailyStockItemsModel->insert([
+                    'daily_stock_id' => $dailyStockId,
+                    'product_id' => $productId,
+                    'beginning_stock' => $pieces,
+                    'pull_out_quantity' => 0,
+                    'ending_stock' => $pieces,
+                ]);
+                $added++;
+                log_message('info', 'LOAD FROM DISTRIBUTION: Added Product {product} - {pieces} pieces', [
+                    'product' => $productId,
+                    'pieces' => $pieces
+                ]);
+            }
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => "Distribution loaded: {$updated} product(s) updated, {$added} product(s) added.",
+            'updated' => $updated,
+            'added' => $added,
+        ]);
+    }
+
+    /**
      * Get products not yet in today's inventory (for adding mid-day)
      */
     public function getAvailableProducts()
