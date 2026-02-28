@@ -126,7 +126,6 @@ class DistributionController extends BaseController
             ]);
         }
 
-        // ── Pre-check: block if raw materials are insufficient ──
         $quantity = intval($data->product_qnty);
         $qtyMode = $data->qty_mode ?? 'batch';
 
@@ -142,48 +141,7 @@ class DistributionController extends BaseController
             ]);
         }
 
-        // Convert to actual pieces based on mode
-        $actualPieces = $this->distributionQtyToPieces(intval($data->product_id), $quantity, $qtyMode);
-        log_message('info', 'DISTRIBUTION ADD: Converted {qty} {mode} to {pieces} pieces', [
-            'qty' => $quantity,
-            'mode' => $qtyMode,
-            'pieces' => $actualPieces
-        ]);
-
-        if ($actualPieces > 0) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(
-                intval($data->product_id),
-                $actualPieces,
-                true // preview only — don't actually deduct
-            );
-
-            if (!empty($preview['has_insufficient'])) {
-                // Deduplicate by material_id — show total_needed per material
-                $shortByMaterial = [];
-                foreach ($preview['deductions'] as $d) {
-                    if (!$d['insufficient']) continue;
-                    $mid = $d['material_id'];
-                    if (!isset($shortByMaterial[$mid])) {
-                        $shortByMaterial[$mid] = $d['material_name']
-                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
-                            . ', have ' . $d['before'] . ')';
-                    }
-                }
-
-                log_message('error', 'DISTRIBUTION ADD: Insufficient raw materials - {materials}', [
-                    'materials' => json_encode(array_values($shortByMaterial))
-                ]);
-
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'error' => 'Cannot add — insufficient raw material stock for this quantity.',
-                    'insufficient_materials' => array_values($shortByMaterial),
-                    'preview' => $preview,
-                ]);
-            }
-        }
-
-        // Insert distribution record
+        // Insert distribution record (raw materials are deducted later when inventory is created)
         $insertData = [
             'product_id' => $data->product_id,
             'product_qnty' => $data->product_qnty,
@@ -196,21 +154,7 @@ class DistributionController extends BaseController
             $distributionId = $this->distributionModel->getInsertID();
             log_message('info', 'DISTRIBUTION ADD: Record inserted - ID: {id}', ['id' => $distributionId]);
 
-            // Actually deduct raw materials now (not at inventory creation)
-            if ($actualPieces > 0) {
-                log_message('info', 'DISTRIBUTION ADD: Deducting raw materials for {pieces} pieces', ['pieces' => $actualPieces]);
-                $deductResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($data->product_id),
-                    $actualPieces,
-                    false // actually deduct
-                );
-                log_message('info', 'DISTRIBUTION ADD: Raw materials deducted successfully - {result}', [
-                    'result' => json_encode($deductResult)
-                ]);
-            }
-
-            // Check for low stock and notify owners
-            \App\Libraries\LowStockNotifier::checkAndNotify();
+            // Raw materials will be deducted when inventory is created from distribution
 
             log_message('info', 'DISTRIBUTION ADD: Completed successfully for Product {product}', [
                 'product' => $data->product_id
@@ -252,22 +196,7 @@ class DistributionController extends BaseController
         }
 
         try {
-            // Restore raw materials before deleting the distribution
-            $productId = intval($record['product_id']);
-            $quantity  = intval($record['product_qnty']);
-            $qtyMode   = $record['qty_mode'] ?? 'batch';
-            $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
-            
-            if ($actualPieces > 0) {
-                log_message('info', 'DISTRIBUTION DELETE: Restoring {pieces} pieces to raw materials', [
-                    'pieces' => $actualPieces
-                ]);
-                $restoreResult = $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
-                log_message('info', 'DISTRIBUTION DELETE: Raw materials restored - {result}', [
-                    'result' => json_encode($restoreResult)
-                ]);
-            }
-
+            // No need to restore raw materials — deduction only happens at inventory creation
             $this->distributionModel->delete($id);
             log_message('info', 'DISTRIBUTION DELETE: Record deleted successfully - ID: {id}', ['id' => $id]);
 
@@ -310,13 +239,7 @@ class DistributionController extends BaseController
             ]);
         }
 
-        // ── Restore-then-deduct approach: restore old qty fully, then deduct new qty fully ──
-        // This ensures consistency regardless of intermediate inventory operations.
-        $existingRecord = $this->distributionModel->find($id);
-        $oldQty = intval($existingRecord['product_qnty'] ?? 0);
-        $newQty = intval($data->product_qnty);
-        $oldQtyMode = $existingRecord['qty_mode'] ?? 'batch';
-        $newQtyMode = $data->qty_mode ?? $oldQtyMode;
+        $newQtyMode = $data->qty_mode ?? 'batch';
 
         // Grocery & Drinks products can only be distributed by pieces
         $product = $this->productModel->find(intval($data->product_id));
@@ -330,78 +253,6 @@ class DistributionController extends BaseController
             ]);
         }
 
-        $oldPieces = $this->distributionQtyToPieces(intval($existingRecord['product_id']), $oldQty, $oldQtyMode);
-        $newPieces = $this->distributionQtyToPieces(intval($data->product_id), $newQty, $newQtyMode);
-
-        log_message('info', 'DISTRIBUTION UPDATE: Quantity change - Old: {old} {oldMode} ({oldPieces} pieces), New: {new} {newMode} ({newPieces} pieces)', [
-            'old' => $oldQty,
-            'new' => $newQty,
-            'oldMode' => $oldQtyMode,
-            'newMode' => $newQtyMode,
-            'oldPieces' => $oldPieces,
-            'newPieces' => $newPieces
-        ]);
-
-        // Step 1: Restore all raw materials for the old quantity
-        if ($oldPieces > 0) {
-            log_message('info', 'DISTRIBUTION UPDATE: Step 1 - Restoring {pieces} pieces (old qty) to raw materials', [
-                'pieces' => $oldPieces
-            ]);
-            $restoreResult = $this->rawMaterialStockModel->restoreForProduction(
-                intval($existingRecord['product_id']),
-                $oldPieces
-            );
-            log_message('info', 'DISTRIBUTION UPDATE: Old raw materials restored - {result}', [
-                'result' => json_encode($restoreResult)
-            ]);
-        }
-
-        // Step 2: Pre-check if raw materials are sufficient for the full new quantity
-        if ($newPieces > 0) {
-            log_message('info', 'DISTRIBUTION UPDATE: Step 2 - Checking raw materials for full new qty of {pieces} pieces', [
-                'pieces' => $newPieces
-            ]);
-            $preview = $this->rawMaterialStockModel->deductForProduction(
-                intval($data->product_id),
-                $newPieces,
-                true // preview only
-            );
-
-            if (!empty($preview['has_insufficient'])) {
-                // Rollback: re-deduct the old amount since we already restored it
-                log_message('warning', 'DISTRIBUTION UPDATE: Insufficient materials - rolling back restoration');
-                if ($oldPieces > 0) {
-                    $this->rawMaterialStockModel->deductForProduction(
-                        intval($existingRecord['product_id']),
-                        $oldPieces,
-                        false
-                    );
-                }
-
-                $shortByMaterial = [];
-                foreach ($preview['deductions'] as $d) {
-                    if (!$d['insufficient']) continue;
-                    $mid = $d['material_id'];
-                    if (!isset($shortByMaterial[$mid])) {
-                        $shortByMaterial[$mid] = $d['material_name']
-                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
-                            . ', have ' . $d['before'] . ')';
-                    }
-                }
-
-                log_message('error', 'DISTRIBUTION UPDATE: Insufficient raw materials - {materials}', [
-                    'materials' => json_encode(array_values($shortByMaterial))
-                ]);
-
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'error' => 'Cannot update — insufficient raw material stock for ' . $newQty . ' ' . ($newQtyMode === 'pieces' ? 'piece(s)' : 'batch(es)') . '.',
-                    'insufficient_materials' => array_values($shortByMaterial),
-                    'preview' => $preview,
-                ]);
-            }
-        }
-
         // Update distribution record
         $updateData = [
             'product_id' => $data->product_id,
@@ -411,26 +262,9 @@ class DistributionController extends BaseController
         ];
 
         try {
-            // Step 3: Deduct raw materials for the full new quantity
-            if ($newPieces > 0) {
-                log_message('info', 'DISTRIBUTION UPDATE: Step 3 - Deducting {pieces} pieces (full new qty) from raw materials', [
-                    'pieces' => $newPieces
-                ]);
-                $deductResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($data->product_id),
-                    $newPieces,
-                    false
-                );
-                log_message('info', 'DISTRIBUTION UPDATE: Raw materials deducted - {result}', [
-                    'result' => json_encode($deductResult)
-                ]);
-            }
-
+            // No deduction here — raw materials are deducted when inventory is created
             $this->distributionModel->update($id, $updateData);
             log_message('info', 'DISTRIBUTION UPDATE: Record updated successfully - ID: {id}', ['id' => $id]);
-
-            // Check for low stock and notify owners
-            \App\Libraries\LowStockNotifier::checkAndNotify();
 
             log_message('info', 'DISTRIBUTION UPDATE: Completed successfully for ID: {id}', ['id' => $id]);
 
