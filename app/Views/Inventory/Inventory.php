@@ -14,6 +14,10 @@
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
+                        <button id="btnLoadFromDistribution" type="button"
+                            class="hidden items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <i class="fas fa-truck-loading mr-2"></i> Load from Distribution
+                        </button>
                         <button id="btnAddTodaysInventory" type="button"
                             class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             Add Today's Inventory
@@ -387,6 +391,8 @@
         // Track if inventory exists for today
         let inventoryExistsToday = false;
 
+        $(document).ready(function() {
+
         // Delete Modal Script
         $('#btnDeleteTodaysInventory').on('click', function() {
             if (!inventoryExistsToday) {
@@ -406,7 +412,80 @@
             $('#deleteConfirmModal').addClass('hidden');
             deleteTodaysInventory(); // This calls your function
         });
+
+        // Load from Distribution button click
+        $('#btnLoadFromDistribution').on('click', function() {
+            if (!inventoryExistsToday) {
+                showToast('warning', 'Create inventory first before loading distribution data.', 2000);
+                return;
+            }
+            $('#loadDistributionConfirmModal').removeClass('hidden');
+        });
+
+        // Close Load Distribution Modal
+        $('#loadDistributionModalClose, #loadDistributionModalCancel').on('click', function() {
+            $('#loadDistributionConfirmModal').addClass('hidden');
+        });
+
+        // Confirm Load from Distribution
+        $('#btnConfirmLoadDistribution').on('click', function() {
+            $('#loadDistributionConfirmModal').addClass('hidden');
+            loadFromDistribution();
+        });
+
+        function loadFromDistribution() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/LoadFromDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 3000);
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Failed to load distribution data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('danger', msg, 3000);
+                }
+            });
+        }
+
+        }); // end $(document).ready()
     </script>
+
+    <!-- Load from Distribution Confirmation Modal -->
+    <div id="loadDistributionConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="loadDistributionModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-truck-loading text-blue-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Load from Distribution?</h3>
+                <p class="text-gray-600 mb-6">This will update the beginning stock of inventory items using today's distribution data. Products not yet in inventory will be added.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmLoadDistribution"
+                    class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Load Distribution
+                </button>
+                <button type="button" id="loadDistributionModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
     <style>
         @media (max-width: 640px) {
 
@@ -508,13 +587,10 @@
 
                 $('#timeInputModal').addClass('hidden');
 
-                if (inventorySource === 'distribution') {
-                    addTodaysInventoryFromDistribution(timeStart, timeEnd);
-                } else {
-                    addTodaysInventory(timeStart, timeEnd);
-                }
+                // Always create inventory with all products
+                // Distribution data is loaded separately via "Load from Distribution" button
+                addTodaysInventory(timeStart, timeEnd);
 
-                inventorySource = 'all'; // Reset
                 $('#timeInputForm')[0].reset();
             });
 
@@ -638,6 +714,25 @@
             });
         }
 
+        function checkDistributionAndToggleButton() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Distribution/CheckDistributionToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                    } else {
+                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                    }
+                },
+                error: function() {
+                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                }
+            });
+        }
+
         function checkIfDistributionExists() {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
@@ -678,6 +773,8 @@
                         $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        // Only show Load from Distribution if distribution exists for today
+                        checkDistributionAndToggleButton();
                         // Hide add inventory buttons
                         $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
@@ -692,6 +789,7 @@
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -704,6 +802,7 @@
                     $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
