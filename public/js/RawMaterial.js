@@ -310,63 +310,19 @@ $(document).ready(function () {
         "</td>";
       rows += '<td class="px-6 py-4 text-gray-700">' + labelBadge + "</td>";
 
-      const initialQty = parseFloat(mat.initial_qty) || 0;
-      const used = parseFloat(mat.qty_used) || 0;
-      const remaining = Math.max(0, initialQty - used);
-      const hasStock = parseInt(mat.has_stock) === 1;
-      const pct = initialQty > 0 ? (remaining / initialQty) * 100 : 100;
+      // Costing quantity — independent from stock
+      const costingQty = parseFloat(mat.material_quantity) || 0;
 
-      let barColor = "bg-emerald-400";
-      let barTrack = "bg-emerald-100";
-      let remainText = "text-gray-700";
-      let barWidth =
-        initialQty > 0 ? Math.min(100, (remaining / initialQty) * 100) : 0;
-
-      if (!hasStock) {
-        barColor = "bg-gray-300";
-        barTrack = "bg-gray-100";
-        remainText = "text-gray-400 italic";
-        barWidth = 0;
-      } else if (pct <= 10) {
-        barColor = "bg-red-500";
-        barTrack = "bg-red-100";
-        remainText = "text-red-600 font-semibold";
-      } else if (pct <= 25) {
-        barColor = "bg-amber-400";
-        barTrack = "bg-amber-100";
-        remainText = "text-amber-600 font-semibold";
-      } else if (pct <= 50) {
-        barColor = "bg-yellow-400";
-        barTrack = "bg-yellow-100";
-      }
-
-      // Quantity column: remaining / initial + health bar
+      // Quantity column: simple display of costing quantity
       rows += '<td class="px-6 py-4">';
-      if (!hasStock) {
+      if (costingQty <= 0) {
         rows +=
           '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Qty not set</span>';
       } else {
-        rows += '<div class="flex items-center gap-2.5">';
         rows +=
-          '<span class="' +
-          remainText +
-          ' tabular-nums text-sm min-w-[4rem]">' +
-          remaining.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
-          " / " +
-          initialQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
-          "</span>";
-        rows +=
-          '<div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ' +
-          barTrack +
-          ' overflow-hidden">';
-        rows +=
-          '<div class="h-full rounded-full ' +
-          barColor +
-          ' transition-all" style="width:' +
-          barWidth +
-          '%"></div>';
-        rows += "</div>";
-        rows += "</div>";
+          '<span class="text-gray-900 tabular-nums text-sm font-medium">' +
+          costingQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
+          '</span>';
       }
       rows += "</td>";
 
@@ -488,36 +444,8 @@ $(document).ready(function () {
           "</span>"
         : "";
 
-      // Stock calculations — initial_qty is the fixed baseline
-      const initialQty = parseFloat(mat.initial_qty) || 0;
-      const usedQ = parseFloat(mat.qty_used) || 0;
-      const remainQ = Math.max(0, initialQty - usedQ);
-      const hasStock = parseInt(mat.has_stock) === 1;
-      const pct = initialQty > 0 ? (remainQ / initialQty) * 100 : 100;
-
-      let barColor = "bg-emerald-400",
-        barTrack = "bg-emerald-100";
-      let barW =
-        initialQty > 0 ? Math.min(100, (remainQ / initialQty) * 100) : 0;
-      let remainTC = "text-emerald-700";
-      if (!hasStock) {
-        barColor = "bg-gray-300";
-        barTrack = "bg-gray-100";
-        barW = 0;
-        remainTC = "text-gray-400";
-      } else if (pct <= 10) {
-        barColor = "bg-red-500";
-        barTrack = "bg-red-100";
-        remainTC = "text-red-600";
-      } else if (pct <= 25) {
-        barColor = "bg-amber-400";
-        barTrack = "bg-amber-100";
-        remainTC = "text-amber-600";
-      } else if (pct <= 50) {
-        barColor = "bg-yellow-400";
-        barTrack = "bg-yellow-100";
-        remainTC = "text-yellow-700";
-      }
+      // Costing quantity — independent from stock
+      const costingQty = parseFloat(mat.material_quantity) || 0;
 
       cards += `
                 <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
@@ -532,12 +460,8 @@ $(document).ready(function () {
                         <div class="grid grid-cols-2 gap-2 mb-2">
                             <div class="bg-gray-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Quantity</p>
-                                ${
-                                  hasStock
-                                    ? `
-                                    <p class="font-semibold ${remainTC} text-sm">${remainQ.toLocaleString("en-US", { maximumFractionDigits: 2 })} / ${initialQty.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${mat.unit}</p>
-                                    <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
-                                `
+                                ${costingQty > 0
+                                    ? `<p class="font-semibold text-gray-900 text-sm">${costingQty.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${mat.unit}</p>`
                                     : `<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Qty not set</span>`
                                 }
                             </div>
@@ -858,83 +782,18 @@ $(document).ready(function () {
               : "",
           );
 
-          // Stock section
-          const initQty = parseFloat(mat.initial_qty) || 0;
-          const usedQty = parseFloat(mat.qty_used) || 0;
-          const remain = Math.max(0, initQty - usedQty);
-          const hasStock = parseInt(mat.has_stock) === 1;
+          // Costing quantity — independent from stock
+          const costingQty = parseFloat(mat.material_quantity) || 0;
 
           let stockHtml = "";
-          if (!hasStock) {
+          if (costingQty <= 0) {
             stockHtml =
-              '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Stock not set</span>';
+              '<span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full"><i class="fas fa-exclamation-circle"></i> Qty not set</span>';
           } else {
-            const pct = initQty > 0 ? (remain / initQty) * 100 : 100;
-            let barColor = "bg-emerald-400",
-              barTrack = "bg-emerald-100",
-              txtColor = "text-emerald-700";
-            let statusLabel = "Healthy";
-            let statusBg = "bg-emerald-100 text-emerald-700";
-            if (pct <= 10) {
-              barColor = "bg-red-500";
-              barTrack = "bg-red-100";
-              txtColor = "text-red-600";
-              statusLabel = "Critical";
-              statusBg = "bg-red-100 text-red-700";
-            } else if (pct <= 25) {
-              barColor = "bg-amber-400";
-              barTrack = "bg-amber-100";
-              txtColor = "text-amber-600";
-              statusLabel = "Low";
-              statusBg = "bg-amber-100 text-amber-700";
-            } else if (pct <= 50) {
-              barColor = "bg-yellow-400";
-              barTrack = "bg-yellow-100";
-              txtColor = "text-yellow-700";
-              statusLabel = "Moderate";
-              statusBg = "bg-yellow-100 text-yellow-700";
-            }
-            const barW =
-              initQty > 0 ? Math.min(100, (remain / initQty) * 100) : 0;
-
-            stockHtml += '<div class="flex items-center justify-between mb-2">';
+            stockHtml += '<div class="flex items-center gap-2">';
             stockHtml +=
-              '<span class="text-sm font-semibold ' +
-              txtColor +
-              '">' +
-              remain.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
-              " " +
-              mat.unit +
-              " remaining</span>";
-            stockHtml +=
-              '<span class="text-xs px-2 py-0.5 rounded-full font-medium ' +
-              statusBg +
-              '">' +
-              statusLabel +
-              "</span>";
-            stockHtml += "</div>";
-            stockHtml +=
-              '<div class="h-2.5 rounded-full ' +
-              barTrack +
-              ' overflow-hidden mb-1.5">';
-            stockHtml +=
-              '<div class="h-full rounded-full ' +
-              barColor +
-              ' transition-all" style="width:' +
-              barW +
-              '%"></div>';
-            stockHtml += "</div>";
-            stockHtml +=
-              '<div class="flex justify-between text-xs text-gray-400">';
-            stockHtml +=
-              "<span>Used: " +
-              usedQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
-              " " +
-              mat.unit +
-              "</span>";
-            stockHtml +=
-              "<span>Initial: " +
-              initQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
+              '<span class="text-sm font-semibold text-gray-900">' +
+              costingQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
               " " +
               mat.unit +
               "</span>";
@@ -949,7 +808,7 @@ $(document).ready(function () {
 
           // Quantity
           $("#view_quantity").text(
-            initQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
+            costingQty.toLocaleString("en-US", { maximumFractionDigits: 2 }) +
               " " +
               unit,
           );
@@ -969,8 +828,8 @@ $(document).ready(function () {
             ml: { largeUnit: "liters", factor: 1000 },
           };
           const conv = convMap[unit];
-          if (conv && initQty > 0) {
-            const convertedQty = (initQty / conv.factor).toFixed(2);
+          if (conv && costingQty > 0) {
+            const convertedQty = (costingQty / conv.factor).toFixed(2);
             $("#view_converted_qty").text(convertedQty + " " + conv.largeUnit);
             $("#view_converted_qty_row").removeClass("hidden");
 
@@ -1051,10 +910,10 @@ $(document).ready(function () {
               $("#edit_material_id").val(mat.material_id);
               $("#material_name").val(mat.material_name);
               $("#unit").val(mat.unit);
-              $("#initial_quantity").val(parseFloat(mat.initial_qty || 0));
+              $("#initial_quantity").val(parseFloat(mat.material_quantity || 0));
               $("#qty_readonly_hint")
                 .html(
-                  '<i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial page.',
+                  '<i class="fas fa-info-circle"></i> This quantity is for costing purposes only.',
                 )
                 .removeClass("hidden");
               $("#total_cost").val(parseFloat(mat.total_cost || 0).toFixed(2));
@@ -1121,11 +980,11 @@ $(document).ready(function () {
           $("#material_name").val(mat.material_name);
           $("#category_id").val(mat.category_id);
           $("#unit").val(mat.unit);
-          // Quantity shows initial_qty — editable, syncs to Stock Initial page
-          $("#initial_quantity").val(parseFloat(mat.initial_qty || 0));
+          // Quantity shows material_quantity — costing only, independent from stock
+          $("#initial_quantity").val(parseFloat(mat.material_quantity || 0));
           $("#qty_readonly_hint")
             .html(
-              '<i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial page.',
+              '<i class="fas fa-info-circle"></i> This quantity is for costing purposes only.',
             )
             .removeClass("hidden");
           $("#total_cost").val(parseFloat(mat.total_cost || 0).toFixed(2));

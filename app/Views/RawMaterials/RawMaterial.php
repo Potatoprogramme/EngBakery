@@ -222,8 +222,7 @@
                             </select>
                         </div>
                         <p id="qty_readonly_hint" class="text-xs text-gray-400 mt-1 hidden">
-                            <i class="fas fa-info-circle"></i> Updating the quantity will also update the Stock Initial
-                            page.
+                            <i class="fas fa-info-circle"></i> This quantity is for costing purposes only.
                         </p>
                     </div>
 

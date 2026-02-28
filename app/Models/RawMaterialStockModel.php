@@ -97,7 +97,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Update an existing stock entry — syncs both raw_material_stock and raw_materials
+     * Update an existing stock entry — stock is independent from costing
      */
     public function updateEntry(int $stockId, array $data): bool
     {
@@ -111,13 +111,7 @@ class RawMaterialStockModel extends Model
             'unit'        => $data['unit'],
         ]);
 
-        // Sync material_quantity in raw_materials table
-        if ($success) {
-            $this->db->query(
-                "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
-                [$initialQty, $materialId]
-            );
-        }
+        // No sync to raw_materials.material_quantity — costing is independent
 
         return $success;
     }
