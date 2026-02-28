@@ -264,6 +264,6 @@
 
     <!-- App Scripts -->
     <script>
-    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
     </script>
-    <script src="<?= base_url('js/StockInitial.js') ?>"></script>
+    <script src="<?= asset_url('js/StockInitial.js') ?>"></script>
