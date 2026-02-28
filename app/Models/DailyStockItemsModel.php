@@ -36,6 +36,7 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $carryoverQty,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
+                'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock
             ];
         }
         return $this->insertBatch($insertData);
@@ -105,7 +106,7 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
-                'is_enabled' => 0, // items from distribution
+                'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if distribution is 0
             ];
         }
 
