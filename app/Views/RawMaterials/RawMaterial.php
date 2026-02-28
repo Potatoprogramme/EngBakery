@@ -367,7 +367,8 @@
                 <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
                     Unit of Measure
                 </h4>
-                <span id="view_unit" class="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium border border-gray-200"></span>
+                <span id="view_unit"
+                    class="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium border border-gray-200"></span>
             </div>
 
             <!-- Action Buttons -->
@@ -395,8 +396,8 @@
 
     <!-- App Scripts -->
     <script>
-    // Set base URL for JS modules
-    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        // Set base URL for JS modules
+        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
     </script>
-    <script src="<?= base_url('js/CategoryModal.js') ?>"></script>
-    <script src="<?= base_url('js/RawMaterial.js') ?>"></script>
+    <script src="<?= asset_url('js/CategoryModal.js') ?>?v=<?= time() ?>"></script>
+    <script src="<?= asset_url('js/RawMaterial.js') ?>?v=<?= time() ?>"></script>
