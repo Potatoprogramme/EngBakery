@@ -216,7 +216,57 @@ class InventoryController extends BaseController
             }
         }
 
-        // Raw materials are already deducted at distribution time
+        // ── Deduct raw materials NOW (at inventory creation time) ──
+        $deductionErrors = [];
+        $deductionResults = [];
+
+        foreach ($distributionItems as $distItem) {
+            $productId = intval($distItem['product_id']);
+            $quantity  = intval($distItem['product_qnty']);
+            $qtyMode   = $distItem['qty_mode'] ?? 'batch';
+
+            // Convert to actual pieces (same logic as DistributionController::distributionQtyToPieces)
+            if ($qtyMode === 'pieces') {
+                $actualPieces = $quantity;
+            } else {
+                $product = $this->productModel->find($productId);
+                $category = $product['category'] ?? '';
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $actualPieces = $quantity;
+                } else {
+                    $costData = model('ProductCostModel')->getCostByProductId($productId);
+                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+                    $actualPieces = $quantity * ($piecesPerYield > 0 ? $piecesPerYield : 1);
+                }
+            }
+
+            if ($actualPieces > 0) {
+                log_message('info', 'INVENTORY FROM DISTRIBUTION: Deducting raw materials for Product {product} - {pieces} pieces', [
+                    'product' => $productId,
+                    'pieces' => $actualPieces
+                ]);
+
+                $result = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, false);
+                $deductionResults[] = [
+                    'product_id' => $productId,
+                    'pieces' => $actualPieces,
+                    'result' => $result
+                ];
+
+                if (!$result['success']) {
+                    $deductionErrors[] = "Product #{$productId}: " . ($result['message'] ?? 'Deduction failed');
+                }
+
+                log_message('info', 'INVENTORY FROM DISTRIBUTION: Deduction result for Product {product} - {result}', [
+                    'product' => $productId,
+                    'result' => json_encode($result)
+                ]);
+            }
+        }
+
+        // Check for low stock and notify owners
+        \App\Libraries\LowStockNotifier::checkAndNotify();
+
         $insertData = [
             'inventory_date' => $today,
             'time_start' => $data['time_start'],
@@ -231,15 +281,19 @@ class InventoryController extends BaseController
 
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems, $carryover)) {
                 $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
-                $message = 'Today\'s inventory created from distribution data successfully.';
+                $message = 'Today\'s inventory created from distribution data successfully. Raw materials deducted.';
                 if ($carryoverCount > 0) {
                     $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
+                }
+                if (!empty($deductionErrors)) {
+                    $message .= ' Note: Some deduction issues: ' . implode('; ', $deductionErrors);
                 }
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => $message,
                     'items_count' => count($distributionItems),
                     'carryover_count' => $carryoverCount,
+                    'deductions' => $deductionResults,
                 ]);
             } else {
                 $this->dailyStockModel->delete($lastInsertId);
