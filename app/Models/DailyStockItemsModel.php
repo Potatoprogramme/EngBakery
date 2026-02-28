@@ -16,6 +16,7 @@ class DailyStockItemsModel extends Model
         'beginning_stock',
         'pull_out_quantity',
         'ending_stock', // can be calculated
+        'is_enabled' // for enabling stock item
     ];
 
     // Dates
@@ -53,16 +54,16 @@ class DailyStockItemsModel extends Model
         $insertData = [];
         $productModel = model('ProductModel');
         $productCostModel = model('ProductCostModel');
-        
+
         // Track which products come from distribution
         $distributedProductIds = [];
-        
+
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
             $distributedProductIds[] = $productId;
             $distributionQty = intval($item['product_qnty'] ?? 0);
             $qtyMode = $item['qty_mode'] ?? 'batch';
-            
+
             // If qty_mode is 'pieces', the value is already in pieces — no conversion needed
             if ($qtyMode === 'pieces') {
                 $beginningStockPieces = $distributionQty;
@@ -70,7 +71,7 @@ class DailyStockItemsModel extends Model
                 // Convert batches to pieces
                 $product = $productModel->find($productId);
                 $category = $product['category'] ?? '';
-                
+
                 if (in_array($category, ['drinks', 'grocery'])) {
                     // For drinks/grocery: 1 distribution qty = 1 piece
                     $beginningStockPieces = $distributionQty;
@@ -84,11 +85,11 @@ class DailyStockItemsModel extends Model
                     $beginningStockPieces = $distributionQty * $piecesPerYield;
                 }
             }
-            
+
             // Add yesterday's remaining stock (carryover)
             $carryoverQty = $carryover[$productId] ?? 0;
             $totalBeginning = $beginningStockPieces + $carryoverQty;
-            
+
             log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution: {dist} {mode} → {pieces} pcs + Carryover: {carryover} = {total}', [
                 'product' => $productId,
                 'dist' => $distributionQty,
@@ -97,16 +98,17 @@ class DailyStockItemsModel extends Model
                 'carryover' => $carryoverQty,
                 'total' => $totalBeginning
             ]);
-            
+
             $insertData[] = [
                 'daily_stock_id' => $dailyStockId,
-                'product_id'     => $productId,
+                'product_id' => $productId,
                 'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
-                'ending_stock'    => $totalBeginning,
+                'ending_stock' => $totalBeginning,
+                'is_enabled' => 0, // items from distribution
             ];
         }
-        
+
         // Add carryover-only products (not in today's distribution but had remaining stock yesterday)
         foreach ($carryover as $productId => $carryoverQty) {
             if (!in_array($productId, $distributedProductIds) && $carryoverQty > 0) {
@@ -114,13 +116,14 @@ class DailyStockItemsModel extends Model
                     'product' => $productId,
                     'carryover' => $carryoverQty
                 ]);
-                
+
                 $insertData[] = [
                     'daily_stock_id' => $dailyStockId,
-                    'product_id'     => $productId,
+                    'product_id' => $productId,
                     'beginning_stock' => $carryoverQty,
                     'pull_out_quantity' => 0,
-                    'ending_stock'    => $carryoverQty,
+                    'ending_stock' => $carryoverQty,
+                    'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if not in distribution
                 ];
             }
         }
