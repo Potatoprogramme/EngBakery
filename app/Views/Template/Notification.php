@@ -281,6 +281,7 @@
             // Show modal
             modal.classList.remove('hidden');
             modal.classList.add('show');
+            document.body.classList.add('overflow-hidden');
 
             return this;
         },
@@ -289,6 +290,7 @@
             const modal = document.getElementById('confirm-modal');
             modal.classList.add('hidden');
             modal.classList.remove('show');
+            document.body.classList.remove('overflow-hidden');
             this.onConfirm = null;
             this.onCancel = null;
         },

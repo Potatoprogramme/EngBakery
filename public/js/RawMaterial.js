@@ -82,6 +82,7 @@ $(document).ready(function () {
   // Open Add Material Modal (Desktop & Mobile)
   $("#btnAddMaterial, #btnAddMaterialMobile").on("click", function () {
     $("#addMaterialModal").removeClass("hidden");
+    document.body.classList.add('overflow-hidden');
     loadCategories();
   });
 
@@ -92,6 +93,7 @@ $(document).ready(function () {
 
   function closeModal() {
     $("#addMaterialModal").addClass("hidden");
+    document.body.classList.remove('overflow-hidden');
     $("#addMaterialForm")[0].reset();
     $("#edit_material_id").val("");
     $("#modalTitle").text("Add Raw Material");
@@ -1003,6 +1005,7 @@ $(document).ready(function () {
 
           // Show modal
           $("#viewMaterialModal").removeClass("hidden");
+          document.body.classList.add('overflow-hidden');
         } else {
           Toast.error("Error: " + response.message);
         }
@@ -1016,6 +1019,7 @@ $(document).ready(function () {
   // Close View Modal
   $("#btnCloseViewModal, #btnCloseViewBottom").on("click", function () {
     $("#viewMaterialModal").addClass("hidden");
+    document.body.classList.remove('overflow-hidden');
     currentViewMaterialId = null;
   });
 
@@ -1023,6 +1027,7 @@ $(document).ready(function () {
   $("#viewMaterialModal").on("click", function (e) {
     if (e.target === this) {
       $(this).addClass("hidden");
+      document.body.classList.remove('overflow-hidden');
       currentViewMaterialId = null;
     }
   });
@@ -1065,6 +1070,7 @@ $(document).ready(function () {
               $("#btnSaveMaterial").text("Update");
               loadCategories();
               $("#addMaterialModal").removeClass("hidden");
+              document.body.classList.add('overflow-hidden');
               setTimeout(function () {
                 $("#category_id").val(mat.category_id);
                 updateCostCalculations();
@@ -1091,6 +1097,7 @@ $(document).ready(function () {
               if (response.success) {
                 Toast.success("Material deleted successfully!");
                 $("#viewMaterialModal").addClass("hidden");
+                document.body.classList.remove('overflow-hidden');
                 currentViewMaterialId = null;
                 loadMaterials();
               } else {
@@ -1138,6 +1145,7 @@ $(document).ready(function () {
           // Open modal and load categories
           loadCategories();
           $("#addMaterialModal").removeClass("hidden");
+          document.body.classList.add('overflow-hidden');
 
           // Set category after dropdown is loaded and update calculations
           setTimeout(function () {
