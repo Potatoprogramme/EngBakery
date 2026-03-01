@@ -33,6 +33,28 @@ class AuthenticationController extends BaseController
         return redirect()->to(base_url('login'))->with('success_message', 'You have been logged out successfully.');
     }
 
+    /**
+     * Lightweight AJAX endpoint the front-end polls to verify the session
+     * is still alive.  Returns JSON so JavaScript can react without a
+     * full-page redirect.
+     */
+    public function checkSession(): ResponseInterface
+    {
+        if (session()->get('is_logged_in') === true) {
+            return $this->response->setJSON([
+                'authenticated'  => true,
+                'session_expiry' => config('Session')->expiration,
+            ]);
+        }
+
+        return $this->response->setStatusCode(401)->setJSON([
+            'authenticated'   => false,
+            'session_expired' => true,
+            'message'         => 'Your session has expired. Please log in again.',
+            'redirect'        => base_url('login'),
+        ]);
+    }
+
     public function manualLogin(): ResponseInterface
     {
         $username = $this->request->getPost('username');

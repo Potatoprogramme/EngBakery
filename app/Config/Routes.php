@@ -16,6 +16,7 @@ $routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');
+$routes->get('/Auth/CheckSession', 'AuthenticationController::checkSession');
 $routes->get('/Auth/Google', 'AuthenticationController::googleLogin');
 $routes->get('/Auth/Google/Callback', 'AuthenticationController::googleCallback');
 
