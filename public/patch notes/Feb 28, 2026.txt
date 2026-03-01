@@ -1,0 +1,9 @@
+Patch notes and changes:
+Material Costing
+- Changed 'Stocks' column to 'Quantity'
+- Add 'Total Cost' column (quantity x cost_per_unit)
+- Show each product COST for initial qty, used, and remaining materials
+- Added view button to material costing
+
+INVENTORY
+- Drinks like bread inventory
