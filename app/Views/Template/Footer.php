@@ -75,13 +75,11 @@
         let idleSeconds  = 0;
         let warningShown = false;
 
-        console.log('[Session Timeout] SESSION_LIFETIME=' + SESSION_LIFETIME + 's, WARNING_BEFORE=' + WARNING_BEFORE + 's, POLL_INTERVAL=' + POLL_INTERVAL + 's');
-
         // ---------- Reset idle counter on user activity ----------
         const activityEvents = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
         activityEvents.forEach(function (evt) {
             document.addEventListener(evt, function () {
-                if (idleSeconds > 0) console.log('[Session Timeout] Activity detected — idle counter reset (was ' + idleSeconds + 's)');
+                if (idleSeconds > 0) 
                 idleSeconds = 0;
                 if (warningShown) hideModal();
             }, { passive: true });
@@ -91,17 +89,14 @@
         setInterval(function () {
             idleSeconds++;
             const remaining = SESSION_LIFETIME - idleSeconds;
-            console.log('[Session Timeout] idle=' + idleSeconds + 's | remaining=' + remaining + 's | warning=' + warningShown);
 
             if (!warningShown && idleSeconds >= (SESSION_LIFETIME - WARNING_BEFORE)) {
-                console.log('[Session Timeout] ⚠ Showing warning modal — ' + remaining + 's left');
                 showModal(remaining);
             }
 
             if (warningShown) {
                 if (countdownEl) countdownEl.textContent = remaining > 0 ? remaining : 0;
                 if (remaining <= 0) {
-                    console.log('[Session Timeout] ⛔ Time is up — redirecting to logout');
                     window.location.href = LOGOUT_URL;
                 }
             }
