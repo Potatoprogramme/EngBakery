@@ -16,7 +16,8 @@ class DailyStockItemsModel extends Model
         'beginning_stock',
         'pull_out_quantity',
         'ending_stock', // can be calculated
-        'is_enabled' // for enabling stock item
+        'is_enabled', // for enabling stock item\
+        'notes'
     ];
 
     // Dates

@@ -697,6 +697,7 @@ class InventoryController extends BaseController
 
         $newBeginning = intval($json->beginning_stock);
         $newPullOut = intval($json->pull_out_quantity);
+        $notes = isset($json->notes) ? trim($json->notes) : null;
 
         $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
         if ($quantitySold < 0)
@@ -712,7 +713,8 @@ class InventoryController extends BaseController
         $updateData = [
             'beginning_stock' => $newBeginning,
             'pull_out_quantity' => $newPullOut,
-            'ending_stock' => $newEndingStock
+            'ending_stock' => $newEndingStock,
+            'notes' => $notes
         ];
 
         // Only beginning stock changes affect raw materials
