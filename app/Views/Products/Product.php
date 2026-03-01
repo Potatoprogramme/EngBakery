@@ -1836,6 +1836,15 @@
                         // User cleared grams per piece - reset pieces to 0 as well
                         piecesPerYield = 0;
                         $('#piecesPerYield').val(0);
+                    } else if ((changedField === 'gramsPerTray' || changedField === 'traysPerYield') && gramsPerPiece > 0) {
+                        // Tray values changed - recalculate pieces based on existing grams per piece
+                        if (traysPerYield > 0 && gramsPerTray > 0) {
+                            piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
+                            piecesPerTray = piecesPerYield;
+                        } else if (totalYieldGrams > 0) {
+                            piecesPerYield = Math.floor(totalYieldGrams / gramsPerPiece);
+                        }
+                        $('#piecesPerYield').val(piecesPerYield);
                     } else if (piecesPerYield > 0 && gramsPerPiece === 0 && changedField !== 'gramsPerPiece') {
                         // Only auto-calculate grams per piece if it's currently 0 (not user-entered)
                         if (traysPerYield > 0 && gramsPerTray > 0) {
