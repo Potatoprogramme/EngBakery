@@ -27,7 +27,7 @@ class InventoryController extends BaseController
             view('Template/SideNav', $data) .
             view('Inventory/AddInventory', $data) .
             view('Template/Footer', $data);
-     }
+    }
 
     public function fetchTodaysInventory()
     {
@@ -697,6 +697,7 @@ class InventoryController extends BaseController
 
         $newBeginning = intval($json->beginning_stock);
         $newPullOut = intval($json->pull_out_quantity);
+        $notes = isset($json->notes) ? trim($json->notes) : null;
 
         $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
         if ($quantitySold < 0)
@@ -712,7 +713,8 @@ class InventoryController extends BaseController
         $updateData = [
             'beginning_stock' => $newBeginning,
             'pull_out_quantity' => $newPullOut,
-            'ending_stock' => $newEndingStock
+            'ending_stock' => $newEndingStock,
+            'notes' => $notes
         ];
 
         // Only beginning stock changes affect raw materials
@@ -1067,6 +1069,29 @@ class InventoryController extends BaseController
             'data' => $enrichedData,
             'total_products' => count($enrichedData),
             'message' => count($enrichedData) . ' product(s) have remaining stock from previous day.'
+        ]);
+    }
+    public function ToggleStockItem($itemId)
+    {
+        $data = $this->request->getJSON(true);
+        $isEnabled = isset($data['is_enabled']) ? (int) $data['is_enabled'] : 0;
+
+        $updateData = [
+            'is_enabled' => $isEnabled,
+        ];
+
+        $result = $this->dailyStockItemsModel->update($itemId, $updateData);
+
+        if ($result) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $isEnabled ? 'Item enabled successfully.' : 'Item disabled successfully.',
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to update item status.',
         ]);
     }
 }

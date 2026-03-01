@@ -100,12 +100,14 @@
                             <table id="bakeryTable" class="min-w-full text-sm text-left">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
+                                        </th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                     </tr>
                                 </thead>
@@ -116,7 +118,9 @@
                                     <tr>
                                         <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                             Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0
+                                        </td>
+                                        <td></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -141,12 +145,14 @@
                             <table id="drinksTable" class="min-w-full text-sm text-left">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
+                                        </th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                     </tr>
                                 </thead>
@@ -157,7 +163,9 @@
                                     <tr>
                                         <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                             Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0
+                                        </td>
+                                        <td></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -182,12 +190,14 @@
                             <table id="groceryTable" class="min-w-full text-sm text-left">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
+                                        </th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                     </tr>
                                 </thead>
@@ -198,7 +208,9 @@
                                     <tr>
                                         <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                             Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0</td>
+                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0
+                                        </td>
+                                        <td></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -226,7 +238,8 @@
                             <span class="text-sm font-semibold text-amber-700">Yesterday's Remaining Stock</span>
                         </div>
                         <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
-                        <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be automatically added to today's beginning stock.</p>
+                        <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be
+                            automatically added to today's beginning stock.</p>
                     </div>
                     <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <div class="flex items-center gap-2">
@@ -288,11 +301,18 @@
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                </div>
+
+                <div class="mb-6">
+                    <label for="editNotes" class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
+                    <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
+                    <p class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
                 </div>
 
                 <div class="flex gap-3">
@@ -345,7 +365,8 @@
                         <p class="text-xs font-semibold text-amber-700 mb-2">
                             <i class="fas fa-flask mr-1"></i> Raw Materials to be Deducted
                         </p>
-                        <div id="deductionPreviewList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
+                        <div id="deductionPreviewList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto">
+                        </div>
                         <div id="deductionPreviewWarning" class="hidden mt-2 text-xs text-red-600 font-medium">
                             <i class="fas fa-exclamation-triangle mr-1"></i> Some materials have insufficient stock
                         </div>
@@ -395,119 +416,119 @@
         // Track if inventory exists for today
         let inventoryExistsToday = false;
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
-        // Delete Modal Script
-        $('#btnDeleteTodaysInventory').on('click', function() {
-            if (!inventoryExistsToday) {
-                showToast('warning', 'No inventory exists for today to delete.', 2000);
-                return;
-            }
-            $('#deleteConfirmModal').removeClass('hidden');
-        });
-
-        // Close Delete Confirmation Modal
-        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function() {
-            $('#deleteConfirmModal').addClass('hidden');
-        });
-
-        // Confirm Delete
-        $('#btnConfirmDelete').on('click', function() {
-            $('#deleteConfirmModal').addClass('hidden');
-            deleteTodaysInventory(); // This calls your function
-        });
-
-        // Load from Distribution button click
-        $('#btnLoadFromDistribution').on('click', function() {
-            if (!inventoryExistsToday) {
-                showToast('warning', 'Create inventory first before loading distribution data.', 2000);
-                return;
-            }
-            $('#loadDistributionConfirmModal').removeClass('hidden');
-        });
-
-        // Close Load Distribution Modal
-        $('#loadDistributionModalClose, #loadDistributionModalCancel').on('click', function() {
-            $('#loadDistributionConfirmModal').addClass('hidden');
-        });
-
-        // Confirm Load from Distribution
-        $('#btnConfirmLoadDistribution').on('click', function() {
-            $('#loadDistributionConfirmModal').addClass('hidden');
-            loadFromDistribution();
-        });
-
-        function loadFromDistribution() {
-            const baseUrl = '<?= base_url() ?>';
-            $.ajax({
-                url: baseUrl + 'Inventory/LoadFromDistribution',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function(response) {
-                    if (response.success) {
-                        showToast('success', response.message, 3000);
-                        fetchAllStockitems();
-                        // Swap to Unload button
-                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                    } else {
-                        showToast('error', response.message, 3000);
-                    }
-                },
-                error: function(xhr) {
-                    let msg = 'Failed to load distribution data.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    showToast('error', msg, 3000);
+            // Delete Modal Script
+            $('#btnDeleteTodaysInventory').on('click', function () {
+                if (!inventoryExistsToday) {
+                    showToast('warning', 'No inventory exists for today to delete.', 2000);
+                    return;
                 }
+                $('#deleteConfirmModal').removeClass('hidden');
             });
-        }
 
-        // Unload Distribution button click
-        $('#btnUnloadDistribution').on('click', function() {
-            $('#unloadDistributionConfirmModal').removeClass('hidden');
-        });
+            // Close Delete Confirmation Modal
+            $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+                $('#deleteConfirmModal').addClass('hidden');
+            });
 
-        // Close Unload Distribution Modal
-        $('#unloadDistributionModalClose, #unloadDistributionModalCancel').on('click', function() {
-            $('#unloadDistributionConfirmModal').addClass('hidden');
-        });
+            // Confirm Delete
+            $('#btnConfirmDelete').on('click', function () {
+                $('#deleteConfirmModal').addClass('hidden');
+                deleteTodaysInventory(); // This calls your function
+            });
 
-        // Confirm Unload
-        $('#btnConfirmUnloadDistribution').on('click', function() {
-            $('#unloadDistributionConfirmModal').addClass('hidden');
-            unloadDistribution();
-        });
-
-        function unloadDistribution() {
-            const baseUrl = '<?= base_url() ?>';
-            $.ajax({
-                url: baseUrl + 'Inventory/UnloadDistribution',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function(response) {
-                    if (response.success) {
-                        showToast('success', response.message, 3000);
-                        fetchAllStockitems();
-                        // Swap back to Load button
-                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                    } else {
-                        showToast('error', response.message, 3000);
-                    }
-                },
-                error: function(xhr) {
-                    let msg = 'Failed to unload distribution data.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    showToast('error', msg, 3000);
+            // Load from Distribution button click
+            $('#btnLoadFromDistribution').on('click', function () {
+                if (!inventoryExistsToday) {
+                    showToast('warning', 'Create inventory first before loading distribution data.', 2000);
+                    return;
                 }
+                $('#loadDistributionConfirmModal').removeClass('hidden');
             });
-        }
+
+            // Close Load Distribution Modal
+            $('#loadDistributionModalClose, #loadDistributionModalCancel').on('click', function () {
+                $('#loadDistributionConfirmModal').addClass('hidden');
+            });
+
+            // Confirm Load from Distribution
+            $('#btnConfirmLoadDistribution').on('click', function () {
+                $('#loadDistributionConfirmModal').addClass('hidden');
+                loadFromDistribution();
+            });
+
+            function loadFromDistribution() {
+                const baseUrl = '<?= base_url() ?>';
+                $.ajax({
+                    url: baseUrl + 'Inventory/LoadFromDistribution',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (response) {
+                        if (response.success) {
+                            showToast('success', response.message, 3000);
+                            fetchAllStockitems();
+                            // Swap to Unload button
+                            $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                            $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                        } else {
+                            showToast('error', response.message, 3000);
+                        }
+                    },
+                    error: function (xhr) {
+                        let msg = 'Failed to load distribution data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        showToast('error', msg, 3000);
+                    }
+                });
+            }
+
+            // Unload Distribution button click
+            $('#btnUnloadDistribution').on('click', function () {
+                $('#unloadDistributionConfirmModal').removeClass('hidden');
+            });
+
+            // Close Unload Distribution Modal
+            $('#unloadDistributionModalClose, #unloadDistributionModalCancel').on('click', function () {
+                $('#unloadDistributionConfirmModal').addClass('hidden');
+            });
+
+            // Confirm Unload
+            $('#btnConfirmUnloadDistribution').on('click', function () {
+                $('#unloadDistributionConfirmModal').addClass('hidden');
+                unloadDistribution();
+            });
+
+            function unloadDistribution() {
+                const baseUrl = '<?= base_url() ?>';
+                $.ajax({
+                    url: baseUrl + 'Inventory/UnloadDistribution',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (response) {
+                        if (response.success) {
+                            showToast('success', response.message, 3000);
+                            fetchAllStockitems();
+                            // Swap back to Load button
+                            $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                            $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                        } else {
+                            showToast('error', response.message, 3000);
+                        }
+                    },
+                    error: function (xhr) {
+                        let msg = 'Failed to unload distribution data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        showToast('error', msg, 3000);
+                    }
+                });
+            }
 
         }); // end $(document).ready()
     </script>
@@ -523,7 +544,8 @@
             <div class="text-center">
                 <i class="fas fa-truck-loading text-primary text-5xl mb-4"></i>
                 <h3 class="text-xl font-semibold text-gray-900 mb-2">Load from Distribution?</h3>
-                <p class="text-gray-600 mb-6">This will update the beginning stock of inventory items using today's distribution data. Products not yet in inventory will be added.</p>
+                <p class="text-gray-600 mb-6">This will update the beginning stock of inventory items using today's
+                    distribution data. Products not yet in inventory will be added.</p>
             </div>
             <div class="flex gap-3">
                 <button type="button" id="btnConfirmLoadDistribution"
@@ -549,7 +571,8 @@
             <div class="text-center">
                 <i class="fas fa-undo-alt text-red-600 text-5xl mb-4"></i>
                 <h3 class="text-xl font-semibold text-gray-900 mb-2">Unload Distribution?</h3>
-                <p class="text-gray-600 mb-6">This will reverse the distribution load — subtracting distribution quantities from beginning stock. Items that were added from distribution only will be removed.</p>
+                <p class="text-gray-600 mb-6">This will reverse the distribution load — subtracting distribution
+                    quantities from beginning stock. Items that were added from distribution only will be removed.</p>
             </div>
             <div class="flex gap-3">
                 <button type="button" id="btnConfirmUnloadDistribution"
@@ -601,7 +624,7 @@
         // Track which source to use for inventory: 'all' or 'distribution'
         let inventorySource = 'all';
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
 
             // Display today's date
@@ -614,7 +637,7 @@
             });
 
             // Check first for today's inventory
-            $(document).ready(function() {
+            $(document).ready(function () {
                 checkIfDistributionExists();
                 checkIfInventoryExists();
             });
@@ -622,7 +645,7 @@
             $('#todayDate').text(dateString);
 
             // Open Add Inventory Modal (Desktop & Mobile)
-            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
+            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
                 // Re-check distribution before opening modal to ensure we have the latest state
                 checkIfDistributionExists();
                 fetchYesterdayRemaining(); // Load carryover preview
@@ -632,26 +655,26 @@
             });
 
             // Close Inventory Modal
-            $('#btnCloseModal, #btnCancelAdd').on('click', function() {
+            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
                 closeModal();
             });
 
             // Close modal on outside click
-            $('#addMaterialModal').on('click', function(e) {
+            $('#addMaterialModal').on('click', function (e) {
                 if (e.target === this) {
                     closeModal();
                 }
             });
 
             // Close Time Input Modal
-            $('#timeInputModalClose, #timeInputModalCancel').on('click', function() {
+            $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
                 $('#timeInputModal').addClass('hidden');
                 $('#timeInputForm')[0].reset();
                 inventorySource = 'all'; // Reset source on cancel
             });
 
             // Submit Time Input Form
-            $('#timeInputForm').on('submit', function(e) {
+            $('#timeInputForm').on('submit', function (e) {
                 e.preventDefault();
                 const timeStart = $('#time_start').val();
                 const timeEnd = $('#time_end').val();
@@ -677,7 +700,7 @@
             }
 
             // Submit Add Inventory Form via AJAX
-            $('#addMaterialForm').on('submit', function(e) {
+            $('#addMaterialForm').on('submit', function (e) {
                 e.preventDefault();
 
                 const formData = {
@@ -690,7 +713,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert('Inventory added successfully!');
                             closeModal();
@@ -699,21 +722,21 @@
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         alert('Error adding inventory: ' + error);
                     }
                 });
             });
 
             // Delete Inventory Item
-            $(document).on('click', '.btn-delete', function() {
+            $(document).on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
                 Confirm.delete('Are you sure you want to delete this inventory item?', () => {
                     $.ajax({
                         url: baseUrl + 'Inventory/Delete/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 showToast('success', 'Inventory item deleted successfully!', 2000);
                                 fetchAllStockitems();
@@ -721,7 +744,7 @@
                                 showToast('error', response.message, 3000);
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             showToast('danger', xhr.responseJSON.message || 'An error occured while deleting inventory', 3000);
                         }
                     });
@@ -729,11 +752,11 @@
             });
 
             // Apply Filter
-            $('#apply-filters').on('click', function() {
+            $('#apply-filters').on('click', function () {
                 const dateFrom = $('#filter-date-from').val();
                 const dateTo = $('#filter-date-to').val();
 
-                $('table tbody tr').each(function() {
+                $('table tbody tr').each(function () {
                     const rowDate = $(this).data('date');
                     let show = true;
 
@@ -753,7 +776,7 @@
             });
 
             // Reset Filter
-            $('#reset-filters').on('click', function() {
+            $('#reset-filters').on('click', function () {
                 $('#filter-date-from').val('');
                 $('#filter-date-to').val('');
                 $('table tbody tr').show();
@@ -770,10 +793,10 @@
                 url: baseUrl + 'Inventory/GetYesterdayRemaining',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         let html = '';
-                        response.data.forEach(function(item) {
+                        response.data.forEach(function (item) {
                             html += '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
                             html += '<span class="text-gray-700">' + item.product_name + ' <span class="text-gray-400">(' + item.category + ')</span></span>';
                             html += '<span class="font-semibold text-amber-700">' + item.remaining_stock + ' pcs</span>';
@@ -785,7 +808,7 @@
                         $('#noCarryoverPreview').removeClass('hidden');
                     }
                 },
-                error: function() {
+                error: function () {
                     $('#noCarryoverPreview').removeClass('hidden');
                 }
             });
@@ -798,14 +821,14 @@
                 url: baseUrl + 'Distribution/CheckDistributionToday',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         // Distribution exists — now check if already loaded
                         $.ajax({
                             url: baseUrl + 'Inventory/CheckDistributionLoadedStatus',
                             type: 'GET',
                             dataType: 'json',
-                            success: function(statusRes) {
+                            success: function (statusRes) {
                                 if (statusRes.loaded) {
                                     // Already loaded — show Unload button
                                     $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
@@ -816,7 +839,7 @@
                                     $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                                 }
                             },
-                            error: function() {
+                            error: function () {
                                 // Default to showing Load button
                                 $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
                                 $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
@@ -828,7 +851,7 @@
                         $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
-                error: function() {
+                error: function () {
                     $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                 }
@@ -841,7 +864,7 @@
                 url: baseUrl + 'Distribution/CheckDistributionToday',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success.data === null) {
                         inventorySource = 'all';
                         console.log('No distribution found, will use all products');
@@ -850,7 +873,7 @@
                         console.log('Distribution found, will use distribution data');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // On error, default to 'all' to be safe
                     inventorySource = 'all';
                     console.log('Error checking distribution, defaulting to all products: ' + error);
@@ -864,7 +887,7 @@
                 url: baseUrl + 'Inventory/CheckInventoryToday',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
@@ -895,7 +918,7 @@
                         $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
                     // Show add inventory buttons on error (safe default)
@@ -952,7 +975,7 @@
                     time_start: time_start,
                     time_end: time_end
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
@@ -977,7 +1000,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     let errorMessage = 'An error occurred while adding inventory from distribution';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
@@ -1006,7 +1029,7 @@
                     time_start: time_start,
                     time_end: time_end
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
@@ -1016,7 +1039,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory', 2000);
                     console.log(xhr.responseJSON);
                 }
@@ -1029,7 +1052,7 @@
                 url: `${baseURL}Inventory/FetchAllStockItems`,
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     console.log(response);
                     if (response.success) {
                         // showToast('success', response.message, 2000);
@@ -1039,7 +1062,7 @@
                         console.log("Error: " + response.error);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error), 2000);
                     console.log(xhr.responseJSON);
                 }
@@ -1080,31 +1103,35 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+                    const notes = item.notes || '';
 
                     totalQty += qtySold;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-3">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
             }
 
             $('#bakeryTableBody').html(rows);
@@ -1116,30 +1143,34 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+                    const notes = item.notes || '';
 
                     totalQty += qtySold;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-3">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
             }
 
             $('#drinksTableBody').html(rows);
@@ -1151,30 +1182,34 @@
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+                    const notes = item.notes || '';
 
                     totalQty += qtySold;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-3">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
                     rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
             }
 
             $('#groceryTableBody').html(rows);
@@ -1184,7 +1219,7 @@
         function updateGrandTotals(items) {
             let grandQty = 0;
 
-            items.forEach(function(item) {
+            items.forEach(function (item) {
                 grandQty += parseInt(item.quantity_sold) || 0;
             });
 
@@ -1192,7 +1227,7 @@
         }
 
         // Edit Inventory Item - Open Modal
-        $(document).on('click', '.btn-edit', function() {
+        $(document).on('click', '.btn-edit', function () {
             const itemId = $(this).data('id');
 
             // Always get data from stored items array (more reliable)
@@ -1204,6 +1239,7 @@
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editBeginningStock').val(item.beginning_stock || 0);
                 $('#editPullOutQuantity').val(item.pull_out_quantity || 0);
+                $('#editNotes').val(item.notes || '');
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
@@ -1213,18 +1249,44 @@
         });
 
         // Close Edit Modal
-        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function() {
+        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
         });
 
+        $(document).on('click', '.btn-toggle-enabled', function () {
+            const itemId = $(this).data('id');
+            const currentEnabled = parseInt($(this).data('enabled'));
+            const newEnabled = currentEnabled === 1 ? 0 : 1;
+            const baseUrl = '<?= base_url() ?>';
 
-        $('#editInventoryForm').on('submit', function(e) {
+            $.ajax({
+                url: baseUrl + 'Inventory/ToggleStockItem/' + itemId,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ is_enabled: newEnabled }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error), 2000);
+                }
+            });
+        });
+
+        $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
             const itemId = $('#editItemId').val();
             const beginningStock = $('#editBeginningStock').val();
             const pullOutQuantity = $('#editPullOutQuantity').val();
+            const notes = $('#editNotes').val();
 
             // Validate inputs
             if (beginningStock < 0 || pullOutQuantity < 0) {
@@ -1240,9 +1302,10 @@
                 contentType: 'application/json',
                 data: JSON.stringify({
                     beginning_stock: beginningStock,
-                    pull_out_quantity: pullOutQuantity
+                    pull_out_quantity: pullOutQuantity,
+                    notes: notes
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         $('#editInventoryModal').addClass('hidden');
@@ -1252,7 +1315,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
@@ -1276,7 +1339,7 @@
                 data: JSON.stringify({
                     date: today
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         inventoryExistsToday = false;
                         showToast('success', response.message, 2000);
@@ -1302,7 +1365,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
                 }
@@ -1310,13 +1373,13 @@
         }
 
         // Add Product to Inventory functionality
-        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function() {
+        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function () {
             loadAvailableProducts();
             $('#addProductModal').removeClass('hidden');
         });
 
         // Close Add Product Modal
-        $('#addProductModalClose, #addProductModalCancel').on('click', function() {
+        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
         });
@@ -1328,12 +1391,12 @@
                 url: baseUrl + 'Inventory/GetAvailableProducts',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     const select = $('#selectProduct');
                     select.html('<option value="">-- Select a product --</option>');
 
                     if (response.success && response.data.length > 0) {
-                        response.data.forEach(function(product) {
+                        response.data.forEach(function (product) {
                             let categoryLabel = 'Unknown';
                             if (product.category === 'bakery') {
                                 categoryLabel = 'Bakery';
@@ -1355,14 +1418,14 @@
                         $('#btnSubmitAddProduct').prop('disabled', true);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', 'Error loading products: ' + error, 2000);
                 }
             });
         }
 
         // Mobile Search functionality
-        $('#mobileSearchInput').on('input', function() {
+        $('#mobileSearchInput').on('input', function () {
             const searchTerm = $(this).val().toLowerCase().trim();
 
             if (searchTerm === '') {
@@ -1387,7 +1450,7 @@
             // Bakery cards
             let bakeryCards = '';
             if (bakeryItems.length > 0) {
-                bakeryItems.forEach(function(item) {
+                bakeryItems.forEach(function (item) {
                     bakeryCards += renderMobileCard(item, 'bakery');
                 });
             } else {
@@ -1398,7 +1461,7 @@
             // Drinks cards
             let drinksCards = '';
             if (drinksItems.length > 0) {
-                drinksItems.forEach(function(item) {
+                drinksItems.forEach(function (item) {
                     drinksCards += renderMobileCard(item, 'drinks');
                 });
             } else {
@@ -1409,7 +1472,7 @@
             // Grocery cards
             let groceryCards = '';
             if (groceryItems.length > 0) {
-                groceryItems.forEach(function(item) {
+                groceryItems.forEach(function (item) {
                     groceryCards += renderMobileCard(item, 'grocery');
                 });
             } else {
@@ -1424,15 +1487,17 @@
                 item.selling_price;
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
             const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+            const isEnabled = parseInt(item.is_enabled) === 1;
+            const notes = item.notes || '';
 
             let borderColor = 'border-gray-200';
             if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
             else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '">';
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') + '" data-id="' + item.item_id + '">';
             card += '  <div class="flex items-center justify-between mb-2">';
-            card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + '</span>';
+            card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
 
@@ -1443,9 +1508,18 @@
             card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
             card += '  </div>';
 
+            if (notes) {
+                card += '  <div class="text-xs text-gray-500 mb-2 px-2 py-1.5 bg-gray-50 rounded">';
+                card += '    <i class="fas fa-sticky-note mr-1 text-amber-400"></i>' + notes;
+                card += '  </div>';
+            }
+
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
             card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
             card += '      <i class="fas fa-edit mr-1"></i>Edit';
+            card += '    </button>';
+            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
+            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
             card += '    </button>';
             card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
             card += '      <i class="fas fa-trash mr-1"></i>Delete';
@@ -1516,7 +1590,7 @@
         }
 
         // Mobile pagination click handler
-        $(document).on('click', '#mobilePagination button:not([disabled])', function() {
+        $(document).on('click', '#mobilePagination button:not([disabled])', function () {
             const page = $(this).data('page');
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
@@ -1537,7 +1611,7 @@
         });
 
         // Submit Add Product Form
-        $('#addProductForm').on('submit', function(e) {
+        $('#addProductForm').on('submit', function (e) {
             e.preventDefault();
 
             const productId = $('#selectProduct').val();
@@ -1558,7 +1632,7 @@
                     product_id: productId,
                     beginning_stock: beginningStock
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         $('#addProductModal').addClass('hidden');
@@ -1583,7 +1657,7 @@
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
@@ -1597,7 +1671,7 @@
         // Tab Switching Function
         function switchTab(tabName) {
             // Remove active state from all tab buttons
-            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            document.querySelectorAll('.tab-btn').forEach(function (btn) {
                 btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
                 btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
             });
@@ -1610,7 +1684,7 @@
             }
 
             // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(function(content) {
+            document.querySelectorAll('.tab-content').forEach(function (content) {
                 content.classList.add('hidden');
             });
 
@@ -1638,7 +1712,7 @@
                 html += '<div class="mb-4">';
                 html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-                data.insufficient_products.forEach(function(name) {
+                data.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -1650,7 +1724,7 @@
                 html += '<div class="mb-4">';
                 html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-                data.insufficient_materials.forEach(function(detail) {
+                data.insufficient_materials.forEach(function (detail) {
                     html += '<li>' + detail + '</li>';
                 });
                 html += '</ul>';
@@ -1680,7 +1754,7 @@
                 html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
                 html += '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
-                deduction.no_recipe_products.forEach(function(name) {
+                deduction.no_recipe_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -1693,7 +1767,7 @@
                 html += '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
                 html += '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
-                deduction.insufficient_products.forEach(function(name) {
+                deduction.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -1715,7 +1789,8 @@
     </script>
 
     <!-- Deduction Warning Modal -->
-    <div id="deductionWarningModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
+    <div id="deductionWarningModal"
+        class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-800">

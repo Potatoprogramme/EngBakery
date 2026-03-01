@@ -95,6 +95,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('PreviewDeduction', 'InventoryController::previewDeduction');
     $routes->get('PreviewBatchDeduction', 'InventoryController::previewBatchDeduction');
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
+    $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
