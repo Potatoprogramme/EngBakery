@@ -203,6 +203,7 @@
                     <input type="number" name="remaining_qty" id="remaining_qty"
                         class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
                         placeholder="0" min="0" step="0.00001" value="0">
+                    <span id="remaining_error" class="text-red-500 text-xs mt-1 hidden">Remaining cannot exceed Stock On Hand.</span>
                 </div>
                 <!-- Dynamic Cost Breakdown (edit mode only) -->
                 <div id="cost_breakdown_wrapper" class="hidden mb-3">

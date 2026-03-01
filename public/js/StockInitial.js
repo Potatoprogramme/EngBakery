@@ -124,7 +124,38 @@ $(document).ready(function () {
     //  DYNAMIC RECALCULATION
     //  Fires on every keystroke in initial_qty or remaining_qty
     // ──────────────────────────────
-    $('#initial_qty, #remaining_qty').on('input change', function () {
+    $('#initial_qty').on('input change', function () {
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        $('#remaining_qty').attr('max', initial);
+        // If remaining now exceeds new initial, clamp it
+        let remaining = parseFloat($('#remaining_qty').val()) || 0;
+        if (remaining > initial) {
+            $('#remaining_qty').val(initial);
+        }
+        recalcModal();
+    });
+
+    // Validate remaining on every keystroke — show inline error & disable Update if exceeded
+    $('#remaining_qty').on('input change', function () {
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        let remaining = parseFloat($(this).val()) || 0;
+
+        if (remaining < 0) {
+            $(this).val(0);
+            remaining = 0;
+        }
+
+        if (remaining > initial) {
+            // Show inline error, red border, disable Update
+            $(this).addClass('border-red-500 bg-red-50').removeClass('border-blue-300 bg-blue-50');
+            $('#remaining_error').removeClass('hidden');
+            $('#btnSaveEntry').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        } else {
+            // Clear error, restore styling, enable Update
+            $(this).removeClass('border-red-500 bg-red-50').addClass('border-blue-300 bg-blue-50');
+            $('#remaining_error').addClass('hidden');
+            $('#btnSaveEntry').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+        }
         recalcModal();
     });
 
@@ -167,13 +198,6 @@ $(document).ready(function () {
 
         const initial = parseFloat($('#initial_qty').val()) || 0;
         const remaining = parseFloat($('#remaining_qty').val()) || 0;
-
-        // Validate: remaining cannot exceed initial
-        if (isEdit && remaining > initial) {
-            showToast('error', 'Remaining quantity cannot exceed Stock On Hand.');
-            $('#remaining_qty').focus();
-            return;
-        }
 
         const payload = {
             material_id: $('#material_id').val(),
