@@ -490,17 +490,9 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Restore raw materials for remaining inventory items before deleting
-        $stockItems = $this->dailyStockItemsModel->where('daily_stock_id', $dailyStock['daily_stock_id'])->findAll();
-        if (!empty($stockItems)) {
-            foreach ($stockItems as $stockItem) {
-                $beginningStock = intval($stockItem['beginning_stock'] ?? 0);
-                $productId = intval($stockItem['product_id']);
-                if ($beginningStock > 0 && $productId > 0) {
-                    $this->rawMaterialStockModel->restoreForProduction($productId, $beginningStock);
-                }
-            }
-        }
+        // NOTE: Raw materials are NOT restored here because deductions happen
+        // at distribution time. Deleting inventory only removes the inventory
+        // record — distribution deductions remain intact.
 
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
             return $this->response->setStatusCode(200)->setJSON([

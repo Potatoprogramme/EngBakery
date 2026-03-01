@@ -187,20 +187,22 @@
                             placeholder="0" min="0" step="0.00001" required>
                     </div>
                     <div id="qty_used_wrapper" class="hidden">
-                        <label for="qty_used" class="block text-sm font-medium text-orange-600 mb-1">
-                            Used <span class="text-red-500">*</span>
+                        <label class="block text-sm font-medium text-orange-600 mb-1">
+                            Used (auto-calculated)
                         </label>
-                        <input type="number" name="qty_used" id="qty_used"
-                            class="w-full px-3 py-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
-                            placeholder="0" min="0" step="0.00001" value="0">
+                        <input type="text" id="qty_used_display" readonly
+                            class="w-full px-3 py-2 border border-orange-200 rounded-md bg-orange-50 text-orange-700 font-semibold cursor-not-allowed"
+                            value="0">
                     </div>
                 </div>
-                <!-- Remaining (auto-calculated, read-only) -->
+                <!-- Remaining (editable input) -->
                 <div id="remaining_qty_wrapper" class="hidden mb-3">
-                    <label class="block text-sm font-medium text-blue-600 mb-1">Remaining (auto-calculated)</label>
-                    <input type="text" id="remaining_qty" readonly
-                        class="w-full px-3 py-2 border border-blue-200 rounded-md bg-blue-50 text-blue-700 font-semibold cursor-not-allowed"
-                        value="0">
+                    <label for="remaining_qty" class="block text-sm font-medium text-blue-600 mb-1">
+                        Remaining <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="remaining_qty" id="remaining_qty"
+                        class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
+                        placeholder="0" min="0" step="0.00001" value="0">
                 </div>
                 <!-- Dynamic Cost Breakdown (edit mode only) -->
                 <div id="cost_breakdown_wrapper" class="hidden mb-3">
