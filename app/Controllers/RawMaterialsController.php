@@ -291,49 +291,13 @@ class RawMaterialsController extends BaseController
             }
             $unit = $material['unit'];
 
-            // Update material_quantity in raw_materials
+            // Update material_quantity in raw_materials (costing only — stock is independent)
             $db->query(
                 "UPDATE raw_materials SET material_quantity = ? WHERE material_id = ?",
                 [$newQty, $materialId]
             );
 
-            // Sync initial_qty in raw_material_stock
-            $stockExists = $db->query(
-                "SELECT stock_id FROM raw_material_stock WHERE material_id = ?",
-                [$materialId]
-            )->getRowArray();
-
-            if ($stockExists) {
-                $db->query(
-                    "UPDATE raw_material_stock SET initial_qty = ?, unit = ? WHERE material_id = ?",
-                    [$newQty, $unit, $materialId]
-                );
-            } else {
-                $db->query(
-                    "INSERT INTO raw_material_stock (material_id, initial_qty, qty_used, unit) VALUES (?, ?, 0, ?)",
-                    [$materialId, $newQty, $unit]
-                );
-            }
-
-            // Recalculate cost_per_unit
-            $cost = $db->query(
-                "SELECT cost_per_unit FROM raw_material_cost WHERE material_id = ?",
-                [$materialId]
-            )->getRowArray();
-
-            // Get total_cost = initial_qty * cost_per_unit (old), then recalculate
-            $oldCostPerUnit = floatval($cost['cost_per_unit'] ?? 0);
-            // We need original total_cost: initial_qty_old * old_cost_per_unit
-            // Actually, let's get original initial_qty to calculate the total_cost
-            $oldStock = $db->query(
-                "SELECT initial_qty FROM raw_material_stock WHERE material_id = ?",
-                [$materialId]
-            )->getRowArray();
-            // total_cost stays the same, just recalculate cost_per_unit
-            // total_cost = old_initial_qty * old_cost_per_unit is not always correct.
-            // Better: keep cost_per_unit if qty unchanged, or recalculate if total_cost known.
-            // Since we only change quantity, cost_per_unit should stay the same.
-            // The user just wants to update the quantity directly.
+            // cost_per_unit stays the same — user only changed costing quantity
 
             $db->transComplete();
 

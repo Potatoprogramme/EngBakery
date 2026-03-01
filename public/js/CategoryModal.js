@@ -65,11 +65,13 @@ const CategoryModal = (function() {
 
     function open() {
         $('#manageCategoriesModal').removeClass('hidden');
+        document.body.classList.add('overflow-hidden');
         loadCategoriesList();
     }
 
     function close() {
         $('#manageCategoriesModal').addClass('hidden');
+        document.body.classList.remove('overflow-hidden');
         $('#categoryForm')[0].reset();
         $('#edit_category_id').val('');
         $('#category_label').val('');

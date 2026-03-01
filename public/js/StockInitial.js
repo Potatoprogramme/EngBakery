@@ -122,28 +122,59 @@ $(document).ready(function () {
 
     // ──────────────────────────────
     //  DYNAMIC RECALCULATION
-    //  Fires on every keystroke in initial_qty or qty_used
+    //  Fires on every keystroke in initial_qty or remaining_qty
     // ──────────────────────────────
-    $('#initial_qty, #qty_used').on('input change', function () {
+    $('#initial_qty').on('input change', function () {
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        $('#remaining_qty').attr('max', initial);
+        // If remaining now exceeds new initial, clamp it
+        let remaining = parseFloat($('#remaining_qty').val()) || 0;
+        if (remaining > initial) {
+            $('#remaining_qty').val(initial);
+        }
+        recalcModal();
+    });
+
+    // Validate remaining on every keystroke — show inline error & disable Update if exceeded
+    $('#remaining_qty').on('input change', function () {
+        const initial = parseFloat($('#initial_qty').val()) || 0;
+        let remaining = parseFloat($(this).val()) || 0;
+
+        if (remaining < 0) {
+            $(this).val(0);
+            remaining = 0;
+        }
+
+        if (remaining > initial) {
+            // Show inline error, red border, disable Update
+            $(this).addClass('border-red-500 bg-red-50').removeClass('border-blue-300 bg-blue-50');
+            $('#remaining_error').removeClass('hidden');
+            $('#btnSaveEntry').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        } else {
+            // Clear error, restore styling, enable Update
+            $(this).removeClass('border-red-500 bg-red-50').addClass('border-blue-300 bg-blue-50');
+            $('#remaining_error').addClass('hidden');
+            $('#btnSaveEntry').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+        }
         recalcModal();
     });
 
     function recalcModal() {
         const initial = parseFloat($('#initial_qty').val()) || 0;
-        const used = parseFloat($('#qty_used').val()) || 0;
+        const remaining = parseFloat($('#remaining_qty').val()) || 0;
         const costPerUnit = parseFloat($('#edit_cost_per_unit').val()) || 0;
 
-        // Clamp used to not exceed initial
-        const clampedUsed = Math.min(used, initial);
-        const remaining = Math.max(0, initial - clampedUsed);
+        // Clamp remaining to not exceed initial
+        const clampedRemaining = Math.min(Math.max(0, remaining), initial);
+        const used = Math.max(0, initial - clampedRemaining);
 
-        // Update remaining field
-        $('#remaining_qty').val(formatNumber(remaining));
+        // Update used display field
+        $('#qty_used_display').val(formatNumber(used));
 
         // Update cost displays
         const initialCost = initial * costPerUnit;
-        const usedCost = clampedUsed * costPerUnit;
-        const remainingCost = remaining * costPerUnit;
+        const usedCost = used * costPerUnit;
+        const remainingCost = clampedRemaining * costPerUnit;
 
         $('#display_initial_cost').text('₱' + initialCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         $('#display_used_cost').text('₱' + usedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -166,14 +197,7 @@ $(document).ready(function () {
         const isEdit = entryId !== '';
 
         const initial = parseFloat($('#initial_qty').val()) || 0;
-        const used = parseFloat($('#qty_used').val()) || 0;
-
-        // Validate: used cannot exceed initial
-        if (isEdit && used > initial) {
-            showToast('error', 'Used quantity cannot exceed Stock On Hand.');
-            $('#qty_used').focus();
-            return;
-        }
+        const remaining = parseFloat($('#remaining_qty').val()) || 0;
 
         const payload = {
             material_id: $('#material_id').val(),
@@ -183,7 +207,7 @@ $(document).ready(function () {
 
         if (isEdit) {
             payload.stock_id = entryId;
-            payload.qty_used = Math.min(used, initial); // Send used directly
+            payload.remaining = Math.min(Math.max(0, remaining), initial); // Send remaining, server computes used
         } else {
             payload.qty_used = 0;
         }
@@ -247,9 +271,11 @@ $(document).ready(function () {
                         $('#initial_qty').val(d.initial_qty);
                         $('#unit').val(d.unit);
 
-                        // Set qty_used directly
+                        // Set remaining directly (remaining = initial - used)
                         const qtyUsed = parseFloat(d.qty_used) || 0;
-                        $('#qty_used').val(qtyUsed);
+                        const initialQty = parseFloat(d.initial_qty) || 0;
+                        const remaining = Math.max(0, initialQty - qtyUsed);
+                        $('#remaining_qty').val(remaining);
 
                         // Show edit-only fields
                         $('#qty_used_wrapper').removeClass('hidden');
@@ -634,7 +660,7 @@ $(document).ready(function () {
         $('#qty_used_wrapper').addClass('hidden');
         $('#remaining_qty_wrapper').addClass('hidden');
         $('#cost_breakdown_wrapper').addClass('hidden');
-        $('#qty_used').val(0);
+        $('#qty_used_display').val(0);
         $('#remaining_qty').val(0);
         $('#display_initial_cost').text('₱0.00');
         $('#display_used_cost').text('₱0.00');

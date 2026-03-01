@@ -16,6 +16,7 @@ $routes->post('/registration/submit', 'AuthenticationController::registerUser');
 $routes->get('/login', 'AuthenticationController::loginPage'); // lowercased due to CI4 login route sensitivity
 $routes->post('/Login/Manual', 'AuthenticationController::manualLogin');
 $routes->get('/Logout', 'AuthenticationController::logout');
+$routes->get('/Auth/CheckSession', 'AuthenticationController::checkSession');
 $routes->get('/Auth/Google', 'AuthenticationController::googleLogin');
 $routes->get('/Auth/Google/Callback', 'AuthenticationController::googleCallback');
 
@@ -80,6 +81,9 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
+    $routes->post('LoadFromDistribution', 'InventoryController::loadFromDistribution');
+    $routes->post('UnloadDistribution', 'InventoryController::unloadDistribution');
+    $routes->get('CheckDistributionLoadedStatus', 'InventoryController::checkDistributionLoadedStatus');
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
     $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');
