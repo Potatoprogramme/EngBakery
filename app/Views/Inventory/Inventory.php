@@ -15,8 +15,12 @@
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
                         <button id="btnLoadFromDistribution" type="button"
-                            class="hidden items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-truck-loading mr-2"></i> Load from Distribution
+                        </button>
+                        <button id="btnUnloadDistribution" type="button"
+                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <i class="fas fa-truck-loading mr-2"></i> Unload Distribution
                         </button>
                         <button id="btnAddTodaysInventory" type="button"
                             class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -444,6 +448,9 @@
                     if (response.success) {
                         showToast('success', response.message, 3000);
                         fetchAllStockitems();
+                        // Swap to Unload button
+                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
                     } else {
                         showToast('error', response.message, 3000);
                     }
@@ -453,7 +460,51 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }
-                    showToast('danger', msg, 3000);
+                    showToast('error', msg, 3000);
+                }
+            });
+        }
+
+        // Unload Distribution button click
+        $('#btnUnloadDistribution').on('click', function() {
+            $('#unloadDistributionConfirmModal').removeClass('hidden');
+        });
+
+        // Close Unload Distribution Modal
+        $('#unloadDistributionModalClose, #unloadDistributionModalCancel').on('click', function() {
+            $('#unloadDistributionConfirmModal').addClass('hidden');
+        });
+
+        // Confirm Unload
+        $('#btnConfirmUnloadDistribution').on('click', function() {
+            $('#unloadDistributionConfirmModal').addClass('hidden');
+            unloadDistribution();
+        });
+
+        function unloadDistribution() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/UnloadDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        fetchAllStockitems();
+                        // Swap back to Load button
+                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                    } else {
+                        showToast('error', response.message, 3000);
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Failed to unload distribution data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('error', msg, 3000);
                 }
             });
         }
@@ -470,16 +521,42 @@
                 <i class="fas fa-xmark"></i>
             </button>
             <div class="text-center">
-                <i class="fas fa-truck-loading text-blue-600 text-5xl mb-4"></i>
+                <i class="fas fa-truck-loading text-primary text-5xl mb-4"></i>
                 <h3 class="text-xl font-semibold text-gray-900 mb-2">Load from Distribution?</h3>
                 <p class="text-gray-600 mb-6">This will update the beginning stock of inventory items using today's distribution data. Products not yet in inventory will be added.</p>
             </div>
             <div class="flex gap-3">
                 <button type="button" id="btnConfirmLoadDistribution"
-                    class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                    class="flex-1 text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/40 font-medium rounded-lg text-sm px-5 py-2.5">
                     Load Distribution
                 </button>
                 <button type="button" id="loadDistributionModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unload Distribution Confirmation Modal -->
+    <div id="unloadDistributionConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="unloadDistributionModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-undo-alt text-red-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Unload Distribution?</h3>
+                <p class="text-gray-600 mb-6">This will reverse the distribution load — subtracting distribution quantities from beginning stock. Items that were added from distribution only will be removed.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmUnloadDistribution"
+                    class="flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-400 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Unload Distribution
+                </button>
+                <button type="button" id="unloadDistributionModalCancel"
                     class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
                     Cancel
                 </button>
@@ -716,19 +793,44 @@
 
         function checkDistributionAndToggleButton() {
             const baseUrl = '<?= base_url() ?>';
+            // First check if distribution exists for today
             $.ajax({
                 url: baseUrl + 'Distribution/CheckDistributionToday',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
                     if (response.success && response.data && response.data.length > 0) {
-                        $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                        // Distribution exists — now check if already loaded
+                        $.ajax({
+                            url: baseUrl + 'Inventory/CheckDistributionLoadedStatus',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(statusRes) {
+                                if (statusRes.loaded) {
+                                    // Already loaded — show Unload button
+                                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                                    $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                                } else {
+                                    // Not loaded yet — show Load button
+                                    $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                                }
+                            },
+                            error: function() {
+                                // Default to showing Load button
+                                $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
+                                $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                            }
+                        });
                     } else {
+                        // No distribution — hide both buttons
                         $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
                 error: function() {
                     $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
@@ -790,6 +892,7 @@
                         $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -803,6 +906,7 @@
                     $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
@@ -1189,6 +1293,9 @@
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                         // Re-check distribution status for next inventory creation
                         checkIfDistributionExists();
+                        // Hide both distribution buttons
+                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
                         // Reload the table
                         fetchAllStockitems();
                     } else {
