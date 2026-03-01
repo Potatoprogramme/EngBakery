@@ -27,7 +27,7 @@ class InventoryController extends BaseController
             view('Template/SideNav', $data) .
             view('Inventory/AddInventory', $data) .
             view('Template/Footer', $data);
-     }
+    }
 
     public function fetchTodaysInventory()
     {
@@ -1067,6 +1067,29 @@ class InventoryController extends BaseController
             'data' => $enrichedData,
             'total_products' => count($enrichedData),
             'message' => count($enrichedData) . ' product(s) have remaining stock from previous day.'
+        ]);
+    }
+    public function ToggleStockItem($itemId)
+    {
+        $data = $this->request->getJSON(true);
+        $isEnabled = isset($data['is_enabled']) ? (int) $data['is_enabled'] : 0;
+
+        $updateData = [
+            'is_enabled' => $isEnabled,
+        ];
+
+        $result = $this->dailyStockItemsModel->update($itemId, $updateData);
+
+        if ($result) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $isEnabled ? 'Item enabled successfully.' : 'Item disabled successfully.',
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to update item status.',
         ]);
     }
 }
