@@ -75,7 +75,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Add a new stock entry — syncs both raw_material_stock and raw_materials
+     * Add a new stock entry 
      */
     public function addEntry(array $data): int|false
     {
@@ -97,7 +97,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Update an existing stock entry — stock is independent from costing
+     * Update an existing stock entry 
      */
     public function updateEntry(int $stockId, array $data): bool
     {
@@ -155,7 +155,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Set stock to a specific quantity (resets qty_used to 0) — syncs both tables
+     * Set stock to a specific quantity (resets qty_used to 0) — stock table only
      */
     public function updateStock(int $materialId, float $quantity): bool
     {
@@ -284,7 +284,7 @@ class RawMaterialStockModel extends Model
     }
 
     /**
-     * Add to stock (increases initial_qty) — syncs both tables
+     * Add to stock (increases initial_qty) — stock table only
      */
     public function addStock(int $materialId, float $amount, string $unit = ''): bool
     {

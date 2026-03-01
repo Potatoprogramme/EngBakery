@@ -141,7 +141,7 @@ class RawMaterialsModel extends Model
     }
 
     /**
-     * Restock a raw material — adds quantity and updates initial_qty baseline
+     * Restock a raw material — adds to costing quantity only (stock is independent)
      */
     public function restockMaterial(int $materialId, float $addQty): bool
     {
