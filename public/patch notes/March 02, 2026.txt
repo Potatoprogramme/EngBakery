@@ -1,0 +1,17 @@
+🛠️ Patch Notes: Summary of Completed Updates
+Status: Deployed / Completed
+Date: March 02, 2026
+Core Systems & Security
+•	Session Management: Fixed a bug where timed-out sessions failed to redirect to the login page.
+•	Security Update: Global session timeout has been officially extended to 60 minutes for better workflow continuity.
+Inventory & Material Management
+•	Stock Logic Refinement: Fixed a critical bug where stocks were incorrectly refunded; stock is now only returned if the specific distribution entry is deleted.
+•	Data Consistency: Unsynced quantities between Costing and Stocks to allow for independent tracking.
+•	Documentation: Added a "Notes" feature when adding to the Inventory for better record-keeping.
+•	Security Lock: The "Add Inventory" function is now disabled by default/muna to prevent accidental entries.
+Products & Costing
+•	Costing Accuracy: Fixed a bug in the Product workflow where pieces/trays failed to auto-adjust after adding or removing ingredients.
+•	Material Costing: Completed the backend/logic for Material Costing calculations.
+User Interface (UI) & UX
+•	Modal Optimization: Implemented a fix to prevent background scrolling whenever a modal is open.
+•	Manage Employees: Fixed the "Action Button" functionality within the employee management module.
