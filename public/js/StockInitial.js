@@ -11,6 +11,7 @@ $(document).ready(function () {
     let currentPage = 1;
     const itemsPerPage = 10;
     let deleteEntryId = null;
+    let currentViewEntryId = null;
 
     // ──────────────────────────────
     //  Load data on page ready
@@ -444,14 +445,7 @@ $(document).ready(function () {
                     <td class="px-6 py-3 text-blue-700 tabular-nums text-sm">₱${formatNumber(remainingCost)}</td>
                     <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
                     <td class="px-6 py-3">
-                        <div class="flex items-center gap-2">
-                            <button class="btn-edit-entry text-blue-500 hover:text-blue-700" data-id="${entry.stock_id}" title="Edit">
-                                <i class="fas fa-pen-to-square"></i>
-                            </button>
-                            <button class="btn-delete-entry text-red-500 hover:text-red-700" data-id="${entry.stock_id}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <button class="text-gray-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-gray-800 me-2 btn-view-entry" data-id="${entry.stock_id}" title="View"><i class="fas fa-eye"></i></button><button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit-entry" data-id="${entry.stock_id}" title="Edit"><i class="fas fa-edit"></i></button><button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete-entry" data-id="${entry.stock_id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `;
@@ -482,11 +476,12 @@ $(document).ready(function () {
         const pageItems = filteredEntries.slice(startIndex, startIndex + itemsPerPage);
 
         if (pageItems.length === 0) {
-            container.html('<div class="text-center text-gray-400 py-8">No stock entries found.</div>');
+            container.html('<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><p>No stock entries found</p></div>');
             renderMobilePagination();
             return;
         }
 
+        let cards = '';
         pageItems.forEach(function (entry) {
             const initial = parseFloat(entry.initial_qty) || 0;
             const used = parseFloat(entry.qty_used) || 0;
@@ -506,11 +501,7 @@ $(document).ready(function () {
             else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainTC = 'text-amber-600'; }
             else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; remainTC = 'text-yellow-700'; }
 
-            const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
-                year: 'numeric', month: 'short', day: 'numeric'
-            }) : '—';
-
-            const card = `
+            cards += `
                 <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
                     <div class="p-4">
                         <div class="flex justify-between items-start mb-3">
@@ -523,37 +514,37 @@ $(document).ready(function () {
                             <div class="bg-blue-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Initial</p>
                                 <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
-                                <p class="text-xs text-green-700 mt-1">Cost: ₱${formatNumber(initialCost)}</p>
+                                <p class="text-xs text-green-700 mt-1">₱${formatNumber(initialCost)}</p>
                             </div>
                             <div class="bg-orange-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Used</p>
                                 <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
-                                <p class="text-xs text-orange-700 mt-1">Cost: ₱${formatNumber(usedCost)}</p>
+                                <p class="text-xs text-orange-700 mt-1">₱${formatNumber(usedCost)}</p>
                             </div>
                             <div class="bg-emerald-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
                                 <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
                                 <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
-                                <p class="text-xs text-blue-700 mt-1">Cost: ₱${formatNumber(remainingCost)}</p>
+                                <p class="text-xs text-blue-700 mt-1">₱${formatNumber(remainingCost)}</p>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <span class="text-xs text-gray-400">${dateStr}</span>
-                            <div class="flex items-center gap-3">
-                                <button class="btn-edit-entry text-blue-500 hover:text-blue-700 text-sm" data-id="${entry.stock_id}" title="Edit">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </button>
-                                <button class="btn-delete-entry text-red-500 hover:text-red-700 text-sm" data-id="${entry.stock_id}" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                        <div class="flex gap-2 pt-2 border-t border-gray-100">
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 btn-view-entry" data-id="${entry.stock_id}">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit-entry" data-id="${entry.stock_id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 btn-delete-entry" data-id="${entry.stock_id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                 </div>
             `;
-            container.append(card);
         });
 
+        container.html(cards);
         renderMobilePagination();
     }
 
@@ -680,4 +671,162 @@ $(document).ready(function () {
         if (isNaN(n)) return '0';
         return n % 1 === 0 ? n.toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
     }
+
+    function formatCurrency(num) {
+        const n = parseFloat(num) || 0;
+        return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // ──────────────────────────────
+    //  View Entry Modal
+    // ──────────────────────────────
+    $(document).on('click', '.btn-view-entry', function () {
+        const id = $(this).data('id');
+        openViewEntryModal(id);
+    });
+
+    function openViewEntryModal(entryId) {
+        $.ajax({
+            url: baseUrl + 'MaterialStock/GetEntry/' + entryId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    const d = res.data;
+                    currentViewEntryId = d.stock_id;
+
+                    const initial = parseFloat(d.initial_qty) || 0;
+                    const used = parseFloat(d.qty_used) || 0;
+                    const remaining = Math.max(0, initial - used);
+                    const costPerUnit = parseFloat(d.cost_per_unit) || 0;
+                    const initialCost = initial * costPerUnit;
+                    const usedCost = used * costPerUnit;
+                    const remainingCost = remaining * costPerUnit;
+                    const pct = initial > 0 ? (remaining / initial * 100) : 0;
+
+                    // Material name & category
+                    $('#view_material_name').text(d.material_name || 'Unknown');
+                    $('#view_category').text(d.category_name || 'Uncategorized');
+
+                    // Stock quantities
+                    $('#view_initial_qty').text(formatNumber(initial) + ' ' + d.unit);
+                    $('#view_used_qty').text(formatNumber(used) + ' ' + d.unit);
+                    $('#view_remaining_qty').text(formatNumber(remaining) + ' ' + d.unit);
+
+                    // Health bar
+                    let barColor = 'bg-emerald-400', barTrack = 'bg-emerald-100';
+                    if (pct <= 10) { barColor = 'bg-red-500'; barTrack = 'bg-red-100'; }
+                    else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; }
+                    else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; }
+
+                    $('#view_health_bar_track').attr('class', 'h-2 rounded-full ' + barTrack + ' overflow-hidden');
+                    $('#view_health_bar').attr('class', 'h-full rounded-full ' + barColor + ' transition-all').css('width', Math.min(100, pct) + '%');
+                    $('#view_health_label').text(pct.toFixed(1) + '% remaining');
+
+                    // Cost breakdown
+                    $('#view_cost_per_unit').text(formatCurrency(costPerUnit.toFixed(3)));
+                    $('#view_initial_cost').text(formatCurrency(initialCost));
+                    $('#view_used_cost').text(formatCurrency(usedCost));
+                    $('#view_remaining_cost').text(formatCurrency(remainingCost));
+
+                    // Unit & Date
+                    $('#view_unit').text(d.unit);
+                    const dateStr = d.updated_at ? new Date(d.updated_at).toLocaleDateString('en-PH', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    }) : '—';
+                    $('#view_date').text(dateStr);
+
+                    // Show modal
+                    $('#viewStockModal').removeClass('hidden');
+                    document.body.classList.add('overflow-hidden');
+                } else {
+                    showToast('error', res.message);
+                }
+            },
+            error: function () {
+                showToast('error', 'Error loading entry details.');
+            }
+        });
+    }
+
+    function closeViewModal() {
+        $('#viewStockModal').addClass('hidden');
+        document.body.classList.remove('overflow-hidden');
+        currentViewEntryId = null;
+    }
+
+    // Close View Modal
+    $('#btnCloseViewModal, #btnCloseViewBottom').on('click', function () {
+        closeViewModal();
+    });
+
+    // Close View Modal on overlay click
+    $('#viewStockModal').on('click', function (e) {
+        if (e.target === this) {
+            closeViewModal();
+        }
+    });
+
+    // Edit from View Modal
+    $('#btnViewEditEntry').on('click', function () {
+        if (currentViewEntryId) {
+            closeViewModal();
+            // Trigger the existing edit handler
+            const btn = $('.btn-edit-entry[data-id="' + currentViewEntryId + '"]').first();
+            if (btn.length) {
+                btn.trigger('click');
+            } else {
+                // Fallback: load directly if button not in DOM (paginated)
+                const editId = currentViewEntryId;
+                $.ajax({
+                    url: baseUrl + 'MaterialStock/GetEntry/' + editId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.success) {
+                            const d = res.data;
+                            loadMaterialsList(function () {
+                                $('#edit_stock_id').val(d.stock_id);
+                                $('#material_id').val(d.material_id);
+                                const costPerUnit = parseFloat(d.cost_per_unit) || 0;
+                                $('#edit_cost_per_unit').val(costPerUnit);
+
+                                const mat = allMaterialsData.find(m => String(m.material_id) === String(d.material_id));
+                                if (mat) {
+                                    $('#material_search').val(mat.material_name);
+                                    $('#btnClearMaterial').removeClass('hidden');
+                                }
+
+                                $('#initial_qty').val(d.initial_qty);
+                                $('#unit').val(d.unit);
+
+                                const qtyUsed = parseFloat(d.qty_used) || 0;
+                                const initialQty = parseFloat(d.initial_qty) || 0;
+                                const remaining = Math.max(0, initialQty - qtyUsed);
+                                $('#remaining_qty').val(remaining);
+
+                                $('#qty_used_wrapper').removeClass('hidden');
+                                $('#remaining_qty_wrapper').removeClass('hidden');
+                                $('#cost_breakdown_wrapper').removeClass('hidden');
+                                recalcModal();
+
+                                $('#modalTitle').text('Edit Stock Entry');
+                                $('#btnSaveEntry').text('Update');
+                                $('#stockInitialModal').removeClass('hidden');
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    // Delete from View Modal
+    $('#btnViewDeleteEntry').on('click', function () {
+        if (currentViewEntryId) {
+            closeViewModal();
+            deleteEntryId = currentViewEntryId;
+            $('#deleteConfirmModal').removeClass('hidden');
+        }
+    });
 });

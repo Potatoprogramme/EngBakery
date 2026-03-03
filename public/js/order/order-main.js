@@ -70,6 +70,27 @@ function filterProducts(query) {
     drinksGrid.innerHTML = drinks.length > 0 ? drinks.map(p => createProductCard(p)).join('') : noProductsHtml('drinks');
     groceryGrid.innerHTML = grocery.length > 0 ? grocery.map(p => createProductCard(p)).join('') : noProductsHtml('grocery');
 
+    // Auto-switch tab: if current tab has no results, switch to the first tab that does
+    const activeBtn = document.querySelector('.tab-btn.bg-primary');
+    const currentTab = activeBtn ? activeBtn.getAttribute('data-tab') : 'breads';
+
+    const tabResults = {
+        breads: breads.length,
+        drinks: drinks.length,
+        grocery: grocery.length
+    };
+
+    // If current tab has no results, switch to the first tab that has results
+    if (tabResults[currentTab] === 0) {
+        const tabOrder = ['breads', 'drinks', 'grocery'];
+        for (const tab of tabOrder) {
+            if (tabResults[tab] > 0) {
+                switchTab(tab);
+                break;
+            }
+        }
+    }
+
     // Re-attach click handlers to new product cards
     attachProductCardHandlers();
 }

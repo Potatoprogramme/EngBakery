@@ -72,9 +72,16 @@
                         <div class="space-y-3">
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">OUTLET:</label>
-                                <input type="text" id="outletName"
-                                    class="flex-1 border-b border-gray-300 px-2 py-1 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
-                                    placeholder="Enter outlet name" value="Deca Sentrio" readonly>
+                                <div class="flex-1 relative">
+                                    <input type="text" id="outletName"
+                                        class="w-full border-b border-gray-300 px-2 py-1 pr-7 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
+                                        placeholder="Enter outlet name" value="Deca Sentrio">
+                                    <button type="button" id="btnClearOutlet"
+                                        class="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition"
+                                        title="Clear outlet name">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div id="shiftSection" class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
@@ -422,6 +429,8 @@
             console.log('Bound GCash Input Event');
             bindShiftChangeEvents();
             console.log('Bound Shift Change Events');
+            bindOutletChangeEvent();
+            console.log('Bound Outlet Change Event');
             checkExistingRemittance();
             console.log('Checked for Existing Remittance');
         });
@@ -707,6 +716,36 @@
             // Shift change events are now bound in initializeShiftDropdowns()
             // This function is kept for backward compatibility
             console.log('Shift change events already bound in initializeShiftDropdowns');
+        }
+
+        function bindOutletChangeEvent() {
+            // Toggle clear button visibility based on input content
+            function toggleClearButton() {
+                const hasValue = $('#outletName').val().trim().length > 0;
+                $('#btnClearOutlet').toggle(hasValue);
+            }
+
+            // Initial toggle on page load
+            toggleClearButton();
+
+            // Show/hide clear button on input
+            $('#outletName').on('input', function() {
+                toggleClearButton();
+            });
+
+            // Clear button click
+            $('#btnClearOutlet').on('click', function() {
+                $('#outletName').val('').focus();
+                toggleClearButton();
+                fetchOccupiedSlots();
+                checkExistingRemittance();
+            });
+
+            // Re-check existing remittance when outlet changes
+            $('#outletName').on('change blur', function() {
+                fetchOccupiedSlots();
+                checkExistingRemittance();
+            });
         }
 
         function checkExistingRemittance() {
