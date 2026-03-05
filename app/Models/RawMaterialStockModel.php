@@ -66,9 +66,12 @@ class RawMaterialStockModel extends Model
                 rms.unit,
                 rms.updated_at,
                 rm.material_name,
+                rm.category_id,
+                mc.category_name,
                 COALESCE(rmc.cost_per_unit, 0) as cost_per_unit
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rms.material_id = rm.material_id
+            LEFT JOIN material_category mc ON rm.category_id = mc.category_id
             LEFT JOIN raw_material_cost rmc ON rm.material_id = rmc.material_id
             WHERE rms.stock_id = ?
         ", [$id])->getRowArray();

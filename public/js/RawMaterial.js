@@ -631,7 +631,7 @@ $(document).ready(function () {
       );
     }
     if (datatableSearch) {
-      datatableSearch.classList.add("w-full", "sm:w-auto", "mt-2", "sm:mt-0");
+      datatableSearch.classList.add("w-full", "sm:w-auto", "sm:ml-auto", "mt-2", "sm:mt-0");
     }
     if (datatableInfo) {
       datatableInfo.classList.add(
