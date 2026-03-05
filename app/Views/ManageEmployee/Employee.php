@@ -285,12 +285,8 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-3 p-4 md:p-5 border-t border-gray-200">
-                    <button type="button"
-                        class="btn-role flex-1 inline-flex justify-center items-center text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/30 font-medium rounded-lg text-sm px-5 py-2.5">
-                        <i class="fas fa-edit mr-2"></i> Change Employee Role
-                    </button>
                     <button type="button" id="closeViewBtn"
-                        class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg border border-gray-200 text-sm px-5 py-2.5 hover:text-gray-900">
+                        class="flex-1 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg border border-gray-200 text-sm px-5 py-2.5 hover:text-gray-900">
                         Close
                     </button>
                 </div>
@@ -576,7 +572,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button type="button" class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" title="View"
+                                        <button type="button" class="text-gray-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-gray-800 btn-view" title="View"
                                             data-user-id="${user.user_id}"
                                             data-firstname="${user.firstname || ''}"
                                             data-middlename="${user.middlename || ''}"
@@ -589,6 +585,14 @@
                                             data-birthdate="${user.birthdate || ''}"
                                             data-joined="${user.created_at || ''}">
                                             <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit-role" title="Change Role"
+                                            data-user-id="${user.user_id}"
+                                            data-firstname="${user.firstname || ''}"
+                                            data-lastname="${user.lastname || ''}"
+                                            data-email="${user.email || ''}"
+                                            data-role="${user.employee_type || ''}">
+                                            <i class="fas fa-pen"></i>
                                         </button>
                                         ${canDelete ? `
                                         <button type="button" class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete"
@@ -627,7 +631,7 @@
                                     </div>
                                 </div>
                                 <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
-                                    <button type="button" class="btn-edit flex-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg py-2 hover:bg-blue-100 transition-colors"
+                                    <button type="button" class="btn-view flex-1 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg py-2 hover:bg-gray-100 transition-colors"
                                         data-user-id="${user.user_id}"
                                         data-firstname="${user.firstname || ''}"
                                         data-middlename="${user.middlename || ''}"
@@ -640,6 +644,14 @@
                                         data-birthdate="${user.birthdate || ''}"
                                         data-joined="${user.created_at || ''}">
                                         <i class="fas fa-eye mr-1"></i> View
+                                    </button>
+                                    <button type="button" class="btn-edit-role flex-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg py-2 hover:bg-blue-100 transition-colors"
+                                        data-user-id="${user.user_id}"
+                                        data-firstname="${user.firstname || ''}"
+                                        data-lastname="${user.lastname || ''}"
+                                        data-email="${user.email || ''}"
+                                        data-role="${user.employee_type || ''}">
+                                        <i class="fas fa-pen mr-1"></i> Edit
                                     </button>
                                     ${canDelete ? `
                                     <button type="button" class="btn-delete flex-1 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg py-2 hover:bg-red-100 transition-colors"
@@ -729,8 +741,8 @@
             }
 
             function attachEventHandlers() {
-                // View/Edit button handler
-                $('.btn-edit').off('click').on('click', function () {
+                // View button handler (read-only)
+                $('.btn-view').off('click').on('click', function () {
                     const btn = $(this);
                     const firstname = btn.data('firstname');
                     const middlename = btn.data('middlename');
@@ -748,12 +760,55 @@
                     $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
                     $('#viewJoined').text(formatDate(btn.data('joined')));
 
-                    // Store user_id and role for actions
-                    $('#viewEditModal').data('user-id', btn.data('user-id'));
-                    $('#viewEditModal').data('user-role', btn.data('role'));
-                    $('#viewEditModal').data('user-name', fullName);
-
                     $('#viewEditModal').removeClass('hidden').addClass('flex');
+                });
+
+                // Edit (Change Role) button handler
+                $('.btn-edit-role').off('click').on('click', function () {
+                    const btn = $(this);
+                    const userId = btn.data('user-id');
+                    const firstname = btn.data('firstname');
+                    const lastname = btn.data('lastname');
+                    const fullName = `${firstname} ${lastname}`.trim();
+                    const initials = getInitials(firstname, lastname);
+                    const userEmail = btn.data('email') || 'N/A';
+                    const userRole = btn.data('role');
+
+                    // Populate the change role modal
+                    $('#roleModalInitials').text(initials);
+                    $('#roleModalName').text(fullName);
+                    $('#roleModalEmail').text(userEmail);
+
+                    // Store user data in the modal
+                    $('#changeRoleModal').data('user-id', userId);
+                    $('#changeRoleModal').data('current-role', userRole);
+
+                    // Populate role dropdown based on current user's privilege level
+                    const currentEmployeeType = currentUser.employeeType.toLowerCase();
+                    let roleOptions = '<option value="">Select a role...</option>';
+
+                    if (currentEmployeeType === 'owner') {
+                        roleOptions += '<option value="owner">Owner</option>';
+                        roleOptions += '<option value="admin">Admin</option>';
+                        roleOptions += '<option value="staff">Staff</option>';
+                    } else if (currentEmployeeType === 'admin') {
+                        roleOptions += '<option value="admin">Admin</option>';
+                        roleOptions += '<option value="staff">Staff</option>';
+                    }
+
+                    $('#newRole').html(roleOptions);
+
+                    // Pre-select current role
+                    if (userRole) {
+                        $('#newRole').val(userRole.toLowerCase());
+                    }
+
+                    // Show change role modal
+                    $('#changeRoleModal').removeClass('hidden').addClass('flex');
+
+                    setTimeout(() => {
+                        $('#newRole').focus();
+                    }, 100);
                 });
 
                 // Delete button handler
@@ -824,53 +879,6 @@
             }
 
             // Change Role Modal handlers
-            $('.btn-role').on('click', function () {
-                const userId = $('#viewEditModal').data('user-id');
-                const userName = $('#viewEditModal').data('user-name');
-                const userRole = $('#viewEditModal').data('user-role');
-                const userEmail = $('#viewEmail').text();
-                const initials = $('#viewInitials').text();
-
-                console.log('Opening change role modal for:', userName, 'Current role:', userRole);
-
-                // Populate the change role modal
-                $('#roleModalInitials').text(initials);
-                $('#roleModalName').text(userName);
-                $('#roleModalEmail').text(userEmail);
-
-                // Store user data in the modal
-                $('#changeRoleModal').data('user-id', userId);
-                $('#changeRoleModal').data('current-role', userRole);
-
-                // Populate role dropdown based on current user's privilege level
-                const currentEmployeeType = currentUser.employeeType.toLowerCase();
-                let roleOptions = '<option value="">Select a role...</option>';
-
-                if (currentEmployeeType === 'owner') {
-                    // Owner can assign all roles
-                    roleOptions += '<option value="owner">Owner</option>';
-                    roleOptions += '<option value="admin">Admin</option>';
-                    roleOptions += '<option value="staff">Staff</option>';
-                } else if (currentEmployeeType === 'admin') {
-                    // Admin can only assign staff and admin roles
-                    roleOptions += '<option value="admin">Admin</option>';
-                    roleOptions += '<option value="staff">Staff</option>';
-                }
-
-                $('#newRole').html(roleOptions);
-
-                // Hide view modal
-                $('#viewEditModal').removeClass('flex').addClass('hidden');
-
-                // Show change role modal
-                $('#changeRoleModal').removeClass('hidden').addClass('flex');
-
-                // Set focus to dropdown after animation
-                setTimeout(() => {
-                    $('#newRole').focus();
-                }, 100);
-            });
-
             $('#closeRoleModal, #cancelRoleChange').on('click', function () {
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
                 $('#newRole').val('');
