@@ -293,12 +293,40 @@
 
             <form id="editInventoryForm">
                 <input type="hidden" id="editItemId" name="item_id">
+                <input type="hidden" id="editDistributionQty" value="0">
+                <input type="hidden" id="editCarryoverQty" value="0">
 
                 <div class="mb-4">
                     <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="1"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseBeginning"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
+                            &minus;
+                        </button>
+                        <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="1"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        <button type="button" id="btnIncreaseBeginning"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
+                            +
+                        </button>
+                    </div>
+
+                    <!-- Distribution Limit Info Bar -->
+                    <div id="editDistributionInfo" class="hidden mt-2 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-blue-700">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="editDistInfoText"></span>
+                        </div>
+                    </div>
+
+                    <!-- Over/Under Warning -->
+                    <div id="editStockWarning" class="hidden mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-amber-700">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="editStockWarningText"></span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -309,10 +337,10 @@
                 </div>
 
                 <div class="mb-6">
-                    <label for="editNotes" class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
+                    <label for="editNotes" id="editNotesLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
-                    <p class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
+                    <p id="editNotesHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
                 </div>
 
                 <div class="flex gap-3">
@@ -1075,11 +1103,38 @@
         let currentPage = 1;
         const itemsPerPage = 10;
 
+        // Carryover data map: { product_id: remaining_stock }
+        let carryoverData = {};
+
+        // Fetch carryover data once and store globally
+        function fetchCarryoverData() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/GetYesterdayRemaining',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    carryoverData = {};
+                    if (response.success && response.data && response.data.length > 0) {
+                        response.data.forEach(function (item) {
+                            carryoverData[item.product_id] = parseInt(item.remaining_stock) || 0;
+                        });
+                    }
+                },
+                error: function () {
+                    carryoverData = {};
+                }
+            });
+        }
+
         function loadInventory(items) {
             // Store items for mobile pagination
             allInventoryItems = items || [];
             filteredItems = [...allInventoryItems];
             currentPage = 1;
+
+            // Fetch carryover data for use in edit modal
+            fetchCarryoverData();
 
             // Separate items by category
             const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
@@ -1124,9 +1179,9 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -1163,9 +1218,9 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -1202,9 +1257,9 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -1241,6 +1296,15 @@
                 $('#editPullOutQuantity').val(item.pull_out_quantity || 0);
                 $('#editNotes').val(item.notes || '');
 
+                // Populate distribution and carryover info
+                const distQty = parseInt(item.distribution_qty) || 0;
+                const carryQty = parseInt(carryoverData[item.product_id]) || 0;
+                $('#editDistributionQty').val(distQty);
+                $('#editCarryoverQty').val(carryQty);
+
+                // Update the distribution display and notes requirement
+                updateBeginningStockDisplay();
+
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
             } else {
@@ -1248,10 +1312,103 @@
             }
         });
 
+        // +/- buttons for beginning stock
+        $('#btnDecreaseBeginning').on('click', function () {
+            const current = parseInt($('#editBeginningStock').val()) || 0;
+            $('#editBeginningStock').val(Math.max(0, current - 1));
+            updateBeginningStockDisplay();
+        });
+
+        $('#btnIncreaseBeginning').on('click', function () {
+            const current = parseInt($('#editBeginningStock').val()) || 0;
+            $('#editBeginningStock').val(current + 1);
+            updateBeginningStockDisplay();
+        });
+
+        // Also update on manual input change
+        $('#editBeginningStock').on('input change', function () {
+            updateBeginningStockDisplay();
+        });
+
+        /**
+         * Update the distribution limit display and notes requirement
+         * based on current beginning stock vs expected (distribution + carryover).
+         */
+        function updateBeginningStockDisplay() {
+            const distQty = parseInt($('#editDistributionQty').val()) || 0;
+            const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
+            const expected = distQty + carryQty;
+            const currentBeginning = parseInt($('#editBeginningStock').val()) || 0;
+
+            // Distribution limit info bar
+            if (expected > 0) {
+                let infoText = '';
+                if (distQty > 0 && carryQty > 0) {
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                } else if (distQty > 0) {
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                } else {
+                    infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                }
+                $('#editDistInfoText').html(infoText);
+                $('#editDistributionInfo').removeClass('hidden');
+            } else {
+                $('#editDistributionInfo').addClass('hidden');
+            }
+
+            // Over/Under warning and notes requirement
+            if (expected > 0 && currentBeginning !== expected) {
+                const delta = currentBeginning - expected;
+                let warningText = '';
+                if (delta > 0) {
+                    warningText = 'Exceeds expected by <strong>' + delta + '</strong> — note required';
+                } else {
+                    warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
+                }
+                $('#editStockWarningText').html(warningText);
+                $('#editStockWarning').removeClass('hidden');
+
+                // Make notes required
+                $('#editNotes').attr('required', true);
+                $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
+                $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
+                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass('text-red-500');
+                if (!$('#editNotes').val()) {
+                    $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
+            } else {
+                // No deviation or no expected baseline
+                $('#editStockWarning').addClass('hidden');
+                $('#editNotes').removeAttr('required');
+                $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                $('#editNotesLabel').text('Notes');
+                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            }
+        }
+
+        // Update notes border styling on input
+        $('#editNotes').on('input', function () {
+            if ($('#editNotes').is('[required]') && !$(this).val().trim()) {
+                $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            } else {
+                $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            }
+        });
+
         // Close Edit Modal
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
+            // Reset distribution display state
+            $('#editDistributionInfo').addClass('hidden');
+            $('#editStockWarning').addClass('hidden');
+            $('#editNotes').removeAttr('required');
+            $('#editNotesLabel').text('Notes');
+            $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+            $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         });
 
         $(document).on('click', '.btn-toggle-enabled', function () {
@@ -1291,6 +1448,16 @@
             // Validate inputs
             if (beginningStock < 0 || pullOutQuantity < 0) {
                 showToast('warning', 'Values cannot be negative', 2000);
+                return;
+            }
+
+            // Client-side: validate notes required when stock deviates from expected
+            const distQty = parseInt($('#editDistributionQty').val()) || 0;
+            const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
+            const expected = distQty + carryQty;
+            if (expected > 0 && parseInt(beginningStock) !== expected && !notes.trim()) {
+                showToast('warning', 'Notes are required when beginning stock differs from expected (' + expected + ')', 3000);
+                $('#editNotes').focus();
                 return;
             }
 
@@ -1515,15 +1682,17 @@
             }
 
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
-            card += '      <i class="fas fa-edit mr-1"></i>Edit';
-            card += '    </button>';
             card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
             card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
             card += '    </button>';
-            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
-            card += '      <i class="fas fa-trash mr-1"></i>Delete';
-            card += '    </button>';
+            if (isEnabled) {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
+                card += '      <i class="fas fa-edit mr-1"></i>Edit';
+                card += '    </button>';
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
+                card += '      <i class="fas fa-trash mr-1"></i>Delete';
+                card += '    </button>';
+            }
             card += '  </div>';
             card += '</div>';
 
