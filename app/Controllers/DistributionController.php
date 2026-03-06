@@ -102,17 +102,6 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
         }
 
-        // Check if inventory already exists for this date — block changes
-        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
-            log_message('warning', 'DISTRIBUTION ADD: Blocked - Inventory already exists for date: {date}', [
-                'date' => $data->distribution_date
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
-        }
-
         // Check if this product already exists for the given date
         $existing = $this->distributionModel->existsForDate($data->product_id, $data->distribution_date);
         if ($existing) {
@@ -243,17 +232,6 @@ class DistributionController extends BaseController
             'date' => $record['distribution_date']
         ]);
 
-        // Check if inventory already exists for this date — block deletion
-        if ($this->dailyStockModel->checkInventoryExists($record['distribution_date'])) {
-            log_message('warning', 'DISTRIBUTION DELETE: Blocked - Inventory exists for date: {date}', [
-                'date' => $record['distribution_date']
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
-        }
-
         try {
             // Restore raw materials before deleting the distribution
             $productId = intval($record['product_id']);
@@ -305,17 +283,6 @@ class DistributionController extends BaseController
         if (!isset($data->product_id, $data->product_qnty, $data->distribution_date)) {
             log_message('error', 'DISTRIBUTION UPDATE: Missing required fields for ID: {id}', ['id' => $id]);
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
-        }
-
-        // Check if inventory already exists for this date — block updates
-        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
-            log_message('warning', 'DISTRIBUTION UPDATE: Blocked - Inventory exists for date: {date}', [
-                'date' => $data->distribution_date
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
         }
 
         $newQtyMode = $data->qty_mode ?? 'batch';

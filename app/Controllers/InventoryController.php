@@ -320,6 +320,7 @@ class InventoryController extends BaseController
                 $this->dailyStockItemsModel->update($existingItem['item_id'], [
                     'beginning_stock' => $newBeginning,
                     'ending_stock' => $newBeginning - $pullOut,
+                    'distribution_qty' => $pieces, // track distribution pieces
                 ]);
                 $updated++;
                 log_message('info', 'LOAD FROM DISTRIBUTION: Updated Product {product} - added {pieces} pieces, new beginning: {new}', [
@@ -334,6 +335,7 @@ class InventoryController extends BaseController
                     'beginning_stock' => $pieces,
                     'pull_out_quantity' => 0,
                     'ending_stock' => $pieces,
+                    'distribution_qty' => $pieces, // track distribution pieces
                 ]);
                 $added++;
                 log_message('info', 'LOAD FROM DISTRIBUTION: Added Product {product} - {pieces} pieces', [
@@ -406,6 +408,7 @@ class InventoryController extends BaseController
                     $this->dailyStockItemsModel->update($existingItem['item_id'], [
                         'beginning_stock' => $newBeginning,
                         'ending_stock' => max(0, $newBeginning - $pullOut),
+                        'distribution_qty' => 0, // reset distribution tracking
                     ]);
                     $reverted++;
                 }
@@ -714,6 +717,21 @@ class InventoryController extends BaseController
         $newPullOut = intval($json->pull_out_quantity);
         $notes = isset($json->notes) ? trim($json->notes) : null;
 
+        // Validate notes requirement when beginning stock deviates from expected
+        $distributionQty = intval($item['distribution_qty'] ?? 0);
+        $dailyStock = $this->dailyStockModel->find($item['daily_stock_id']);
+        $carryover = $this->dailyStockItemsModel->getCarryoverStock($dailyStock['inventory_date']);
+        $carryoverQty = intval($carryover[intval($item['product_id'])] ?? 0);
+        $expectedBeginning = $distributionQty + $carryoverQty;
+
+        if ($expectedBeginning > 0 && $newBeginning != $expectedBeginning && empty($notes)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Notes are required when beginning stock differs from expected amount (Distribution: ' . $distributionQty . ' + Carryover: ' . $carryoverQty . ' = ' . $expectedBeginning . ').',
+                'notes_required' => true
+            ]);
+        }
+
         $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
         if ($quantitySold < 0)
             $quantitySold = 0;
@@ -854,16 +872,22 @@ class InventoryController extends BaseController
         }
 
         // Restore raw materials for the beginning stock before deleting
+        // Only restore the manually-added portion — distribution & carryover were deducted elsewhere
         $beginningStock = intval($item['beginning_stock'] ?? 0);
-        if ($beginningStock > 0 && isset($item['product_id'])) {
+        $distributionQty = intval($item['distribution_qty'] ?? 0);
+        $carryover = $this->dailyStockItemsModel->getCarryoverStock($inventoryDate);
+        $carryoverQty = intval($carryover[intval($item['product_id'])] ?? 0);
+        $manualQty = max(0, $beginningStock - $distributionQty - $carryoverQty);
+
+        if ($manualQty > 0 && isset($item['product_id'])) {
             $this->rawMaterialStockModel->restoreForProduction(
                 intval($item['product_id']),
-                $beginningStock
+                $manualQty
             );
         }
 
         if ($this->dailyStockItemsModel->delete($item_id)) {
-            if ($beginningStock > 0) {
+            if ($manualQty > 0) {
                 \App\Libraries\LowStockNotifier::checkAndNotify();
             }
 
