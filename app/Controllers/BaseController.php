@@ -26,6 +26,7 @@ use App\Models\RemittanceItemsModel;
 use App\Models\RemittanceDenominationsModel;
 use App\Models\DistributionModel;
 use App\Models\UtilityExpensesModel;
+use App\Models\NotificationModel;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -66,6 +67,7 @@ abstract class BaseController extends Controller
     protected $remittanceDenominationsModel;
     protected $distributionModel;
     protected $utilityExpensesModel;
+    protected $notificationModel;
 
     // Database connection
     protected $db;
@@ -102,6 +104,7 @@ abstract class BaseController extends Controller
         $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
         $this->distributionModel = new DistributionModel();
         $this->utilityExpensesModel = new UtilityExpensesModel();
+        $this->notificationModel = new NotificationModel();
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 

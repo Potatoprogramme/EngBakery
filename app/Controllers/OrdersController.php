@@ -313,6 +313,10 @@ class OrdersController extends BaseController
                 throw new \Exception('Failed to void order.');
             }
 
+            // Immediate notification: order voided
+            $totalAmount = floatval($order['total_payment_due'] ?? 0);
+            try { \App\Libraries\NotificationGenerator::notifyOrderVoided($orderId, $totalAmount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Order voided successfully.'

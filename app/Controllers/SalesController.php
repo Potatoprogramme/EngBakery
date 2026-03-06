@@ -126,6 +126,11 @@ class SalesController extends BaseController
 
         if ($deleted) {
             log_message('info', 'Remittance ID ' . $remittanceId . ' deleted by user ' . session()->get('id') . ' (' . $employeeType . ')');
+
+            // Immediate notification: remittance deleted
+            $deleterName = session()->get('name') ?? 'Unknown';
+            try { \App\Libraries\NotificationGenerator::notifyRemittanceDeleted((int)$remittanceId, $deleterName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Remittance deleted successfully'
@@ -424,6 +429,24 @@ class SalesController extends BaseController
 
         // Send daily remittance report email whenever a remittance is saved
         \App\Libraries\DailyRemittanceReport::sendReport();
+
+        // Generate in-app notification if remittance is short
+        if ($isShort) {
+            $cashierUser = $this->usersModel->find((int)$cashierId);
+            $cashierName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . ($cashierUser['middlename'] ?? '') . ' ' . $cashierUser['lastname']) : 'Unknown';
+            try { \App\Libraries\NotificationGenerator::notifyShortRemittance(
+                (int)$remittanceId,
+                -abs($variance),
+                $cashierName,
+                $dateOnly
+            ); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+        }
+
+        // Immediate notification: remittance filed
+        $cashierUser = $cashierUser ?? $this->usersModel->find((int)$cashierId);
+        $cashierDisplayName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . $cashierUser['lastname']) : 'Unknown';
+        $totalSales = floatval($remittanceDetails['total_sales'] ?? 0);
+        try { \App\Libraries\NotificationGenerator::notifyRemittanceFiled((int)$remittanceId, $cashierDisplayName, $totalSales, $dateOnly); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
     }

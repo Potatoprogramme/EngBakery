@@ -186,3 +186,13 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
     $routes->post('UpdateDistribution/(:num)', 'DistributionController::updateDistribution/$1');
 });
+
+// Notification System Routes
+$routes->group('Notifications', function (RouteCollection $routes) {
+    $routes->get('GetNotifications', 'NotificationController::getNotifications');
+    $routes->get('UnreadCount', 'NotificationController::getUnreadCount');
+    $routes->get('MarkAsRead', 'NotificationController::markAsRead');
+    $routes->get('MarkAllAsRead', 'NotificationController::markAllAsRead');
+    $routes->get('Generate', 'NotificationController::generate');
+    $routes->get('Cleanup', 'NotificationController::cleanup');
+});

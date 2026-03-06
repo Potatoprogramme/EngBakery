@@ -27,6 +27,8 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
             </div>
             <div class="flex items-center">
                 <div class="flex items-center gap-2 sm:gap-3 ms-3">
+                    <!-- Notification Bell -->
+                    <?= view('Template/NotificationBell') ?>
                     <!-- Profile Dropdown -->
                     <div>
                         <button type="button"

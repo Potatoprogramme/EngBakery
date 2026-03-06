@@ -54,6 +54,10 @@ class ApprovalController extends BaseController
 
             $this->usersModel->update($user_id, $updateData);
 
+            // Immediate notification: user approved
+            $approverName = $sessionData['name'] ?? 'Admin';
+            try { \App\Libraries\NotificationGenerator::notifyUserApproved((int)$user_id, $approverName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'message' => 'User approved successfully.'
@@ -115,6 +119,10 @@ class ApprovalController extends BaseController
         }
 
         if ($this->usersModel->checkUserExists($user_id)) {
+            // Immediate notification: user rejected (before deletion)
+            $rejecterName = $sessionData['name'] ?? 'Admin';
+            try { \App\Libraries\NotificationGenerator::notifyUserRejected((int)$user_id, $rejecterName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
             $this->usersModel->removeUser($user_id);
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,

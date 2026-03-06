@@ -102,6 +102,13 @@ class RawMaterialStockInitialController extends BaseController
                 // Check for low stock and notify owners
                 \App\Libraries\LowStockNotifier::checkAndNotify();
 
+                // Immediate notification: stock entry added
+                $material = $this->rawMaterialStockModel->find($entryId);
+                $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
+                $matName = $matInfo['material_name'] ?? 'Unknown';
+                $matUnit = $data['unit'] ?? '';
+                try { \App\Libraries\NotificationGenerator::notifyStockEntryAdded($matName, floatval($data['initial_qty']), $matUnit); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Stock entry added successfully.',
@@ -219,6 +226,11 @@ class RawMaterialStockInitialController extends BaseController
 
             // Check for low stock and notify owners
             \App\Libraries\LowStockNotifier::checkAndNotify();
+
+            // Immediate notification: stock entry deleted
+            $matInfo = isset($entry['material_id']) ? (new \App\Models\RawMaterialsModel())->find($entry['material_id']) : null;
+            $matName = $matInfo['material_name'] ?? 'Unknown';
+            try { \App\Libraries\NotificationGenerator::notifyStockEntryDeleted($matName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
 
             return $this->response->setJSON([
                 'success' => true,

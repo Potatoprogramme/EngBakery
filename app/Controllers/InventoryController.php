@@ -127,6 +127,10 @@ class InventoryController extends BaseController
                 if ($carryoverCount > 0) {
                     $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
                 }
+
+                // Immediate notification: inventory created
+                try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($productIds), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => $message,
@@ -194,6 +198,10 @@ class InventoryController extends BaseController
                     if ($carryoverCount > 0) {
                         $message .= " Carried over remaining stock for {$carryoverCount} product(s).";
                     }
+
+                    // Immediate notification: inventory created (fallback)
+                    try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($productIds), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
                     return $this->response->setStatusCode(201)->setJSON([
                         'success' => true,
                         'message' => $message,
@@ -235,6 +243,10 @@ class InventoryController extends BaseController
                 if ($carryoverCount > 0) {
                     $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
                 }
+
+                // Immediate notification: inventory created from distribution
+                try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($distributionItems), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
                     'message' => $message,
@@ -651,6 +663,9 @@ class InventoryController extends BaseController
         // record — distribution deductions remain intact.
 
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
+            // Immediate notification: inventory deleted
+            try { \App\Libraries\NotificationGenerator::notifyInventoryDeleted($today); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'message' => 'Today\'s inventory deleted successfully.'
