@@ -296,6 +296,11 @@ class OrdersController extends BaseController
                 throw new \Exception('Order not found.');
             }
 
+            // Check if already voided
+            if (!empty($order['voided_at'])) {
+                throw new \Exception('Order is already voided.');
+            }
+
             $orderItems = $this->orderItemModel->getOrderItems($orderId);
 
             // Get today's inventory (optional - only restore stock if same day)
@@ -323,9 +328,12 @@ class OrdersController extends BaseController
                 }
             }
 
-            // Delete order items and order
-            $this->orderItemModel->deleteByOrderId($orderId);
-            $this->orderModel->delete($orderId);
+            // Soft delete: mark as voided instead of deleting
+            $cashierName = session()->get('name') ?? session()->get('username') ?? 'Unknown';
+            $this->orderModel->update($orderId, [
+                'voided_at' => date('Y-m-d H:i:s'),
+                'voided_by' => $cashierName
+            ]);
 
             $this->db->transComplete();
 

@@ -145,12 +145,13 @@
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Type</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Payment</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Amount</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Status</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-500"><i
+                            <td colspan="8" class="px-6 py-8 text-center text-gray-500"><i
                                     class="fas fa-spinner fa-spin text-2xl"></i>
                                 <p class="mt-2">Loading orders...</p>
                             </td>
@@ -186,6 +187,18 @@
                         <div class="text-right" id="detailOrderType">-</div>
                         <div><span class="text-gray-600">Payment:</span></div>
                         <div class="text-right" id="detailPaymentMethod">-</div>
+                    </div>
+                </div>
+                <div id="voidedInfoSection" class="hidden border-t border-dashed border-gray-300 py-3">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-ban text-red-500"></i>
+                            <span class="text-sm font-semibold text-red-700">ORDER VOIDED</span>
+                        </div>
+                        <div class="text-xs text-red-600">
+                            <div>Voided by: <span id="detailVoidedBy" class="font-medium">-</span></div>
+                            <div>Voided on: <span id="detailVoidedAt" class="font-medium">-</span></div>
+                        </div>
                     </div>
                 </div>
                 <div class="border-t border-dashed border-gray-300 py-3">
@@ -452,7 +465,7 @@
             }
 
             if (!orders || orders.length === 0) {
-                $('#ordersTableBody').html('<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
+                $('#ordersTableBody').html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
                 return;
             }
 
@@ -467,21 +480,29 @@
                     : '<i class="fas fa-walking mr-1"></i>';
                 const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
                 const cashierName = order.cashier_name || 'Unknown';
+                const isVoided = order.voided_at !== null && order.voided_at !== undefined;
 
                 // Format: yyyy-mm-dd - order id
                 const year = order.date_created.substring(0, 4);
                 const month = order.date_created.substring(5, 7);
                 const day = order.date_created.substring(8, 10);
-                const formattedOrderNumber = `${year}-${month}-${day} - ${order.order_id}`;
+                const formattedOrderNumber = `${year}${month}${day}-${order.order_id}`;
+
+                const rowClass = isVoided ? 'border-b bg-red-50/50 hover:bg-red-50' : 'border-b hover:bg-gray-50';
+                const amountClass = isVoided ? 'line-through text-gray-400' : 'text-gray-900 font-semibold';
+                const statusBadge = isVoided
+                    ? '<span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 inline-flex items-center"><i class="fas fa-ban mr-1"></i>Voided</span>'
+                    : '<span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 inline-flex items-center"><i class="fas fa-check mr-1"></i>Completed</span>';
 
                 html += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 font-mono text-sm">${formattedOrderNumber}</td>
+                    <tr class="${rowClass}">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium ${isVoided ? 'text-gray-400' : 'text-gray-900'} font-mono text-sm">${formattedOrderNumber}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">${cashierName}</td>
                         <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass} inline-flex items-center">${typeIcon}${typeName}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 capitalize">${order.payment_method}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap ${amountClass}">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button type="button" class="btn-view-order text-primary py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-secondary hover:bg-gray-200" data-order-id="${order.order_id}">
                                 <i class="fas fa-eye"></i>
@@ -610,6 +631,18 @@
                         $('#detailTotalAmount').text('₱' + parseFloat(order.total_payment_due).toFixed(2));
                         $('#detailAmountReceived').text('₱' + parseFloat(order.amount_received).toFixed(2));
                         $('#detailChange').text('₱' + parseFloat(order.amount_change).toFixed(2));
+
+                        // Show/hide voided info
+                        if (order.voided_at) {
+                            const voidedDate = new Date(order.voided_at);
+                            $('#detailVoidedBy').text(order.voided_by || 'Unknown');
+                            $('#detailVoidedAt').text(voidedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' at ' + voidedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+                            $('#voidedInfoSection').removeClass('hidden');
+                            $('#btnVoidOrder').addClass('hidden');
+                        } else {
+                            $('#voidedInfoSection').addClass('hidden');
+                            $('#btnVoidOrder').removeClass('hidden');
+                        }
 
                         $('#orderDetailsModal').removeClass('hidden');
                     } else {
