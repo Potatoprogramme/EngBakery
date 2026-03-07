@@ -107,7 +107,7 @@ class RawMaterialStockInitialController extends BaseController
                 $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
                 $matName = $matInfo['material_name'] ?? 'Unknown';
                 $matUnit = $data['unit'] ?? '';
-                try { \App\Libraries\NotificationGenerator::notifyStockEntryAdded($matName, floatval($data['initial_qty']), $matUnit); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+                $this->notify('notifyStockEntryAdded', $matName, floatval($data['initial_qty']), $matUnit);
 
                 return $this->response->setJSON([
                     'success' => true,
@@ -230,7 +230,7 @@ class RawMaterialStockInitialController extends BaseController
             // Immediate notification: stock entry deleted
             $matInfo = isset($entry['material_id']) ? (new \App\Models\RawMaterialsModel())->find($entry['material_id']) : null;
             $matName = $matInfo['material_name'] ?? 'Unknown';
-            try { \App\Libraries\NotificationGenerator::notifyStockEntryDeleted($matName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyStockEntryDeleted', $matName);
 
             return $this->response->setJSON([
                 'success' => true,

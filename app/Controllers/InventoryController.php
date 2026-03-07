@@ -129,7 +129,7 @@ class InventoryController extends BaseController
                 }
 
                 // Immediate notification: inventory created
-                try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($productIds), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+                $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
 
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
@@ -200,7 +200,7 @@ class InventoryController extends BaseController
                     }
 
                     // Immediate notification: inventory created (fallback)
-                    try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($productIds), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+                    $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
 
                     return $this->response->setStatusCode(201)->setJSON([
                         'success' => true,
@@ -245,7 +245,7 @@ class InventoryController extends BaseController
                 }
 
                 // Immediate notification: inventory created from distribution
-                try { \App\Libraries\NotificationGenerator::notifyInventoryCreated($today, count($distributionItems), $carryoverCount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+                $this->notify('notifyInventoryCreated', $today, count($distributionItems), $carryoverCount);
 
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
@@ -667,7 +667,7 @@ class InventoryController extends BaseController
 
         if ($this->dailyStockModel->deleteInventoryByDate($today)) {
             // Immediate notification: inventory deleted
-            try { \App\Libraries\NotificationGenerator::notifyInventoryDeleted($today); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyInventoryDeleted', $today);
 
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,

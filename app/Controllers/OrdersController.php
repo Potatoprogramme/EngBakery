@@ -315,7 +315,7 @@ class OrdersController extends BaseController
 
             // Immediate notification: order voided
             $totalAmount = floatval($order['total_payment_due'] ?? 0);
-            try { \App\Libraries\NotificationGenerator::notifyOrderVoided($orderId, $totalAmount); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyOrderVoided', $orderId, $totalAmount);
 
             return $this->response->setJSON([
                 'success' => true,

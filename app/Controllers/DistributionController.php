@@ -198,11 +198,7 @@ class DistributionController extends BaseController
 
             // Generate in-app notification for new distribution
             $productName = $product ? $product['product_name'] : 'Unknown Product';
-            try { \App\Libraries\NotificationGenerator::notifyDistributionCreated(
-                $productName,
-                intval($data->product_qnty),
-                $data->distribution_date
-            ); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyDistributionCreated', $productName, intval($data->product_qnty), $data->distribution_date);
 
             log_message('info', 'DISTRIBUTION ADD: Completed successfully for Product {product}', [
                 'product' => $data->product_id
@@ -255,7 +251,7 @@ class DistributionController extends BaseController
             // Immediate notification: distribution deleted
             $product = $this->productModel->find($record['product_id']);
             $productName = $product['product_name'] ?? 'Unknown Product';
-            try { \App\Libraries\NotificationGenerator::notifyDistributionDeleted($productName, intval($record['product_qnty']), $record['distribution_date']); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyDistributionDeleted', $productName, intval($record['product_qnty']), $record['distribution_date']);
 
             return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
         } catch (\Exception $e) {
@@ -364,7 +360,7 @@ class DistributionController extends BaseController
             $productName = $product['product_name'] ?? 'Unknown Product';
             $oldQty = intval($existingRecord['product_qnty']);
             $newQty = intval($data->product_qnty);
-            try { \App\Libraries\NotificationGenerator::notifyDistributionUpdated($productName, $oldQty, $newQty, $data->distribution_date); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyDistributionUpdated', $productName, $oldQty, $newQty, $data->distribution_date);
 
             return $this->response->setJSON(['message' => 'Distribution record updated successfully']);
         } catch (\Exception $e) {

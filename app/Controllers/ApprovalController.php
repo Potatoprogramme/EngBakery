@@ -56,7 +56,7 @@ class ApprovalController extends BaseController
 
             // Immediate notification: user approved
             $approverName = $sessionData['name'] ?? 'Admin';
-            try { \App\Libraries\NotificationGenerator::notifyUserApproved((int)$user_id, $approverName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyUserApproved', (int)$user_id, $approverName);
 
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -111,7 +111,7 @@ class ApprovalController extends BaseController
         $privilege_level = $sessionData['employee_type'];
 
 
-        if ($privilege_level !== 'owner' || $privilege_level !== 'admin') {
+        if ($privilege_level !== 'owner' && $privilege_level !== 'admin') {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
                 'message' => 'You do not have permission to approve users.'
@@ -121,7 +121,7 @@ class ApprovalController extends BaseController
         if ($this->usersModel->checkUserExists($user_id)) {
             // Immediate notification: user rejected (before deletion)
             $rejecterName = $sessionData['name'] ?? 'Admin';
-            try { \App\Libraries\NotificationGenerator::notifyUserRejected((int)$user_id, $rejecterName); } catch (\Throwable $e) { log_message('error', '[Notification] ' . $e->getMessage()); }
+            $this->notify('notifyUserRejected', (int)$user_id, $rejecterName);
 
             $this->usersModel->removeUser($user_id);
             return $this->response->setStatusCode(200)->setJSON([

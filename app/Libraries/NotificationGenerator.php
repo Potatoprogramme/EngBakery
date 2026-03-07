@@ -91,8 +91,8 @@ class NotificationGenerator
             $title = "{$item['material_name']} — {$pct}% remaining";
             $message = "{$item['material_name']} ({$item['category_name']}) is at {$remaining} {$unit} ({$pct}% of initial stock). Please restock soon.";
 
-            // All stock alerts visible to all roles
-            $targetRoles = 'owner,admin,staff';
+            // Critical → all roles; Warning → owner+admin only
+            $targetRoles = ($status === 'critical') ? 'owner,admin,staff' : 'owner,admin';
 
             log_message('debug', "[NotifGen] checkLowStock() INSERTING notification for material_id={$materialId} level={$level} title={$title}");
 
@@ -167,7 +167,7 @@ class NotificationGenerator
             "There were {$orderCount} order(s) on {$formattedDate} but no remittance has been filed. Please follow up with the cashier on duty.",
             'missed_remittance',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Sales'),
             null,
             'date_' . $yesterday
@@ -246,7 +246,7 @@ class NotificationGenerator
             "No products have been distributed for today. If the bakery is operating, please add today's distribution to ensure inventory is loaded.",
             'distribution',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Distribution'),
             null,
             'no_dist_' . $today,
@@ -284,7 +284,7 @@ class NotificationGenerator
             "{$pendingCount} new account(s) are waiting for approval. Review them in the Manage Employee section.",
             'approval',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('ManageEmployee/Approval'),
             null,
             'pending_users',
@@ -320,7 +320,7 @@ class NotificationGenerator
             "Cashier {$cashierName} filed a remittance for {$formattedDate} with a shortage of ₱" . number_format($shortage, 2) . ". Please review.",
             'missed_remittance',
             'critical',
-            'owner,admin,staff',
+            'owner,admin',
             base_url("Sales/RemittanceHistory"),
             $remittanceId,
             'short_remittance'
@@ -372,7 +372,7 @@ class NotificationGenerator
             "Distribution of {$quantity} unit(s) of {$productName} for {$formattedDate} was deleted. Raw materials have been restored.",
             'distribution',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Distribution'),
             null,
             'dist_deleted'
@@ -413,7 +413,7 @@ class NotificationGenerator
             "Order #{$orderId} worth ₱" . number_format($totalAmount, 2) . " has been voided. Stock has been restored.",
             'order',
             'critical',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Orders'),
             $orderId,
             'order_voided'
@@ -434,7 +434,7 @@ class NotificationGenerator
             "Cashier {$cashierName} filed a remittance for {$formattedDate}. Total sales: ₱" . number_format($totalSales, 2) . ".",
             'remittance',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Sales'),
             $remittanceId,
             'remittance_filed'
@@ -454,7 +454,7 @@ class NotificationGenerator
             "Remittance #{$remittanceId} was deleted by {$deleterName}. Please verify this action.",
             'remittance',
             'critical',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Sales'),
             $remittanceId,
             'remittance_deleted'
@@ -498,7 +498,7 @@ class NotificationGenerator
             "Today's inventory has been deleted. Products are no longer tracked for {$formattedDate}.",
             'inventory',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('Inventory'),
             null,
             'inventory_deleted_' . $date
@@ -523,13 +523,13 @@ class NotificationGenerator
             base_url('Dashboard')
         );
 
-        // Broadcast to all roles
+        // Broadcast to owner/admin
         $notifModel->createBroadcast(
             "User Account Approved",
             "A new staff account (ID #{$userId}) has been approved by {$approverName}.",
             'user_approval',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('ManageEmployee/Approval'),
             $userId,
             'user_approved'
@@ -545,7 +545,7 @@ class NotificationGenerator
             "A user registration (ID #{$userId}) was rejected by {$rejecterName}.",
             'user_approval',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('ManageEmployee/Approval'),
             $userId,
             'user_rejected'
@@ -565,7 +565,7 @@ class NotificationGenerator
             "{$materialName} has been restocked with +{$quantity} {$unit}.",
             'raw_material',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('MaterialStock'),
             null,
             'material_restocked'
@@ -585,7 +585,7 @@ class NotificationGenerator
             "Raw material '{$materialName}' has been permanently deleted from the system.",
             'raw_material',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('RawMaterials'),
             null,
             'material_deleted'
@@ -605,7 +605,7 @@ class NotificationGenerator
             "New stock entry for {$materialName}: {$initialQty} {$unit}.",
             'raw_material',
             'info',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('MaterialStock'),
             null,
             'stock_entry_added'
@@ -621,7 +621,7 @@ class NotificationGenerator
             "A stock entry for '{$materialName}' has been deleted.",
             'raw_material',
             'warning',
-            'owner,admin,staff',
+            'owner,admin',
             base_url('MaterialStock'),
             null,
             'stock_entry_deleted'
