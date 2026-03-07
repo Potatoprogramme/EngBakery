@@ -671,6 +671,7 @@
                 printOrderDetails();
             });
         }
+
         function printOrderDetails() {
             const orderNumber = $('#detailOrderCount').text();
             const orderDate = $('#detailDate').text();
