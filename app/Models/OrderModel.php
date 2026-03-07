@@ -15,6 +15,7 @@ class OrderModel extends Model
         'amount_change',
         'payment_method',
         'order_type',
+        'distributed_note',
         'cashier_name',
         'date_created',
         'time_created'
@@ -40,6 +41,7 @@ class OrderModel extends Model
             'amount_change' => floatval($data['amount_change']),
             'payment_method' => $data['payment_method'],
             'order_type' => $data['order_type'],
+            'distributed_note' => $data['distributed_note'] ?? null,
             'cashier_name' => $data['cashier_name'] ?? 'Unknown',
             'date_created' => date('Y-m-d'),
             'time_created' => date('H:i:s')

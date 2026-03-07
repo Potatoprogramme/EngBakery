@@ -30,7 +30,8 @@
 
             <!-- Search Bar -->
             <div class="mb-4 flex justify-end">
-                <input type="text" id="orderSearchInput" placeholder="Search item..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                <input type="text" id="orderSearchInput" placeholder="Search item..."
+                    class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <!-- Floating Cart Button -->
             <div id="floatingCartContainer" class="fixed bottom-6 right-6 z-40">
@@ -255,7 +256,6 @@
     </div>
 
     <!-- Checkout Modal with Step Progress -->
-    <!-- Checkout Modal with Step Progress -->
     <div id="checkoutModal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 sm:p-0">
         <div class="relative w-full max-w-md mx-auto p-4 sm:p-4 border shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto"
@@ -346,7 +346,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Order Type <span
                                 class="text-red-500">*</span></label>
                         <input type="hidden" id="checkoutOrderType" value="walk-in">
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-3 gap-3">
                             <button type="button" id="btnOrderTypeWalkin" onclick="selectOrderType('walk-in')"
                                 class="order-type-btn p-4 rounded-lg border-2 border-primary bg-primary/10 text-center transition-all hover:shadow-md">
                                 <i class="fas fa-walking text-2xl text-primary mb-2"></i>
@@ -354,9 +354,26 @@
                             </button>
                             <button type="button" id="btnOrderTypeFoodpanda" onclick="selectOrderType('foodpanda')"
                                 class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-pink-300">
-                                <img src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>" class="w-8 h-8 mx-auto mb-2" alt="FoodPanda">
+                                <img src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>"
+                                    class="w-8 h-8 mx-auto mb-2" alt="FoodPanda">
                                 <p class="font-semibold text-gray-700">FoodPanda</p>
                             </button>
+                            <button type="button" id="btnOrderTypeDistributed" onclick="selectOrderType('distributed')"
+                                class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300">
+                                <i class="fas fa-truck text-2xl text-gray-500 mb-2"></i>
+                                <p class="font-semibold text-gray-700">Distributed</p>
+                            </button>
+                        </div>
+                        <!-- Distributed Order Note -->
+                        <div id="distributedNoteContainer" class="mb-3 hidden">
+                            <label for="distributedNote" class="block text-sm font-medium text-gray-700 mb-1">
+                                Outlet / Delivery Note <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="distributedNote" name="distributed_note" rows="2" maxlength="500"
+                                placeholder="e.g., Delivered to Branch 2 - Main Street"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"></textarea>
+                            <p class="text-xs text-gray-400 mt-1">Specify the bakery outlet or delivery details (max 500
+                                characters)</p>
                         </div>
                     </div>
                     <div class="mb-4">
@@ -652,7 +669,7 @@
         // Order Type Selection Function
         function selectOrderType(type) {
             document.getElementById('checkoutOrderType').value = type;
-            
+
             // Reset all buttons
             document.getElementById('btnOrderTypeWalkin').classList.remove('border-primary', 'bg-primary/10');
             document.getElementById('btnOrderTypeWalkin').classList.add('border-gray-300', 'bg-white');
@@ -660,12 +677,23 @@
             document.getElementById('btnOrderTypeWalkin').querySelector('i').classList.add('text-gray-500');
             document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.remove('text-primary');
             document.getElementById('btnOrderTypeWalkin').querySelector('p').classList.add('text-gray-700');
-            
+
             document.getElementById('btnOrderTypeFoodpanda').classList.remove('border-pink-500', 'bg-pink-50');
             document.getElementById('btnOrderTypeFoodpanda').classList.add('border-gray-300', 'bg-white');
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-pink-600');
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-gray-700');
-            
+
+            document.getElementById('btnOrderTypeDistributed').classList.remove('border-blue-500', 'bg-blue-50');
+            document.getElementById('btnOrderTypeDistributed').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.remove('text-blue-600');
+            document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.add('text-gray-500');
+            document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.remove('text-blue-600');
+            document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.add('text-gray-700');
+
+            // Hide distributed note by default
+            document.getElementById('distributedNoteContainer').classList.add('hidden');
+            document.getElementById('distributedNote').removeAttribute('required');
+
             // Highlight selected button
             if (type === 'walk-in') {
                 document.getElementById('btnOrderTypeWalkin').classList.remove('border-gray-300', 'bg-white');
@@ -679,6 +707,16 @@
                 document.getElementById('btnOrderTypeFoodpanda').classList.add('border-pink-500', 'bg-pink-50');
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-gray-700');
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-pink-600');
+            } else if (type === 'distributed') {
+                document.getElementById('btnOrderTypeDistributed').classList.remove('border-gray-300', 'bg-white');
+                document.getElementById('btnOrderTypeDistributed').classList.add('border-blue-500', 'bg-blue-50');
+                document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.remove('text-gray-500');
+                document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.add('text-blue-600');
+                document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.remove('text-gray-700');
+                document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.add('text-blue-600');
+                // Show distributed note field
+                document.getElementById('distributedNoteContainer').classList.remove('hidden');
+                document.getElementById('distributedNote').setAttribute('required', 'required');
             }
         }
     </script>
@@ -694,20 +732,24 @@
                     </div>
                     <h3 class="text-lg font-bold text-red-700">Insufficient Raw Materials</h3>
                 </div>
-                <button type="button" onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
+                <button type="button"
+                    onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="p-5">
-                <p class="text-sm text-gray-600 mb-4">The following items cannot be prepared because some ingredients are running low or out of stock:</p>
+                <p class="text-sm text-gray-600 mb-4">The following items cannot be prepared because some ingredients
+                    are running low or out of stock:</p>
                 <div id="insufficientStockList" class="space-y-2 max-h-60 overflow-y-auto"></div>
                 <div class="mt-4 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
-                    <i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before placing this order.
+                    <i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before placing this
+                    order.
                 </div>
             </div>
             <div class="p-4 bg-gray-50 rounded-b-lg text-right">
-                <button type="button" onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
+                <button type="button"
+                    onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
                     class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Understood</button>
             </div>
         </div>
@@ -719,8 +761,8 @@
     </script>
 
     <!-- Order Module Scripts -->
-    <script src="<?= base_url('js/order/cart-manager.js') ?>"></script>
-    <script src="<?= base_url('js/order/order-main.js') ?>"></script>
+    <script src="<?= asset_url('js/order/cart-manager.js') ?>"></script>
+    <script src="<?= asset_url('js/order/order-main.js') ?>"></script>
 </body>
 
 </html>
