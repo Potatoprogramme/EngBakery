@@ -38,23 +38,6 @@
                 </button>
             </div>
 
-            <!-- Inventory Lock Banner -->
-            <div id="inventoryLockBanner" class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg shadow-sm">
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fas fa-lock text-amber-600 text-lg"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-amber-800 text-sm">Distribution Locked</h4>
-                        <p class="text-sm text-amber-700 mt-1">
-                            Inventory has already been created for this date. You cannot add, edit, or delete distribution items.
-                            To make changes, delete the inventory for this date first from the
-                            <a href="<?= base_url('Inventory') ?>" class="underline font-medium hover:text-amber-900">Inventory page</a>.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Main Layout: List + Calendar -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 lg:mb-0">
                 
@@ -484,7 +467,6 @@
 
     <script>
         let productsData = []; // Store fetched products (global scope for template function)
-        let inventoryLocked = false; // Track if inventory exists for the selected date
         let calendarData = {}; // Store distribution data keyed by date
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
@@ -527,26 +509,20 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            inventoryLocked = response.inventory_locked || false;
                             const items = response.data || [];
                             renderDistributionList(items);
                             renderMobileCards(items);
                             updateSummaryCounts(items);
-                            updateInventoryLockState();
                         } else {
-                            inventoryLocked = false;
                             renderDistributionList([]);
                             renderMobileCards([]);
                             updateSummaryCounts([]);
-                            checkInventoryForDate(date);
                         }
                     },
                     error: function(xhr, status, error) {
-                        inventoryLocked = false;
                         renderDistributionList([]);
                         renderMobileCards([]);
                         updateSummaryCounts([]);
-                        checkInventoryForDate(date);
                     }
                 });
             }
@@ -583,39 +559,6 @@
                 });
             }
 
-            function checkInventoryForDate(date) {
-                $.ajax({
-                    url: baseUrl + 'Distribution/CheckInventoryByDate',
-                    method: 'GET',
-                    data: { date: date },
-                    dataType: 'json',
-                    success: function(response) {
-                        inventoryLocked = response.inventory_exists || false;
-                        updateInventoryLockState();
-                    }
-                });
-            }
-
-            function updateInventoryLockState() {
-                if (inventoryLocked) {
-                    $('#inventoryLockBanner').removeClass('hidden');
-                    $('#btnAddItems').addClass('hidden');
-                    $('#mobileAddBtnContainer').addClass('hidden');
-                    $('#btnAddItemsEmpty').addClass('hidden');
-                    $('#btnAddItemsMobileEmpty').addClass('hidden');
-                    $('.btn-edit-qty').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
-                    $('.btn-delete').addClass('opacity-30 cursor-not-allowed').prop('disabled', true);
-                } else {
-                    $('#inventoryLockBanner').addClass('hidden');
-                    $('#btnAddItems').removeClass('hidden').addClass('hidden sm:inline-flex');
-                    $('#mobileAddBtnContainer').removeClass('hidden');
-                    $('#btnAddItemsEmpty').removeClass('hidden');
-                    $('#btnAddItemsMobileEmpty').removeClass('hidden');
-                    $('.btn-edit-qty').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
-                    $('.btn-delete').removeClass('opacity-30 cursor-not-allowed').prop('disabled', false);
-                }
-            }
-
             function addDistriutionItem(productId, quantity, date) {
                 $.ajax({
                     url: baseUrl + 'Distribution/AddDistribution',
@@ -631,11 +574,7 @@
                         console.log('Item added:', response);
                     },
                     error: function(xhr, status, error) {
-                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
-                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                            inventoryLocked = true;
-                            updateInventoryLockState();
-                        } else if (xhr.status === 409) {
+                        if (xhr.status === 409) {
                             console.warn('Duplicate product for this date.');
                         } else {
                             console.error('Error adding item:', error);
@@ -655,14 +594,8 @@
                         loadMonthDistributions();
                     },
                     error: function(xhr, status, error) {
-                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
-                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                            inventoryLocked = true;
-                            updateInventoryLockState();
-                        } else {
-                            showToast('danger', 'Failed to delete item. Please try again.', 3000);
-                            console.error('Error deleting item:', error);
-                        }
+                        showToast('danger', 'Failed to delete item. Please try again.', 3000);
+                        console.error('Error deleting item:', error);
                     }
                 });
             }
@@ -690,11 +623,7 @@
                         loadMonthDistributions();
                     },
                     error: function(xhr, status, error) {
-                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.inventory_locked) {
-                            showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                            inventoryLocked = true;
-                            updateInventoryLockState();
-                        } else if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                             showToast('danger', xhr.responseJSON.error, 4000);
                             showInsufficientMaterialsAlert(xhr.responseJSON.insufficient_materials);
                         } else {
@@ -970,10 +899,6 @@
             let itemsToAddList = [];
 
             $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty, #btnAddItemsMobileEmpty').on('click', function() {
-                if (inventoryLocked) {
-                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                    return;
-                }
                 $('#scheduleDate').val($('#selectedDate').val());
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
@@ -1303,10 +1228,6 @@
             });
 
             $(document).on('click', '.btn-edit-qty', function() {
-                if (inventoryLocked) {
-                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                    return;
-                }
                 const row = $(this).closest('[data-id]');
                 const productName = row.find('span.font-medium, span.truncate').first().text();
                 const qty = row.find('.font-bold').first().text();
@@ -1323,10 +1244,6 @@
             });
 
             $(document).on('click', '.btn-edit-qty-mobile', function() {
-                if (inventoryLocked) {
-                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                    return;
-                }
                 const card = $(this).closest('[data-id]');
                 const productName = card.find('h4').text();
                 const qtyText = card.find('.text-xs.text-gray-500').first().text();
@@ -1344,10 +1261,6 @@
             });
 
             $(document).on('click', '.btn-delete', function() {
-                if (inventoryLocked) {
-                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                    return;
-                }
                 const row = $(this).closest('[data-id]');
                 const itemId = row.data('id');
 
@@ -1357,10 +1270,6 @@
             });
 
             $(document).on('click', '.btn-delete-mobile', function() {
-                if (inventoryLocked) {
-                    showToast('warning', 'Distribution is locked because inventory has already been created for this date. Delete the inventory first to make changes.', 4000);
-                    return;
-                }
                 const card = $(this).closest('[data-id]');
                 const itemId = card.data('id');
 

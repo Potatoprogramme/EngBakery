@@ -26,6 +26,8 @@ use App\Models\RemittanceItemsModel;
 use App\Models\RemittanceDenominationsModel;
 use App\Models\DistributionModel;
 use App\Models\UtilityExpensesModel;
+use App\Models\NotificationModel;
+use App\Libraries\NotificationGenerator;
 
 /**
  * BaseController provides a convenient place for loading components
@@ -66,6 +68,7 @@ abstract class BaseController extends Controller
     protected $remittanceDenominationsModel;
     protected $distributionModel;
     protected $utilityExpensesModel;
+    protected $notificationModel;
 
     // Database connection
     protected $db;
@@ -102,6 +105,7 @@ abstract class BaseController extends Controller
         $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
         $this->distributionModel = new DistributionModel();
         $this->utilityExpensesModel = new UtilityExpensesModel();
+        $this->notificationModel = new NotificationModel();
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 
@@ -200,5 +204,25 @@ abstract class BaseController extends Controller
             return redirect()->back()->with('error_message', $message);
         }
         return false;
+    }
+
+    /**
+     * Send an in-app notification safely.
+     * Wraps the call in try/catch so notification failures never crash the parent action.
+     *
+     * @param string $method  Static method name on NotificationGenerator (e.g. 'notifyOrderVoided')
+     * @param mixed  ...$args Arguments to pass to the method
+     */
+    protected function notify(string $method, mixed ...$args): void
+    {
+        try {
+            if (method_exists(NotificationGenerator::class, $method)) {
+                NotificationGenerator::$method(...$args);
+            } else {
+                log_message('error', '[Notification] Method not found: NotificationGenerator::' . $method);
+            }
+        } catch (\Throwable $e) {
+            log_message('error', '[Notification] ' . $method . '() failed: ' . $e->getMessage());
+        }
     }
 }

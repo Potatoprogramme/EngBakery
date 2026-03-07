@@ -102,17 +102,6 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
         }
 
-        // Check if inventory already exists for this date — block changes
-        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
-            log_message('warning', 'DISTRIBUTION ADD: Blocked - Inventory already exists for date: {date}', [
-                'date' => $data->distribution_date
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
-        }
-
         // Check if this product already exists for the given date
         $existing = $this->distributionModel->existsForDate($data->product_id, $data->distribution_date);
         if ($existing) {
@@ -207,6 +196,10 @@ class DistributionController extends BaseController
             // Check for low stock and notify owners
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
+            // Generate in-app notification for new distribution
+            $productName = $product ? $product['product_name'] : 'Unknown Product';
+            $this->notify('notifyDistributionCreated', $productName, intval($data->product_qnty), $data->distribution_date);
+
             log_message('info', 'DISTRIBUTION ADD: Completed successfully for Product {product}', [
                 'product' => $data->product_id
             ]);
@@ -235,17 +228,6 @@ class DistributionController extends BaseController
             'date' => $record['distribution_date']
         ]);
 
-        // Check if inventory already exists for this date — block deletion
-        if ($this->dailyStockModel->checkInventoryExists($record['distribution_date'])) {
-            log_message('warning', 'DISTRIBUTION DELETE: Blocked - Inventory exists for date: {date}', [
-                'date' => $record['distribution_date']
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
-        }
-
         try {
             // Restore raw materials before deleting the distribution
             $productId = intval($record['product_id']);
@@ -265,6 +247,11 @@ class DistributionController extends BaseController
 
             $this->distributionModel->delete($id);
             log_message('info', 'DISTRIBUTION DELETE: Record deleted successfully - ID: {id}', ['id' => $id]);
+
+            // Immediate notification: distribution deleted
+            $product = $this->productModel->find($record['product_id']);
+            $productName = $product['product_name'] ?? 'Unknown Product';
+            $this->notify('notifyDistributionDeleted', $productName, intval($record['product_qnty']), $record['distribution_date']);
 
             return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
         } catch (\Exception $e) {
@@ -292,17 +279,6 @@ class DistributionController extends BaseController
         if (!isset($data->product_id, $data->product_qnty, $data->distribution_date)) {
             log_message('error', 'DISTRIBUTION UPDATE: Missing required fields for ID: {id}', ['id' => $id]);
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
-        }
-
-        // Check if inventory already exists for this date — block updates
-        if ($this->dailyStockModel->checkInventoryExists($data->distribution_date)) {
-            log_message('warning', 'DISTRIBUTION UPDATE: Blocked - Inventory exists for date: {date}', [
-                'date' => $data->distribution_date
-            ]);
-            return $this->response->setStatusCode(403)->setJSON([
-                'error' => 'Inventory has already been created for this date. Delete the inventory first before modifying distribution.',
-                'inventory_locked' => true
-            ]);
         }
 
         $newQtyMode = $data->qty_mode ?? 'batch';
@@ -378,6 +354,13 @@ class DistributionController extends BaseController
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
             log_message('info', 'DISTRIBUTION UPDATE: Completed successfully for ID: {id}', ['id' => $id]);
+
+            // Immediate notification: distribution updated
+            $product = $this->productModel->find(intval($data->product_id));
+            $productName = $product['product_name'] ?? 'Unknown Product';
+            $oldQty = intval($existingRecord['product_qnty']);
+            $newQty = intval($data->product_qnty);
+            $this->notify('notifyDistributionUpdated', $productName, $oldQty, $newQty, $data->distribution_date);
 
             return $this->response->setJSON(['message' => 'Distribution record updated successfully']);
         } catch (\Exception $e) {

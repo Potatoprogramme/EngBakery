@@ -16,7 +16,8 @@ class DailyStockItemsModel extends Model
         'beginning_stock',
         'pull_out_quantity',
         'ending_stock', // can be calculated
-        'is_enabled', // for enabling stock item\
+        'distribution_qty', // pieces sourced from distribution (0 if none)
+        'is_enabled', // for enabling stock item
         'notes'
     ];
 
@@ -37,6 +38,7 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $carryoverQty,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
+                'distribution_qty' => 0, // no distribution in this path
                 'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock
             ];
         }
@@ -107,6 +109,7 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
+                'distribution_qty' => $beginningStockPieces, // pieces from distribution (before carryover)
                 'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if distribution is 0
             ];
         }
@@ -125,6 +128,7 @@ class DailyStockItemsModel extends Model
                     'beginning_stock' => $carryoverQty,
                     'pull_out_quantity' => 0,
                     'ending_stock' => $carryoverQty,
+                    'distribution_qty' => 0, // carryover only, no distribution
                     'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if not in distribution
                 ];
             }

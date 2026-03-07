@@ -249,6 +249,11 @@ $(document).ready(function () {
     $(document).on('click', '.btn-edit-entry', function () {
         const entryId = $(this).data('id');
 
+        if (!entryId) {
+            console.warn('No entry ID found for edit button');
+            return;
+        }
+
         $.ajax({
             url: baseUrl + 'MaterialStock/GetEntry/' + entryId,
             type: 'GET',

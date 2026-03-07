@@ -234,6 +234,12 @@ class RawMaterialsController extends BaseController
             );
 
             if ($success) {
+                // Immediate notification: material restocked
+                $material = $this->rawMaterialsModel->find(intval($data['material_id']));
+                $matName = $material['material_name'] ?? 'Unknown';
+                $matUnit = $material['unit'] ?? '';
+                $this->notify('notifyMaterialRestocked', $matName, $addQty, $matUnit);
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Material restocked successfully.'
@@ -351,6 +357,9 @@ class RawMaterialsController extends BaseController
 
         try {
             $this->rawMaterialsModel->deleteMaterial($id);
+
+            // Immediate notification: material deleted
+            $this->notify('notifyMaterialDeleted', $material['material_name'] ?? 'Unknown');
 
             return $this->response->setJSON([
                 'success' => true,

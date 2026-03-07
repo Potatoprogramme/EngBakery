@@ -54,6 +54,10 @@ class ApprovalController extends BaseController
 
             $this->usersModel->update($user_id, $updateData);
 
+            // Immediate notification: user approved
+            $approverName = $sessionData['name'] ?? 'Admin';
+            $this->notify('notifyUserApproved', (int)$user_id, $approverName);
+
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'message' => 'User approved successfully.'
@@ -107,7 +111,7 @@ class ApprovalController extends BaseController
         $privilege_level = $sessionData['employee_type'];
 
 
-        if ($privilege_level !== 'owner' || $privilege_level !== 'admin') {
+        if ($privilege_level !== 'owner' && $privilege_level !== 'admin') {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
                 'message' => 'You do not have permission to approve users.'
@@ -115,6 +119,10 @@ class ApprovalController extends BaseController
         }
 
         if ($this->usersModel->checkUserExists($user_id)) {
+            // Immediate notification: user rejected (before deletion)
+            $rejecterName = $sessionData['name'] ?? 'Admin';
+            $this->notify('notifyUserRejected', (int)$user_id, $rejecterName);
+
             $this->usersModel->removeUser($user_id);
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
