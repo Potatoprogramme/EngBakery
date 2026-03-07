@@ -227,6 +227,22 @@
                             <span class="text-sm text-gray-500">Order ID:</span>
                             <p class="font-semibold text-gray-800" id="detailOrderCount">0</p>
                         </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Order Type:</span>
+                            <p class="font-semibold text-gray-800" id="detailOrderType">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Distributed Note (shown only for distributed orders) -->
+                    <div id="detailDistributedNoteContainer"
+                        class="hidden p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-truck text-blue-500 mt-0.5"></i>
+                            <div>
+                                <span class="text-sm font-medium text-blue-700">Delivery Note:</span>
+                                <p class="text-sm text-blue-800 mt-1" id="detailDistributedNote">-</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Sales Breakdown -->
@@ -872,6 +888,7 @@
                     `);
             printWindow.document.close();
         }
+
         function openDetailsModal(order) {
             if (!order) return;
 
@@ -885,6 +902,24 @@
             $('#detailCashier').text(order.cashier_name || '-');
             $('#detailOutlet').text('DECA SENTRIO');
             $('#detailOrderCount').text('Order #' + orderNumber);
+
+            // Order Type with badge styling
+            const orderType = order.order_type || 'walk-in';
+            const orderTypeLabels = {
+                'walk-in': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-walking"></i> Walk-in</span>',
+                'foodpanda': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-700"><i class="fas fa-motorcycle"></i> FoodPanda</span>',
+                'distributed': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><i class="fas fa-truck"></i> Distributed</span>'
+            };
+            $('#detailOrderType').html(orderTypeLabels[orderType] || `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">${orderType}</span>`);
+
+            // Distributed Note
+            if (orderType === 'distributed' && order.distributed_note) {
+                $('#detailDistributedNote').text(order.distributed_note);
+                $('#detailDistributedNoteContainer').removeClass('hidden');
+            } else {
+                $('#detailDistributedNoteContainer').addClass('hidden');
+                $('#detailDistributedNote').text('-');
+            }
 
             // Order Summary - Build product list from order_items
             const productNames = order.order_items ? order.order_items.map(item => item.product_name).join(', ') : 'Unknown';

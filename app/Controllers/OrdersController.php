@@ -7,21 +7,21 @@ class OrdersController extends BaseController
     public function order(): string
     {
         $data = $this->getSessionData();
-        return  view('Template/Header', $data).
-                view('Template/SideNav', $data) . 
-                view('Template/Notification', $data) .
-                view('Orders/Order', $data) .
-                view('Template/Footer', $data);
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Orders/Order', $data) .
+            view('Template/Footer', $data);
     }
 
     public function orderHistory(): string
     {
         $data = $this->getSessionData();
-        return  view('Template/Header', $data).
-                view('Template/SideNav', $data) . 
-                view('Template/Notification', $data) .
-                view('Orders/OrderHistory', $data) .
-                view('Template/Footer', $data);
+        return view('Template/Header', $data) .
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('Orders/OrderHistory', $data) .
+            view('Template/Footer', $data);
     }
 
     public function getProducts()
@@ -60,6 +60,15 @@ class OrdersController extends BaseController
             ]);
         }
 
+        // Validate distributed note if order type is distributed
+        $orderType = $data['order_type'] ?? 'walk-in';
+        if ($orderType === 'distributed' && empty(trim($data['distributed_note'] ?? ''))) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Outlet/delivery details are required for distributed orders.'
+            ]);
+        }
+
         // Check if order contains any items that need daily inventory (bakery/dough)
         // Drinks and groceries don't need inventory — they deduct raw materials directly
         $needsInventory = false;
@@ -87,22 +96,23 @@ class OrdersController extends BaseController
             // Prepare order data with cashier info from session
             $sessionData = $this->getSessionData();
             $cashierName = $sessionData['name'] ?? session()->get('name') ?? 'Unknown';
-            
+
             // Log the cashier name for debugging
             log_message('info', 'Processing payment - Cashier: ' . $cashierName . ' | Session data: ' . print_r($sessionData, true));
-            
+
             $orderData = [
                 'total_payment_due' => $data['total_payment_due'],
                 'amount_received' => $data['amount_received'],
                 'amount_change' => floatval($data['amount_received']) - floatval($data['total_payment_due']),
                 'payment_method' => $data['payment_method'] ?? 'cash',
-                'order_type' => $data['order_type'] ?? 'walk-in',
+                'order_type' => $orderType,
+                'distributed_note' => $orderType === 'distributed' ? trim($data['distributed_note'] ?? '') : null,
                 'cashier_name' => $cashierName
             ];
 
             // Create the order
             $orderId = $this->orderModel->createOrder($orderData);
-            
+
             if (!$orderId) {
                 throw new \Exception('Failed to create order.');
             }
@@ -131,7 +141,9 @@ class OrdersController extends BaseController
                         $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $productId);
                         if (!$stockItem) {
                             $newItemId = $this->dailyStockItemsModel->addProductToInventory(
-                                $dailyStock['daily_stock_id'], $productId, 0
+                                $dailyStock['daily_stock_id'],
+                                $productId,
+                                0
                             );
                             if ($newItemId) {
                                 $this->transactionsModel->recordSale($newItemId, $quantity, floatval($item['total']), $orderId);
@@ -153,16 +165,24 @@ class OrdersController extends BaseController
                 if ($stockItem) {
                     $this->dailyStockItemsModel->deductStock($stockItem['item_id'], $quantity);
                     $this->transactionsModel->recordSale(
-                        $stockItem['item_id'], $quantity, floatval($item['total']), $orderId
+                        $stockItem['item_id'],
+                        $quantity,
+                        floatval($item['total']),
+                        $orderId
                     );
                 } else {
                     $newItemId = $this->dailyStockItemsModel->addProductToInventory(
-                        $dailyStock['daily_stock_id'], $productId, 0
+                        $dailyStock['daily_stock_id'],
+                        $productId,
+                        0
                     );
                     if ($newItemId) {
                         $this->dailyStockItemsModel->deductStock($newItemId, $quantity);
                         $this->transactionsModel->recordSale(
-                            $newItemId, $quantity, floatval($item['total']), $orderId
+                            $newItemId,
+                            $quantity,
+                            floatval($item['total']),
+                            $orderId
                         );
                     }
                 }
@@ -378,7 +398,7 @@ class OrdersController extends BaseController
     public function checkStock()
     {
         $productId = intval($this->request->getGet('product_id'));
-        $quantity   = intval($this->request->getGet('quantity'));
+        $quantity = intval($this->request->getGet('quantity'));
 
         if ($productId <= 0 || $quantity <= 0) {
             return $this->response->setJSON(['success' => true]); // nothing to check
