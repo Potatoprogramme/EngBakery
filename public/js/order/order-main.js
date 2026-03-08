@@ -837,12 +837,15 @@ function resetStepProgress() {
   selectOrderType("walk-in");
   // Reset payment method UI state
   handlePaymentMethodChange("cash", "walk-in");
+  // Restore payment method and quick amount visibility
+  document.getElementById("paymentMethodContainer").classList.remove("hidden");
+  document.getElementById("quickAmountContainer").classList.remove("hidden");
 }
 
 /**
  * Handle payment method change
  * For online payments (gcash, maya, credit card, debit card), auto-set exact amount and disable input
- * For foodpanda orders, auto-set exact amount and disable denominations but keep Exact button enabled
+ * For foodpanda orders, auto-set exact amount, hide quick-amount buttons entirely
  */
 function handlePaymentMethodChange(paymentMethod, orderType) {
   const amountInput = document.getElementById("amountTendered");
@@ -850,6 +853,7 @@ function handlePaymentMethodChange(paymentMethod, orderType) {
   const quickAmountBtns = document.querySelectorAll(
     ".quick-amount[data-amount]",
   );
+  const quickAmountContainer = document.getElementById("quickAmountContainer");
   const isOnlinePayment = [
     "gcash",
     "maya",
@@ -858,8 +862,13 @@ function handlePaymentMethodChange(paymentMethod, orderType) {
   ].includes(paymentMethod);
   const isFoodpanda = orderType === "foodpanda";
 
-  if (isOnlinePayment) {
-    // For online payments: set exact amount and disable input
+  // Show quick amount container by default
+  if (quickAmountContainer) {
+    quickAmountContainer.classList.remove("hidden");
+  }
+
+  if (isOnlinePayment || isFoodpanda) {
+    // For online payments and foodpanda: set exact amount and disable input
     amountInput.value = checkoutTotalAmount.toFixed(2);
     amountInput.disabled = true;
     amountInput.classList.add("bg-gray-100", "cursor-not-allowed");
@@ -886,34 +895,10 @@ function handlePaymentMethodChange(paymentMethod, orderType) {
       );
     });
 
-    calculateChange();
-  } else if (isFoodpanda) {
-    // For foodpanda: set exact amount, disable input and denomination buttons, keep Exact enabled
-    amountInput.value = checkoutTotalAmount.toFixed(2);
-    amountInput.disabled = true;
-    amountInput.classList.add("bg-gray-100", "cursor-not-allowed");
-
-    // Keep exact button enabled
-    if (exactBtn) {
-      exactBtn.disabled = false;
-      exactBtn.classList.remove("opacity-50", "cursor-not-allowed");
-      exactBtn.classList.add(
-        "hover:bg-primary",
-        "hover:text-white",
-        "hover:border-primary",
-      );
+    // For foodpanda: hide the entire quick amount container
+    if (isFoodpanda && quickAmountContainer) {
+      quickAmountContainer.classList.add("hidden");
     }
-
-    // Disable denomination quick amount buttons
-    quickAmountBtns.forEach((btn) => {
-      btn.disabled = true;
-      btn.classList.add("opacity-50", "cursor-not-allowed");
-      btn.classList.remove(
-        "hover:bg-primary",
-        "hover:text-white",
-        "hover:border-primary",
-      );
-    });
 
     calculateChange();
   } else {

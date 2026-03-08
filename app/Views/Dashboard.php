@@ -327,13 +327,13 @@
                                             <i class="fas fa-shopping-cart text-primary text-xs sm:text-sm"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= date('Ymd', strtotime($order['date_created'])) . '-' . $order['order_id'] ?></p>
+                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= $order['date_created'] . '-' . $order['order_id'] ?></p>
                                             <p class="text-xs text-gray-500">
-                                                <?= date('g:i A', strtotime($order['time_created'])) ?> · <?= ucfirst($order['payment_method']) ?>
+                                                <?= date('g:i A', strtotime($order['time_created'])) ?>
                                                 <?php if (($order['order_type'] ?? '') === 'foodpanda'): ?>
                                                     · <span class="font-medium" style="color: #D70F64;">FoodPanda</span>
                                                 <?php else: ?>
-                                                    · <span class="text-gray-500">Walk-in</span>
+                                                    · <?= ucfirst($order['payment_method']) ?> · <span class="text-gray-500">Walk-in</span>
                                                 <?php endif; ?>
                                             </p>
                                         </div>
