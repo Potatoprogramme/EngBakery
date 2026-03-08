@@ -775,11 +775,10 @@
                     <!-- Per Piece -->
                     <div id="viewPerPieceSection"
                         class="hidden p-3 rounded-lg border border-dashed border-gray-300 bg-white">
-                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Piece / Slice /
-                            Plate</h6>
+                        <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per Piece / Slice</h6>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between items-center">
-                                <span class="text-gray-600" id="viewPiecesLabelText">Pieces/Slices/Plates</span>
+                                <span class="text-gray-600" id="viewPiecesLabelText">Pieces/Slices</span>
                                 <span id="viewPiecesPerYield" class="font-medium text-gray-900">0</span>
                             </div>
                             <div class="flex justify-between items-center">
@@ -1021,7 +1020,7 @@
                 // Disable pieces input for dough category
                 if (category === 'dough') {
                     $('#piecesPerYield').prop('readonly', true).val(0);
-                    $('#piecesLabel').text('Pieces/Slices/Plates');
+                    $('#piecesLabel').text('Pieces/Slices');
                     // Hide per tray section for dough
                     $('#perTraySection').addClass('hidden');
                 } else if (category === 'bakery') {
@@ -1968,7 +1967,7 @@
                     if (traysPerYield > 0) {
                         $('#piecesLabel').text('Pieces per Tray:');
                     } else {
-                        $('#piecesLabel').text('Pieces/Slices/Plates:');
+                        $('#piecesLabel').text('Pieces/Slices:');
                     }
 
                     // Calculate Selling Price per Tray and per Piece (Recommended)
@@ -3313,7 +3312,7 @@
                                         $('#viewGramsPerPiece').text(gramsPerPiece.toFixed(2) + ' g');
                                         $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(5));
                                     } else {
-                                        $('#viewPiecesLabelText').text('Pieces/Slices/Plates');
+                                        $('#viewPiecesLabelText').text('Pieces/Slices');
                                         $('#viewPiecesPerYield').text(piecesPerYield);
 
                                         // Use database value if available, otherwise calculate
