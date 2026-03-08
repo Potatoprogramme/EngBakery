@@ -19,56 +19,56 @@
                 </ol>
             </nav>
 
-            <!-- Today's Sales Summary Cards -->
-            <div class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
                 <!-- Total Orders Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-receipt text-gray-600"></i>
-                        </div>
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Orders</p>
-                            <p id="todayTotalOrders" class="text-xl font-semibold text-gray-800">0</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Total Orders</p>
+                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="todayTotalOrders">0</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-blue-100 rounded-full hidden sm:block">
+                            <i class="fas fa-receipt text-blue-600 text-xl"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Revenue Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-peso-sign text-gray-600"></i>
-                        </div>
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-primary">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Revenue</p>
-                            <p id="todayTotalRevenue" class="text-xl font-semibold text-gray-800">₱0.00</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Revenue</p>
+                            <p class="text-lg sm:text-2xl font-bold text-primary" id="todayTotalRevenue">₱0.00</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-primary/10 rounded-full hidden sm:block">
+                            <i class="fas fa-peso-sign text-primary text-xl"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- Items Sold Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-shopping-basket text-gray-600"></i>
-                        </div>
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Items Sold</p>
-                            <p id="todayItemsSold" class="text-xl font-semibold text-gray-800">0</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Items Sold</p>
+                            <p class="text-lg sm:text-2xl font-bold text-green-600" id="todayItemsSold">0</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-green-100 rounded-full hidden sm:block">
+                            <i class="fas fa-shopping-basket text-green-600 text-xl"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stock Summary Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-boxes-stacked text-gray-600"></i>
-                        </div>
+                <!-- In Stock Card -->
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-amber-500">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">In Stock</p>
-                            <p id="todayStockCount" class="text-xl font-semibold text-gray-800">0</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">In Stock</p>
+                            <p class="text-lg sm:text-2xl font-bold text-amber-600" id="todayStockCount">0</p>
+                        </div>
+                        <div class="p-2 sm:p-3 bg-amber-100 rounded-full hidden sm:block">
+                            <i class="fas fa-boxes-stacked text-amber-600 text-xl"></i>
                         </div>
                     </div>
                 </div>
@@ -135,12 +135,14 @@
                 </div>
             </div>
 
-            <div class="p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
+            <!-- Desktop Table View -->
+            <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md overflow-x-auto mb-20 sm:mb-0">
                 <table id="ordersTable" class="min-w-full text-sm text-left text-gray-500">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Order Number</th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Date & Time</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Order #</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap">Time</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Cashier</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Type</th>
                             <th scope="col" class="px-6 py-3 whitespace-nowrap">Payment</th>
@@ -151,13 +153,21 @@
                     </thead>
                     <tbody id="ordersTableBody">
                         <tr>
-                            <td colspan="8" class="px-6 py-8 text-center text-gray-500"><i
+                            <td colspan="9" class="px-6 py-8 text-center text-gray-500"><i
                                     class="fas fa-spinner fa-spin text-2xl"></i>
                                 <p class="mt-2">Loading orders...</p>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="lg:hidden space-y-3 mb-20" id="ordersCards">
+                <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-4xl mb-3"></i>
+                    <p>Loading...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -246,12 +256,15 @@
         let currentOrderId = null;
 
         $(document).ready(function () {
-            // Set today's date in the date filters
-            const today = new Date().toISOString().split('T')[0];
-            $('#filterDateFrom').val(today);
-            $('#filterDateTo').val(today);
+            // Set date range: 1st of current month to today
+            const today = new Date();
+            const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const todayStr = today.toISOString().split('T')[0];
+            const firstStr = firstOfMonth.toISOString().split('T')[0];
+            $('#filterDateFrom').val(firstStr);
+            $('#filterDateTo').val(todayStr);
 
-            loadOrders(today, today); // Load today's orders by default
+            loadOrders(firstStr, todayStr); // Load this month's orders by default
             loadTodaysSummary();
             loadStockSummary();
             initFilters();
@@ -424,9 +437,9 @@
 
         // Toggle Stock Summary Section
         function initStockSummaryToggle() {
-            // Keep stock summary expanded by default
-            $('#stockSummaryContent').removeClass('hidden');
-            $('#stockChevron').addClass('rotate-180');
+            // Keep stock summary collapsed by default
+            $('#stockSummaryContent').addClass('hidden');
+            $('#stockChevron').removeClass('rotate-180');
 
             $('#toggleStockSummary').on('click', function () {
                 $('#stockSummaryContent').toggleClass('hidden');
@@ -449,57 +462,71 @@
                     if (response.success) {
                         renderOrders(response.data);
                     } else {
-                        $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
+                        $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
                     }
                 },
                 error: function () {
-                    $('#ordersTableBody').html('<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>');
+                    $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>');
                 }
             });
         }
 
         function renderOrders(orders) {
+            renderDesktopTable(orders);
+            renderMobileCards(orders);
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '--:--';
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes || '00'} ${ampm}`;
+        }
+
+        function getOrderMeta(order) {
+            const orderDate = new Date(order.date_created);
+            const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const timeStr = formatTime(order.time_created);
+            const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
+            const typeIcon = order.order_type === 'foodpanda'
+                ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
+                : '<i class="fas fa-walking mr-1"></i>';
+            const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
+            const cashierName = order.cashier_name || 'Unknown';
+            const isVoided = order.voided_at !== null && order.voided_at !== undefined;
+            const orderNumber = `${order.date_created}-${order.order_id}`;
+            return { dateStr, timeStr, typeClass, typeIcon, typeName, cashierName, isVoided, orderNumber };
+        }
+
+        function renderDesktopTable(orders) {
             if (dataTable) {
                 dataTable.destroy();
                 dataTable = null;
             }
 
             if (!orders || orders.length === 0) {
-                $('#ordersTableBody').html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
+                $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
                 return;
             }
 
             let html = '';
             orders.forEach(order => {
-                const orderDate = new Date(order.date_created + ' ' + order.time_created);
-                const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const timeStr = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
-                const typeIcon = order.order_type === 'foodpanda'
-                    ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
-                    : '<i class="fas fa-walking mr-1"></i>';
-                const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
-                const cashierName = order.cashier_name || 'Unknown';
-                const isVoided = order.voided_at !== null && order.voided_at !== undefined;
-
-                // Format: yyyy-mm-dd - order id
-                const year = order.date_created.substring(0, 4);
-                const month = order.date_created.substring(5, 7);
-                const day = order.date_created.substring(8, 10);
-                const formattedOrderNumber = `${year}${month}${day}-${order.order_id}`;
-
-                const rowClass = isVoided ? 'border-b bg-red-50/50 hover:bg-red-50' : 'border-b hover:bg-gray-50';
-                const amountClass = isVoided ? 'line-through text-gray-400' : 'text-gray-900 font-semibold';
-                const statusBadge = isVoided
+                const m = getOrderMeta(order);
+                const rowClass = m.isVoided ? 'border-b bg-red-50/50 hover:bg-red-50' : 'border-b hover:bg-gray-50';
+                const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary font-bold';
+                const statusBadge = m.isVoided
                     ? '<span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 inline-flex items-center"><i class="fas fa-ban mr-1"></i>Voided</span>'
                     : '<span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 inline-flex items-center"><i class="fas fa-check mr-1"></i>Completed</span>';
 
                 html += `
                     <tr class="${rowClass}">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium ${isVoided ? 'text-gray-400' : 'text-gray-900'} font-mono text-sm">${formattedOrderNumber}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">${cashierName}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass} inline-flex items-center">${typeIcon}${typeName}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium ${m.isVoided ? 'text-gray-400' : 'text-gray-900'}">${m.orderNumber}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${m.dateStr}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${m.timeStr}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">${m.cashierName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${m.typeClass} inline-flex items-center">${m.typeIcon}${m.typeName}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 capitalize">${order.payment_method}</td>
                         <td class="px-6 py-4 whitespace-nowrap ${amountClass}">₱${parseFloat(order.total_payment_due).toFixed(2)}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
@@ -526,7 +553,82 @@
                 }
             });
 
-            $('.btn-view-order').on('click', function () {
+            $('#ordersTable').on('click', '.btn-view-order', function () {
+                openOrderDetails($(this).data('order-id'));
+            });
+        }
+
+        function renderMobileCards(orders) {
+            if (!orders || orders.length === 0) {
+                $('#ordersCards').html(`
+                    <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
+                        <i class="fas fa-receipt text-4xl mb-3"></i>
+                        <p>No orders found</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            orders.forEach(order => {
+                const m = getOrderMeta(order);
+                const headerBg = m.isVoided ? 'bg-red-500/90' : 'bg-primary/90';
+                const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary';
+                const statusBadge = m.isVoided
+                    ? '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><i class="fas fa-ban mr-1"></i>Voided</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>Completed</span>';
+
+                html += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
+                        <!-- Card Header -->
+                        <div class="${headerBg} px-4 py-3 border-b border-gray-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-receipt text-white"></i>
+                                    <span class="font-bold text-white">Order #${m.orderNumber}</span>
+                                </div>
+                                <span class="text-xs text-gray-200">${m.dateStr}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-xs text-gray-200">
+                                <i class="fas fa-clock text-xs"></i>
+                                <span>${m.timeStr}</span>
+                                <span class="mx-1">•</span>
+                                <i class="fas fa-user text-xs"></i>
+                                <span>${m.cashierName}</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-4">
+                            <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <span class="text-gray-600"><i class="fas fa-tag text-blue-500 mr-1"></i>Type</span>
+                                    <span class="inline-flex items-center text-xs font-medium">${m.typeIcon}${m.typeName}</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <span class="text-gray-600"><i class="fas fa-credit-card text-green-500 mr-1"></i>Pay</span>
+                                    <span class="font-semibold text-gray-900 capitalize text-xs">${order.payment_method}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <div>
+                                    <p class="text-xs text-gray-500">Total Amount</p>
+                                    <p class="text-xl font-bold ${amountClass}">₱${parseFloat(order.total_payment_due).toFixed(2)}</p>
+                                    <div class="mt-1">${statusBadge}</div>
+                                </div>
+                                <button type="button" class="btn-view-order-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-order-id="${order.order_id}">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#ordersCards').html(html);
+
+            $('.btn-view-order-mobile').on('click', function () {
                 openOrderDetails($(this).data('order-id'));
             });
         }
