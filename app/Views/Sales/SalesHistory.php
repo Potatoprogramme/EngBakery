@@ -951,7 +951,7 @@
 
             $('#detailCash').text(formatCurrency(cashTotal));
             $('#detailGcash').text(formatCurrency(gcashTotal));
-            $('#detailPanda').text(formatCurrency(pandaTotal));
+            $('#detailFoodPanda').text(formatCurrency(pandaTotal));
 
             // Hide variance section
             $('#detailVarianceContainer').hide();
