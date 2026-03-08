@@ -211,13 +211,6 @@
                 $('body').removeClass('overflow-hidden');
             });
 
-            $('#contentsModal').on('click', function(e) {
-                if (e.target === this) {
-                    $('#contentsModal').addClass('hidden');
-                    $('body').removeClass('overflow-hidden');
-                }
-            });
-
             $('#historyTable').on('click', '.btn-view-contents', function() {
                 const index = parseInt($(this).data('index'));
                 openContentsModal(index);

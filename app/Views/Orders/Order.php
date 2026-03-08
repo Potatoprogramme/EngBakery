@@ -354,8 +354,9 @@
                             </button>
                             <button type="button" id="btnOrderTypeFoodpanda" onclick="selectOrderType('foodpanda')"
                                 class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-pink-300">
-                                <img src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>"
-                                    class="w-8 h-8 mx-auto mb-2" alt="FoodPanda">
+                                <div id="foodpandaLogo" class="flex justify-center mb-2" style="filter: grayscale(1);">
+                                    <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" class="w-7 h-7" alt="FoodPanda">
+                                </div>
                                 <p class="font-semibold text-gray-700">FoodPanda</p>
                             </button>
                             <button type="button" id="btnOrderTypeDistributed" onclick="selectOrderType('distributed')"
@@ -388,7 +389,9 @@
                             </button>
                             <button type="button" id="btnPaymentGcash" onclick="selectPaymentMethod('gcash')"
                                 class="payment-method-btn flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-300 bg-white transition-all hover:shadow-md hover:border-blue-300">
-                                <i class="fas fa-mobile-alt text-lg text-gray-500"></i>
+                                <div id="gcashLogo" class="flex-shrink-0" style="filter: grayscale(1);">
+                                    <img src="<?= base_url('assets/pictures/gcash.svg') ?>" class="w-5 h-5" alt="GCash">
+                                </div>
                                 <span class="font-semibold text-sm text-gray-700">GCash</span>
                             </button>
                         </div>
@@ -685,8 +688,7 @@
 
             document.getElementById('btnPaymentGcash').classList.remove('border-blue-500', 'bg-blue-50');
             document.getElementById('btnPaymentGcash').classList.add('border-gray-300', 'bg-white');
-            document.getElementById('btnPaymentGcash').querySelector('i').classList.remove('text-blue-600');
-            document.getElementById('btnPaymentGcash').querySelector('i').classList.add('text-gray-500');
+            document.getElementById('gcashLogo').style.filter = 'grayscale(1)';
             document.getElementById('btnPaymentGcash').querySelector('span').classList.remove('text-blue-600');
             document.getElementById('btnPaymentGcash').querySelector('span').classList.add('text-gray-700');
 
@@ -701,8 +703,7 @@
             } else if (method === 'gcash') {
                 document.getElementById('btnPaymentGcash').classList.remove('border-gray-300', 'bg-white');
                 document.getElementById('btnPaymentGcash').classList.add('border-blue-500', 'bg-blue-50');
-                document.getElementById('btnPaymentGcash').querySelector('i').classList.remove('text-gray-500');
-                document.getElementById('btnPaymentGcash').querySelector('i').classList.add('text-blue-600');
+                document.getElementById('gcashLogo').style.filter = 'none';
                 document.getElementById('btnPaymentGcash').querySelector('span').classList.remove('text-gray-700');
                 document.getElementById('btnPaymentGcash').querySelector('span').classList.add('text-blue-600');
             }
@@ -728,6 +729,7 @@
 
             document.getElementById('btnOrderTypeFoodpanda').classList.remove('border-pink-500', 'bg-pink-50');
             document.getElementById('btnOrderTypeFoodpanda').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('foodpandaLogo').style.filter = 'grayscale(1)';
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-pink-600');
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-gray-700');
 
@@ -756,6 +758,7 @@
             } else if (type === 'foodpanda') {
                 document.getElementById('btnOrderTypeFoodpanda').classList.remove('border-gray-300', 'bg-white');
                 document.getElementById('btnOrderTypeFoodpanda').classList.add('border-pink-500', 'bg-pink-50');
+                document.getElementById('foodpandaLogo').style.filter = 'none';
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-gray-700');
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-pink-600');
                 // Hide payment method for foodpanda (payment is handled by foodpanda)

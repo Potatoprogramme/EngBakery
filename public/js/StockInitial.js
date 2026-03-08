@@ -765,13 +765,6 @@ $(document).ready(function () {
         closeViewModal();
     });
 
-    // Close View Modal on overlay click
-    $('#viewStockModal').on('click', function (e) {
-        if (e.target === this) {
-            closeViewModal();
-        }
-    });
-
     // Edit from View Modal
     $('#btnViewEditEntry').on('click', function () {
         if (currentViewEntryId) {

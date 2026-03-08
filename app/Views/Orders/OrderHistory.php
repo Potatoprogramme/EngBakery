@@ -491,7 +491,7 @@
             const timeStr = formatTime(order.time_created);
             const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
             const typeIcon = order.order_type === 'foodpanda'
-                ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
+                ? `<img src="${ASSET_URL}assets/pictures/food-panda.svg" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
                 : '<i class="fas fa-walking mr-1"></i>';
             const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
             const cashierName = order.cashier_name || 'Unknown';
@@ -716,7 +716,7 @@
 
                         // Set order type with icon
                         if (order.order_type === 'foodpanda') {
-                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
+                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/food-panda.svg" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
                         } else {
                             $('#detailOrderType').html('<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>');
                         }

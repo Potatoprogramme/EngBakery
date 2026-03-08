@@ -313,13 +313,6 @@ function initProductModal() {
     productModal.classList.add("hidden");
   });
 
-  // Close modal on backdrop click - only on mobile/tablet
-  productModal.addEventListener("click", function (e) {
-    if (e.target === productModal && isMobileOrTablet()) {
-      productModal.classList.add("hidden");
-    }
-  });
-
   productOrderForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const productName =
@@ -396,13 +389,6 @@ function initCustomerOrdersModal() {
 
   btnCloseOrdersModal.addEventListener("click", function () {
     customerOrdersModal.classList.add("hidden");
-  });
-
-  // Close modal on backdrop click - only on mobile/tablet
-  customerOrdersModal.addEventListener("click", function (e) {
-    if (e.target === customerOrdersModal && isMobileOrTablet()) {
-      customerOrdersModal.classList.add("hidden");
-    }
   });
 
   btnClearOrders.addEventListener("click", function () {
@@ -539,13 +525,6 @@ function initEditOrderModal() {
     editOrderModal.classList.add("hidden");
   });
 
-  // Close modal on backdrop click - only on mobile/tablet
-  editOrderModal.addEventListener("click", function (e) {
-    if (e.target === editOrderModal && isMobileOrTablet()) {
-      editOrderModal.classList.add("hidden");
-    }
-  });
-
   editOrderForm.addEventListener("submit", function (e) {
     e.preventDefault();
     const newQuantity = parseInt(editOrderQuantity.value);
@@ -679,16 +658,6 @@ function initCheckoutModal() {
       closeCheckoutModal();
     });
 
-  // Close modal on backdrop click - only on mobile/tablet (shows exit confirmation if not on step 4)
-  checkoutModal.addEventListener("click", function (e) {
-    if (e.target === checkoutModal && isMobileOrTablet()) {
-      if (currentStep < 4) {
-        showExitConfirmation();
-      } else {
-        closeCheckoutModal();
-      }
-    }
-  });
 }
 
 function openCheckoutModal() {
