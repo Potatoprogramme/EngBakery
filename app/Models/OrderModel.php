@@ -27,12 +27,11 @@ class OrderModel extends Model
     public function generateOrderNumber(): string
     {
         $today = date('Y-m-d');
-        $dateCode = date('Ymd');
 
         $todayCount = $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
-        $sequence = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
+        $sequence = $todayCount + 1;
 
-        return "ORD-{$dateCode}-{$sequence}";
+        return "{$today} -{$sequence}";
     }
 
     public function createOrder(array $data): int|false
@@ -58,9 +57,9 @@ class OrderModel extends Model
     public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $builder = $this->builder();
-        $builder->select('orders.*, orders.voided_at, orders.voided_by,
-            CONCAT("ORD-", DATE_FORMAT(orders.date_created, "%Y%m%d"), "-", 
-            LPAD((SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id), 3, "0")) as order_number');
+        $builder->select("orders.*, orders.voided_at, orders.voided_by,
+            CONCAT(orders.date_created, ' -', 
+            (SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id)) as order_number", false);
 
         if ($dateFrom) {
             $builder->where('date_created >=', $dateFrom);
@@ -79,11 +78,10 @@ class OrderModel extends Model
     {
         $order = $this->find($orderId);
         if ($order) {
-            $dateCode = date('Ymd', strtotime($order['date_created']));
             $sequence = $this->where('date_created', $order['date_created'])
                 ->where('order_id <=', $orderId)
                 ->countAllResults();
-            $order['order_number'] = "ORD-{$dateCode}-" . str_pad($sequence, 3, '0', STR_PAD_LEFT);
+            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . " -{$sequence}";
         }
         return $order;
     }
@@ -100,7 +98,7 @@ class OrderModel extends Model
             ->getRowArray();
     }
 
-    public function getTotalSalesByOrderType($orderType)
+    public function getTotalSalesByPaymentMethod($paymentMethod)
     {
         $today = date('Y-m-d');
 
@@ -108,9 +106,23 @@ class OrderModel extends Model
         return $this->builder()
             ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
             ->where('orders.date_created', $today)
-            ->where('LOWER(orders.payment_method)', strtolower($orderType))
+            ->where('LOWER(orders.payment_method)', strtolower($paymentMethod))
             ->where('orders.voided_at IS NULL')
             ->groupBy('orders.payment_method')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTotalSalesByOrderType($orderType)
+    {
+        $today = date('Y-m-d');
+
+        return $this->builder()
+            ->select('orders.order_type, SUM(orders.total_payment_due) AS total_revenue')
+            ->where('orders.date_created', $today)
+            ->where('LOWER(orders.order_type)', strtolower($orderType))
+            ->where('orders.voided_at IS NULL')
+            ->groupBy('orders.order_type')
             ->get()
             ->getRowArray();
     }

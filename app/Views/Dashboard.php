@@ -177,14 +177,14 @@
                             <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($gcashSales, 2) ?></p>
                         </div>
                     </div>
-                    <!-- Maya -->
-                    <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #e6fff0;">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #00D26A;">
-                            <i class="fas fa-wallet text-white text-xs sm:text-sm"></i>
+                    <!-- FoodPanda -->
+                    <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #fff0f3;">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #D70F64;">
+                            <i class="fas fa-motorcycle text-white text-xs sm:text-sm"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-xs font-medium" style="color: #00D26A;">Maya</p>
-                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($mayaSales, 2) ?></p>
+                            <p class="text-xs font-medium" style="color: #D70F64;">FoodPanda</p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($foodpandaSales, 2) ?></p>
                         </div>
                     </div>
                 </div>
@@ -327,8 +327,15 @@
                                             <i class="fas fa-shopping-cart text-primary text-xs sm:text-sm"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= esc($order['order_number']) ?></p>
-                                            <p class="text-xs text-gray-500"><?= date('g:i A', strtotime($order['time_created'])) ?> · <?= ucfirst($order['payment_method']) ?></p>
+                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= date('Ymd', strtotime($order['date_created'])) . '-' . $order['order_id'] ?></p>
+                                            <p class="text-xs text-gray-500">
+                                                <?= date('g:i A', strtotime($order['time_created'])) ?> · <?= ucfirst($order['payment_method']) ?>
+                                                <?php if (($order['order_type'] ?? '') === 'foodpanda'): ?>
+                                                    · <span class="font-medium" style="color: #D70F64;">FoodPanda</span>
+                                                <?php else: ?>
+                                                    · <span class="text-gray-500">Walk-in</span>
+                                                <?php endif; ?>
+                                            </p>
                                         </div>
                                     </div>
                                     <span class="text-xs sm:text-sm font-bold text-gray-900 ml-2">₱<?= number_format($order['total_payment_due'], 2) ?></span>

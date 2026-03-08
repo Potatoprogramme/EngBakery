@@ -82,8 +82,8 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
     $routes->post('LoadFromDistribution', 'InventoryController::loadFromDistribution');
-    $routes->post('UnloadDistribution', 'InventoryController::unloadDistribution');
-    $routes->get('CheckDistributionLoadedStatus', 'InventoryController::checkDistributionLoadedStatus');
+    $routes->get('GetDistributionItemsWithStatus', 'InventoryController::getDistributionItemsWithStatus');
+    $routes->post('LoadDistributionItem', 'InventoryController::loadSingleDistributionItem');
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
     $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');

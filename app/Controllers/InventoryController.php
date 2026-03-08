@@ -354,103 +354,167 @@ class InventoryController extends BaseController
     }
 
     /**
-     * Unload distribution data from today's inventory.
-     * Reverses the load: subtracts distribution pieces from beginning_stock,
-     * removes items that were added (beginning_stock would go to 0).
+     * Get today's distribution items enriched with per-item loaded status.
+     * Returns each distribution item with calculated pieces and loaded quantity.
      */
-    public function unloadDistribution()
+    public function getDistributionItemsWithStatus()
     {
         $today = date('Y-m-d');
 
         $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
-        if (!$dailyStock) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'No inventory exists for today.'
-            ]);
-        }
+        $dailyStockId = $dailyStock ? intval($dailyStock['daily_stock_id']) : 0;
 
         $distributionItems = $this->distributionModel->getDistributionByDate($today);
         if (!$distributionItems || count($distributionItems) === 0) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'No distribution data found to unload.'
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [],
+                'message' => 'No distribution records for today.'
             ]);
         }
 
-        $dailyStockId = $dailyStock['daily_stock_id'];
-        $distPieces = $this->calculateDistributionPieces($distributionItems);
+        $productCostModel = model('ProductCostModel');
+        $enriched = [];
 
-        // Verify distribution is actually loaded before unloading
-        if (!$this->isDistributionLoaded($dailyStockId, $distPieces, $today)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Distribution does not appear to be loaded.'
-            ]);
-        }
+        foreach ($distributionItems as $item) {
+            $productId = intval($item['product_id']);
+            $distributionQty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = $item['qty_mode'] ?? 'batch';
 
-        $reverted = 0;
-        $removed = 0;
-
-        foreach ($distPieces as $productId => $pieces) {
-            $existingItem = $this->dailyStockItemsModel
-                ->where('daily_stock_id', $dailyStockId)
-                ->where('product_id', $productId)
-                ->first();
-
-            if ($existingItem) {
-                $newBeginning = max(0, intval($existingItem['beginning_stock']) - $pieces);
-                if ($newBeginning <= 0) {
-                    $this->dailyStockItemsModel->delete($existingItem['item_id']);
-                    $removed++;
+            // Calculate pieces (same logic as calculateDistributionPieces)
+            if ($qtyMode === 'pieces') {
+                $pieces = $distributionQty;
+            } else {
+                $product = $this->productModel->find($productId);
+                $category = $product['category'] ?? '';
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $pieces = $distributionQty;
                 } else {
-                    $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
-                    $this->dailyStockItemsModel->update($existingItem['item_id'], [
-                        'beginning_stock' => $newBeginning,
-                        'ending_stock' => max(0, $newBeginning - $pullOut),
-                        'distribution_qty' => 0, // reset distribution tracking
-                    ]);
-                    $reverted++;
+                    $costData = $productCostModel->getCostByProductId($productId);
+                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+                    $pieces = $distributionQty * ($piecesPerYield > 0 ? $piecesPerYield : 1);
                 }
-                log_message('info', 'UNLOAD DISTRIBUTION: Product {product} - subtracted {pieces} pieces', [
-                    'product' => $productId,
-                    'pieces' => $pieces
-                ]);
             }
+
+            // Check loaded status from inventory
+            $loadedQty = 0;
+            if ($dailyStockId > 0) {
+                $inventoryItem = $this->dailyStockItemsModel
+                    ->where('daily_stock_id', $dailyStockId)
+                    ->where('product_id', $productId)
+                    ->first();
+                if ($inventoryItem) {
+                    $loadedQty = intval($inventoryItem['distribution_qty'] ?? 0);
+                }
+            }
+
+            $enriched[] = [
+                'distribution_id' => $item['distribution_id'],
+                'product_id' => $productId,
+                'product_name' => $item['product_name'] ?? 'N/A',
+                'category' => $item['category'] ?? '',
+                'product_qnty' => $distributionQty,
+                'qty_mode' => $qtyMode,
+                'calculated_pieces' => $pieces,
+                'loaded_qty' => $loadedQty,
+                'loaded' => $loadedQty > 0,
+            ];
         }
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => "Distribution unloaded: {$reverted} product(s) reverted, {$removed} product(s) removed.",
-            'reverted' => $reverted,
-            'removed' => $removed,
+            'data' => $enriched,
         ]);
     }
 
     /**
-     * Check if distribution has been loaded into today's inventory.
-     * Uses data comparison — no external files or DB columns needed.
+     * Load a single distribution item into today's inventory.
+     * Accepts a custom quantity and optional note.
      */
-    public function checkDistributionLoadedStatus()
+    public function loadSingleDistributionItem()
     {
         $today = date('Y-m-d');
 
         $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
         if (!$dailyStock) {
-            return $this->response->setJSON(['success' => true, 'loaded' => false]);
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No inventory exists for today. Create inventory first.'
+            ]);
         }
 
-        $distributionItems = $this->distributionModel->getDistributionByDate($today);
-        if (!$distributionItems || count($distributionItems) === 0) {
-            return $this->response->setJSON(['success' => true, 'loaded' => false]);
+        $json = $this->request->getJSON();
+        $productId = intval($json->product_id ?? 0);
+        $quantity = intval($json->quantity ?? 0);
+        $expectedPieces = intval($json->expected_pieces ?? 0);
+        $note = trim($json->note ?? '');
+
+        if ($productId <= 0 || $quantity <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product ID and quantity are required.'
+            ]);
         }
 
-        $distPieces = $this->calculateDistributionPieces($distributionItems);
-        $loaded = $this->isDistributionLoaded($dailyStock['daily_stock_id'], $distPieces, $today);
+        // Require note when quantity differs from expected
+        if ($expectedPieces > 0 && $quantity !== $expectedPieces && empty($note)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'A note is required when the quantity differs from the distribution amount (' . $expectedPieces . ' pcs).'
+            ]);
+        }
+
+        $dailyStockId = intval($dailyStock['daily_stock_id']);
+
+        $existingItem = $this->dailyStockItemsModel
+            ->where('daily_stock_id', $dailyStockId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if ($existingItem) {
+            $newBeginning = intval($existingItem['beginning_stock']) + $quantity;
+            $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
+            $newDistQty = intval($existingItem['distribution_qty'] ?? 0) + $quantity;
+            $existingNotes = trim($existingItem['notes'] ?? '');
+            $updatedNotes = $existingNotes;
+            if (!empty($note)) {
+                $updatedNotes = $existingNotes ? $existingNotes . ' | ' . $note : $note;
+            }
+
+            $this->dailyStockItemsModel->update($existingItem['item_id'], [
+                'beginning_stock' => $newBeginning,
+                'ending_stock' => $newBeginning - $pullOut,
+                'distribution_qty' => $newDistQty,
+                'notes' => $updatedNotes,
+            ]);
+
+            log_message('info', 'LOAD SINGLE DISTRIBUTION: Updated Product {product} - added {qty} pcs (expected {expected}), new beginning: {new}', [
+                'product' => $productId,
+                'qty' => $quantity,
+                'expected' => $expectedPieces,
+                'new' => $newBeginning,
+            ]);
+        } else {
+            $this->dailyStockItemsModel->insert([
+                'daily_stock_id' => $dailyStockId,
+                'product_id' => $productId,
+                'beginning_stock' => $quantity,
+                'pull_out_quantity' => 0,
+                'ending_stock' => $quantity,
+                'distribution_qty' => $quantity,
+                'notes' => $note,
+            ]);
+
+            log_message('info', 'LOAD SINGLE DISTRIBUTION: Added Product {product} - {qty} pcs (expected {expected})', [
+                'product' => $productId,
+                'qty' => $quantity,
+                'expected' => $expectedPieces,
+            ]);
+        }
 
         return $this->response->setJSON([
             'success' => true,
-            'loaded' => $loaded,
+            'message' => 'Distribution item loaded successfully (' . $quantity . ' pcs).',
         ]);
     }
 

@@ -617,11 +617,12 @@ function initCheckoutModal() {
   document.getElementById("btnToStep3").addEventListener("click", function () {
     currentStep = 3;
     showStep(3);
-    // Apply payment method restrictions when entering Step 3
+    // Apply payment method and order type restrictions when entering Step 3
     const paymentMethod = document.getElementById(
       "checkoutPaymentMethod",
     ).value;
-    handlePaymentMethodChange(paymentMethod);
+    const orderType = document.getElementById("checkoutOrderType").value;
+    handlePaymentMethodChange(paymentMethod, orderType);
   });
 
   document
@@ -641,7 +642,8 @@ function initCheckoutModal() {
   document
     .getElementById("checkoutPaymentMethod")
     .addEventListener("change", function () {
-      handlePaymentMethodChange(this.value);
+      const orderType = document.getElementById("checkoutOrderType").value;
+      handlePaymentMethodChange(this.value, orderType);
     });
 
   document.querySelectorAll(".quick-amount").forEach((btn) => {
@@ -834,14 +836,15 @@ function resetStepProgress() {
   // Reset order type button styles back to walk-in
   selectOrderType("walk-in");
   // Reset payment method UI state
-  handlePaymentMethodChange("cash");
+  handlePaymentMethodChange("cash", "walk-in");
 }
 
 /**
  * Handle payment method change
  * For online payments (gcash, maya, credit card, debit card), auto-set exact amount and disable input
+ * For foodpanda orders, auto-set exact amount and disable denominations but keep Exact button enabled
  */
-function handlePaymentMethodChange(paymentMethod) {
+function handlePaymentMethodChange(paymentMethod, orderType) {
   const amountInput = document.getElementById("amountTendered");
   const exactBtn = document.querySelector('.quick-amount[data-type="exact"]');
   const quickAmountBtns = document.querySelectorAll(
@@ -853,6 +856,7 @@ function handlePaymentMethodChange(paymentMethod) {
     "credit card",
     "debit card",
   ].includes(paymentMethod);
+  const isFoodpanda = orderType === "foodpanda";
 
   if (isOnlinePayment) {
     // For online payments: set exact amount and disable input
@@ -872,6 +876,35 @@ function handlePaymentMethodChange(paymentMethod) {
     }
 
     // Disable other quick amount buttons
+    quickAmountBtns.forEach((btn) => {
+      btn.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      btn.classList.remove(
+        "hover:bg-primary",
+        "hover:text-white",
+        "hover:border-primary",
+      );
+    });
+
+    calculateChange();
+  } else if (isFoodpanda) {
+    // For foodpanda: set exact amount, disable input and denomination buttons, keep Exact enabled
+    amountInput.value = checkoutTotalAmount.toFixed(2);
+    amountInput.disabled = true;
+    amountInput.classList.add("bg-gray-100", "cursor-not-allowed");
+
+    // Keep exact button enabled
+    if (exactBtn) {
+      exactBtn.disabled = false;
+      exactBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      exactBtn.classList.add(
+        "hover:bg-primary",
+        "hover:text-white",
+        "hover:border-primary",
+      );
+    }
+
+    // Disable denomination quick amount buttons
     quickAmountBtns.forEach((btn) => {
       btn.disabled = true;
       btn.classList.add("opacity-50", "cursor-not-allowed");
