@@ -377,17 +377,21 @@
                         </div>
                     </div>
                     <div id="paymentMethodContainer" class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method <span
                                 class="text-red-500">*</span></label>
-                        <select id="checkoutPaymentMethod"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="cash">Cash</option>
-                            <option value="gcash">GCash</option>
-                            <!-- ANCHOR - For future payment methods -->
-                            <!-- <option value="maya">Maya</option>
-                            <option value="credit card">Credit Card</option>
-                            <option value="debit card">Debit Card</option> -->
-                        </select>
+                        <input type="hidden" id="checkoutPaymentMethod" value="cash">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="btnPaymentCash" onclick="selectPaymentMethod('cash')"
+                                class="payment-method-btn flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-primary bg-primary/10 transition-all hover:shadow-md">
+                                <i class="fas fa-money-bill-wave text-lg text-primary"></i>
+                                <span class="font-semibold text-sm text-primary">Cash</span>
+                            </button>
+                            <button type="button" id="btnPaymentGcash" onclick="selectPaymentMethod('gcash')"
+                                class="payment-method-btn flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-300 bg-white transition-all hover:shadow-md hover:border-blue-300">
+                                <i class="fas fa-mobile-alt text-lg text-gray-500"></i>
+                                <span class="font-semibold text-sm text-gray-700">GCash</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="flex gap-2">
                         <button type="button" id="btnBackToStep1"
@@ -664,6 +668,49 @@
             var targetContent = document.getElementById(tabName + '-content');
             if (targetContent) {
                 targetContent.classList.remove('hidden');
+            }
+        }
+
+        // Payment Method Selection Function
+        function selectPaymentMethod(method) {
+            document.getElementById('checkoutPaymentMethod').value = method;
+
+            // Reset all payment buttons
+            document.getElementById('btnPaymentCash').classList.remove('border-primary', 'bg-primary/10');
+            document.getElementById('btnPaymentCash').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('btnPaymentCash').querySelector('i').classList.remove('text-primary');
+            document.getElementById('btnPaymentCash').querySelector('i').classList.add('text-gray-500');
+            document.getElementById('btnPaymentCash').querySelector('span').classList.remove('text-primary');
+            document.getElementById('btnPaymentCash').querySelector('span').classList.add('text-gray-700');
+
+            document.getElementById('btnPaymentGcash').classList.remove('border-blue-500', 'bg-blue-50');
+            document.getElementById('btnPaymentGcash').classList.add('border-gray-300', 'bg-white');
+            document.getElementById('btnPaymentGcash').querySelector('i').classList.remove('text-blue-600');
+            document.getElementById('btnPaymentGcash').querySelector('i').classList.add('text-gray-500');
+            document.getElementById('btnPaymentGcash').querySelector('span').classList.remove('text-blue-600');
+            document.getElementById('btnPaymentGcash').querySelector('span').classList.add('text-gray-700');
+
+            // Highlight selected
+            if (method === 'cash') {
+                document.getElementById('btnPaymentCash').classList.remove('border-gray-300', 'bg-white');
+                document.getElementById('btnPaymentCash').classList.add('border-primary', 'bg-primary/10');
+                document.getElementById('btnPaymentCash').querySelector('i').classList.remove('text-gray-500');
+                document.getElementById('btnPaymentCash').querySelector('i').classList.add('text-primary');
+                document.getElementById('btnPaymentCash').querySelector('span').classList.remove('text-gray-700');
+                document.getElementById('btnPaymentCash').querySelector('span').classList.add('text-primary');
+            } else if (method === 'gcash') {
+                document.getElementById('btnPaymentGcash').classList.remove('border-gray-300', 'bg-white');
+                document.getElementById('btnPaymentGcash').classList.add('border-blue-500', 'bg-blue-50');
+                document.getElementById('btnPaymentGcash').querySelector('i').classList.remove('text-gray-500');
+                document.getElementById('btnPaymentGcash').querySelector('i').classList.add('text-blue-600');
+                document.getElementById('btnPaymentGcash').querySelector('span').classList.remove('text-gray-700');
+                document.getElementById('btnPaymentGcash').querySelector('span').classList.add('text-blue-600');
+            }
+
+            // Trigger payment method change handler if it exists in order-main.js
+            var orderType = document.getElementById('checkoutOrderType').value;
+            if (typeof handlePaymentMethodChange === 'function') {
+                handlePaymentMethodChange(method, orderType);
             }
         }
 

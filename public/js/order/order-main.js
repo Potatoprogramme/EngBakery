@@ -638,13 +638,7 @@ function initCheckoutModal() {
       calculateChange();
     });
 
-  // Payment method change handler - disable exact amount for online payments
-  document
-    .getElementById("checkoutPaymentMethod")
-    .addEventListener("change", function () {
-      const orderType = document.getElementById("checkoutOrderType").value;
-      handlePaymentMethodChange(this.value, orderType);
-    });
+  // Payment method change is now handled by selectPaymentMethod() in the view
 
   document.querySelectorAll(".quick-amount").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -822,6 +816,10 @@ function resetStepProgress() {
     .classList.remove("text-green-600", "text-red-600");
   document.getElementById("checkoutOrderType").value = "walk-in";
   document.getElementById("checkoutPaymentMethod").value = "cash";
+  // Reset payment method card buttons back to cash
+  if (typeof selectPaymentMethod === 'function') {
+    selectPaymentMethod('cash');
+  }
   // Reset distributed note
   const distributedNote = document.getElementById("distributedNote");
   if (distributedNote) {
