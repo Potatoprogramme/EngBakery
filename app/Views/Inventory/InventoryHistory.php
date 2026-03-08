@@ -117,6 +117,7 @@
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap bg-white border-r border-gray-200 sticky left-0 z-20" style="min-width:120px;">Date</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap bg-white border-r border-gray-200 sticky left-[120px] z-20" style="min-width:120px;">Time</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Products</th>
+                                <th scope="col" class="px-6 py-3 whitespace-nowrap">Contents</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Beginning</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Sold</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Pull Out</th>
@@ -125,7 +126,7 @@
                             </tr>
                         </thead>
                     <tbody id="historyTableBody">
-                        <tr><td colspan="8" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
+                        <tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
                     </tbody>
                     </table>
                 </div>
@@ -141,6 +142,39 @@
                 <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
                     <i class="fas fa-spinner fa-spin text-2xl"></i>
                     <p class="mt-2">Loading history...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Contents Modal -->
+    <div id="contentsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-3xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Inventory Contents</h3>
+                    <p class="text-sm text-gray-500" id="contentsModalSubtitle">-</p>
+                </div>
+                <button type="button" id="btnCloseContentsModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left text-gray-600">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2">Product</th>
+                                <th class="px-4 py-2 text-center">Begin</th>
+                                <th class="px-4 py-2 text-center">Sold</th>
+                                <th class="px-4 py-2 text-center">Pull Out</th>
+                                <th class="px-4 py-2 text-center">Ending</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contentsModalBody">
+                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -171,6 +205,21 @@
                 $('#filterDateTo').val(formatDateInput(today));
                 loadInventoryHistory();
             });
+
+            $('#btnCloseContentsModal').on('click', function() {
+                $('#contentsModal').addClass('hidden');
+            });
+
+            $('#contentsModal').on('click', function(e) {
+                if (e.target === this) {
+                    $('#contentsModal').addClass('hidden');
+                }
+            });
+
+            $('#historyTable').on('click', '.btn-view-contents', function() {
+                const index = parseInt($(this).data('index'));
+                openContentsModal(index);
+            });
         });
 
         function formatDateInput(date) {
@@ -200,7 +249,7 @@
             const dateTo = $('#filterDateTo').val();
             
             // Show loading
-            $('#historyTableBody').html('<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
+            $('#historyTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
             
             $.ajax({
                 url: BASE_URL + 'Inventory/FetchHistory',
@@ -229,7 +278,7 @@
             let totalSold = 0;
             let totalPullOut = 0;
             
-            historyData.forEach(inv => {
+            historyData.forEach((inv, index) => {
                 totalItems += parseInt(inv.total_items) || 0;
                 totalSold += parseInt(inv.total_sold) || 0;
                 totalPullOut += parseInt(inv.total_pull_out) || 0;
@@ -251,7 +300,7 @@
             let tableHtml = '';
             const todayStr = new Date().toISOString().split('T')[0];
             
-            historyData.forEach(inv => {
+            historyData.forEach((inv, index) => {
                 const isToday = inv.inventory_date === todayStr;
                 const totalSales = parseFloat(inv.total_sales) || 0;
                 
@@ -263,6 +312,12 @@
                         </td>
                             <td class="px-6 py-4 text-gray-600 bg-white border-r border-gray-200 sticky left-[120px] z-10" style="min-width:120px;">${formatTime(inv.time_start)} - ${formatTime(inv.time_end)}</td>
                         <td class="px-6 py-4 text-center font-medium text-gray-700">${inv.total_items}</td>
+                        <td class="px-6 py-4 text-gray-700">
+                            <div class="max-w-[260px]">
+                                <p class="text-sm truncate" title="${(inv.products_preview || '').replace(/"/g, '&quot;')}">${inv.products_preview || '-'}</p>
+                                <button type="button" class="btn-view-contents mt-1 text-xs text-primary hover:underline" data-index="${index}">View items</button>
+                            </div>
+                        </td>
                         <td class="px-6 py-4 text-center text-blue-600 font-medium">${inv.total_beginning}</td>
                         <td class="px-6 py-4 text-center text-green-600 font-medium">${inv.total_sold > 0 ? inv.total_sold : '-'}</td>
                         <td class="px-6 py-4 text-center text-amber-600 font-medium">${inv.total_pull_out > 0 ? inv.total_pull_out : '-'}</td>
@@ -292,7 +347,7 @@
             let cardsHtml = '';
             const todayStr = new Date().toISOString().split('T')[0];
 
-            historyData.forEach(inv => {
+            historyData.forEach((inv, index) => {
                 const isToday = inv.inventory_date === todayStr;
                 const totalSales = parseFloat(inv.total_sales) || 0;
                 const date = new Date(inv.inventory_date);
@@ -341,6 +396,8 @@
                             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
                                     <p class="text-xs text-gray-500">${inv.total_items || 0} Products</p>
+                                    <p class="text-xs text-gray-500 truncate max-w-[170px]" title="${(inv.products_preview || '').replace(/"/g, '&quot;')}">${inv.products_preview || '-'}</p>
+                                    <button type="button" class="btn-view-contents-mobile text-xs text-primary hover:underline mt-1" data-index="${index}">View items</button>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-xs text-gray-500">Total Sales</p>
@@ -353,6 +410,42 @@
             });
 
             $('#historyCards').html(cardsHtml);
+
+            $('.btn-view-contents-mobile').off('click').on('click', function() {
+                const index = parseInt($(this).data('index'));
+                openContentsModal(index);
+            });
+        }
+
+        function openContentsModal(index) {
+            const inventory = historyData[index];
+            if (!inventory) return;
+
+            const details = inventory.products_detail || [];
+            const displayDate = formatDisplayDate(inventory.inventory_date);
+            $('#contentsModalSubtitle').text(`${displayDate} • ${details.length} products`);
+
+            if (details.length === 0) {
+                $('#contentsModalBody').html('<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>');
+                $('#contentsModal').removeClass('hidden');
+                return;
+            }
+
+            let rows = '';
+            details.forEach(item => {
+                rows += `
+                    <tr class="border-b">
+                        <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                        <td class="px-4 py-2 text-center text-blue-600">${item.beginning_stock}</td>
+                        <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
+                        <td class="px-4 py-2 text-center text-amber-600">${item.pull_out_quantity}</td>
+                        <td class="px-4 py-2 text-center text-gray-700">${item.ending_stock}</td>
+                    </tr>
+                `;
+            });
+
+            $('#contentsModalBody').html(rows);
+            $('#contentsModal').removeClass('hidden');
         }
 
         function initDataTable() {
@@ -379,7 +472,7 @@
         function showEmptyState(message = 'No inventory records found') {
             $('#historyTableBody').html(`
                 <tr>
-                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="9" class="px-6 py-12 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-3"></i>
                         <p>${message}</p>
                     </td>
