@@ -208,11 +208,13 @@
 
             $('#btnCloseContentsModal').on('click', function() {
                 $('#contentsModal').addClass('hidden');
+                $('body').removeClass('overflow-hidden');
             });
 
             $('#contentsModal').on('click', function(e) {
                 if (e.target === this) {
                     $('#contentsModal').addClass('hidden');
+                    $('body').removeClass('overflow-hidden');
                 }
             });
 
@@ -428,6 +430,7 @@
             if (details.length === 0) {
                 $('#contentsModalBody').html('<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>');
                 $('#contentsModal').removeClass('hidden');
+                $('body').addClass('overflow-hidden');
                 return;
             }
 
@@ -446,6 +449,7 @@
 
             $('#contentsModalBody').html(rows);
             $('#contentsModal').removeClass('hidden');
+            $('body').addClass('overflow-hidden');
         }
 
         function initDataTable() {
