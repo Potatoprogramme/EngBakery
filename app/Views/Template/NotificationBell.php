@@ -239,15 +239,36 @@
         // Get initial count
         setTimeout(fetchUnreadCount, 500);
 
-        // Poll every 30 seconds for near-real-time updates
-        pollInterval = setInterval(fetchUnreadCount, 30000);
+        // Poll every 15 seconds as fallback for cross-tab / other-user updates
+        pollInterval = setInterval(fetchUnreadCount, 15000);
     }
 
     // ── Global helper: refresh badge after an action (other JS can call this) ──
+    let _refreshTimer = null;
     window.refreshNotifications = function () {
-        fetch(`${BASE_URL}/Notifications/Generate`).catch(() => {});
-        setTimeout(fetchUnreadCount, 800);
+        // Debounce: if multiple mutations fire rapidly, only refresh once
+        clearTimeout(_refreshTimer);
+        _refreshTimer = setTimeout(() => {
+            fetch(`${BASE_URL}/Notifications/Generate`).catch(() => {});
+            setTimeout(fetchUnreadCount, 800);
+        }, 300);
     };
+
+    // ── Auto-refresh notifications after any successful POST/PUT/DELETE ──
+    // Hooks into jQuery's global AJAX events so every controller action
+    // that returns { success: true } automatically updates the bell badge.
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).ajaxComplete(function (_event, xhr, settings) {
+            if (settings.type && settings.type.toUpperCase() === 'GET') return;
+            try {
+                const res = xhr.responseJSON ||
+                            (xhr.responseText && JSON.parse(xhr.responseText));
+                if (res && res.success) {
+                    window.refreshNotifications();
+                }
+            } catch (_e) { /* non-JSON response, skip */ }
+        });
+    }
 
     // Start after DOM is ready
     if (document.readyState === 'loading') {

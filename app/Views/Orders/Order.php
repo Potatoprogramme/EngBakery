@@ -376,16 +376,17 @@
                                 characters)</p>
                         </div>
                     </div>
-                    <div class="mb-4">
+                    <div id="paymentMethodContainer" class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span
                                 class="text-red-500">*</span></label>
                         <select id="checkoutPaymentMethod"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             <option value="cash">Cash</option>
                             <option value="gcash">GCash</option>
-                            <option value="maya">Maya</option>
+                            <!-- ANCHOR - For future payment methods -->
+                            <!-- <option value="maya">Maya</option>
                             <option value="credit card">Credit Card</option>
-                            <option value="debit card">Debit Card</option>
+                            <option value="debit card">Debit Card</option> -->
                         </select>
                     </div>
                     <div class="flex gap-2">
@@ -415,7 +416,7 @@
                                 placeholder="0.00" step="0.00001">
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mb-3">
+                    <div id="quickAmountContainer" class="grid grid-cols-4 gap-2 mb-3">
                         <button type="button"
                             class="quick-amount px-2 py-2 text-xs font-medium border border-gray-300 rounded-md bg-gray-50 hover:bg-primary hover:text-white hover:border-primary transition-colors"
                             data-type="exact">Exact</button>
@@ -694,6 +695,9 @@
             document.getElementById('distributedNoteContainer').classList.add('hidden');
             document.getElementById('distributedNote').removeAttribute('required');
 
+            // Show payment method by default (hidden for foodpanda)
+            document.getElementById('paymentMethodContainer').classList.remove('hidden');
+
             // Highlight selected button
             if (type === 'walk-in') {
                 document.getElementById('btnOrderTypeWalkin').classList.remove('border-gray-300', 'bg-white');
@@ -707,6 +711,8 @@
                 document.getElementById('btnOrderTypeFoodpanda').classList.add('border-pink-500', 'bg-pink-50');
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-gray-700');
                 document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-pink-600');
+                // Hide payment method for foodpanda (payment is handled by foodpanda)
+                document.getElementById('paymentMethodContainer').classList.add('hidden');
             } else if (type === 'distributed') {
                 document.getElementById('btnOrderTypeDistributed').classList.remove('border-gray-300', 'bg-white');
                 document.getElementById('btnOrderTypeDistributed').classList.add('border-blue-500', 'bg-blue-50');

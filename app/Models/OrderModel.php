@@ -18,19 +18,20 @@ class OrderModel extends Model
         'distributed_note',
         'cashier_name',
         'date_created',
-        'time_created'
+        'time_created',
+        'voided_at',
+        'voided_by'
     ];
     protected $useTimestamps = false;
 
     public function generateOrderNumber(): string
     {
         $today = date('Y-m-d');
-        $dateCode = date('Ymd');
 
-        $todayCount = $this->where('date_created', $today)->countAllResults();
-        $sequence = str_pad($todayCount + 1, 3, '0', STR_PAD_LEFT);
+        $todayCount = $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
+        $sequence = $todayCount + 1;
 
-        return "ORD-{$dateCode}-{$sequence}";
+        return "{$today} -{$sequence}";
     }
 
     public function createOrder(array $data): int|false
@@ -56,9 +57,9 @@ class OrderModel extends Model
     public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $builder = $this->builder();
-        $builder->select('orders.*, 
-            CONCAT("ORD-", DATE_FORMAT(orders.date_created, "%Y%m%d"), "-", 
-            LPAD((SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id), 3, "0")) as order_number');
+        $builder->select("orders.*, orders.voided_at, orders.voided_by,
+            CONCAT(orders.date_created, ' -', 
+            (SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id)) as order_number", false);
 
         if ($dateFrom) {
             $builder->where('date_created >=', $dateFrom);
@@ -77,11 +78,10 @@ class OrderModel extends Model
     {
         $order = $this->find($orderId);
         if ($order) {
-            $dateCode = date('Ymd', strtotime($order['date_created']));
             $sequence = $this->where('date_created', $order['date_created'])
                 ->where('order_id <=', $orderId)
                 ->countAllResults();
-            $order['order_number'] = "ORD-{$dateCode}-" . str_pad($sequence, 3, '0', STR_PAD_LEFT);
+            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . " -{$sequence}";
         }
         return $order;
     }
@@ -93,6 +93,22 @@ class OrderModel extends Model
             ->selectSum('total_payment_due', 'total_sales')
             ->selectCount('order_id', 'total_orders')
             ->where('date_created', $today)
+            ->where('voided_at IS NULL')
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getTotalSalesByPaymentMethod($paymentMethod)
+    {
+        $today = date('Y-m-d');
+
+        // Query orders table directly for sales by payment method
+        return $this->builder()
+            ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
+            ->where('orders.date_created', $today)
+            ->where('LOWER(orders.payment_method)', strtolower($paymentMethod))
+            ->where('orders.voided_at IS NULL')
+            ->groupBy('orders.payment_method')
             ->get()
             ->getRowArray();
     }
@@ -101,12 +117,12 @@ class OrderModel extends Model
     {
         $today = date('Y-m-d');
 
-        // Query orders table directly for sales by payment method
         return $this->builder()
-            ->select('orders.payment_method, SUM(orders.total_payment_due) AS total_revenue')
+            ->select('orders.order_type, SUM(orders.total_payment_due) AS total_revenue')
             ->where('orders.date_created', $today)
-            ->where('LOWER(orders.payment_method)', strtolower($orderType))
-            ->groupBy('orders.payment_method')
+            ->where('LOWER(orders.order_type)', strtolower($orderType))
+            ->where('orders.voided_at IS NULL')
+            ->groupBy('orders.order_type')
             ->get()
             ->getRowArray();
     }
@@ -114,7 +130,7 @@ class OrderModel extends Model
     public function getTodaysOrderCount(): int
     {
         $today = date('Y-m-d');
-        return $this->where('date_created', $today)->countAllResults();
+        return $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
     }
 
     /**
@@ -128,6 +144,7 @@ class OrderModel extends Model
             ->selectSum('total_payment_due', 'total')
             ->where('date_created', $today)
             ->where('LOWER(payment_method)', strtolower($paymentMethod))
+            ->where('voided_at IS NULL')
             ->get()
             ->getRowArray();
 
@@ -198,11 +215,15 @@ class OrderModel extends Model
     /**
      * Void an order and restore stock
      */
-    public function voidOrderWithRestore(int $orderId, $orderItemModel, $dailyStockItemsModel, ?int $dailyStockId = null): bool
+    public function voidOrderWithRestore(int $orderId, $orderItemModel, $dailyStockItemsModel, ?int $dailyStockId = null, ?string $voidedBy = null): bool
     {
         $order = $this->find($orderId);
         if (!$order) {
             throw new \Exception('Order not found.');
+        }
+
+        if (!empty($order['voided_at'])) {
+            throw new \Exception('Order is already voided.');
         }
 
         $orderItems = $orderItemModel->getOrderItems($orderId);
@@ -217,9 +238,11 @@ class OrderModel extends Model
             }
         }
 
-        // Delete order items and order
-        $orderItemModel->where('order_id', $orderId)->delete();
-        return $this->delete($orderId);
+        // Soft delete: mark as voided instead of deleting
+        return $this->update($orderId, [
+            'voided_at' => date('Y-m-d H:i:s'),
+            'voided_by' => $voidedBy ?? 'Unknown'
+        ]);
     }
 
     public function getTotalSalesByDateRange($dateFrom, $dateTo)
@@ -227,6 +250,7 @@ class OrderModel extends Model
         $result = $this->selectSum('total_payment_due', 'total_amount')
             ->where('DATE(date_created) >=', $dateFrom)
             ->where('DATE(date_created) <=', $dateTo)
+            ->where('voided_at IS NULL')
             ->get()
             ->getRowArray();
 
@@ -240,6 +264,7 @@ class OrderModel extends Model
     {
         return $this->where('DATE(date_created) >=', $dateFrom)
             ->where('DATE(date_created) <=', $dateTo)
+            ->where('voided_at IS NULL')
             ->countAllResults();
     }
 
@@ -252,6 +277,7 @@ class OrderModel extends Model
             ->where('payment_method', $paymentMethod)
             ->where('DATE(date_created) >=', $dateFrom)
             ->where('DATE(date_created) <=', $dateTo)
+            ->where('voided_at IS NULL')
             ->get()
             ->getRowArray();
 
@@ -265,6 +291,7 @@ class OrderModel extends Model
             ->where('payment_method', $category)
             ->where('DATE(orders.date_created) <=', $dateTo)
             ->where('DATE(orders.date_created) >=', $dateFrom)
+            ->where('orders.voided_at IS NULL')
             ->get()
             ->getRowArray();
         return $result['total_revenue'] ?? 0;

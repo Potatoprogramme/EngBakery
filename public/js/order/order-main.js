@@ -617,11 +617,12 @@ function initCheckoutModal() {
   document.getElementById("btnToStep3").addEventListener("click", function () {
     currentStep = 3;
     showStep(3);
-    // Apply payment method restrictions when entering Step 3
+    // Apply payment method and order type restrictions when entering Step 3
     const paymentMethod = document.getElementById(
       "checkoutPaymentMethod",
     ).value;
-    handlePaymentMethodChange(paymentMethod);
+    const orderType = document.getElementById("checkoutOrderType").value;
+    handlePaymentMethodChange(paymentMethod, orderType);
   });
 
   document
@@ -641,7 +642,8 @@ function initCheckoutModal() {
   document
     .getElementById("checkoutPaymentMethod")
     .addEventListener("change", function () {
-      handlePaymentMethodChange(this.value);
+      const orderType = document.getElementById("checkoutOrderType").value;
+      handlePaymentMethodChange(this.value, orderType);
     });
 
   document.querySelectorAll(".quick-amount").forEach((btn) => {
@@ -834,28 +836,39 @@ function resetStepProgress() {
   // Reset order type button styles back to walk-in
   selectOrderType("walk-in");
   // Reset payment method UI state
-  handlePaymentMethodChange("cash");
+  handlePaymentMethodChange("cash", "walk-in");
+  // Restore payment method and quick amount visibility
+  document.getElementById("paymentMethodContainer").classList.remove("hidden");
+  document.getElementById("quickAmountContainer").classList.remove("hidden");
 }
 
 /**
  * Handle payment method change
  * For online payments (gcash, maya, credit card, debit card), auto-set exact amount and disable input
+ * For foodpanda orders, auto-set exact amount, hide quick-amount buttons entirely
  */
-function handlePaymentMethodChange(paymentMethod) {
+function handlePaymentMethodChange(paymentMethod, orderType) {
   const amountInput = document.getElementById("amountTendered");
   const exactBtn = document.querySelector('.quick-amount[data-type="exact"]');
   const quickAmountBtns = document.querySelectorAll(
     ".quick-amount[data-amount]",
   );
+  const quickAmountContainer = document.getElementById("quickAmountContainer");
   const isOnlinePayment = [
     "gcash",
     "maya",
     "credit card",
     "debit card",
   ].includes(paymentMethod);
+  const isFoodpanda = orderType === "foodpanda";
 
-  if (isOnlinePayment) {
-    // For online payments: set exact amount and disable input
+  // Show quick amount container by default
+  if (quickAmountContainer) {
+    quickAmountContainer.classList.remove("hidden");
+  }
+
+  if (isOnlinePayment || isFoodpanda) {
+    // For online payments and foodpanda: set exact amount and disable input
     amountInput.value = checkoutTotalAmount.toFixed(2);
     amountInput.disabled = true;
     amountInput.classList.add("bg-gray-100", "cursor-not-allowed");
@@ -881,6 +894,11 @@ function handlePaymentMethodChange(paymentMethod) {
         "hover:border-primary",
       );
     });
+
+    // For foodpanda: hide the entire quick amount container
+    if (isFoodpanda && quickAmountContainer) {
+      quickAmountContainer.classList.add("hidden");
+    }
 
     calculateChange();
   } else {
@@ -946,7 +964,7 @@ async function completeCheckout() {
     Toast.error("Insufficient amount tendered!");
     return;
   }
-
+  var paymentMethod = document.getElementById("checkoutPaymentMethod").value;
   const orderType = document.getElementById("checkoutOrderType").value;
 
   // Validate distributed note if order type is distributed
@@ -961,6 +979,8 @@ async function completeCheckout() {
       document.getElementById("distributedNote").focus();
       return;
     }
+  } else if (orderType === "foodpanda") {
+    paymentMethod = "panda"; // Override payment method to online for foodpanda orders
   }
 
   const btn = document.getElementById("btnCompleteCheckout");
@@ -972,7 +992,7 @@ async function completeCheckout() {
     const orderData = {
       total_payment_due: checkoutTotalAmount,
       amount_received: tendered,
-      payment_method: document.getElementById("checkoutPaymentMethod").value,
+      payment_method: paymentMethod,
       order_type: orderType,
       distributed_note:
         orderType === "distributed"

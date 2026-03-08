@@ -14,13 +14,9 @@
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
-                        <button id="btnLoadFromDistribution" type="button"
+                        <button id="btnDistributions" type="button"
                             class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-truck-loading mr-2"></i> Load from Distribution
-                        </button>
-                        <button id="btnUnloadDistribution" type="button"
-                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
-                            <i class="fas fa-truck-loading mr-2"></i> Unload Distribution
+                            <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
                         </button>
                         <button id="btnAddTodaysInventory" type="button"
                             class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -466,152 +462,161 @@
                 deleteTodaysInventory(); // This calls your function
             });
 
-            // Load from Distribution button click
-            $('#btnLoadFromDistribution').on('click', function () {
+            // Distributions button click — open distribution list modal
+            $('#btnDistributions').on('click', function () {
                 if (!inventoryExistsToday) {
                     showToast('warning', 'Create inventory first before loading distribution data.', 2000);
                     return;
                 }
-                $('#loadDistributionConfirmModal').removeClass('hidden');
+                openDistributionModal();
             });
 
-            // Close Load Distribution Modal
-            $('#loadDistributionModalClose, #loadDistributionModalCancel').on('click', function () {
-                $('#loadDistributionConfirmModal').addClass('hidden');
+            // Close Distribution List Modal
+            $('#distributionListModalClose, #distributionListModalDone, #distributionListModalBackdrop').on('click', function () {
+                $('#distributionListModal').addClass('hidden');
             });
 
-            // Confirm Load from Distribution
-            $('#btnConfirmLoadDistribution').on('click', function () {
-                $('#loadDistributionConfirmModal').addClass('hidden');
-                loadFromDistribution();
+            // Load All Remaining button
+            $('#btnLoadAllRemaining').on('click', function () {
+                loadAllRemainingDistribution();
             });
 
-            function loadFromDistribution() {
-                const baseUrl = '<?= base_url() ?>';
-                $.ajax({
-                    url: baseUrl + 'Inventory/LoadFromDistribution',
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (response) {
-                        if (response.success) {
-                            showToast('success', response.message, 3000);
-                            fetchAllStockitems();
-                            // Swap to Unload button
-                            $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                            $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                        } else {
-                            showToast('error', response.message, 3000);
-                        }
-                    },
-                    error: function (xhr) {
-                        let msg = 'Failed to load distribution data.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            msg = xhr.responseJSON.message;
-                        }
-                        showToast('error', msg, 3000);
-                    }
-                });
-            }
-
-            // Unload Distribution button click
-            $('#btnUnloadDistribution').on('click', function () {
-                $('#unloadDistributionConfirmModal').removeClass('hidden');
+            // Close Load Single Item Modal
+            $('#loadSingleItemClose, #loadSingleItemCancel, #loadSingleItemBackdrop').on('click', function () {
+                $('#loadSingleItemModal').addClass('hidden');
+                $('#loadSingleItemForm')[0].reset();
+                resetLoadItemModalState();
             });
 
-            // Close Unload Distribution Modal
-            $('#unloadDistributionModalClose, #unloadDistributionModalCancel').on('click', function () {
-                $('#unloadDistributionConfirmModal').addClass('hidden');
+            // +/- buttons for load quantity
+            $('#btnDecreaseLoadQty').on('click', function () {
+                const current = parseInt($('#loadItemQuantity').val()) || 0;
+                $('#loadItemQuantity').val(Math.max(1, current - 1));
+                updateLoadQuantityDisplay();
             });
 
-            // Confirm Unload
-            $('#btnConfirmUnloadDistribution').on('click', function () {
-                $('#unloadDistributionConfirmModal').addClass('hidden');
-                unloadDistribution();
+            $('#btnIncreaseLoadQty').on('click', function () {
+                const current = parseInt($('#loadItemQuantity').val()) || 0;
+                $('#loadItemQuantity').val(current + 1);
+                updateLoadQuantityDisplay();
             });
 
-            function unloadDistribution() {
-                const baseUrl = '<?= base_url() ?>';
-                $.ajax({
-                    url: baseUrl + 'Inventory/UnloadDistribution',
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (response) {
-                        if (response.success) {
-                            showToast('success', response.message, 3000);
-                            fetchAllStockitems();
-                            // Swap back to Load button
-                            $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                            $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                        } else {
-                            showToast('error', response.message, 3000);
-                        }
-                    },
-                    error: function (xhr) {
-                        let msg = 'Failed to unload distribution data.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            msg = xhr.responseJSON.message;
-                        }
-                        showToast('error', msg, 3000);
-                    }
-                });
-            }
+            $('#loadItemQuantity').on('input change', function () {
+                updateLoadQuantityDisplay();
+            });
+
+            // Update note border on input
+            $('#loadItemNote').on('input', function () {
+                if ($('#loadItemNote').is('[required]') && !$(this).val().trim()) {
+                    $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
+            });
+
+            // Submit Load Single Item
+            $('#loadSingleItemForm').on('submit', function (e) {
+                e.preventDefault();
+                submitLoadSingleItem();
+            });
 
         }); // end $(document).ready()
     </script>
 
-    <!-- Load from Distribution Confirmation Modal -->
-    <div id="loadDistributionConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-            <button type="button" id="loadDistributionModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
-            </button>
-            <div class="text-center">
-                <i class="fas fa-truck-loading text-primary text-5xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Load from Distribution?</h3>
-                <p class="text-gray-600 mb-6">This will update the beginning stock of inventory items using today's
-                    distribution data. Products not yet in inventory will be added.</p>
-            </div>
-            <div class="flex gap-3">
-                <button type="button" id="btnConfirmLoadDistribution"
-                    class="flex-1 text-white bg-primary hover:bg-secondary focus:ring-4 focus:ring-primary/40 font-medium rounded-lg text-sm px-5 py-2.5">
-                    Load Distribution
+    <!-- Distribution Items List Modal -->
+    <div id="distributionListModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/40" id="distributionListModalBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col z-10">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-truck-loading mr-2 text-primary"></i>Today's Distribution Items
+                </h3>
+                <button type="button" id="distributionListModalClose"
+                    class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
-                <button type="button" id="loadDistributionModalCancel"
-                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Cancel
+            </div>
+            <div class="px-6 py-4 overflow-y-auto flex-1" id="distributionListContent">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p class="text-sm">Loading distribution items...</p>
+                </div>
+            </div>
+            <div class="px-6 py-3 border-t border-gray-200 flex justify-between items-center">
+                <button type="button" id="btnLoadAllRemaining"
+                    class="text-sm text-primary hover:text-secondary font-medium transition-colors">
+                    <i class="fas fa-download mr-1"></i> Load All Remaining
+                </button>
+                <button type="button" id="distributionListModalDone"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors">
+                    Done
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Unload Distribution Confirmation Modal -->
-    <div id="unloadDistributionConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-            <button type="button" id="unloadDistributionModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
+    <!-- Load Single Distribution Item Modal -->
+    <div id="loadSingleItemModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/40" id="loadSingleItemBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
+            <button type="button" id="loadSingleItemClose"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
             </button>
-            <div class="text-center">
-                <i class="fas fa-undo-alt text-red-600 text-5xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Unload Distribution?</h3>
-                <p class="text-gray-600 mb-6">This will reverse the distribution load — subtracting distribution
-                    quantities from beginning stock. Items that were added from distribution only will be removed.</p>
-            </div>
-            <div class="flex gap-3">
-                <button type="button" id="btnConfirmUnloadDistribution"
-                    class="flex-1 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-400 font-medium rounded-lg text-sm px-5 py-2.5">
-                    Unload Distribution
-                </button>
-                <button type="button" id="unloadDistributionModalCancel"
-                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Cancel
-                </button>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Load Distribution Item</h3>
+            <p class="text-sm text-gray-500 mb-4">Product: <span id="loadItemProductName" class="font-medium text-gray-700"></span></p>
+
+            <form id="loadSingleItemForm">
+                <input type="hidden" id="loadItemProductId" value="0">
+                <input type="hidden" id="loadItemExpectedPieces" value="0">
+
+                <!-- Distribution Info Bar -->
+                <div id="loadItemDistInfo" class="mb-4 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs text-blue-700" id="loadItemDistInfoText"></p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="loadItemQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Quantity (pcs)</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseLoadQty"
+                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-minus text-xs"></i>
+                        </button>
+                        <input type="number" id="loadItemQuantity" name="quantity" required min="1" step="1"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        <button type="button" id="btnIncreaseLoadQty"
+                            class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Deviation Warning -->
+                <div id="loadItemDeviationWarning" class="hidden mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p class="text-xs text-amber-700 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-1.5"></i>
+                        <span id="loadItemDeviationText"></span>
+                    </p>
+                </div>
+
+                <div class="mb-5">
+                    <label for="loadItemNote" id="loadItemNoteLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Note</label>
+                    <textarea id="loadItemNote" name="note" rows="3" maxlength="500" placeholder="Add note (optional)"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
+                    <p id="loadItemNoteHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-secondary focus:ring-2 focus:ring-primary/40 transition-colors">
+                        <i class="fas fa-check mr-1.5"></i> Confirm Load
+                    </button>
+                    <button type="button" id="loadSingleItemCancel"
+                        class="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     <style>
@@ -844,44 +849,23 @@
 
         function checkDistributionAndToggleButton() {
             const baseUrl = '<?= base_url() ?>';
-            // First check if distribution exists for today
+            // Check if distribution exists for today and show Distributions button with count
             $.ajax({
                 url: baseUrl + 'Distribution/CheckDistributionToday',
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
-                        // Distribution exists — now check if already loaded
-                        $.ajax({
-                            url: baseUrl + 'Inventory/CheckDistributionLoadedStatus',
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (statusRes) {
-                                if (statusRes.loaded) {
-                                    // Already loaded — show Unload button
-                                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                                    $('#btnUnloadDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                                } else {
-                                    // Not loaded yet — show Load button
-                                    $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                                }
-                            },
-                            error: function () {
-                                // Default to showing Load button
-                                $('#btnLoadFromDistribution').removeClass('hidden').addClass('sm:inline-flex');
-                                $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                            }
-                        });
+                        // Distribution exists — show button with count
+                        $('#distCount').text(response.data.length);
+                        $('#btnDistributions').removeClass('hidden').addClass('sm:inline-flex');
                     } else {
-                        // No distribution — hide both buttons
-                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        // No distribution — hide button
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
                 error: function () {
-                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
@@ -942,8 +926,7 @@
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                     }
                 },
                 error: function (xhr, status, error) {
@@ -956,8 +939,7 @@
                     $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                 }
             });
         }
@@ -990,6 +972,314 @@
                 const timeEnd = formatTime(data.time_end);
                 $('#timeRange').text(`${timeStart} - ${timeEnd}`);
             }
+        }
+
+        // ============================================================
+        // Distribution Modal Functions
+        // ============================================================
+
+        /**
+         * Open the distribution list modal and fetch items with status.
+         */
+        function openDistributionModal() {
+            const baseUrl = '<?= base_url() ?>';
+            $('#distributionListModal').removeClass('hidden');
+            $('#distributionListContent').html(
+                '<div class="text-center text-gray-400 py-8">' +
+                '<i class="fas fa-spinner fa-spin text-2xl mb-2"></i>' +
+                '<p class="text-sm">Loading distribution items...</p>' +
+                '</div>'
+            );
+
+            $.ajax({
+                url: baseUrl + 'Inventory/GetDistributionItemsWithStatus',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        renderDistributionList(response.data);
+                    } else {
+                        $('#distributionListContent').html(
+                            '<div class="text-center text-gray-400 py-8">' +
+                            '<i class="fas fa-box-open text-3xl mb-2"></i>' +
+                            '<p class="text-sm">No distribution items for today.</p>' +
+                            '</div>'
+                        );
+                    }
+                },
+                error: function () {
+                    $('#distributionListContent').html(
+                        '<div class="text-center text-red-400 py-8">' +
+                        '<i class="fas fa-exclamation-circle text-3xl mb-2"></i>' +
+                        '<p class="text-sm">Failed to load distribution items.</p>' +
+                        '</div>'
+                    );
+                }
+            });
+        }
+
+        /**
+         * Render the list of distribution items in the modal.
+         */
+        function renderDistributionList(items) {
+            let html = '';
+            let hasUnloaded = false;
+
+            items.forEach(function (item) {
+                const categoryColors = {
+                    bakery: { bg: 'bg-amber-100', text: 'text-amber-700', icon: 'fa-bread-slice' },
+                    drinks: { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-mug-hot' },
+                    grocery: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: 'fa-shopping-basket' },
+                };
+                const cat = categoryColors[item.category] || { bg: 'bg-gray-100', text: 'text-gray-600', icon: 'fa-box' };
+
+                const qtyLabel = item.qty_mode === 'batch'
+                    ? item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item.calculated_pieces + ' pcs'
+                    : item.calculated_pieces + ' pcs';
+
+                const isLoaded = item.loaded && item.loaded_qty > 0;
+                if (!isLoaded) hasUnloaded = true;
+
+                html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' : 'bg-white') + '">';
+                html += '  <div class="flex items-start justify-between gap-2">';
+                html += '    <div class="flex-1 min-w-0">';
+                html += '      <div class="flex items-center gap-2 mb-1">';
+                html += '        <span class="text-sm font-medium text-gray-800 truncate">' + item.product_name + '</span>';
+                html += '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ' + cat.bg + ' ' + cat.text + '">';
+                html += '          <i class="fas ' + cat.icon + ' mr-1"></i>' + item.category;
+                html += '        </span>';
+                html += '      </div>';
+                html += '      <div class="flex items-center gap-3 text-xs text-gray-500">';
+                html += '        <span><i class="fas fa-cubes mr-1"></i>' + qtyLabel + '</span>';
+                html += '      </div>';
+
+                if (isLoaded) {
+                    html += '      <div class="mt-1.5">';
+                    html += '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
+                    html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + item.loaded_qty + ' pcs';
+                    html += '        </span>';
+                    html += '      </div>';
+                }
+
+                html += '    </div>';
+                html += '    <div class="flex-shrink-0">';
+
+                if (isLoaded) {
+                    html += '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors"';
+                } else {
+                    html += '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-secondary transition-colors"';
+                }
+                html += '        data-product-id="' + item.product_id + '"';
+                html += '        data-product-name="' + (item.product_name || '').replace(/"/g, '&quot;') + '"';
+                html += '        data-expected-pieces="' + item.calculated_pieces + '"';
+                html += '        data-qty-mode="' + item.qty_mode + '"';
+                html += '        data-product-qnty="' + item.product_qnty + '"';
+                html += '        data-loaded="' + (isLoaded ? '1' : '0') + '">';
+                html += '        <i class="fas fa-download mr-1"></i>' + (isLoaded ? 'Load More' : 'Load');
+                html += '      </button>';
+
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+            });
+
+            $('#distributionListContent').html(html);
+
+            // Toggle "Load All Remaining" button visibility
+            if (hasUnloaded) {
+                $('#btnLoadAllRemaining').removeClass('hidden');
+            } else {
+                $('#btnLoadAllRemaining').addClass('hidden');
+            }
+        }
+
+        /**
+         * Open the load single item sub-modal from a distribution list item.
+         */
+        $(document).on('click', '.btn-load-dist-item', function () {
+            const productId = $(this).data('product-id');
+            const productName = $(this).data('product-name');
+            const expectedPieces = parseInt($(this).data('expected-pieces')) || 0;
+            const qtyMode = $(this).data('qty-mode');
+            const productQnty = $(this).data('product-qnty');
+            const alreadyLoaded = $(this).data('loaded') === 1 || $(this).data('loaded') === '1';
+
+            // Populate modal
+            $('#loadItemProductId').val(productId);
+            $('#loadItemExpectedPieces').val(expectedPieces);
+            $('#loadItemProductName').text(productName);
+            $('#loadItemQuantity').val(expectedPieces);
+
+            // Info bar
+            let infoText = 'Distribution: <strong>' + expectedPieces + '</strong> pcs';
+            if (qtyMode === 'batch') {
+                infoText = productQnty + ' batch' + (productQnty > 1 ? 'es' : '') + ' → <strong>' + expectedPieces + '</strong> pcs';
+            }
+            if (alreadyLoaded) {
+                infoText += ' <span class="text-green-600">(previously loaded)</span>';
+            }
+            $('#loadItemDistInfoText').html(infoText);
+
+            // Reset state
+            resetLoadItemModalState();
+            updateLoadQuantityDisplay();
+
+            $('#loadSingleItemModal').removeClass('hidden');
+        });
+
+        /**
+         * Update deviation warning and note requirement based on qty vs expected.
+         */
+        function updateLoadQuantityDisplay() {
+            const expected = parseInt($('#loadItemExpectedPieces').val()) || 0;
+            const current = parseInt($('#loadItemQuantity').val()) || 0;
+
+            if (expected > 0 && current !== expected) {
+                const delta = current - expected;
+                let warningText = '';
+                if (delta > 0) {
+                    warningText = 'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required';
+                } else {
+                    warningText = 'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
+                }
+                $('#loadItemDeviationText').html(warningText);
+                $('#loadItemDeviationWarning').removeClass('hidden');
+
+                // Make note required
+                $('#loadItemNote').attr('required', true);
+                $('#loadItemNote').attr('placeholder', 'Explain why quantity differs from distribution');
+                $('#loadItemNoteLabel').html('Note <span class="text-red-500">*</span>');
+                $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400').addClass('text-red-500');
+                if (!$('#loadItemNote').val()) {
+                    $('#loadItemNote').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
+            } else {
+                // Matches expected or no expected baseline
+                $('#loadItemDeviationWarning').addClass('hidden');
+                $('#loadItemNote').removeAttr('required');
+                $('#loadItemNote').attr('placeholder', 'Add note (optional)');
+                $('#loadItemNoteLabel').text('Note');
+                $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            }
+        }
+
+        /**
+         * Reset the load item modal to default state.
+         */
+        function resetLoadItemModalState() {
+            $('#loadItemDeviationWarning').addClass('hidden');
+            $('#loadItemNote').removeAttr('required');
+            $('#loadItemNote').attr('placeholder', 'Add note (optional)');
+            $('#loadItemNoteLabel').text('Note');
+            $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+            $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+        }
+
+        /**
+         * Submit the single distribution item load.
+         */
+        function submitLoadSingleItem() {
+            const baseUrl = '<?= base_url() ?>';
+            const productId = parseInt($('#loadItemProductId').val());
+            const quantity = parseInt($('#loadItemQuantity').val());
+            const expectedPieces = parseInt($('#loadItemExpectedPieces').val());
+            const note = $('#loadItemNote').val().trim();
+
+            if (!productId || quantity <= 0) {
+                showToast('warning', 'Please enter a valid quantity.', 2000);
+                return;
+            }
+
+            // Client-side note validation
+            if (expectedPieces > 0 && quantity !== expectedPieces && !note) {
+                showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces + ' pcs).', 3000);
+                $('#loadItemNote').focus();
+                return;
+            }
+
+            // Disable submit button
+            const $submitBtn = $('#loadSingleItemForm button[type="submit"]');
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1.5"></i> Loading...');
+
+            $.ajax({
+                url: baseUrl + 'Inventory/LoadDistributionItem',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    quantity: quantity,
+                    expected_pieces: expectedPieces,
+                    note: note
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        // Close the load modal and refresh the distribution list
+                        $('#loadSingleItemModal').addClass('hidden');
+                        $('#loadSingleItemForm')[0].reset();
+                        resetLoadItemModalState();
+                        // Refresh the distribution list modal
+                        openDistributionModal();
+                        // Refresh the inventory table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message || 'Failed to load item.', 3000);
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Failed to load distribution item.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('error', msg, 3000);
+                },
+                complete: function () {
+                    $submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1.5"></i> Confirm Load');
+                }
+            });
+        }
+
+        /**
+         * Load all remaining (unloaded) distribution items at their expected quantities.
+         */
+        function loadAllRemainingDistribution() {
+            const baseUrl = '<?= base_url() ?>';
+
+            // Disable the button
+            const $btn = $('#btnLoadAllRemaining');
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Loading...');
+
+            $.ajax({
+                url: baseUrl + 'Inventory/LoadFromDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        // Refresh the distribution list modal
+                        openDistributionModal();
+                        // Refresh the inventory table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 3000);
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Failed to load distribution data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('error', msg, 3000);
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Load All Remaining');
+                }
+            });
         }
 
         function addTodaysInventoryFromDistribution(time_start, time_end) {
@@ -1523,9 +1813,8 @@
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                         // Re-check distribution status for next inventory creation
                         checkIfDistributionExists();
-                        // Hide both distribution buttons
-                        $('#btnLoadFromDistribution').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnUnloadDistribution').addClass('hidden').removeClass('sm:inline-flex');
+                        // Hide distribution button
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                         // Reload the table
                         fetchAllStockitems();
                     } else {

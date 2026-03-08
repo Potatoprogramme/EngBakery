@@ -73,7 +73,11 @@ class AuthenticationController extends BaseController
                 'email' => $userInfo['email'],
                 'username' => $userInfo['username'],
                 'employee_type' => $userInfo['employee_type'],
-                'name' => trim($userInfo['firstname'] . ' ' . $userInfo['middlename'] . ' ' . $userInfo['lastname']),
+                'name' => $this->buildNormalizedName(
+                    $userInfo['firstname'] ?? '',
+                    $userInfo['middlename'] ?? '',
+                    $userInfo['lastname'] ?? ''
+                ),
                 'is_logged_in' => true,
                 'login_method' => 'manual',
             ];
@@ -182,7 +186,11 @@ class AuthenticationController extends BaseController
                 'email' => $userInformation['email'],
                 'username' => $userInformation['username'],
                 'employee_type' => $userInformation['employee_type'],
-                'name' => $userInformation['firstname'] . ' ' . $userInformation['middlename'] . ' '. $userInformation['lastname'] ?? '',
+                'name' => $this->buildNormalizedName(
+                    $userInformation['firstname'] ?? '',
+                    $userInformation['middlename'] ?? '',
+                    $userInformation['lastname'] ?? ''
+                ),
                 'is_logged_in' => true,
                 'login_method' => 'google',
             ];
@@ -255,6 +263,18 @@ class AuthenticationController extends BaseController
         }
 
         return null;
+    }
+
+    private function buildNormalizedName(?string $firstName, ?string $middleName, ?string $lastName): string
+    {
+        $parts = array_filter([
+            trim((string) $firstName),
+            trim((string) $middleName),
+            trim((string) $lastName),
+        ], static fn($part) => $part !== '');
+
+        $fullName = implode(' ', $parts);
+        return preg_replace('/\s+/', ' ', trim($fullName)) ?: 'Unknown';
     }
 
     /**

@@ -95,7 +95,7 @@ class OrdersController extends BaseController
         try {
             // Prepare order data with cashier info from session
             $sessionData = $this->getSessionData();
-            $cashierName = $sessionData['name'] ?? session()->get('name') ?? 'Unknown';
+            $cashierName = $this->normalizePersonName($sessionData['name'] ?? session()->get('name') ?? 'Unknown');
 
             // Log the cashier name for debugging
             log_message('info', 'Processing payment - Cashier: ' . $cashierName . ' | Session data: ' . print_r($sessionData, true));
@@ -296,6 +296,11 @@ class OrdersController extends BaseController
                 throw new \Exception('Order not found.');
             }
 
+            // Check if already voided
+            if (!empty($order['voided_at'])) {
+                throw new \Exception('Order is already voided.');
+            }
+
             $orderItems = $this->orderItemModel->getOrderItems($orderId);
 
             // Get today's inventory (optional - only restore stock if same day)
@@ -323,9 +328,12 @@ class OrdersController extends BaseController
                 }
             }
 
-            // Delete order items and order
-            $this->orderItemModel->deleteByOrderId($orderId);
-            $this->orderModel->delete($orderId);
+            // Soft delete: mark as voided instead of deleting
+            $cashierName = $this->normalizePersonName(session()->get('name') ?? session()->get('username') ?? 'Unknown');
+            $this->orderModel->update($orderId, [
+                'voided_at' => date('Y-m-d H:i:s'),
+                'voided_by' => $cashierName
+            ]);
 
             $this->db->transComplete();
 
@@ -349,6 +357,12 @@ class OrdersController extends BaseController
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    private function normalizePersonName(?string $value): string
+    {
+        $normalized = preg_replace('/\s+/', ' ', trim((string) $value));
+        return $normalized !== '' ? $normalized : 'Unknown';
     }
 
     /**

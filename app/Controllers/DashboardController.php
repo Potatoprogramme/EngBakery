@@ -69,9 +69,9 @@ class DashboardController extends BaseController
         $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
 
         // Payment Methods
-        $cashSales = $this->orderModel->getTotalSalesByOrderType('cash');
-        $gcashSales = $this->orderModel->getTotalSalesByOrderType('gcash');
-        $mayaSales = $this->orderModel->getTotalSalesByOrderType('maya');
+        $cashSales = $this->orderModel->getTotalSalesByPaymentMethod('cash');
+        $gcashSales = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
+        $foodpandaSales = $this->orderModel->getTotalSalesByOrderType('foodpanda');
 
         // Inventory Status
         $inventoryToday = $this->dailyStockModel->checkInventoryExists($today);
@@ -139,7 +139,7 @@ class DashboardController extends BaseController
             'grocerySales' => floatval($grocerySales['total_revenue'] ?? 0),
             'cashSales' => floatval($cashSales['total_revenue'] ?? 0),
             'gcashSales' => floatval($gcashSales['total_revenue'] ?? 0),
-            'mayaSales' => floatval($mayaSales['total_revenue'] ?? 0),
+            'foodpandaSales' => floatval($foodpandaSales['total_revenue'] ?? 0),
             'inventoryExists' => $inventoryToday !== null,
             'inventoryData' => $inventoryToday,
             'totalBeginningStock' => $totalBeginningStock,
