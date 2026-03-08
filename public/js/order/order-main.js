@@ -964,7 +964,7 @@ async function completeCheckout() {
     Toast.error("Insufficient amount tendered!");
     return;
   }
-
+  var paymentMethod = document.getElementById("checkoutPaymentMethod").value;
   const orderType = document.getElementById("checkoutOrderType").value;
 
   // Validate distributed note if order type is distributed
@@ -979,6 +979,8 @@ async function completeCheckout() {
       document.getElementById("distributedNote").focus();
       return;
     }
+  } else if (orderType === "foodpanda") {
+    paymentMethod = "panda"; // Override payment method to online for foodpanda orders
   }
 
   const btn = document.getElementById("btnCompleteCheckout");
@@ -990,7 +992,7 @@ async function completeCheckout() {
     const orderData = {
       total_payment_due: checkoutTotalAmount,
       amount_received: tendered,
-      payment_method: document.getElementById("checkoutPaymentMethod").value,
+      payment_method: paymentMethod,
       order_type: orderType,
       distributed_note:
         orderType === "distributed"

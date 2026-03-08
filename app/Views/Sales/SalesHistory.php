@@ -303,9 +303,16 @@
                                 <span class="font-semibold" id="detailCash">₱0.00</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600"><i
-                                        class="fas fa-mobile-alt text-blue-500 mr-2"></i>GCash:</span>
+                                <span class="text-gray-600"><img
+                                        src="<?= base_url('assets/pictures/gcash-seeklogo.png') ?>" alt="GCash"
+                                        class="inline w-5 h-5 mr-2">GCash:</span>
                                 <span class="font-semibold" id="detailGcash">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600"><img
+                                        src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>"
+                                        alt="Food Panda" class="inline w-5 h-5 mr-2">Food Panda:</span>
+                                <span class="font-semibold" id="detailFoodPanda">₱0.00</span>
                             </div>
                         </div>
                     </div>
@@ -940,9 +947,11 @@
             // Payment methods - based on payment_method field
             const cashTotal = order.payment_method === 'cash' ? (order.total_payment_due || 0) : 0;
             const gcashTotal = order.payment_method === 'gcash' ? (order.total_payment_due || 0) : 0;
+            const pandaTotal = order.payment_method === 'panda' ? (order.total_payment_due || 0) : 0;
 
             $('#detailCash').text(formatCurrency(cashTotal));
             $('#detailGcash').text(formatCurrency(gcashTotal));
+            $('#detailPanda').text(formatCurrency(pandaTotal));
 
             // Hide variance section
             $('#detailVarianceContainer').hide();
@@ -956,7 +965,7 @@
                 return;
             }
 
-            const headers = ['Date', 'Shift', 'Cashier', 'Bakery Sales', 'Coffee Sales', 'GCash', 'Cash', 'Total Sales', 'Variance'];
+            const headers = ['Date', 'Shift', 'Cashier', 'Bakery Sales', 'Coffee Sales', 'GCash', 'Cash', 'Panda', 'Total Sales', 'Variance'];
             const rows = salesData.map(sale => [
                 sale.date,
                 (sale.shift_start || '') + ' - ' + (sale.shift_end || ''),
@@ -965,6 +974,7 @@
                 sale.coffee_sales || 0,
                 sale.gcash_total || 0,
                 sale.cash_total || 0,
+                sale.panda_total || 0,
                 sale.total_sales || 0,
                 sale.variance || 0
             ]);
