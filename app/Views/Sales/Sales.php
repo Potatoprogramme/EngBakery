@@ -353,10 +353,14 @@
                         </div>
 
                         <!-- Totals Card -->
-                        <div class="grid grid-cols-1 gap-2">
+                        <div class="grid grid-cols-2 gap-2">
                             <div class="p-3 bg-primary/10 rounded-lg border border-primary/20">
                                 <span class="text-xs font-medium text-gray-600 block">TOTAL SALES:</span>
                                 <p class="text-lg font-bold text-primary" id="totalSales">₱0.00</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <span class="text-xs font-medium text-gray-600 block">TOTAL REMITTED:</span>
+                                <p class="text-lg font-bold text-blue-600" id="totalRemitted">₱0.00</p>
                             </div>
                         </div>
 
@@ -1014,6 +1018,9 @@
 
             const totalRemitted = amountEnclosed + gcash + foodpanda + cashOut;
             const variance = totalRemitted - totalSales;
+
+            // Update total remitted display
+            $('#totalRemitted').text(formatCurrency(totalRemitted));
 
             // Update variance styling
             const container = $('#varianceContainer');

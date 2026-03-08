@@ -3313,7 +3313,7 @@
                                         $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(5));
                                     } else {
                                         $('#viewPiecesLabelText').text('Pieces/Slices');
-                                        $('#viewPiecesPerYield').text(piecesPerYield);
+                                    $('#viewPiecesPerYield').text(piecesPerYield);
 
                                         // Use database value if available, otherwise calculate
                                         const gramsPerPiece = parseFloat(product.grams_per_piece) || (yieldGrams / piecesPerYield);
