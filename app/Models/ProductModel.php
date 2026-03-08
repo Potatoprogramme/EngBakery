@@ -71,6 +71,8 @@ class ProductModel extends Model
                 pc.total_cost,
                 pc.profit_margin_percentage,
                 pc.selling_price,
+                pc.selling_price_per_tray,
+                pc.selling_price_per_piece,
                 pc.yield_grams,
                 pc.trays_per_yield,
                 pc.pieces_per_yield,

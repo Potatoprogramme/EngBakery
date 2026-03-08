@@ -19,6 +19,7 @@ class RemittanceDetailsModel extends Model
         'shift_end',
         'amount_enclosed',
         'total_online_revenue',
+        'foodpanda_revenue',
         'cash_out',
         'cashout_reason',
         'bakery_sales',
