@@ -684,6 +684,9 @@
             const orderDate = $('#detailDate').text();
             const cashier = $('#detailCashier').text();
             const outlet = $('#detailOutlet').text();
+            const orderType = $('#detailOrderType').text().trim();
+            const distributedNote = $('#detailDistributedNote').text();
+            const isDistributed = !$('#detailDistributedNoteContainer').hasClass('hidden');
 
             const products = $('#detailBakery').text();
             const totalQuantity = $('#detailCoffee').text();
@@ -696,6 +699,7 @@
 
             const cashAmount = $('#detailCash').text();
             const gcashAmount = $('#detailGcash').text();
+            const foodPandaAmount = $('#detailFoodPanda').text();
 
             const printWindow = window.open('', '_blank', 'width=800,height=600');
             printWindow.document.write(`
@@ -706,40 +710,50 @@
                             <style>
                                 @media print {
                                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                                    @page { margin: 20mm; }
+                                    @page { margin: 10mm 15mm; size: A4 portrait; }
+                                    .page-break { page-break-inside: avoid; }
                                 }
                                 * { margin: 0; padding: 0; box-sizing: border-box; }
+                                html {
+                                    font-size: 110%;
+                                }
                                 body { 
                                     font-family: 'Arial', sans-serif; 
-                                    padding: 20px;
-                                    line-height: 1.6;
+                                    padding: 12px 18px;
+                                    line-height: 1.4;
                                     color: #333;
+                                    font-size: 1rem;
                                 }
                                 .header {
                                     text-align: center;
-                                    margin-bottom: 30px;
-                                    padding-bottom: 20px;
-                                    border-bottom: 3px solid #333;
+                                    margin-bottom: 14px;
+                                    padding-bottom: 12px;
+                                    border-bottom: 2px solid #333;
                                 }
                                 .header h1 {
-                                    font-size: 24px;
-                                    margin-bottom: 5px;
+                                    font-size: 1.5rem;
+                                    margin-bottom: 3px;
                                     color: #1a1a1a;
                                 }
                                 .header p {
                                     color: #666;
-                                    font-size: 14px;
+                                    font-size: 0.85rem;
+                                    line-height: 1.4;
                                 }
                                 .info-section {
                                     background: #f5f5f5;
-                                    padding: 15px;
-                                    margin-bottom: 20px;
-                                    border-radius: 5px;
+                                    padding: 10px 14px;
+                                    margin-bottom: 12px;
+                                    border-radius: 4px;
                                 }
                                 .info-row {
                                     display: flex;
                                     justify-content: space-between;
-                                    margin-bottom: 8px;
+                                    margin-bottom: 4px;
+                                    font-size: 0.85rem;
+                                }
+                                .info-row:last-child {
+                                    margin-bottom: 0;
                                 }
                                 .info-label {
                                     font-weight: bold;
@@ -749,21 +763,22 @@
                                     color: #1a1a1a;
                                 }
                                 .section {
-                                    margin-bottom: 25px;
+                                    margin-bottom: 12px;
                                 }
                                 .section-title {
-                                    font-size: 16px;
+                                    font-size: 1.05rem;
                                     font-weight: bold;
                                     color: #1a1a1a;
-                                    margin-bottom: 12px;
-                                    padding-bottom: 8px;
-                                    border-bottom: 2px solid #ddd;
+                                    margin-bottom: 8px;
+                                    padding-bottom: 5px;
+                                    border-bottom: 1.5px solid #ddd;
                                 }
                                 .detail-row {
                                     display: flex;
                                     justify-content: space-between;
-                                    padding: 10px 0;
+                                    padding: 5px 0;
                                     border-bottom: 1px solid #eee;
+                                    font-size: 0.85rem;
                                 }
                                 .detail-row:last-child {
                                     border-bottom: none;
@@ -775,26 +790,53 @@
                                     font-weight: 600;
                                     color: #1a1a1a;
                                 }
+                                .products-value {
+                                    font-weight: 600;
+                                    color: #1a1a1a;
+                                    max-width: 60%;
+                                    text-align: right;
+                                    word-wrap: break-word;
+                                    overflow-wrap: break-word;
+                                    line-height: 1.4;
+                                }
                                 .total-row {
                                     display: flex;
                                     justify-content: space-between;
-                                    padding: 15px 0;
-                                    margin-top: 15px;
-                                    border-top: 3px solid #333;
-                                    font-size: 18px;
+                                    padding: 10px 0;
+                                    margin-top: 10px;
+                                    border-top: 2px solid #333;
+                                    font-size: 1.2rem;
                                     font-weight: bold;
                                 }
                                 .footer {
-                                    margin-top: 40px;
-                                    padding-top: 20px;
-                                    border-top: 2px solid #ddd;
+                                    margin-top: 18px;
+                                    padding-top: 12px;
+                                    border-top: 1.5px solid #ddd;
                                     text-align: center;
                                     color: #666;
-                                    font-size: 12px;
+                                    font-size: 0.75rem;
                                 }
                                 .print-date {
-                                    margin-top: 10px;
+                                    margin-top: 5px;
                                     font-style: italic;
+                                }
+                                .distributed-note {
+                                    background: #e8f4fd;
+                                    border: 1px solid #b3d9f2;
+                                    padding: 8px 12px;
+                                    margin-bottom: 12px;
+                                    border-radius: 4px;
+                                    font-size: 0.85rem;
+                                }
+                                .distributed-note .note-label {
+                                    font-weight: bold;
+                                    color: #2563eb;
+                                    font-size: 0.85rem;
+                                    margin-bottom: 3px;
+                                }
+                                .distributed-note .note-value {
+                                    color: #1e40af;
+                                    font-size: 0.85rem;
                                 }
                             </style>
                         </head>
@@ -818,13 +860,24 @@
                                     <span class="info-label">Cashier:</span>
                                     <span class="info-value">${cashier}</span>
                                 </div>
+                                <div class="info-row">
+                                    <span class="info-label">Order Type:</span>
+                                    <span class="info-value">${orderType}</span>
+                                </div>
                             </div>
+
+                            ${isDistributed ? `
+                            <div class="distributed-note">
+                                <div class="note-label">🚚 Delivery Note:</div>
+                                <div class="note-value">${distributedNote}</div>
+                            </div>
+                            ` : ''}
 
                             <div class="section">
                                 <div class="section-title">Order Summary</div>
                                 <div class="detail-row">
                                     <span class="detail-label">Products:</span>
-                                    <span class="detail-value">${products}</span>
+                                    <span class="products-value">${products}</span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Total Quantity:</span>
@@ -861,6 +914,10 @@
                                 <div class="detail-row">
                                     <span class="detail-label">GCash:</span>
                                     <span class="detail-value">${gcashAmount}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Food Panda:</span>
+                                    <span class="detail-value">${foodPandaAmount}</span>
                                 </div>
                             </div>
 
