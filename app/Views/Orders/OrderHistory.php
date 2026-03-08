@@ -496,7 +496,7 @@
 
                 html += `
                     <tr class="${rowClass}">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium ${isVoided ? 'text-gray-400' : 'text-gray-900'} font-mono text-sm">${formattedOrderNumber}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium ${isVoided ? 'text-gray-400' : 'text-gray-900'} text-sm">${formattedOrderNumber}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${dateStr}<br><span class="text-xs text-gray-500">${timeStr}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">${cashierName}</td>
                         <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs font-medium ${typeClass} inline-flex items-center">${typeIcon}${typeName}</span></td>

@@ -327,7 +327,7 @@
                                             <i class="fas fa-shopping-cart text-primary text-xs sm:text-sm"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= esc($order['order_number']) ?></p>
+                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= date('Ymd', strtotime($order['date_created'])) . '-' . $order['order_id'] ?></p>
                                             <p class="text-xs text-gray-500">
                                                 <?= date('g:i A', strtotime($order['time_created'])) ?> · <?= ucfirst($order['payment_method']) ?>
                                                 <?php if (($order['order_type'] ?? '') === 'foodpanda'): ?>
