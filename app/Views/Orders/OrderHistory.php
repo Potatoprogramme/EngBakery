@@ -641,9 +641,13 @@
             });
 
             $('#btnResetFilters').on('click', function () {
-                $('#filterDateFrom').val('');
-                $('#filterDateTo').val('');
-                loadOrders();
+                const today = new Date();
+                const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const todayStr = today.toISOString().split('T')[0];
+                const firstStr = firstOfMonth.toISOString().split('T')[0];
+                $('#filterDateFrom').val(firstStr);
+                $('#filterDateTo').val(todayStr);
+                loadOrders(firstStr, todayStr);
             });
         }
 

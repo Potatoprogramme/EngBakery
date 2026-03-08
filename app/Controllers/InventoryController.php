@@ -1010,13 +1010,35 @@ class InventoryController extends BaseController
             $totalEnding = 0;
             $totalPullOut = 0;
             $totalSales = 0;
+            $productNames = [];
+            $productsDetail = [];
 
             foreach ($stockItems as $item) {
+                $productName = trim((string) ($item['product_name'] ?? 'Unknown Product'));
+                $quantitySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+
+                $productNames[] = $productName;
+                $productsDetail[] = [
+                    'product_name' => $productName,
+                    'category' => $item['category'] ?? 'uncategorized',
+                    'beginning_stock' => intval($item['beginning_stock'] ?? 0),
+                    'quantity_sold' => $quantitySold,
+                    'pull_out_quantity' => intval($item['pull_out_quantity'] ?? 0),
+                    'ending_stock' => intval($item['ending_stock'] ?? 0),
+                ];
+
                 $totalBeginning += intval($item['beginning_stock'] ?? 0);
                 $totalEnding += intval($item['ending_stock'] ?? 0);
                 $totalPullOut += intval($item['pull_out_quantity'] ?? 0);
                 // Get sales from transactions table for this item
                 $totalSales += floatval($salesDataMap[$item['item_id']]['total_sales'] ?? 0);
+            }
+
+            $previewNames = array_slice($productNames, 0, 3);
+            $remainingNames = max(0, count($productNames) - count($previewNames));
+            $productsPreview = implode(', ', $previewNames);
+            if ($remainingNames > 0) {
+                $productsPreview .= ' +' . $remainingNames . ' more';
             }
 
             $inventory['total_items'] = $totalItems;
@@ -1025,6 +1047,8 @@ class InventoryController extends BaseController
             $inventory['total_pull_out'] = $totalPullOut;
             $inventory['total_sold'] = max(0, $totalBeginning - $totalEnding - $totalPullOut);
             $inventory['total_sales'] = $totalSales;
+            $inventory['products_preview'] = $productsPreview;
+            $inventory['products_detail'] = $productsDetail;
         }
 
         return $this->response->setJSON([
