@@ -290,6 +290,14 @@
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div class="flex items-center gap-2">
+                                    <i class="fas fa-motorcycle text-base" style="color: #D70F64;"></i>
+                                    <span class="text-sm font-medium text-gray-700">Food Panda:</span>
+                                </div>
+                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001"
+                                    class="w-full sm:w-40 lg:w-48 text-right border rounded-lg px-2 py-1.5 text-base font-bold focus:ring-2" style="border-color: #D70F64; color: #D70F64; background-color: rgba(215, 15, 100, 0.05);" onfocus="this.style.boxShadow='0 0 0 2px rgba(215,15,100,0.3)'" onblur="this.style.boxShadow='none'">
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div class="flex items-center gap-2">
                                     <i class="fas fa-hand-holding-usd text-gray-600 text-base"></i>
                                     <span class="text-sm font-medium text-gray-700">CASH OUT:</span>
                                 </div>
@@ -862,6 +870,7 @@
                         const mayaSales = response.data.maya_sales || {};
                         const creditCardSales = response.data.credit_card_sales || {};
                         const debitCardSales = response.data.debit_card_sales || {};
+                        const pandaSales = response.data.panda_sales || {};
 
                         const total_orders = response.data.total_orders || 0;
                         const total_items_sold = response.data.total_items_sold || 0;
@@ -876,6 +885,7 @@
                         const mayaRevenue = mayaSales.total_revenue || 0;
                         const creditCardRevenue = creditCardSales.total_revenue || 0;
                         const debitCardRevenue = debitCardSales.total_revenue || 0;
+                        const pandaRevenue = pandaSales.total_revenue || 0;
 
                         const totalOnlineRevenue = Number(gcashRevenue) + Number(mayaRevenue) + Number(creditCardRevenue) + Number(debitCardRevenue);
                         // Now use breadRevenue, drinksRevenue, etc. safely
@@ -892,6 +902,13 @@
                             $('#totalOnlineRevenue').val(Number(totalOnlineRevenue).toFixed(2));
                         } else {
                             $('#totalOnlineRevenue').val('');
+                        }
+
+                        // Auto-populate FoodPanda revenue
+                        if (Number(pandaRevenue) > 0) {
+                            $('#totalFoodPandaRevenue').val(Number(pandaRevenue).toFixed(2));
+                        } else {
+                            $('#totalFoodPandaRevenue').val('');
                         }
 
                         // Update total sales
@@ -962,6 +979,9 @@
             $('#totalOnlineRevenue').on('input', function() {
                 calculateVariance();
             });
+            $('#totalFoodPandaRevenue').on('input', function() {
+                calculateVariance();
+            });
         }
 
         function calculateAmountEnclosed() {
@@ -988,10 +1008,11 @@
         function calculateVariance() {
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
             const gcash = parseFloat($('#totalOnlineRevenue').val()) || 0;
+            const foodpanda = parseFloat($('#totalFoodPandaRevenue').val()) || 0;
             const cashOut = parseFloat($('#cashOutAmount').val()) || 0;
             const totalSales = parseCurrency($('#totalSales').text());
 
-            const totalRemitted = amountEnclosed + gcash + cashOut;
+            const totalRemitted = amountEnclosed + gcash + foodpanda + cashOut;
             const variance = totalRemitted - totalSales;
 
             // Update variance styling
@@ -1074,6 +1095,7 @@
             $('#cashierName').val('');
             $('#cashierEmail').val('');
             $('#totalOnlineRevenue').val(0);
+            $('#totalFoodPandaRevenue').val(0);
             $('#amountEnclosed').text('₱0.00');
 
             calculateAllTotals();
@@ -1192,6 +1214,10 @@
                             <td class="sum-value" colspan="2">${formatCurrency(parseFloat($('#totalOnlineRevenue').val()) || 0)}</td>
                         </tr>
                         <tr>
+                            <td class="sum-label" colspan="2">FOODPANDA:</td>
+                            <td class="sum-value" colspan="2">${formatCurrency(parseFloat($('#totalFoodPandaRevenue').val()) || 0)}</td>
+                        </tr>
+                        <tr>
                             <td class="sum-label">CASH OUT:</td>
                             <td class="sum-value">${formatCurrency(parseFloat($('#cashOutAmount').val()) || 0)}</td>
                             <td class="sum-value" colspan="2" style="text-align:left;font-size:8pt;">${$('#cashOutReason').val() || ''}</td>
@@ -1252,9 +1278,10 @@
             // Calculate variance properly with sign
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
             const totalOnlineRevenue = parseFloat($('#totalOnlineRevenue').val()) || 0;
+            const foodPandaRevenue = parseFloat($('#totalFoodPandaRevenue').val()) || 0;
             const cashOutAmount = parseFloat($('#cashOutAmount').val()) || 0;
             const totalSales = parseCurrency($('#totalSales').text());
-            const totalRemitted = amountEnclosed + totalOnlineRevenue + cashOutAmount;
+            const totalRemitted = amountEnclosed + totalOnlineRevenue + foodPandaRevenue + cashOutAmount;
             const variance = totalRemitted - totalSales;
 
             // Get shift times from select elements (add :00 for seconds)
@@ -1275,6 +1302,7 @@
                 shift_end: shiftEnd,
                 amount_enclosed: amountEnclosed,
                 total_online_revenue: totalOnlineRevenue,
+                foodpanda_revenue: foodPandaRevenue,
                 cash_out_amount: cashOutAmount,
                 cash_out_reason: $('#cashOutReason').val(),
                 bakery_sales: parseCurrency($('#bakerySales').text()),

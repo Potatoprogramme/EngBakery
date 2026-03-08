@@ -168,6 +168,10 @@
                                     <span class="font-medium" id="detailGcash">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i class="fas fa-motorcycle mr-2 w-4" style="color: #D70F64;"></i>FoodPanda</span>
+                                    <span class="font-medium" id="detailFoodPanda" style="color: #D70F64;">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center"></div>
                                     <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-red-500 mr-2 w-4"></i>Cash Out</span>
                                     <span class="font-medium text-red-600" id="detailCashOut">-₱0.00</span>
                                 </div>
@@ -362,10 +366,11 @@
             }) : '-');
             $('#detailCashOnHand').text(formatCurrency(details.amount_enclosed || 0));
             $('#detailGcash').text(formatCurrency(details.total_online_revenue || 0));
+            $('#detailFoodPanda').text(formatCurrency(details.foodpanda_revenue || 0));
             $('#detailCashOut').text(parseFloat(details.cash_out) > 0 ? '-' + formatCurrency(details.cash_out) : '₱0.00');
-            $('#detailTotalRemitted').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
+            $('#detailTotalRemitted').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.foodpanda_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
             $('#detailTotalSales').text(formatCurrency(details.total_sales || 0));
-            $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
+            $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.foodpanda_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
 
             // Populate sales by category
             $('#detailBakerySales').text(formatCurrency(details.bakery_sales || 0));
@@ -466,7 +471,7 @@
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${remittance.cashier_name || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-semibold">${formatCurrency(remittance.total_sales || 0)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0))}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${varianceClass}">${varianceText}</span>
                         </td>
@@ -569,7 +574,7 @@
                         <!-- Card Body -->
                         <div class="p-4">
                             <!-- Remittance Breakdown -->
-                            <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="grid grid-cols-4 gap-2 mb-3">
                                 <div class="text-center p-2 bg-green-50 rounded-lg">
                                     <i class="fas fa-money-bill-wave text-green-500 text-sm"></i>
                                     <p class="text-xs text-gray-500 mt-1">Cash</p>
@@ -579,6 +584,11 @@
                                     <i class="fas fa-mobile-alt text-blue-500 text-sm"></i>
                                     <p class="text-xs text-gray-500 mt-1">Online</p>
                                     <p class="font-bold text-blue-600 text-sm">${formatCurrency(remittance.total_online_revenue || 0)}</p>
+                                </div>
+                                <div class="text-center p-2 rounded-lg" style="background-color: rgba(215,15,100,0.05);">
+                                    <i class="fas fa-motorcycle text-sm" style="color: #D70F64;"></i>
+                                    <p class="text-xs text-gray-500 mt-1">Panda</p>
+                                    <p class="font-bold text-sm" style="color: #D70F64;">${formatCurrency(remittance.foodpanda_revenue || 0)}</p>
                                 </div>
                                 <div class="text-center p-2 bg-red-50 rounded-lg">
                                     <i class="fas fa-hand-holding-usd text-red-500 text-sm"></i>
@@ -595,7 +605,7 @@
                                 </div>
                                 <div class="flex items-center justify-between p-2 bg-primary/10 rounded">
                                     <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-primary mr-1"></i>Remitted</span>
-                                    <span class="font-semibold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</span>
+                                    <span class="font-semibold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0))}</span>
                                 </div>
                             </div>
                             
@@ -603,7 +613,7 @@
                             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
                                     <p class="text-xs text-gray-500">Total Remitted</p>
-                                    <p class="text-xl font-bold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0))}</p>
+                                    <p class="text-xl font-bold text-primary">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0))}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button type="button" class="btn-view-details-mobile px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all" data-index="${index}">
@@ -693,7 +703,7 @@
                 gcashRemitted = 0;
 
             history.forEach(remittance => {
-                totalRemitted += Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0);
+                totalRemitted += Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0);
                 remittanceCount++;
                 cashRemitted += Number(remittance.amount_enclosed || 0);
                 gcashRemitted += Number(remittance.total_online_revenue || 0);
@@ -728,6 +738,7 @@
 
             const amountEnclosed = $('#detailCashOnHand').text();
             const onlinePayment = $('#detailGcash').text();
+            const foodPandaPayment = $('#detailFoodPanda').text();
             const cashOut = $('#detailCashOut').text();
             const bakerySales = $('#detailTotalSales').text(); // Using total sales for bakery display
             const grocerySales = '₱0.00';
@@ -891,6 +902,10 @@
                             <td class="sum-value" colspan="2">${onlinePayment}</td>
                         </tr>
                         <tr>
+                            <td class="sum-label" colspan="2">FOODPANDA:</td>
+                            <td class="sum-value" colspan="2">${foodPandaPayment}</td>
+                        </tr>
+                        <tr>
                             <td class="sum-label">CASH OUT:</td>
                             <td class="sum-value">${cashOut}</td>
                             <td class="sum-value" colspan="2" style="text-align:left;font-size:8pt;">${$('#detailCashOutReason').text()}</td>
@@ -958,6 +973,7 @@
                 'Shift',
                 'Cash On Hand',
                 'Online Payments',
+                'FoodPanda',
                 'Cash Out',
                 'Cash Out Reason',
                 'Total Sales',
@@ -975,10 +991,11 @@
                     (remittance.shift_start || '') + ' - ' + (remittance.shift_end || ''),
                     remittance.amount_enclosed || 0,
                     remittance.total_online_revenue || 0,
+                    remittance.foodpanda_revenue || 0,
                     remittance.cash_out || 0,
                     remittance.cashout_reason || '',
                     remittance.total_sales || 0,
-                    Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.cash_out || 0),
+                    Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0),
                     variance
                 ];
             });

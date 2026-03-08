@@ -46,7 +46,9 @@ class ProductModel extends Model
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
             LEFT JOIN daily_stock ds ON ds.inventory_date = ?
             LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
-            WHERE p.is_disabled = 0 AND p.deleted_at IS NULL
+                        WHERE p.is_disabled = 0
+                            AND p.deleted_at IS NULL
+                            AND (dsi.item_id IS NULL OR dsi.is_enabled = 1)
             ORDER BY p.category, p.product_name
         ", [$today])->getResultArray();
     }
@@ -69,6 +71,8 @@ class ProductModel extends Model
                 pc.total_cost,
                 pc.profit_margin_percentage,
                 pc.selling_price,
+                pc.selling_price_per_tray,
+                pc.selling_price_per_piece,
                 pc.yield_grams,
                 pc.trays_per_yield,
                 pc.pieces_per_yield,

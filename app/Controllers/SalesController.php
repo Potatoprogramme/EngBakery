@@ -167,10 +167,11 @@ class SalesController extends BaseController
         $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
         $doughSales = $this->transactionsModel->getTodaysSaleByCategory('dough');
         $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
-        $gCashSales = $this->orderModel->getTotalSalesByOrderType('gcash');
-        $mayaSales = $this->orderModel->getTotalSalesByOrderType('maya');
-        $creditCardSales = $this->orderModel->getTotalSalesByOrderType('credit card');
-        $debitCardSales = $this->orderModel->getTotalSalesByOrderType('debit card');
+        $gCashSales = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
+        $mayaSales = $this->orderModel->getTotalSalesByPaymentMethod('maya');
+        $creditCardSales = $this->orderModel->getTotalSalesByPaymentMethod('credit card');
+        $debitCardSales = $this->orderModel->getTotalSalesByPaymentMethod('debit card');
+        $pandaSales = $this->orderModel->getTotalSalesByPaymentMethod('panda');
         $todaysTotalOrders = $this->orderModel->getTodaysOrderCount();
         $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
         $todaysTransactionIds = $this->transactionsModel->getTodaysTransactionsIds();
@@ -187,6 +188,7 @@ class SalesController extends BaseController
                 'maya_sales' => $mayaSales,
                 'credit_card_sales' => $creditCardSales,
                 'debit_card_sales' => $debitCardSales,
+                'panda_sales' => $pandaSales,
                 'total_orders' => $todaysTotalOrders,
                 'total_items_sold' => $todaysTotalItemsSold,
                 'transaction_ids' => $todaysTransactionIds
@@ -362,6 +364,8 @@ class SalesController extends BaseController
             'shift_start' => $data['shift_start'] ?? '00:00:00',
             'shift_end' => $data['shift_end'] ?? '00:00:00',
             'amount_enclosed' => $data['amount_enclosed'] ?? 0,
+            'total_online_revenue' => $data['total_online_revenue'] ?? 0,
+            'foodpanda_revenue' => $data['foodpanda_revenue'] ?? 0,
             'cash_out' => $data['cash_out_amount'] ?? 0,
             'cashout_reason' => $data['cash_out_reason'] ?? '',
             'bakery_sales' => $data['bakery_sales'] ?? 0,

@@ -112,7 +112,7 @@
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 <span class="flex items-center">
-                                    Selling Price
+                                    Recommended Prices
                                 </span>
                             </th>
                             <th scope="col" class="px-6 py-3 w-px whitespace-nowrap">
@@ -420,6 +420,16 @@
                                     </span>
                                 </div>
                             </div>
+
+                            <!-- Overall Amount (Direct + Combined + Overhead) -->
+                            <div id="overallAmountSection"
+                                class="mt-3 p-3 rounded-lg border-2 border-primary/30 bg-primary/5 flex items-center justify-between">
+                                <div>
+                                    <span class="text-sm font-semibold text-gray-700">Overall Amount</span>
+                                    <p class="text-xs text-gray-500">Direct + Additional + Overhead</p>
+                                </div>
+                                <span id="overallAmountDisplay" class="text-lg font-bold text-primary">₱ 0.00</span>
+                            </div>
                         </div>
 
                         <div id="yieldComputationSection" class="mt-4 hidden">
@@ -491,11 +501,11 @@
                                     <div id="perPieceSection"
                                         class="p-3 rounded-lg border border-dashed border-gray-300 bg-white">
                                         <h6 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Per
-                                            Piece / Slice / Plate</h6>
+                                            Piece / Slice</h6>
                                         <div class="space-y-2">
                                             <div class="flex items-center justify-between gap-2">
                                                 <label for="piecesPerYield" id="piecesLabel"
-                                                    class="text-sm text-gray-600">Pieces/Slices/Plates</label>
+                                                    class="text-sm text-gray-600">Pieces/Slices</label>
                                                 <div class="flex w-32">
                                                     <input type="number" id="piecesPerYield"
                                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
@@ -542,13 +552,13 @@
                         <div id="profitMarginSection" class="mt-4 border-t border-gray-200 pt-4 space-y-3">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <label for="profitMargin" class="text-sm text-gray-600">Profit Margin (%)</label>
-                                    <p class="text-xs text-gray-500">Adjust to calculate target selling price.</p>
+                                    <label for="profitMargin" class="text-sm text-gray-600">Markup (%)</label>
+                                    <p class="text-xs text-gray-500">Selling Price = Cost × (Markup ÷ 100)</p>
                                 </div>
                                 <div class="flex w-full sm:w-28">
                                     <input type="number" id="profitMargin"
                                         class="flex-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-                                        placeholder="30" min="0" max="99.99" step="any" value="30">
+                                        placeholder="300" min="0" max="9999" step="any" value="300">
                                     <span
                                         class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-600 text-sm font-medium">
                                         %
@@ -801,7 +811,7 @@
                 </h4>
                 <div class="bg-green-50 rounded-lg border border-green-200 p-3 space-y-2">
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Profit Margin</span>
+                        <span class="text-sm text-gray-600">Markup</span>
                         <span id="viewProfitMargin" class="text-sm font-medium text-green-700">0%</span>
                     </div>
                     <div class="flex justify-between items-center">
@@ -1064,6 +1074,7 @@
                     $('#yieldComputationSection').addClass('hidden');
                     $('#totalCostSection').addClass('hidden');
                     $('#directCostCard').addClass('hidden');
+                    $('#overallAmountSection').addClass('hidden');
                     $('#profitMarginSection').removeClass('mt-4 border-t border-gray-200 pt-4');
 
                     // Hide yield-related sections for grocery
@@ -1109,6 +1120,12 @@
 
                     // Show overhead cost section for drinks
                     $('#overheadCostSection').removeClass('hidden');
+
+                    // Show total cost and direct cost sections (may have been hidden by grocery)
+                    $('#totalCostSection').removeClass('hidden');
+                    $('#directCostCard').removeClass('hidden');
+                    $('#overallAmountSection').removeClass('hidden');
+                    $('#profitMarginSection').addClass('mt-4 border-t border-gray-200 pt-4');
 
                     // Show all unit options for drinks
                     $('#ingredient_unit option').show();
@@ -1158,6 +1175,12 @@
                     // Show overhead cost section for bakery/dough
                     $('#overheadCostSection').removeClass('hidden');
 
+                    // Show total cost and direct cost sections (may have been hidden by grocery)
+                    $('#totalCostSection').removeClass('hidden');
+                    $('#directCostCard').removeClass('hidden');
+                    $('#overallAmountSection').removeClass('hidden');
+                    $('#profitMarginSection').addClass('mt-4 border-t border-gray-200 pt-4');
+
                     // Hide all units except grams for bakery and dough
                     $('#ingredient_unit option').hide();
                     $('#ingredient_unit option[value="grams"]').show();
@@ -1186,6 +1209,12 @@
 
                     // Show overhead cost section by default
                     $('#overheadCostSection').removeClass('hidden');
+
+                    // Show total cost and direct cost sections (may have been hidden by grocery)
+                    $('#totalCostSection').removeClass('hidden');
+                    $('#directCostCard').removeClass('hidden');
+                    $('#overallAmountSection').removeClass('hidden');
+                    $('#profitMarginSection').addClass('mt-4 border-t border-gray-200 pt-4');
                 }
             }
 
@@ -1252,6 +1281,12 @@
                 // Reset UI to default state
                 $('.combined-recipe-container').removeClass('hidden');
                 $('#ingredient_unit option').show();
+
+                // Reset total cost and direct cost visibility (may have been hidden by grocery)
+                $('#totalCostSection').removeClass('hidden');
+                $('#directCostCard').removeClass('hidden');
+                $('#overallAmountSection').removeClass('hidden');
+                $('#profitMarginSection').addClass('mt-4 border-t border-gray-200 pt-4');
 
                 // Reset stepper indicators for 3-step mode
                 $('#step2Indicator').parent().removeClass('hidden');
@@ -1733,10 +1768,9 @@
                 const totalCost = directCost + overheadCost;
                 // But for overall selling price calculation, we need to include combined cost
                 const totalCostWithCombined = totalCost + combinedCost;
-                const profitMargin = Math.min(parseFloat($('#profitMargin').val()) || 0, 99.99); // Cap at 99.99% to avoid infinity
-                const targetProfit = totalCostWithCombined / ((100 - profitMargin) / 100);
-                const profitAmount = targetProfit - totalCostWithCombined;
-                const sellingPrice = targetProfit;
+                const markupPercentage = parseFloat($('#profitMargin').val()) || 0;
+                const sellingPrice = totalCostWithCombined * (markupPercentage / 100);
+                const profitAmount = sellingPrice - totalCostWithCombined;
 
                 // Show yield computation section based on category (bakery or dough categories)
                 // Yield computation is only available for bakery and dough categories
@@ -1938,9 +1972,9 @@
                     }
 
                     // Calculate Selling Price per Tray and per Piece (Recommended)
-                    // Use total price (including additional) for recommended calculations
-                    const recommendedPricePerTray = traysPerYield > 0 ? totalPricePerTray * (1 + profitMargin / 100) : 0;
-                    const recommendedPricePerPiece = totalPricePerPiece > 0 ? totalPricePerPiece * (1 + profitMargin / 100) : 0;
+                    // Same markup percentage applied at ALL levels for consistent profit margins
+                    const recommendedPricePerTray = traysPerYield > 0 ? totalPricePerTray * (markupPercentage / 100) : 0;
+                    const recommendedPricePerPiece = totalPricePerPiece > 0 ? totalPricePerPiece * (markupPercentage / 100) : 0;
 
                     // Show/hide and update recommended price per tray
                     if (traysPerYield > 0) {
@@ -1958,49 +1992,6 @@
                         $('#sellingPricePerPieceRow').addClass('hidden');
                     }
 
-                    // === YIELD COMPUTATION DEBUG LOG ===
-                    console.group('=== Yield Computation Debug ===');
-                    console.log('Category:', currentCategory);
-                    console.log('Changed Field:', changedField);
-                    console.log('');
-                    console.log('--- Cost Breakdown ---');
-                    console.log('Direct Cost:', directCost.toFixed(3));
-                    console.log('Combined Cost:', combinedCost.toFixed(3));
-                    console.log('Overhead %:', ($('#overheadCost').val() || 0) + '%');
-                    console.log('Overhead Cost:', overheadCost.toFixed(3));
-                    console.log('Total Cost (Direct + Overhead):', totalCost.toFixed(3));
-                    console.log('Total Cost with Combined:', totalCostWithCombined.toFixed(3));
-                    console.log('');
-                    console.log('--- Yield Inputs ---');
-                    console.log('Total Yield (grams):', totalYieldGrams.toFixed(2));
-                    console.log('Trays per Yield:', traysPerYield);
-                    console.log('Grams per Tray:', gramsPerTray.toFixed(2));
-                    console.log('Pieces per Yield:', piecesPerYield);
-                    console.log('Grams per Piece:', gramsPerPiece.toFixed(2));
-                    console.log('');
-                    console.log('--- Unit Prices ---');
-                    console.log('Price per Gram:', unitPricePerGram.toFixed(5));
-                    console.log('Price per Tray:', unitPricePerTray.toFixed(5));
-                    console.log('Price per Piece:', unitPricePerPiece.toFixed(5));
-                    console.log('');
-                    console.log('--- Additional (Combined Recipes) ---');
-                    console.log('Additional Price per Piece:', additionalPricePerPiece.toFixed(5));
-                    console.log('Additional Price per Tray:', additionalPricePerTray.toFixed(5));
-                    console.log('Total Price per Piece (unit + additional):', totalPricePerPiece.toFixed(5));
-                    console.log('Total Price per Tray (unit + additional):', totalPricePerTray.toFixed(5));
-                    console.log('');
-                    console.log('--- Whole Number Check ---');
-                    console.log('piecesPerYield (raw):', piecesPerYield, '| isInteger:', Number.isInteger(piecesPerYield));
-                    console.log('traysPerYield (raw):', traysPerYield, '| isInteger:', Number.isInteger(traysPerYield));
-                    console.log('piecesPerTray (raw):', piecesPerTray, '| isInteger:', Number.isInteger(piecesPerTray));
-                    console.log('');
-                    console.log('--- Selling Prices ---');
-                    console.log('Profit Margin:', profitMargin + '%');
-                    console.log('Profit Amount:', profitAmount.toFixed(2));
-                    console.log('Recommended Overall:', sellingPrice.toFixed(2));
-                    console.log('Recommended per Tray:', recommendedPricePerTray.toFixed(2));
-                    console.log('Recommended per Piece:', recommendedPricePerPiece.toFixed(2));
-                    console.groupEnd();
 
                 } else {
                     $('#yieldComputationSection').addClass('hidden');
@@ -2024,6 +2015,7 @@
                 }
 
                 $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
+                $('#overallAmountDisplay').text('₱ ' + totalCostWithCombined.toFixed(2));
                 $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#recommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
             }
@@ -2325,7 +2317,14 @@
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.total_cost || 0).toFixed(2) + '</td>';
-                                rows += '<td class="px-6 py-4">' + parseFloat(product.selling_price || 0).toFixed(2) + '</td>';
+                                var recPricesHtml = '<span class="block font-semibold text-primary">\u20b1' + parseFloat(product.selling_price || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ batch</span></span>';
+                                if (parseFloat(product.selling_price_per_tray || 0) > 0) {
+                                    recPricesHtml += '<span class="block text-purple-700 font-medium">\u20b1' + parseFloat(product.selling_price_per_tray).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ tray</span></span>';
+                                }
+                                if (parseFloat(product.selling_price_per_piece || 0) > 0) {
+                                    recPricesHtml += '<span class="block text-blue-700 font-medium">\u20b1' + parseFloat(product.selling_price_per_piece).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ pc</span></span>';
+                                }
+                                rows += '<td class="px-6 py-4 text-sm leading-relaxed">' + recPricesHtml + '</td>';
                                 rows += '<td class="px-6 py-4 w-px whitespace-nowrap">';
                                 rows += '<div class="flex items-center gap-2">';
                                 rows += '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' + product.product_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
@@ -2460,7 +2459,7 @@
                     cards += '      </div>';
                     cards += '    </div>';
                     cards += '  </div>';
-                    cards += '  <div class="grid grid-cols-3 gap-2 text-center">';
+                    cards += '  <div class="grid grid-cols-2 gap-2 text-center">';
                     cards += '    <div class="bg-gray-50 rounded-lg p-2">';
                     cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>';
                     cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.direct_cost || 0).toFixed(2) + '</p>';
@@ -2469,10 +2468,19 @@
                     cards += '      <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Cost</p>';
                     cards += '      <p class="text-sm font-semibold text-gray-700">₱' + parseFloat(product.total_cost || 0).toFixed(2) + '</p>';
                     cards += '    </div>';
-                    cards += '    <div class="bg-primary/10 rounded-lg p-2">';
-                    cards += '      <p class="text-[10px] text-primary uppercase tracking-wide">Selling Price</p>';
-                    cards += '      <p class="text-sm font-bold text-primary">₱' + parseFloat(product.selling_price || 0).toFixed(2) + '</p>';
-                    cards += '    </div>';
+                    cards += '  </div>';
+                    // Recommended Prices block (batch + tray + piece)
+                    var hasTray = parseFloat(product.selling_price_per_tray || 0) > 0;
+                    var hasPiece = parseFloat(product.selling_price_per_piece || 0) > 0;
+                    cards += '  <div class="mt-2 bg-primary/10 rounded-lg p-2.5">';
+                    cards += '    <p class="text-[10px] text-primary uppercase tracking-wide font-semibold mb-1">Recommended Prices</p>';
+                    cards += '    <p class="text-sm font-bold text-primary">₱' + parseFloat(product.selling_price || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ batch</span></p>';
+                    if (hasTray) {
+                        cards += '    <p class="text-sm font-semibold text-purple-700">₱' + parseFloat(product.selling_price_per_tray).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ tray</span></p>';
+                    }
+                    if (hasPiece) {
+                        cards += '    <p class="text-sm font-semibold text-blue-700">₱' + parseFloat(product.selling_price_per_piece).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="text-gray-400 font-normal text-xs">/ pc</span></p>';
+                    }
                     cards += '  </div>';
                     cards += '</div>';
                 });
@@ -2564,8 +2572,9 @@
                 const overheadCost = directCost * (overheadPercentage / 100);
                 // Combined cost is NOT added to totalCost - it's calculated per piece separately
                 const totalCost = directCost + overheadCost;
-                const profitMargin = parseFloat($('#profitMargin').val()) || 0;
-                const profitAmount = totalCost * (profitMargin / 100);
+                const markupPercentage = parseFloat($('#profitMargin').val()) || 0;
+                const sellingPriceCalc = totalCost * (markupPercentage / 100);
+                const profitAmount = sellingPriceCalc - totalCost;
 
                 // Calculate yield info (not applicable for grocery)
                 let yieldGrams = 0;
@@ -2589,7 +2598,7 @@
                     product_name: $('#material_name').val(),
                     category: category,
                     overhead_cost_percentage: overheadPercentage,
-                    profit_margin_percentage: profitMargin,
+                    profit_margin_percentage: markupPercentage,
                     // Ingredients array (empty for grocery)
                     ingredients: isGrocery ? [] : ingredientsList.map(item => ({
                         material_id: item.id,
@@ -2613,7 +2622,7 @@
                     total_cost: totalCost,
                     profit_amount: profitAmount,
                     // Selling prices
-                    selling_price_overall: parseFloat($('#sellingPriceOverall').val()) || (totalCost + profitAmount),
+                    selling_price_overall: parseFloat($('#sellingPriceOverall').val()) || sellingPriceCalc,
                     selling_price_per_tray: isGrocery ? 0 : (parseFloat($('#sellingPricePerTray').val()) || 0),
                     selling_price_per_piece: isGrocery ? 0 : (parseFloat($('#sellingPricePerPiece').val()) || 0),
                     // Yield data (not applicable for grocery)
@@ -3026,7 +3035,7 @@
                                 }
 
                                 $('#overheadCost').val(product.overhead_cost_percentage || 0);
-                                $('#profitMargin').val(product.profit_margin_percentage || 30);
+                                $('#profitMargin').val(product.profit_margin_percentage || 300);
                                 $('#traysPerYield').val(product.trays_per_yield || 0);
                                 $('#piecesPerYield').val(product.pieces_per_yield || 0);
                                 $('#gramsPerPiece').val(product.grams_per_piece || 0);
