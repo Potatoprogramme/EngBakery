@@ -20,27 +20,35 @@
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateFrom" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
-                            <input type="date" id="filterDateFrom" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateFrom"
+                                class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
+                            <input type="date" id="filterDateFrom"
+                                class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                         <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
-                            <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                            <label for="filterDateTo"
+                                class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
+                            <input type="date" id="filterDateTo"
+                                class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
                         <?php if ($employee_type === 'admin' || $employee_type === 'owner'): ?>
                             <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                                <label for="filterCashier" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
-                                <select id="filterCashier" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                                <label for="filterCashier"
+                                    class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Cashier:</label>
+                                <select id="filterCashier"
+                                    class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                                     <option value="">All Cashiers</option>
                                 </select>
                             </div>
                         <?php endif; ?>
                     </div>
                     <div class="flex gap-2 sm:justify-end">
-                        <button id="btnApplyFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                        <button id="btnApplyFilters" type="button"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-filter mr-2"></i>Apply
                         </button>
-                        <button id="btnResetFilters" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                        <button id="btnResetFilters" type="button"
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-redo mr-2"></i>Reset
                         </button>
                         <!-- Enable Export Button -->
@@ -84,7 +92,8 @@
     </div>
 
     <!-- Remittance Details Modal -->
-    <div id="remittanceDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div id="remittanceDetailsModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
         <div class="relative w-full max-w-3xl mx-auto shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
             <!-- Modal Header -->
             <div class="flex justify-between items-center p-4 border-b border-gray-200">
@@ -138,14 +147,16 @@
                                 </thead>
                                 <tbody id="denominationTableBody" class="divide-y divide-gray-100">
                                     <tr>
-                                        <td colspan="3" class="px-3 py-2 text-center text-gray-500 text-xs">No denominations recorded</td>
+                                        <td colspan="3" class="px-3 py-2 text-center text-gray-500 text-xs">No
+                                            denominations recorded</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <!-- Cash Out Reason -->
-                        <div class="border border-gray-200 rounded-md p-3" id="cashOutReasonContainer" style="display: none;">
+                        <div class="border border-gray-200 rounded-md p-3" id="cashOutReasonContainer"
+                            style="display: none;">
                             <h4 class="text-sm font-semibold text-gray-700 mb-1">Cash Out Reason</h4>
                             <p class="text-sm text-gray-600" id="detailCashOutReason">-</p>
                         </div>
@@ -160,19 +171,26 @@
                             </div>
                             <div class="p-3 space-y-2 text-sm">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-money-bill text-green-500 mr-2 w-4"></i>Cash On Hand</span>
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-money-bill text-green-500 mr-2 w-4"></i>Cash On Hand</span>
                                     <span class="font-medium" id="detailCashOnHand">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-mobile-alt text-blue-500 mr-2 w-4"></i>GCash/Online</span>
-                                    <span class="font-medium" id="detailGcash">₱0.00</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-motorcycle mr-2 w-4" style="color: #D70F64;"></i>FoodPanda</span>
+                                    <span class="text-gray-600 flex items-center">
+                                        <img src="<?= base_url('/assets/pictures/food-panda.svg') ?>" alt="food panda"
+                                            class="w-4 h-4 mr-2 object-contain">
+                                        FoodPanda
+                                    </span>
                                     <span class="font-medium" id="detailFoodPanda" style="color: #D70F64;">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-red-500 mr-2 w-4"></i>Cash Out</span>
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-mobile-alt text-blue-500 mr-2 w-4"></i>GCash/Online</span>
+                                    <span class="font-medium text-blue-500" id="detailGcash">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-hand-holding-usd text-red-500 mr-2 w-4"></i>Cash Out</span>
                                     <span class="font-medium text-red-600" id="detailCashOut">-₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center pt-2 border-t border-gray-200">
@@ -189,15 +207,18 @@
                             </div>
                             <div class="p-3 space-y-2 text-sm">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-bread-slice text-amber-500 mr-2 w-4"></i>Bakery/Bread</span>
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-bread-slice text-amber-500 mr-2 w-4"></i>Bakery/Bread</span>
                                     <span class="font-medium" id="detailBakerySales">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-coffee text-brown-500 mr-2 w-4"></i>Coffee/Drinks</span>
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-coffee text-brown-500 mr-2 w-4"></i>Coffee/Drinks</span>
                                     <span class="font-medium" id="detailCoffeeSales">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-gray-600"><i class="fas fa-shopping-basket text-gray-500 mr-2 w-4"></i>Grocery</span>
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-shopping-basket text-gray-500 mr-2 w-4"></i>Grocery</span>
                                     <span class="font-medium" id="detailGrocerySales">₱0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center pt-2 border-t border-gray-200">
@@ -214,7 +235,8 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-gray-800">Sales vs Remittance</span>
-                            <span class="text-xs text-gray-500">(Total Sales: <span id="detailTotalRemittedCompare">₱0.00</span>)</span>
+                            <span class="text-xs text-gray-500">(Total Sales: <span
+                                    id="detailTotalRemittedCompare">₱0.00</span>)</span>
                         </div>
                         <span class="font-bold text-lg" id="detailVariance">₱0.00</span>
                     </div>
@@ -223,10 +245,12 @@
 
             <!-- Modal Footer -->
             <div class="flex gap-2 p-4 border-t border-gray-200">
-                <button type="button" id="btnPrintDetails" class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
+                <button type="button" id="btnPrintDetails"
+                    class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
-                <button type="button" id="btnCloseModal" class="flex-1 sm:flex-none sm:ml-auto px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary transition-colors">
+                <button type="button" id="btnCloseModal"
+                    class="flex-1 sm:flex-none sm:ml-auto px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary transition-colors">
                     Close
                 </button>
             </div>
@@ -247,7 +271,7 @@
                 url: BASE_URL + 'Sales/GetRemittanceHistory',
                 method: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         remittanceData = response.data; // Store data
                         renderRemittanceHistory(response.data);
@@ -259,7 +283,7 @@
                         showToast('error', 'Failed to fetch remittance history');
                     }
                 },
-                error: function() {
+                error: function () {
                     showToast('error', 'An error occurred while fetching remittance history');
                 }
             });
@@ -270,7 +294,7 @@
                 url: BASE_URL + 'Sales/GetRemittanceDetails/' + remittanceId,
                 method: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         renderRemittanceDetails(response.data);
                         console.log('Remittance details fetched:', response.data);
@@ -278,13 +302,13 @@
                         showToast('error', 'Failed to fetch remittance details');
                     }
                 },
-                error: function() {
+                error: function () {
                     showToast('error', 'An error occurred while fetching remittance details');
                 }
             });
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             getAllRemittances();
             initModalHandlers();
         });
@@ -304,7 +328,7 @@
                 $('#filterCashier').append(`<option value="${cashier}">${cashier}</option>`);
             });
 
-            $('#btnApplyFilters').on('click', function() {
+            $('#btnApplyFilters').on('click', function () {
                 const dateFrom = new Date($('#filterDateFrom').val());
                 const dateTo = new Date($('#filterDateTo').val());
                 const cashier = $('#filterCashier').val();
@@ -320,7 +344,7 @@
                 showToast('success', 'Filters applied');
             });
 
-            $('#btnResetFilters').on('click', function() {
+            $('#btnResetFilters').on('click', function () {
                 const today = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -502,7 +526,7 @@
             });
 
             // Re-bind click events after DataTable renders
-            $('#remittanceHistoryTable').on('click', '.btn-view-details', function() {
+            $('#remittanceHistoryTable').on('click', '.btn-view-details', function () {
                 const index = $(this).data('index');
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
@@ -510,7 +534,7 @@
             });
 
             // Delete button click handler (desktop)
-            $('#remittanceHistoryTable').on('click', '.btn-delete-remittance', function() {
+            $('#remittanceHistoryTable').on('click', '.btn-delete-remittance', function () {
                 const remittanceId = $(this).data('id');
                 const dateStr = $(this).data('date');
                 confirmDeleteRemittance(remittanceId, dateStr);
@@ -634,7 +658,7 @@
             $('#remittanceHistoryCards').html(html);
 
             // Bind click events for mobile cards
-            $('.btn-view-details-mobile').on('click', function() {
+            $('.btn-view-details-mobile').on('click', function () {
                 const index = $(this).data('index');
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
@@ -642,7 +666,7 @@
             });
 
             // Delete button click handler (mobile)
-            $('.btn-delete-remittance-mobile').on('click', function() {
+            $('.btn-delete-remittance-mobile').on('click', function () {
                 const remittanceId = $(this).data('id');
                 const dateStr = $(this).data('date');
                 confirmDeleteRemittance(remittanceId, dateStr);
@@ -659,11 +683,11 @@
             // Use custom Confirm.delete modal
             Confirm.delete(
                 `Are you sure you want to delete the remittance from ${dateStr}? This action cannot be undone.`,
-                function() {
+                function () {
                     // On confirm
                     deleteRemittance(remittanceId);
                 },
-                function() {
+                function () {
                     // On cancel - do nothing
                 }
             );
@@ -674,7 +698,7 @@
                 url: BASE_URL + 'Sales/DeleteRemittance/' + remittanceId,
                 method: 'POST',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message || 'Remittance deleted successfully');
                         // Refresh the remittance list
@@ -683,7 +707,7 @@
                         showToast('error', response.message || 'Failed to delete remittance');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const response = xhr.responseJSON;
                     if (xhr.status === 403) {
                         showToast('error', response?.message || 'You do not have permission to delete remittances');
@@ -718,7 +742,7 @@
         function initModalHandlers() {
             $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#remittanceDetailsModal').addClass('hidden'));
 
-            $('#btnPrintDetails').on('click', function() {
+            $('#btnPrintDetails').on('click', function () {
                 printRemittanceSlip();
             });
         }
@@ -761,45 +785,45 @@
 
             // Define all denominations in order
             const allDenominations = [{
-                    value: 1000,
-                    label: '1000x'
-                },
-                {
-                    value: 500,
-                    label: '500x'
-                },
-                {
-                    value: 200,
-                    label: '200x'
-                },
-                {
-                    value: 100,
-                    label: '100x'
-                },
-                {
-                    value: 50,
-                    label: '50x'
-                },
-                {
-                    value: 20,
-                    label: '20x'
-                },
-                {
-                    value: 10,
-                    label: '10x'
-                },
-                {
-                    value: 5,
-                    label: '5x'
-                },
-                {
-                    value: 1,
-                    label: '1x'
-                },
-                {
-                    value: 0.25,
-                    label: '.25x'
-                }
+                value: 1000,
+                label: '1000x'
+            },
+            {
+                value: 500,
+                label: '500x'
+            },
+            {
+                value: 200,
+                label: '200x'
+            },
+            {
+                value: 100,
+                label: '100x'
+            },
+            {
+                value: 50,
+                label: '50x'
+            },
+            {
+                value: 20,
+                label: '20x'
+            },
+            {
+                value: 10,
+                label: '10x'
+            },
+            {
+                value: 5,
+                label: '5x'
+            },
+            {
+                value: 1,
+                label: '1x'
+            },
+            {
+                value: 0.25,
+                label: '.25x'
+            }
             ];
 
             // Build denomination rows
@@ -954,7 +978,7 @@
             frameDoc.document.close();
 
             // Wait for content to load then print
-            setTimeout(function() {
+            setTimeout(function () {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             }, 250);

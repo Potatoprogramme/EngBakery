@@ -3,10 +3,13 @@
     <div class="p-3 sm:p-4 sm:ml-60">
         <div class="mt-14">
             <!-- Welcome Section -->
-            <div class="mb-4 sm:mb-6 bg-gradient-to-r from-primary to-secondary rounded-xl p-4 sm:p-6 text-white shadow-lg">
+            <div
+                class="mb-4 sm:mb-6 bg-gradient-to-r from-primary to-secondary rounded-xl p-4 sm:p-6 text-white shadow-lg">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-sm sm:text-base text-white/80">Good <?= date('H') < 12 ? 'Morning' : (date('H') < 17 ? 'Afternoon' : 'Evening') ?>,</p>
+                        <p class="text-sm sm:text-base text-white/80">Good
+                            <?= date('H') < 12 ? 'Morning' : (date('H') < 17 ? 'Afternoon' : 'Evening') ?>,
+                        </p>
                         <h1 class="text-xl sm:text-2xl font-bold"><?= esc($name ?? 'User') ?>!</h1>
                         <p class="text-xs sm:text-sm text-white/70 mt-1">
                             <i class="far fa-calendar-alt mr-1"></i><?= $currentDate ?> · <?= $currentTime ?>
@@ -14,12 +17,14 @@
                     </div>
                     <div class="mt-3 sm:mt-0">
                         <?php if ($inventoryExists): ?>
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                            <span
+                                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
                                 <span class="w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
                                 Inventory Active
                             </span>
                         <?php else: ?>
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                            <span
+                                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
                                 <span class="w-2 h-2 bg-yellow-400 rounded-full mr-1.5"></span>
                                 No Inventory Today
                             </span>
@@ -31,13 +36,16 @@
             <!-- Quick Stats Cards - Mobile: 2 cols, Desktop: 4 cols -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <!-- Today's Sales -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Today's Sales</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">₱<?= number_format($todaysSales, 2) ?></p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">
+                                ₱<?= number_format($todaysSales, 2) ?></p>
                         </div>
-                        <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center ml-2">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center ml-2">
                             <i class="fas fa-peso-sign text-primary text-base sm:text-xl"></i>
                         </div>
                     </div>
@@ -49,13 +57,17 @@
                 </div>
 
                 <!-- Items Sold -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Items Sold</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($todaysItemsSold) ?></p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">
+                                <?= number_format($todaysItemsSold) ?>
+                            </p>
                         </div>
-                        <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center ml-2">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center ml-2">
                             <i class="fas fa-box text-blue-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
@@ -67,13 +79,17 @@
                 </div>
 
                 <!-- Orders Today -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Orders Today</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1"><?= number_format($todaysOrderCount) ?></p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">
+                                <?= number_format($todaysOrderCount) ?>
+                            </p>
                         </div>
-                        <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-full flex items-center justify-center ml-2">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-full flex items-center justify-center ml-2">
                             <i class="fas fa-receipt text-amber-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
@@ -86,13 +102,16 @@
 
                 <!-- Avg Order Value -->
                 <?php $avgOrderValue = $todaysOrderCount > 0 ? $todaysSales / $todaysOrderCount : 0; ?>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Avg Order Value</p>
-                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">₱<?= number_format($avgOrderValue, 2) ?></p>
+                            <p class="text-lg sm:text-2xl font-bold text-gray-900 mt-1">
+                                ₱<?= number_format($avgOrderValue, 2) ?></p>
                         </div>
-                        <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center ml-2">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center ml-2">
                             <i class="fas fa-chart-pie text-purple-600 text-base sm:text-xl"></i>
                         </div>
                     </div>
@@ -107,43 +126,52 @@
             <!-- Sales by Category - Kebab Style (3 horizontal cards) -->
             <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <!-- Bakery -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center min-w-0 flex-1">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <div
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                 <i class="fas fa-bread-slice text-amber-600 text-xs sm:text-sm"></i>
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Bakery</p>
-                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($bakerySales, 2) ?></p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">
+                                    ₱<?= number_format($bakerySales, 2) ?></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Drinks -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center min-w-0 flex-1">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <div
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                 <i class="fas fa-mug-hot text-blue-600 text-xs sm:text-sm"></i>
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Drinks</p>
-                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($drinksSales, 2) ?></p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">
+                                    ₱<?= number_format($drinksSales, 2) ?></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Grocery -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center min-w-0 flex-1">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <div
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                 <i class="fas fa-shopping-basket text-green-600 text-xs sm:text-sm"></i>
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs sm:text-sm font-medium text-gray-500 truncate">Grocery</p>
-                                <p class="text-sm sm:text-lg font-bold text-gray-900">₱<?= number_format($grocerySales, 2) ?></p>
+                                <p class="text-sm sm:text-lg font-bold text-gray-900">
+                                    ₱<?= number_format($grocerySales, 2) ?></p>
                             </div>
                         </div>
                     </div>
@@ -159,32 +187,41 @@
                 <div class="grid grid-cols-3 gap-3">
                     <!-- Cash -->
                     <div class="flex items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                            <i class="fas fa-money-bill-wave text-white text-xs sm:text-sm"></i>
+                        <div
+                            class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <i class="fas fa-wallet text-green-600 text-xl sm:text-2xl"></i>
                         </div>
                         <div class="min-w-0">
                             <p class="text-xs text-green-700 font-medium">Cash</p>
-                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($cashSales, 2) ?></p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($cashSales, 2) ?>
+                            </p>
                         </div>
                     </div>
                     <!-- GCash -->
-                    <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #e6f3ff;">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #007DFE;">
-                            <i class="fas fa-mobile-screen text-white text-xs sm:text-sm"></i>
+                    <div class="flex items-center p-3 sm:p-4 rounded-lg bg-blue-50">
+                        <div
+                            class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                            <img src="<?= base_url('assets/pictures/gcash.svg') ?>" alt="GCash"
+                                class="w-6 h-6 sm:w-7 sm:h-7 object-contain">
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-xs font-medium" style="color: #007DFE;">GCash</p>
-                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($gcashSales, 2) ?></p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs sm:text-sm font-semibold text-blue-600 mb-0.5">GCash</p>
+                            <p class="text-base sm:text-lg font-bold text-gray-900">
+                                ₱<?= number_format($gcashSales, 2) ?>
+                            </p>
                         </div>
                     </div>
                     <!-- FoodPanda -->
                     <div class="flex items-center p-2 sm:p-3 rounded-lg" style="background-color: #fff0f3;">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0" style="background-color: #D70F64;">
-                            <i class="fas fa-motorcycle text-white text-xs sm:text-sm"></i>
+                        <div
+                            class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" alt="FoodPanda"
+                                class="w-6 h-6 sm:w-7 sm:h-7 object-contain">
                         </div>
                         <div class="min-w-0">
                             <p class="text-xs font-medium" style="color: #D70F64;">FoodPanda</p>
-                            <p class="text-sm sm:text-base font-bold text-gray-900">₱<?= number_format($foodpandaSales, 2) ?></p>
+                            <p class="text-sm sm:text-base font-bold text-gray-900">
+                                ₱<?= number_format($foodpandaSales, 2) ?></p>
                         </div>
                     </div>
                 </div>
@@ -202,29 +239,35 @@
                         <div class="space-y-3">
                             <div class="flex justify-between items-center p-2 sm:p-3 bg-blue-50 rounded-lg">
                                 <span class="text-xs sm:text-sm text-gray-600">Beginning Stock</span>
-                                <span class="text-sm sm:text-base font-bold text-blue-700"><?= number_format($totalBeginningStock) ?></span>
+                                <span
+                                    class="text-sm sm:text-base font-bold text-blue-700"><?= number_format($totalBeginningStock) ?></span>
                             </div>
                             <div class="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
                                 <span class="text-xs sm:text-sm text-gray-600">Remaining Stock</span>
-                                <span class="text-sm sm:text-base font-bold text-green-700"><?= number_format($totalEndingStock) ?></span>
+                                <span
+                                    class="text-sm sm:text-base font-bold text-green-700"><?= number_format($totalEndingStock) ?></span>
                             </div>
                             <div class="flex justify-between items-center p-2 sm:p-3 bg-amber-50 rounded-lg">
                                 <span class="text-xs sm:text-sm text-gray-600">Sold Today</span>
-                                <span class="text-sm sm:text-base font-bold text-amber-700"><?= number_format($totalBeginningStock - $totalEndingStock) ?></span>
+                                <span
+                                    class="text-sm sm:text-base font-bold text-amber-700"><?= number_format($totalBeginningStock - $totalEndingStock) ?></span>
                             </div>
                             <?php if ($inventoryData['time_start']): ?>
                                 <div class="text-xs text-gray-500 text-center mt-2">
-                                    <i class="far fa-clock mr-1"></i>Started at <?= date('g:i A', strtotime($inventoryData['time_start'])) ?>
+                                    <i class="far fa-clock mr-1"></i>Started at
+                                    <?= date('g:i A', strtotime($inventoryData['time_start'])) ?>
                                 </div>
                             <?php endif; ?>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4 sm:py-6">
-                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div
+                                class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-clipboard-list text-gray-400 text-xl sm:text-2xl"></i>
                             </div>
                             <p class="text-xs sm:text-sm text-gray-500 mb-3">No inventory started today</p>
-                            <a href="<?= base_url('Inventory') ?>" class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-secondary transition-colors">
+                            <a href="<?= base_url('Inventory') ?>"
+                                class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-secondary transition-colors">
                                 <i class="fas fa-plus mr-1.5"></i>Start Inventory
                             </a>
                         </div>
@@ -237,21 +280,26 @@
                         <i class="fas fa-exclamation-triangle text-amber-500 mr-2"></i>
                         Low Stock Alert
                         <?php if (count($lowStockProducts) > 0): ?>
-                            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full"><?= count($lowStockProducts) ?></span>
+                            <span
+                                class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full"><?= count($lowStockProducts) ?></span>
                         <?php endif; ?>
                     </h3>
                     <?php if (count($lowStockProducts) > 0): ?>
                         <div class="overflow-x-auto">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <?php foreach (array_slice($lowStockProducts, 0, 6) as $product): ?>
-                                    <div class="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg border border-red-100">
+                                    <div
+                                        class="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg border border-red-100">
                                         <div class="flex items-center min-w-0">
-                                            <div class="w-7 h-7 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                                            <div
+                                                class="w-7 h-7 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
                                                 <i class="fas fa-bread-slice text-red-500 text-xs"></i>
                                             </div>
-                                            <span class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= esc($product['product_name']) ?></span>
+                                            <span
+                                                class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= esc($product['product_name']) ?></span>
                                         </div>
-                                        <span class="px-2 py-0.5 bg-red-200 text-red-800 text-xs font-bold rounded-full ml-2 flex-shrink-0">
+                                        <span
+                                            class="px-2 py-0.5 bg-red-200 text-red-800 text-xs font-bold rounded-full ml-2 flex-shrink-0">
                                             <?= $product['ending_stock'] ?> left
                                         </span>
                                     </div>
@@ -260,7 +308,8 @@
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4 sm:py-6">
-                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div
+                                class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-check text-green-500 text-xl sm:text-2xl"></i>
                             </div>
                             <p class="text-xs sm:text-sm text-gray-500">All products are well-stocked!</p>
@@ -280,18 +329,24 @@
                     <?php if (count($bestSellers) > 0): ?>
                         <div class="space-y-2 sm:space-y-3">
                             <?php foreach ($bestSellers as $index => $product): ?>
-                                <div class="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div
+                                    class="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                     <div class="flex items-center min-w-0">
-                                        <div class="w-6 h-6 sm:w-8 sm:h-8 <?= $index === 0 ? 'bg-yellow-400' : ($index === 1 ? 'bg-gray-300' : ($index === 2 ? 'bg-amber-600' : 'bg-gray-200')) ?> rounded-full flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                        <div
+                                            class="w-6 h-6 sm:w-8 sm:h-8 <?= $index === 0 ? 'bg-yellow-400' : ($index === 1 ? 'bg-gray-300' : ($index === 2 ? 'bg-amber-600' : 'bg-gray-200')) ?> rounded-full flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                             <span class="text-xs sm:text-sm font-bold text-white"><?= $index + 1 ?></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= esc($product['product_name']) ?></p>
+                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                                <?= esc($product['product_name']) ?>
+                                            </p>
                                             <p class="text-xs text-gray-500"><?= ucfirst($product['category']) ?></p>
                                         </div>
                                     </div>
                                     <div class="text-right ml-2 flex-shrink-0">
-                                        <p class="text-xs sm:text-sm font-bold text-primary"><?= number_format($product['total_sold']) ?> sold</p>
+                                        <p class="text-xs sm:text-sm font-bold text-primary">
+                                            <?= number_format($product['total_sold']) ?> sold
+                                        </p>
                                         <p class="text-xs text-gray-500">₱<?= number_format($product['revenue'], 2) ?></p>
                                     </div>
                                 </div>
@@ -299,7 +354,8 @@
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4 sm:py-6">
-                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div
+                                class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-shopping-bag text-gray-400 text-xl sm:text-2xl"></i>
                             </div>
                             <p class="text-xs sm:text-sm text-gray-500">No sales recorded today</p>
@@ -314,7 +370,8 @@
                             <i class="fas fa-receipt text-primary mr-2"></i>
                             Recent Orders
                         </h3>
-                        <a href="<?= base_url('Sales/History') ?>" class="text-xs sm:text-sm text-primary hover:text-secondary font-medium">
+                        <a href="<?= base_url('Sales/History') ?>"
+                            class="text-xs sm:text-sm text-primary hover:text-secondary font-medium">
                             View All <i class="fas fa-chevron-right ml-1 text-xs"></i>
                         </a>
                     </div>
@@ -323,28 +380,34 @@
                             <?php foreach ($recentOrders as $order): ?>
                                 <div class="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                                     <div class="flex items-center min-w-0">
-                                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                        <div
+                                            class="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                                             <i class="fas fa-shopping-cart text-primary text-xs sm:text-sm"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate"><?= $order['date_created'] . '-' . $order['order_id'] ?></p>
+                                            <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                                <?= $order['date_created'] . '-' . $order['order_id'] ?>
+                                            </p>
                                             <p class="text-xs text-gray-500">
                                                 <?= date('g:i A', strtotime($order['time_created'])) ?>
                                                 <?php if (($order['order_type'] ?? '') === 'foodpanda'): ?>
                                                     · <span class="font-medium" style="color: #D70F64;">FoodPanda</span>
                                                 <?php else: ?>
-                                                    · <?= ucfirst($order['payment_method']) ?> · <span class="text-gray-500">Walk-in</span>
+                                                    · <?= ucfirst($order['payment_method']) ?> · <span
+                                                        class="text-gray-500">Walk-in</span>
                                                 <?php endif; ?>
                                             </p>
                                         </div>
                                     </div>
-                                    <span class="text-xs sm:text-sm font-bold text-gray-900 ml-2">₱<?= number_format($order['total_payment_due'], 2) ?></span>
+                                    <span
+                                        class="text-xs sm:text-sm font-bold text-gray-900 ml-2">₱<?= number_format($order['total_payment_due'], 2) ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4 sm:py-6">
-                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div
+                                class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-receipt text-gray-400 text-xl sm:text-2xl"></i>
                             </div>
                             <p class="text-xs sm:text-sm text-gray-500">No orders yet today</p>
@@ -360,52 +423,62 @@
                     Weekly Sales Trend
                 </h3>
                 <?php if (count($weeklyTrend) > 0): ?>
-                    <?php 
+                    <?php
                     // Calculate min and max for Y-axis
                     $salesValues = array_column($weeklyTrend, 'daily_total');
                     $minSales = min($salesValues);
                     $maxSales = max($salesValues);
-                    
+
                     // Round to nice numbers for Y-axis labels
-                    function roundToNice($value, $roundUp = true) {
-                        if ($value <= 0) return 0;
+                    function roundToNice($value, $roundUp = true)
+                    {
+                        if ($value <= 0)
+                            return 0;
                         $magnitude = pow(10, floor(log10($value)));
                         $normalized = $value / $magnitude;
-                        
+
                         if ($roundUp) {
-                            if ($normalized <= 1) $nice = 1;
-                            elseif ($normalized <= 2) $nice = 2;
-                            elseif ($normalized <= 5) $nice = 5;
-                            else $nice = 10;
+                            if ($normalized <= 1)
+                                $nice = 1;
+                            elseif ($normalized <= 2)
+                                $nice = 2;
+                            elseif ($normalized <= 5)
+                                $nice = 5;
+                            else
+                                $nice = 10;
                         } else {
-                            if ($normalized < 2) $nice = 1;
-                            elseif ($normalized < 5) $nice = 2;
-                            else $nice = 5;
+                            if ($normalized < 2)
+                                $nice = 1;
+                            elseif ($normalized < 5)
+                                $nice = 2;
+                            else
+                                $nice = 5;
                         }
-                        
+
                         return $nice * $magnitude;
                     }
-                    
+
                     // Calculate nice Y-axis bounds
                     $yMin = floor($minSales / 100) * 100; // Round down to nearest 100
                     $yMax = ceil($maxSales / 100) * 100;  // Round up to nearest 100
-                    
+                
                     // Ensure minimum range
                     if ($yMax - $yMin < 500) {
                         $yMax = $yMin + 500;
                     }
-                    
+
                     // If all values are 0
                     if ($yMax == 0) {
                         $yMax = 500;
                         $yMin = 0;
                     }
-                    
+
                     // Calculate step size (aim for 5 labels)
                     $range = $yMax - $yMin;
                     $step = ceil($range / 5 / 100) * 100; // Round to nearest 100
-                    if ($step < 100) $step = 100;
-                    
+                    if ($step < 100)
+                        $step = 100;
+
                     // Generate Y-axis labels
                     $yLabels = [];
                     for ($i = $yMax; $i >= $yMin; $i -= $step) {
@@ -414,18 +487,19 @@
                     if (end($yLabels) != $yMin) {
                         $yLabels[] = $yMin;
                     }
-                    
+
                     $chartHeight = 160; // pixels
                     ?>
-                    
+
                     <div class="flex">
                         <!-- Y-Axis Labels -->
-                        <div class="flex flex-col justify-between pr-2 sm:pr-3 text-right" style="height: <?= $chartHeight ?>px;">
+                        <div class="flex flex-col justify-between pr-2 sm:pr-3 text-right"
+                            style="height: <?= $chartHeight ?>px;">
                             <?php foreach ($yLabels as $label): ?>
                                 <span class="text-xs text-gray-500 leading-none">₱<?= number_format($label) ?></span>
                             <?php endforeach; ?>
                         </div>
-                        
+
                         <!-- Chart Area -->
                         <div class="flex-1 relative">
                             <!-- Grid Lines -->
@@ -434,11 +508,12 @@
                                     <div class="border-t border-gray-100 <?= $index === 0 ? 'border-gray-200' : '' ?>"></div>
                                 <?php endforeach; ?>
                             </div>
-                            
+
                             <!-- Bars Container -->
-                            <div class="relative flex items-end justify-between gap-1 sm:gap-2" style="height: <?= $chartHeight ?>px;">
+                            <div class="relative flex items-end justify-between gap-1 sm:gap-2"
+                                style="height: <?= $chartHeight ?>px;">
                                 <?php foreach ($weeklyTrend as $day): ?>
-                                    <?php 
+                                    <?php
                                     $value = floatval($day['daily_total']);
                                     // Calculate height percentage based on Y-axis range
                                     $heightPercent = $yMax > $yMin ? (($value - $yMin) / ($yMax - $yMin)) * 100 : 0;
@@ -446,14 +521,16 @@
                                     ?>
                                     <div class="flex-1 flex flex-col items-center h-full justify-end group">
                                         <!-- Tooltip -->
-                                        <div class="hidden group-hover:block absolute -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-10 whitespace-nowrap">
+                                        <div
+                                            class="hidden group-hover:block absolute -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-10 whitespace-nowrap">
                                             ₱<?= number_format($value, 2) ?>
                                         </div>
                                         <!-- Bar -->
                                         <div class="w-full bg-primary rounded-t-md transition-all duration-300 hover:bg-secondary cursor-pointer relative"
-                                             style="height: <?= $heightPercent ?>%;">
+                                            style="height: <?= $heightPercent ?>%;">
                                             <!-- Value on top of bar (visible on hover) -->
-                                            <span class="absolute -top-5 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
+                                            <span
+                                                class="absolute -top-5 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
                                                 ₱<?= number_format($value, 0) ?>
                                             </span>
                                         </div>
@@ -462,28 +539,35 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- X-Axis Labels -->
                     <div class="flex mt-2">
                         <div class="w-12 sm:w-16"></div> <!-- Spacer for Y-axis -->
                         <div class="flex-1 flex justify-between gap-1 sm:gap-2">
                             <?php foreach ($weeklyTrend as $day): ?>
                                 <div class="flex-1 text-center">
-                                    <p class="text-xs font-medium text-gray-600"><?= date('D', strtotime($day['date_created'])) ?></p>
-                                    <p class="text-xs text-gray-400 hidden sm:block"><?= date('M j', strtotime($day['date_created'])) ?></p>
+                                    <p class="text-xs font-medium text-gray-600">
+                                        <?= date('D', strtotime($day['date_created'])) ?>
+                                    </p>
+                                    <p class="text-xs text-gray-400 hidden sm:block">
+                                        <?= date('M j', strtotime($day['date_created'])) ?>
+                                    </p>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    
+
                     <!-- Summary -->
-                    <div class="flex flex-wrap justify-between items-center mt-3 sm:mt-4 pt-3 border-t border-gray-100 gap-2">
+                    <div
+                        class="flex flex-wrap justify-between items-center mt-3 sm:mt-4 pt-3 border-t border-gray-100 gap-2">
                         <div class="flex items-center gap-3 sm:gap-4">
                             <span class="text-xs sm:text-sm text-gray-500">
-                                <i class="fas fa-arrow-down text-red-500 mr-1"></i>Low: <span class="font-semibold text-gray-700">₱<?= number_format($minSales, 2) ?></span>
+                                <i class="fas fa-arrow-down text-red-500 mr-1"></i>Low: <span
+                                    class="font-semibold text-gray-700">₱<?= number_format($minSales, 2) ?></span>
                             </span>
                             <span class="text-xs sm:text-sm text-gray-500">
-                                <i class="fas fa-arrow-up text-green-500 mr-1"></i>High: <span class="font-semibold text-gray-700">₱<?= number_format($maxSales, 2) ?></span>
+                                <i class="fas fa-arrow-up text-green-500 mr-1"></i>High: <span
+                                    class="font-semibold text-gray-700">₱<?= number_format($maxSales, 2) ?></span>
                             </span>
                         </div>
                         <span class="text-xs sm:text-sm font-semibold text-primary">
@@ -492,7 +576,8 @@
                     </div>
                 <?php else: ?>
                     <div class="text-center py-6 sm:py-8">
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div
+                            class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <i class="fas fa-chart-bar text-gray-400 text-xl sm:text-2xl"></i>
                         </div>
                         <p class="text-xs sm:text-sm text-gray-500">No sales data available</p>
@@ -531,7 +616,10 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Low Stock</p>
-                            <p class="text-lg font-bold <?= count($lowStockProducts) > 0 ? 'text-red-600' : 'text-gray-900' ?>"><?= count($lowStockProducts) ?></p>
+                            <p
+                                class="text-lg font-bold <?= count($lowStockProducts) > 0 ? 'text-red-600' : 'text-gray-900' ?>">
+                                <?= count($lowStockProducts) ?>
+                            </p>
                         </div>
                     </div>
                     <div class="flex items-center p-3 bg-gray-50 rounded-lg">
@@ -540,7 +628,9 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Inventory</p>
-                            <p class="text-lg font-bold <?= $inventoryExists ? 'text-green-600' : 'text-red-600' ?>"><?= $inventoryExists ? 'Done' : 'Pending' ?></p>
+                            <p class="text-lg font-bold <?= $inventoryExists ? 'text-green-600' : 'text-red-600' ?>">
+                                <?= $inventoryExists ? 'Done' : 'Pending' ?>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -553,26 +643,34 @@
                     Quick Actions
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                    <a href="<?= base_url('Order') ?>" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors group">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <a href="<?= base_url('Order') ?>"
+                        class="flex flex-col items-center justify-center p-3 sm:p-4 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors group">
+                        <div
+                            class="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <i class="fas fa-cart-plus text-white text-base sm:text-lg"></i>
                         </div>
                         <span class="text-xs sm:text-sm font-medium text-gray-700">New Order</span>
                     </a>
-                    <a href="<?= base_url('Inventory') ?>" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <a href="<?= base_url('Inventory') ?>"
+                        class="flex flex-col items-center justify-center p-3 sm:p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group">
+                        <div
+                            class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <i class="fas fa-clipboard-check text-white text-base sm:text-lg"></i>
                         </div>
                         <span class="text-xs sm:text-sm font-medium text-gray-700">Inventory</span>
                     </a>
-                    <a href="<?= base_url('Sales') ?>" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors group">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <a href="<?= base_url('Sales') ?>"
+                        class="flex flex-col items-center justify-center p-3 sm:p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors group">
+                        <div
+                            class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <i class="fas fa-file-invoice-dollar text-white text-base sm:text-lg"></i>
                         </div>
                         <span class="text-xs sm:text-sm font-medium text-gray-700">Remittance</span>
                     </a>
-                    <a href="<?= base_url('Products') ?>" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <a href="<?= base_url('Products') ?>"
+                        class="flex flex-col items-center justify-center p-3 sm:p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group">
+                        <div
+                            class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <i class="fas fa-box-open text-white text-base sm:text-lg"></i>
                         </div>
                         <span class="text-xs sm:text-sm font-medium text-gray-700">Products</span>
@@ -584,7 +682,7 @@
 
     <script>
         // Auto-refresh dashboard every 5 minutes
-        setTimeout(function() {
+        setTimeout(function () {
             location.reload();
         }, 300000);
     </script>
