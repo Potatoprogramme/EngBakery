@@ -171,7 +171,7 @@
                                     <span class="text-gray-600"><i class="fas fa-motorcycle mr-2 w-4" style="color: #D70F64;"></i>FoodPanda</span>
                                     <span class="font-medium" id="detailFoodPanda" style="color: #D70F64;">₱0.00</span>
                                 </div>
-                                <div class="flex justify-between items-center"></div>
+                                <div class="flex justify-between items-center">
                                     <span class="text-gray-600"><i class="fas fa-hand-holding-usd text-red-500 mr-2 w-4"></i>Cash Out</span>
                                     <span class="font-medium text-red-600" id="detailCashOut">-₱0.00</span>
                                 </div>
