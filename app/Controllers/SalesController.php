@@ -498,7 +498,7 @@ class SalesController extends BaseController
 
         // Get total sales and order count
         $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
-        $totalOrders = $this->transactionsModel->getOrderCountByDateRange($dateFrom, $dateTo);
+        $totalTransactions = $this->transactionsModel->getOrderCountByDateRange($dateFrom, $dateTo);
 
         // Get sales by payment method
         $cashSales = $this->orderModel->getSalesByPaymentMethod('cash', $dateFrom, $dateTo);
@@ -514,7 +514,7 @@ class SalesController extends BaseController
             'success' => true,
             'data' => [
                 'total_sales' => floatval($totalSales),
-                'total_orders' => intval($totalOrders),
+                'total_transactions' => intval($totalTransactions),
                 'cash_sales' => floatval($cashSales),
                 'gcash_sales' => floatval($gcashSales),
                 'panda_sales' => floatval($pandaSales),

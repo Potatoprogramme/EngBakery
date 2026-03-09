@@ -87,8 +87,8 @@
                 <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs sm:text-sm font-medium text-gray-500">Total Orders</p>
-                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalOrders">0</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Total Transactions</p>
+                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalTransactions">0</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-blue-100 rounded-full hidden sm:block">
                             <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
@@ -427,7 +427,7 @@
                         // Set all to 0
                         updateSummaryCards({
                             total_sales: 0,
-                            total_orders: 0,
+                            total_transactions: 0,
                             cash_sales: 0,
                             gcash_sales: 0,
                             panda_sales: 0,
@@ -443,7 +443,7 @@
                     // Set all to 0
                     updateSummaryCards({
                         total_sales: 0,
-                        total_orders: 0,
+                        total_transactions: 0,
                         cash_sales: 0,
                         gcash_sales: 0,
                         panda_sales: 0,
@@ -679,7 +679,7 @@
         function updateSummaryCards(data) {
             // Update main stats
             $('#summaryTotalSales').text(formatCurrency(data.total_sales || 0));
-            $('#summaryTotalOrders').text(data.total_orders || 0);
+            $('#summaryTotalTransactions').text(data.total_transactions || 0);
             $('#summaryCashSales').text(formatCurrency(data.cash_sales || 0));
             $('#summaryGcashSales').text(formatCurrency(data.gcash_sales || 0));
             $('#summaryFoodPandaSales').text(formatCurrency(data.panda_sales || 0));
