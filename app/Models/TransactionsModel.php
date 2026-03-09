@@ -127,22 +127,36 @@ class TransactionsModel extends Model
 
     public function getSalesHistoryByDateRange($dateFrom, $dateTo)
     {
-        return $this->builder()
-            ->select('transactions.order_id, 
+        $db = \Config\Database::connect();
+        return $db->table('orders')
+            ->select('orders.order_id, 
+                  orders.order_type,
+                  orders.payment_method,
+                  orders.distributed_note,
+                  orders.cashier_name,
+                  orders.total_payment_due,
                   MIN(transactions.sale_id) as sale_id,
                   GROUP_CONCAT(DISTINCT products.product_name SEPARATOR ", ") as product_name,
-                  SUM(transactions.quantity_sold) as quantity_sold, 
-                  SUM(transactions.total_sales) as total_sales, 
-                  transactions.date_created, 
-                  transactions.time_created')
+                  COALESCE(SUM(transactions.quantity_sold), 0) as quantity_sold, 
+                  COALESCE(SUM(transactions.total_sales), 0) as total_sales, 
+                  orders.date_created, 
+                  orders.time_created')
+            ->join('transactions', 'transactions.order_id = orders.order_id', 'left')
             ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
             ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
-            ->where('transactions.date_created >=', $dateFrom)
-            ->where('transactions.date_created <=', $dateTo)
-            ->groupBy('transactions.order_id')
-            ->orderBy('transactions.date_created', 'DESC')
-            ->orderBy('transactions.time_created', 'DESC')
+            ->where('orders.date_created >=', $dateFrom)
+            ->where('orders.date_created <=', $dateTo)
+            ->groupBy('orders.order_id')
+            ->orderBy('orders.date_created', 'DESC')
+            ->orderBy('orders.time_created', 'DESC')
             ->get()
             ->getResultArray();
+    }
+    public function getOrderCountByDateRange($dateFrom, $dateTo)
+    {
+        return $this->where('DATE(date_created) >=', $dateFrom)
+            ->where('DATE(date_created) <=', $dateTo)
+            ->groupBy('order_id')
+            ->countAllResults();
     }
 }
