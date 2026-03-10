@@ -54,7 +54,7 @@ class OrderModel extends Model
         return false;
     }
 
-    public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null): array
+    public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null, ?string $orderType = null): array
     {
         $builder = $this->builder();
         $builder->select("orders.*, orders.voided_at, orders.voided_by,
@@ -66,6 +66,9 @@ class OrderModel extends Model
         }
         if ($dateTo) {
             $builder->where('date_created <=', $dateTo);
+        }
+        if ($orderType) {
+            $builder->where('order_type', $orderType);
         }
 
         $builder->orderBy('date_created', 'DESC');
