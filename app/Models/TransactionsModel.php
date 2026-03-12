@@ -159,4 +159,78 @@ class TransactionsModel extends Model
             ->groupBy('order_id')
             ->countAllResults();
     }
+
+    /**
+     * Get today's sales by category scoped to a shift time window.
+     * Only includes transactions whose linked order falls within the window
+     * and that have NOT yet been linked to a remittance.
+     *
+     * @param string $category   Product category (bakery, drinks, grocery, etc.)
+     * @param string $date       Date (Y-m-d)
+     * @param string $shiftStart Shift start time (H:i:s)
+     * @param string $shiftEnd   Shift end time (H:i:s)
+     * @return array|null
+     */
+    public function getSalesByCategoryForShift(string $category, string $date, string $shiftStart, string $shiftEnd): ?array
+    {
+        return $this->builder()
+            ->select('products.category, SUM(transactions.quantity_sold) AS total_items_sold, SUM(transactions.total_sales) AS total_revenue')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'left')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->where('transactions.date_created', $date)
+            ->where('orders.time_created >=', $shiftStart)
+            ->where('orders.time_created <=', $shiftEnd)
+            ->where('orders.voided_at IS NULL')
+            ->where('products.category', $category)
+            ->groupBy('products.category')
+            ->get()
+            ->getRowArray();
+    }
+
+    /**
+     * Get transaction (sale) IDs scoped to a shift time window.
+     * Only returns un-remitted transactions (not yet linked to remittance_items).
+     *
+     * @param string $date       Date (Y-m-d)
+     * @param string $shiftStart Shift start time (H:i:s)
+     * @param string $shiftEnd   Shift end time (H:i:s)
+     * @return array  Array of sale_id values
+     */
+    public function getTransactionIdsForShift(string $date, string $shiftStart, string $shiftEnd): array
+    {
+        $results = $this->builder()
+            ->select('transactions.sale_id')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('transactions.date_created', $date)
+            ->where('orders.time_created >=', $shiftStart)
+            ->where('orders.time_created <=', $shiftEnd)
+            ->where('orders.voided_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->get()
+            ->getResultArray();
+
+        return array_column($results, 'sale_id');
+    }
+
+    /**
+     * Get total items sold scoped to a shift time window (un-remitted only).
+     */
+    public function getTotalItemsSoldForShift(string $date, string $shiftStart, string $shiftEnd): int
+    {
+        $result = $this->builder()
+            ->selectSum('transactions.quantity_sold', 'total_items_sold')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('transactions.date_created', $date)
+            ->where('orders.time_created >=', $shiftStart)
+            ->where('orders.time_created <=', $shiftEnd)
+            ->where('orders.voided_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->get()
+            ->getRowArray();
+
+        return intval($result['total_items_sold'] ?? 0);
+    }
 }

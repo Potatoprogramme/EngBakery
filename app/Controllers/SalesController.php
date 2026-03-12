@@ -163,35 +163,69 @@ class SalesController extends BaseController
 
     public function getTodaysSummary()
     {
-        $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
-        $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
-        $doughSales = $this->transactionsModel->getTodaysSaleByCategory('dough');
-        $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
-        $gCashSales = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
-        $mayaSales = $this->orderModel->getTotalSalesByPaymentMethod('maya');
-        $creditCardSales = $this->orderModel->getTotalSalesByPaymentMethod('credit card');
-        $debitCardSales = $this->orderModel->getTotalSalesByPaymentMethod('debit card');
-        $pandaSales = $this->orderModel->getTotalSalesByPaymentMethod('panda');
-        $todaysTotalOrders = $this->orderModel->getTodaysOrderCount();
-        $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
-        $todaysTransactionIds = $this->transactionsModel->getTodaysTransactionsIds();
+        // Accept optional shift parameters for time-scoped summary
+        $shiftStart = $this->request->getGet('shift_start');
+        $shiftEnd   = $this->request->getGet('shift_end');
+        $date       = $this->request->getGet('date') ?? date('Y-m-d');
 
+        // If shift params provided, use time-scoped queries
+        if (!empty($shiftStart) && !empty($shiftEnd)) {
+            // Ensure time format includes seconds
+            if (strlen($shiftStart) === 5) $shiftStart .= ':00';
+            if (strlen($shiftEnd) === 5)   $shiftEnd   .= ':00';
+
+            $breadSales   = $this->transactionsModel->getSalesByCategoryForShift('bakery', $date, $shiftStart, $shiftEnd);
+            $drinksSales  = $this->transactionsModel->getSalesByCategoryForShift('drinks', $date, $shiftStart, $shiftEnd);
+            $doughSales   = $this->transactionsModel->getSalesByCategoryForShift('dough', $date, $shiftStart, $shiftEnd);
+            $grocerySales = $this->transactionsModel->getSalesByCategoryForShift('grocery', $date, $shiftStart, $shiftEnd);
+
+            $gCashSales      = $this->orderModel->getSalesByPaymentMethodForShift('gcash', $date, $shiftStart, $shiftEnd);
+            $mayaSales        = $this->orderModel->getSalesByPaymentMethodForShift('maya', $date, $shiftStart, $shiftEnd);
+            $creditCardSales  = $this->orderModel->getSalesByPaymentMethodForShift('credit card', $date, $shiftStart, $shiftEnd);
+            $debitCardSales   = $this->orderModel->getSalesByPaymentMethodForShift('debit card', $date, $shiftStart, $shiftEnd);
+            $pandaSales       = $this->orderModel->getSalesByPaymentMethodForShift('panda', $date, $shiftStart, $shiftEnd);
+            $todaysTotalOrders    = $this->orderModel->getOrderCountForShift($date, $shiftStart, $shiftEnd);
+            $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForShift($date, $shiftStart, $shiftEnd);
+            $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForShift($date, $shiftStart, $shiftEnd);
+
+            // Payment method results are already floats from the ForShift methods
+            $gCashSalesArr      = ['total_revenue' => $gCashSales];
+            $mayaSalesArr       = ['total_revenue' => $mayaSales];
+            $creditCardSalesArr = ['total_revenue' => $creditCardSales];
+            $debitCardSalesArr  = ['total_revenue' => $debitCardSales];
+            $pandaSalesArr      = ['total_revenue' => $pandaSales];
+        } else {
+            // Fallback: original whole-day logic
+            $breadSales   = $this->transactionsModel->getTodaysSaleByCategory('bakery');
+            $drinksSales  = $this->transactionsModel->getTodaysSaleByCategory('drinks');
+            $doughSales   = $this->transactionsModel->getTodaysSaleByCategory('dough');
+            $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
+
+            $gCashSalesArr      = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
+            $mayaSalesArr       = $this->orderModel->getTotalSalesByPaymentMethod('maya');
+            $creditCardSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('credit card');
+            $debitCardSalesArr  = $this->orderModel->getTotalSalesByPaymentMethod('debit card');
+            $pandaSalesArr      = $this->orderModel->getTotalSalesByPaymentMethod('panda');
+            $todaysTotalOrders    = $this->orderModel->getTodaysOrderCount();
+            $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
+            $todaysTransactionIds = $this->transactionsModel->getTodaysTransactionsIds();
+        }
 
         echo json_encode([
             'success' => true,
             'data' => [
-                'bread_sales' => $breadSales,
-                'drinks_sales' => $drinksSales,
-                'dough_sales' => $doughSales,
-                'grocery_sales' => $grocerySales,
-                'gcash_sales' => $gCashSales,
-                'maya_sales' => $mayaSales,
-                'credit_card_sales' => $creditCardSales,
-                'debit_card_sales' => $debitCardSales,
-                'panda_sales' => $pandaSales,
-                'total_orders' => $todaysTotalOrders,
-                'total_items_sold' => $todaysTotalItemsSold,
-                'transaction_ids' => $todaysTransactionIds
+                'bread_sales'       => $breadSales,
+                'drinks_sales'      => $drinksSales,
+                'dough_sales'       => $doughSales,
+                'grocery_sales'     => $grocerySales,
+                'gcash_sales'       => $gCashSalesArr ?? $gCashSales,
+                'maya_sales'        => $mayaSalesArr ?? $mayaSales,
+                'credit_card_sales' => $creditCardSalesArr ?? $creditCardSales,
+                'debit_card_sales'  => $debitCardSalesArr ?? $debitCardSales,
+                'panda_sales'       => $pandaSalesArr ?? $pandaSales,
+                'total_orders'      => $todaysTotalOrders,
+                'total_items_sold'  => $todaysTotalItemsSold,
+                'transaction_ids'   => $todaysTransactionIds
             ]
         ]);
     }
@@ -273,6 +307,50 @@ class SalesController extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'occupied_slots' => $occupiedSlots
+        ]);
+    }
+
+    /**
+     * Return the shift configuration for the requested date.
+     * On Sundays there is a single shift; on Mon-Sat there are two (Shift A & B).
+     * Called via AJAX so the front-end can render the correct shift buttons.
+     */
+    public function getShiftConfig()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $dayOfWeek = date('l', strtotime($date)); // 'Sunday', 'Monday', etc.
+
+        if ($dayOfWeek === 'Sunday') {
+            $shifts = [
+                [
+                    'key'   => 'sunday',
+                    'label' => 'Sunday Shift',
+                    'start' => '06:00:00',
+                    'end'   => '17:00:00',
+                ]
+            ];
+        } else {
+            $shifts = [
+                [
+                    'key'   => 'shift_a',
+                    'label' => 'Shift A (6 AM – 3 PM)',
+                    'start' => '06:00:00',
+                    'end'   => '15:00:00',
+                ],
+                [
+                    'key'   => 'shift_b',
+                    'label' => 'Shift B (3 PM – 8 PM)',
+                    'start' => '15:00:01',
+                    'end'   => '20:00:00',
+                ],
+            ];
+        }
+
+        return $this->response->setJSON([
+            'success'    => true,
+            'day'        => $dayOfWeek,
+            'date'       => $date,
+            'shifts'     => $shifts,
         ]);
     }
 
