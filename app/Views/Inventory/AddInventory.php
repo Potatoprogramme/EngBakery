@@ -188,13 +188,6 @@
             closeModal();
         });
 
-        // Close modal on outside click
-        $('#addMaterialModal').on('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
         function closeModal() {
             $('#addMaterialModal').addClass('hidden');
             $('#addMaterialForm')[0].reset();

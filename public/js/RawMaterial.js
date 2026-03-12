@@ -882,15 +882,6 @@ $(document).ready(function () {
     currentViewMaterialId = null;
   });
 
-  // Close View Modal on overlay click
-  $("#viewMaterialModal").on("click", function (e) {
-    if (e.target === this) {
-      $(this).addClass("hidden");
-      document.body.classList.remove('overflow-hidden');
-      currentViewMaterialId = null;
-    }
-  });
-
   // Edit from View Modal
   $("#btnViewEditMaterial").on("click", function () {
     if (currentViewMaterialId) {

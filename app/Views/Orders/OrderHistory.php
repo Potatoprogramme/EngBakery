@@ -125,6 +125,17 @@
                             <input type="date" id="filterDateTo"
                                 class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
                         </div>
+                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
+                            <label for="filterOrderType"
+                                class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">Type:</label>
+                            <select id="filterOrderType"
+                                class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
+                                <option value="">All Types</option>
+                                <option value="walk-in">Walk-in</option>
+                                <option value="foodpanda">Foodpanda</option>
+                                <option value="distributed">Distributed</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex gap-2 sm:justify-end">
                         <button id="btnApplyFilters" type="button"
@@ -197,6 +208,15 @@
                         <div class="text-right" id="detailOrderType">-</div>
                         <div><span class="text-gray-600">Payment:</span></div>
                         <div class="text-right" id="detailPaymentMethod">-</div>
+                    </div>
+                </div>
+                <div id="distributedNoteSection" class="hidden border-t border-dashed border-gray-300 py-3">
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-truck text-purple-500"></i>
+                            <span class="text-sm font-semibold text-purple-700">Distribution Note</span>
+                        </div>
+                        <p class="text-sm text-purple-600" id="detailDistributedNote">-</p>
                     </div>
                 </div>
                 <div id="voidedInfoSection" class="hidden border-t border-dashed border-gray-300 py-3">
@@ -447,11 +467,12 @@
             });
         }
 
-        function loadOrders(dateFrom = null, dateTo = null) {
+        function loadOrders(dateFrom = null, dateTo = null, orderType = null) {
             let url = BASE_URL + 'Order/GetOrderHistory';
             const params = [];
             if (dateFrom) params.push('date_from=' + dateFrom);
             if (dateTo) params.push('date_to=' + dateTo);
+            if (orderType) params.push('order_type=' + orderType);
             if (params.length) url += '?' + params.join('&');
 
             $.ajax({
@@ -489,11 +510,20 @@
             const orderDate = new Date(order.date_created);
             const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const timeStr = formatTime(order.time_created);
-            const typeClass = order.order_type === 'foodpanda' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800';
-            const typeIcon = order.order_type === 'foodpanda'
-                ? `<img src="${ASSET_URL}assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`
-                : '<i class="fas fa-walking mr-1"></i>';
-            const typeName = order.order_type === 'foodpanda' ? 'Foodpanda' : 'Walk-in';
+            let typeClass, typeIcon, typeName;
+            if (order.order_type === 'foodpanda') {
+                typeClass = 'bg-pink-100 text-pink-800';
+                typeIcon = `<img src="${ASSET_URL}assets/pictures/food-panda.svg" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`;
+                typeName = 'Foodpanda';
+            } else if (order.order_type === 'distributed') {
+                typeClass = 'bg-purple-100 text-purple-800';
+                typeIcon = '<i class="fas fa-truck mr-1"></i>';
+                typeName = 'Distributed';
+            } else {
+                typeClass = 'bg-blue-100 text-blue-800';
+                typeIcon = '<i class="fas fa-walking mr-1"></i>';
+                typeName = 'Walk-in';
+            }
             const cashierName = order.cashier_name || 'Unknown';
             const isVoided = order.voided_at !== null && order.voided_at !== undefined;
             const orderNumber = `${order.date_created}-${order.order_id}`;
@@ -637,7 +667,8 @@
             $('#btnApplyFilters').on('click', function () {
                 const dateFrom = $('#filterDateFrom').val();
                 const dateTo = $('#filterDateTo').val();
-                loadOrders(dateFrom, dateTo);
+                const orderType = $('#filterOrderType').val();
+                loadOrders(dateFrom, dateTo, orderType);
             });
 
             $('#btnResetFilters').on('click', function () {
@@ -647,6 +678,7 @@
                 const firstStr = firstOfMonth.toISOString().split('T')[0];
                 $('#filterDateFrom').val(firstStr);
                 $('#filterDateTo').val(todayStr);
+                $('#filterOrderType').val('');
                 loadOrders(firstStr, todayStr);
             });
         }
@@ -716,9 +748,19 @@
 
                         // Set order type with icon
                         if (order.order_type === 'foodpanda') {
-                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/icons8-foodpanda-96.png" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
+                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/food-panda.svg" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
+                        } else if (order.order_type === 'distributed') {
+                            $('#detailOrderType').html('<span class="inline-flex items-center text-purple-700"><i class="fas fa-truck mr-1"></i>Distributed</span>');
                         } else {
                             $('#detailOrderType').html('<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>');
+                        }
+
+                        // Show distributed note if applicable
+                        if (order.order_type === 'distributed' && order.distributed_note) {
+                            $('#detailDistributedNote').text(order.distributed_note);
+                            $('#distributedNoteSection').removeClass('hidden');
+                        } else {
+                            $('#distributedNoteSection').addClass('hidden');
                         }
 
                         $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1));

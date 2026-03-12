@@ -472,7 +472,7 @@
             });
 
             // Close Distribution List Modal
-            $('#distributionListModalClose, #distributionListModalDone, #distributionListModalBackdrop').on('click', function () {
+            $('#distributionListModalClose, #distributionListModalDone').on('click', function () {
                 $('#distributionListModal').addClass('hidden');
             });
 
@@ -482,7 +482,7 @@
             });
 
             // Close Load Single Item Modal
-            $('#loadSingleItemClose, #loadSingleItemCancel, #loadSingleItemBackdrop').on('click', function () {
+            $('#loadSingleItemClose, #loadSingleItemCancel').on('click', function () {
                 $('#loadSingleItemModal').addClass('hidden');
                 $('#loadSingleItemForm')[0].reset();
                 resetLoadItemModalState();
@@ -690,13 +690,6 @@
             // Close Inventory Modal
             $('#btnCloseModal, #btnCancelAdd').on('click', function () {
                 closeModal();
-            });
-
-            // Close modal on outside click
-            $('#addMaterialModal').on('click', function (e) {
-                if (e.target === this) {
-                    closeModal();
-                }
             });
 
             // Close Time Input Modal

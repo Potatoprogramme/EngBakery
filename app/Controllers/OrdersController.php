@@ -225,8 +225,9 @@ class OrdersController extends BaseController
     {
         $dateFrom = $this->request->getGet('date_from');
         $dateTo = $this->request->getGet('date_to');
+        $orderType = $this->request->getGet('order_type');
 
-        $orders = $this->orderModel->getOrderHistory($dateFrom, $dateTo);
+        $orders = $this->orderModel->getOrderHistory($dateFrom, $dateTo, $orderType);
 
         return $this->response->setJSON([
             'success' => true,

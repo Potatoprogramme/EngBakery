@@ -53,7 +53,7 @@ class SalesController extends BaseController
         $userId = $this->getSessionData()['user_id'];
 
         log_message("info", "Fetching remittance history for user ID: " . $userId . " with role: " . $employeeType);
-        
+
         // If user is staff, filter remittances to show only their own
         if ($employeeType === 'staff' && $userId) {
             $remittances = $this->remittanceDetailsModel->getAllRemittancesById((int) $userId);
@@ -100,7 +100,7 @@ class SalesController extends BaseController
     {
         // Check if user is admin or owner
         $employeeType = $this->getSessionData()['employee_type'];
-        
+
         if (!in_array($employeeType, ['admin', 'owner'])) {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
@@ -129,7 +129,7 @@ class SalesController extends BaseController
 
             // Immediate notification: remittance deleted
             $deleterName = session()->get('name') ?? 'Unknown';
-            $this->notify('notifyRemittanceDeleted', (int)$remittanceId, $deleterName);
+            $this->notify('notifyRemittanceDeleted', (int) $remittanceId, $deleterName);
 
             return $this->response->setJSON([
                 'success' => true,
@@ -153,7 +153,7 @@ class SalesController extends BaseController
     {
         $date = $date ?? date('Y-m-d');
         $dateFrom = date('Y-m-01', strtotime($date));
-        $dateTo   = date('Y-m-t', strtotime($date));
+        $dateTo = date('Y-m-t', strtotime($date));
         $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
         return $this->response->setJSON([
             'success' => true,
@@ -225,7 +225,7 @@ class SalesController extends BaseController
         if ($existingRemittance) {
             $cashierName = $existingRemittance['cashier_name'] ?? 'Unknown';
             $existingTime = date('h:i A', strtotime($existingRemittance['remittance_date']));
-            
+
             return $this->response->setJSON([
                 'success' => true,
                 'exists' => true,
@@ -436,16 +436,16 @@ class SalesController extends BaseController
 
         // Generate in-app notification if remittance is short
         if ($isShort) {
-            $cashierUser = $this->usersModel->find((int)$cashierId);
+            $cashierUser = $this->usersModel->find((int) $cashierId);
             $cashierName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . ($cashierUser['middlename'] ?? '') . ' ' . $cashierUser['lastname']) : 'Unknown';
-            $this->notify('notifyShortRemittance', (int)$remittanceId, -abs($variance), $cashierName, $dateOnly);
+            $this->notify('notifyShortRemittance', (int) $remittanceId, -abs($variance), $cashierName, $dateOnly);
         }
 
         // Immediate notification: remittance filed
-        $cashierUser = $cashierUser ?? $this->usersModel->find((int)$cashierId);
+        $cashierUser = $cashierUser ?? $this->usersModel->find((int) $cashierId);
         $cashierDisplayName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . $cashierUser['lastname']) : 'Unknown';
         $totalSales = floatval($remittanceDetails['total_sales'] ?? 0);
-        $this->notify('notifyRemittanceFiled', (int)$remittanceId, $cashierDisplayName, $totalSales, $dateOnly);
+        $this->notify('notifyRemittanceFiled', (int) $remittanceId, $cashierDisplayName, $totalSales, $dateOnly);
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
     }
@@ -498,11 +498,12 @@ class SalesController extends BaseController
 
         // Get total sales and order count
         $totalSales = $this->orderModel->getTotalSalesByDateRange($dateFrom, $dateTo);
-        $totalOrders = $this->orderModel->getOrderCountByDateRange($dateFrom, $dateTo);
+        $totalTransactions = $this->transactionsModel->getOrderCountByDateRange($dateFrom, $dateTo);
 
         // Get sales by payment method
         $cashSales = $this->orderModel->getSalesByPaymentMethod('cash', $dateFrom, $dateTo);
         $gcashSales = $this->orderModel->getSalesByPaymentMethod('gcash', $dateFrom, $dateTo);
+        $pandaSales = $this->orderModel->getSalesByPaymentMethod('panda', $dateFrom, $dateTo);
 
         // Get sales by category
         $bakerySales = $this->orderModel->getSalesByCategory('bakery', $dateFrom, $dateTo);
@@ -513,9 +514,10 @@ class SalesController extends BaseController
             'success' => true,
             'data' => [
                 'total_sales' => floatval($totalSales),
-                'total_orders' => intval($totalOrders),
+                'total_transactions' => intval($totalTransactions),
                 'cash_sales' => floatval($cashSales),
                 'gcash_sales' => floatval($gcashSales),
+                'panda_sales' => floatval($pandaSales),
                 'bakery_sales' => floatval($bakerySales),
                 'coffee_sales' => floatval($coffeeSales),
                 'grocery_sales' => floatval($grocerySales)
@@ -600,6 +602,7 @@ class SalesController extends BaseController
         // Get payment method totals
         $cashSales = $this->orderModel->getTodaysSalesByPaymentMethod('cash');
         $gcashSales = $this->orderModel->getTodaysSalesByPaymentMethod('gcash');
+        $foodpandaSales = $this->orderModel->getTodaysSalesByPaymentMethod('panda');
 
         // Get order stats
         $totalOrders = $this->orderModel->getTodaysOrderCount();

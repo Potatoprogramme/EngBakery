@@ -391,12 +391,6 @@
             }
         });
 
-        expenseModal.addEventListener('click', (e) => {
-            if (e.target === expenseModal) {
-                expenseModal.classList.add('hidden');
-            }
-        });
-
         // Handle form submission
         document.getElementById('addExpenseForm').addEventListener('submit', function(e) {
             e.preventDefault();

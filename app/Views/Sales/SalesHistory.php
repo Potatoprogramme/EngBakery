@@ -69,7 +69,7 @@
             </div>
 
             <!-- Summary Cards - Row 1: Main Stats -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
                 <!-- Total Sales Card -->
                 <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-primary">
                     <div class="flex items-center justify-between">
@@ -87,8 +87,8 @@
                 <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs sm:text-sm font-medium text-gray-500">Total Orders</p>
-                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalOrders">0</p>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">Total Transactions</p>
+                            <p class="text-lg sm:text-2xl font-bold text-blue-600" id="summaryTotalTransactions">0</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-blue-100 rounded-full hidden sm:block">
                             <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
@@ -117,7 +117,23 @@
                             <p class="text-lg sm:text-2xl font-bold text-blue-500" id="summaryGcashSales">₱0.00</p>
                         </div>
                         <div class="p-2 sm:p-3 bg-blue-50 rounded-full hidden sm:block">
-                            <i class="fas fa-mobile-alt text-blue-500 text-xl"></i>
+                            <img src="<?= base_url('assets/pictures/gcash.svg') ?>" alt="GCash"
+                                class="w-6 h-6 sm:w-8 sm:h-8 object-contain">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Panda Sales Card -->
+                <div class="p-3 sm:p-4 bg-white rounded-lg shadow-md border-l-4" style="border-color: #D70F64;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-500">FoodPanda Sales</p>
+                            <p class="text-lg sm:text-2xl font-bold" style="color: #D70F64;" id="summaryFoodPandaSales">
+                                ₱0.00</p>
+                        </div>
+                        <div class="p-2 sm:p-3 rounded-full hidden sm:block" style="background-color: #FFF0F7;">
+                            <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" alt="FoodPanda"
+                                class="w-6 h-6 sm:w-8 sm:h-8 object-contain">
                         </div>
                     </div>
                 </div>
@@ -303,15 +319,15 @@
                                 <span class="font-semibold" id="detailCash">₱0.00</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600"><img
-                                        src="<?= base_url('assets/pictures/gcash-seeklogo.png') ?>" alt="GCash"
-                                        class="inline w-5 h-5 mr-2">GCash:</span>
+                                <span class="text-gray-600 flex items-center"><img
+                                        src="<?= base_url('assets/pictures/gcash.svg') ?>"
+                                        class="inline w-4 h-4 mr-2 flex-shrink-0" alt="GCash">GCash:</span>
                                 <span class="font-semibold" id="detailGcash">₱0.00</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600"><img
-                                        src="<?= base_url('assets/pictures/icons8-foodpanda-96.png') ?>"
-                                        alt="Food Panda" class="inline w-5 h-5 mr-2">Food Panda:</span>
+                                <span class="text-gray-600 flex items-center"><img
+                                        src="<?= base_url('assets/pictures/food-panda.svg') ?>"
+                                        class="inline w-4 h-4 mr-2 flex-shrink-0" alt="FoodPanda">Food Panda:</span>
                                 <span class="font-semibold" id="detailFoodPanda">₱0.00</span>
                             </div>
                         </div>
@@ -411,9 +427,10 @@
                         // Set all to 0
                         updateSummaryCards({
                             total_sales: 0,
-                            total_orders: 0,
+                            total_transactions: 0,
                             cash_sales: 0,
                             gcash_sales: 0,
+                            panda_sales: 0,
                             bakery_sales: 0,
                             coffee_sales: 0,
                             grocery_sales: 0
@@ -426,9 +443,10 @@
                     // Set all to 0
                     updateSummaryCards({
                         total_sales: 0,
-                        total_orders: 0,
+                        total_transactions: 0,
                         cash_sales: 0,
                         gcash_sales: 0,
+                        panda_sales: 0,
                         bakery_sales: 0,
                         coffee_sales: 0,
                         grocery_sales: 0
@@ -661,9 +679,10 @@
         function updateSummaryCards(data) {
             // Update main stats
             $('#summaryTotalSales').text(formatCurrency(data.total_sales || 0));
-            $('#summaryTotalOrders').text(data.total_orders || 0);
+            $('#summaryTotalTransactions').text(data.total_transactions || 0);
             $('#summaryCashSales').text(formatCurrency(data.cash_sales || 0));
             $('#summaryGcashSales').text(formatCurrency(data.gcash_sales || 0));
+            $('#summaryFoodPandaSales').text(formatCurrency(data.panda_sales || 0));
 
             // Update category breakdown (if you uncomment those cards)
             $('#summaryBakerySales').text(formatCurrency(data.bakery_sales || 0));
@@ -972,7 +991,7 @@
             const orderType = order.order_type || 'walk-in';
             const orderTypeLabels = {
                 'walk-in': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-walking"></i> Walk-in</span>',
-                'foodpanda': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-700"><i class="fas fa-motorcycle"></i> FoodPanda</span>',
+                'foodpanda': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-700"><img src="' + BASE_URL + 'assets/pictures/food-panda.svg" class="w-3.5 h-3.5" alt="FoodPanda"> FoodPanda</span>',
                 'distributed': '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700"><i class="fas fa-truck"></i> Distributed</span>'
             };
             $('#detailOrderType').html(orderTypeLabels[orderType] || `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">${orderType}</span>`);
