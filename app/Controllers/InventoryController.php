@@ -1221,4 +1221,76 @@ class InventoryController extends BaseController
             'message' => 'Failed to update item status.',
         ]);
     }
+
+    /**
+     * Manually trigger the scheduled inventory report for a given slot.
+     * Owner-only. Used for verifying the email before the scheduled window fires.
+     *
+     * POST /Inventory/SendReport
+     * Body (JSON): { "slot": "am"|"pm", "force": true }
+     */
+    public function sendInventoryReport()
+    {
+        $session = $this->getSessionData();
+
+        // Only owners may trigger this
+        if (($session['employee_type'] ?? '') !== 'owner') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message'  => 'Unauthorized. Only owners can trigger inventory reports.',
+            ]);
+        }
+
+        $json  = $this->request->getJSON(true);
+        $slot  = in_array($json['slot'] ?? '', ['am', 'pm']) ? $json['slot'] : 'am';
+        $force = !empty($json['force']);
+
+        $today    = date('Y-m-d');
+        $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
+
+        if (!$force && file_exists($flagFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Report for the '{$slot}' slot was already sent today. Pass \"force\": true to resend.",
+                'flag'    => $flagFile,
+            ]);
+        }
+
+        // Delete flag so the sender is not blocked
+        if ($force && file_exists($flagFile)) {
+            @unlink($flagFile);
+        }
+
+        try {
+            // Use reflection to call private method for the force-test path
+            $scheduler = new \ReflectionClass(\App\Libraries\AutoReportScheduler::class);
+            $method    = $scheduler->getMethod('sendInventoryReport');
+            $method->setAccessible(true);
+            $sent      = $method->invoke(null, $slot, $today);
+
+            if ($sent) {
+                // Re-plant flag so the scheduler won't double-send
+                file_put_contents($flagFile, date('Y-m-d H:i:s') . ' (manual)');
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => "Inventory report for slot '{$slot}' sent successfully.",
+                    'slot'    => $slot,
+                    'date'    => $today,
+                ]);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Report was not sent. Check writable/logs for details.',
+            ]);
+
+        } catch (\Throwable $e) {
+            log_message('error', 'Manual inventory report trigger failed: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Exception: ' . $e->getMessage(),
+            ]);
+        }
+    }
 }

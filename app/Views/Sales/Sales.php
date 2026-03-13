@@ -451,6 +451,7 @@
         var remittanceExists = false;
         var existingRemittanceData = null;
         var occupiedSlots = []; // Stores existing remittance time ranges
+        var requiredSlots = []; // Required schedule slots for selected date
 
         // All available time slots for shifts
         const timeSlots = [
@@ -483,9 +484,9 @@
         function initializeShiftDropdowns() {
             // Fetch occupied slots first, then populate dropdowns
             fetchOccupiedSlots(function() {
-                // Default shift: 5:00 AM - 1:00 PM (or first available)
-                const defaultStart = '05:00';
-                const defaultEnd = '13:00';
+                // Default shift follows configured schedule (first available)
+                const defaultStart = '06:00';
+                const defaultEnd = '14:59';
                 
                 populateShiftStartDropdown(defaultStart);
                 const selectedStart = $('#shiftStart').val();
@@ -528,7 +529,9 @@
                 success: function(response) {
                     if (response.success) {
                         occupiedSlots = response.occupied_slots || [];
+                        requiredSlots = response.required_slots || [];
                         console.log('Occupied slots:', occupiedSlots);
+                        console.log('Required slots:', requiredSlots);
                         
                         // Show occupied slots info if any
                         if (occupiedSlots.length > 0) {
@@ -566,6 +569,23 @@
             return slot ? slot.label : timeValue;
         }
 
+        function getRequiredShiftWindows() {
+            if (requiredSlots.length > 0) {
+                return requiredSlots;
+            }
+
+            // Fallback if API did not provide required slots
+            const day = new Date().getDay(); // 0 = Sunday
+            if (day === 0) {
+                return [{ key: 'shift1', label: 'Sunday Shift', start: '06:00', end: '17:00' }];
+            }
+
+            return [
+                { key: 'shift1', label: 'Shift 1', start: '06:00', end: '14:59' },
+                { key: 'shift2', label: 'Shift 2', start: '15:00', end: '20:00' }
+            ];
+        }
+
         // Check if a time slot overlaps with any occupied slot
         function isTimeOccupied(timeValue) {
             return occupiedSlots.some(slot => {
@@ -584,48 +604,38 @@
 
         // Get available start times (times that could begin a non-overlapping shift)
         function getAvailableStartTimes() {
+            const windows = getRequiredShiftWindows();
             const available = [];
-            
-            for (let i = 0; i < timeSlots.length - 1; i++) {
-                const slot = timeSlots[i];
-                
-                // Check if this start time could have at least one valid end time
-                let hasValidEnd = false;
-                for (let j = i + 1; j < timeSlots.length; j++) {
-                    const endSlot = timeSlots[j];
-                    if (!wouldRangeOverlap(slot.value, endSlot.value)) {
-                        hasValidEnd = true;
-                        break;
-                    }
+
+            windows.forEach(w => {
+                if (!wouldRangeOverlap(w.start, w.end)) {
+                    available.push({
+                        value: w.start,
+                        label: `${formatTimeLabel(w.start)} (${w.label})`,
+                        end: w.end
+                    });
                 }
-                
-                if (hasValidEnd) {
-                    available.push(slot);
-                }
-            }
-            
+            });
+
             return available;
         }
 
         // Get available end times for a given start time
         function getAvailableEndTimes(startValue) {
-            const startIndex = timeSlots.findIndex(slot => slot.value === startValue);
-            const available = [];
-            
-            for (let i = startIndex + 1; i < timeSlots.length; i++) {
-                const endSlot = timeSlots[i];
-                
-                // Check if this range would overlap with any occupied slot
-                if (!wouldRangeOverlap(startValue, endSlot.value)) {
-                    available.push(endSlot);
-                } else {
-                    // Once we hit an overlap, we can't have any later end times either
-                    // (since extending the range would still overlap)
-                    break;
-                }
+            const windows = getRequiredShiftWindows();
+            const selected = windows.find(w => w.start === startValue);
+            if (!selected) {
+                return [];
             }
-            
-            return available;
+
+            if (wouldRangeOverlap(selected.start, selected.end)) {
+                return [];
+            }
+
+            return [{
+                value: selected.end,
+                label: `${formatTimeLabel(selected.end)} (${selected.label})`
+            }];
         }
 
         function populateShiftStartDropdown(selectedValue) {
@@ -676,8 +686,7 @@
                 let selected = '';
                 if (hasSelectedValue && slot.value === selectedEndValue) {
                     selected = 'selected';
-                } else if (!hasSelectedValue && index === Math.min(8, availableEnds.length - 1)) {
-                    // Default to ~8 hours shift or last available option
+                } else if (!hasSelectedValue && index === 0) {
                     selected = 'selected';
                 }
                 $endSelect.append(`<option value="${slot.value}" ${selected}>${slot.label}</option>`);
