@@ -242,38 +242,40 @@ class DailyStockItemsModel extends Model
     }
 
     /**
-     * Get the most recent previous day's ending_stock per product (carryover).
+     * Get yesterday's ending_stock per product (strict carryover).
      * Returns an associative array keyed by product_id => ending_stock.
      *
-     * @param string $beforeDate  Only look at inventory dates strictly before this date (Y-m-d)
+     * Carryover rule:
+     * - Only the immediately previous calendar day is allowed.
+     * - If yesterday has no inventory record, carryover is empty.
+     *
+     * @param string $beforeDate  Current inventory date (Y-m-d)
      * @return array<int, int>    [product_id => ending_stock]
      */
     public function getCarryoverStock(string $beforeDate): array
     {
         $db = \Config\Database::connect();
 
-        // Find the most recent inventory date before the given date
-        $previousStock = $db->query("
-            SELECT ds.inventory_date
-            FROM daily_stock ds
-            WHERE ds.inventory_date < ?
-            ORDER BY ds.inventory_date DESC
-            LIMIT 1
-        ", [$beforeDate])->getRowArray();
-
-        if (!$previousStock) {
+        // Strict rule: carryover can come only from yesterday.
+        try {
+            $yesterday = (new \DateTimeImmutable($beforeDate))
+                ->modify('-1 day')
+                ->format('Y-m-d');
+        } catch (\Throwable $e) {
+            log_message('error', 'CARRYOVER: Invalid beforeDate "{date}": {error}', [
+                'date' => $beforeDate,
+                'error' => $e->getMessage(),
+            ]);
             return [];
         }
 
-        $previousDate = $previousStock['inventory_date'];
-
-        // Get all ending_stock values from that day
+        // Get all ending_stock values from yesterday only.
         $items = $db->query("
             SELECT dsi.product_id, dsi.ending_stock
             FROM daily_stock_items dsi
             JOIN daily_stock ds ON dsi.daily_stock_id = ds.daily_stock_id
             WHERE ds.inventory_date = ?
-        ", [$previousDate])->getResultArray();
+        ", [$yesterday])->getResultArray();
 
         $carryover = [];
         foreach ($items as $item) {
@@ -282,6 +284,12 @@ class DailyStockItemsModel extends Model
                 $carryover[intval($item['product_id'])] = $remaining;
             }
         }
+
+        log_message('info', 'CARRYOVER: beforeDate={beforeDate}, yesterday={yesterday}, products={count}', [
+            'beforeDate' => $beforeDate,
+            'yesterday' => $yesterday,
+            'count' => count($carryover),
+        ]);
 
         return $carryover;
     }

@@ -1160,7 +1160,7 @@ class InventoryController extends BaseController
     }
 
     /**
-     * Get yesterday's (or most recent previous day's) remaining stock.
+     * Get yesterday's remaining stock only.
      * Returns product-level carryover data for display before creating inventory.
      * GET /Inventory/GetYesterdayRemaining
      */
