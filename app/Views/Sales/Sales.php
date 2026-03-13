@@ -85,22 +85,43 @@
                             </div>
                             <div id="shiftSection" class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
-                                <div class="flex-1 flex items-center gap-1 sm:gap-2">
-                                    <div class="flex flex-col flex-1 min-w-0">
-                                        <span class="text-[10px] text-gray-400 mb-0.5">Start</span>
-                                        <select id="shiftStart" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" name="shift_start">
-                                            <!-- Options populated dynamically -->
-                                        </select>
-                                    </div>
-                                    <span class="text-gray-400 font-bold text-sm mt-4">-</span>
-                                    <div class="flex flex-col flex-1 min-w-0">
-                                        <span class="text-[10px] text-gray-400 mb-0.5">End</span>
-                                        <select id="shiftEnd" class="w-full border border-gray-300 px-1 sm:px-2 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 bg-white rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-                                            <!-- Options populated dynamically -->
-                                        </select>
-                                    </div>
+                                <div class="flex-1 flex items-center gap-2 flex-wrap" id="shiftButtonGroup">
+                                    <!-- Shift buttons populated dynamically by loadShiftConfig() -->
+                                    <span class="text-xs text-gray-400">Loading shifts…</span>
                                 </div>
+                                <!-- Hidden inputs for the currently selected shift times -->
+                                <input type="hidden" id="shiftStart" value="">
+                                <input type="hidden" id="shiftEnd" value="">
+                                <input type="hidden" id="selectedShiftKey" value="">
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Summary Preview Card -->
+                <div id="shiftSummaryCard" class="hidden mb-4 p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border border-primary/20">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-gray-800">
+                            <i class="fas fa-clock mr-2 text-primary"></i>Shift Summary (<span id="shiftSummaryLabel">--</span>)
+                        </h4>
+                        <span class="text-xs text-gray-500" id="shiftSummaryTimeRange">--</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                            <div class="text-lg font-bold text-green-600" id="shiftExpectedCash">₱0.00</div>
+                            <div class="text-[10px] text-gray-500 font-medium">Expected Cash</div>
+                        </div>
+                        <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                            <div class="text-lg font-bold text-blue-600" id="shiftExpectedOnline">₱0.00</div>
+                            <div class="text-[10px] text-gray-500 font-medium">Expected Online</div>
+                        </div>
+                        <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                            <div class="text-lg font-bold text-primary" id="shiftOrderCount">0</div>
+                            <div class="text-[10px] text-gray-500 font-medium">Orders</div>
+                        </div>
+                        <div class="text-center p-2 bg-white rounded-lg shadow-sm">
+                            <div class="text-lg font-bold text-amber-600" id="shiftItemsSold">0</div>
+                            <div class="text-[10px] text-gray-500 font-medium">Items Sold</div>
                         </div>
                     </div>
                 </div>
@@ -427,10 +448,8 @@
         $(document).ready(function() {
             initializeRemittance();
             console.log('Remittance Slip Initialized');
-            initializeShiftDropdowns();
-            console.log('Shift Dropdowns Initialized');
-            loadTodaysSalesData();
-            console.log('Loaded Today\'s Sales Data');
+            loadShiftConfig();
+            console.log('Shift Config Loading...');
             loadUserInfo();
             console.log('Loaded User Info');
             bindBillInputEvents();
@@ -439,75 +458,152 @@
             console.log('Bound Bill Button Events');
             bindGCashInputEvent();
             console.log('Bound GCash Input Event');
-            bindShiftChangeEvents();
-            console.log('Bound Shift Change Events');
             bindOutletChangeEvent();
             console.log('Bound Outlet Change Event');
-            checkExistingRemittance();
-            console.log('Checked for Existing Remittance');
         });
 
         // Track if remittance already exists for current date/shift
         var remittanceExists = false;
         var existingRemittanceData = null;
         var occupiedSlots = []; // Stores existing remittance time ranges
+        var shiftConfig = [];   // Available shift definitions from server
 
-        // All available time slots for shifts
-        const timeSlots = [
-            // { value: '00:00', label: '12:00 AM' },
-            // { value: '01:00', label: '1:00 AM' },
-            // { value: '02:00', label: '2:00 AM' },
-            // { value: '03:00', label: '3:00 AM' },
-            // { value: '04:00', label: '4:00 AM' },
-            { value: '05:00', label: '5:00 AM' },
-            { value: '06:00', label: '6:00 AM' },
-            { value: '07:00', label: '7:00 AM' },
-            { value: '08:00', label: '8:00 AM' },
-            { value: '09:00', label: '9:00 AM' },
-            { value: '10:00', label: '10:00 AM' },
-            { value: '11:00', label: '11:00 AM' },
-            { value: '12:00', label: '12:00 PM' },
-            { value: '13:00', label: '1:00 PM' },
-            { value: '14:00', label: '2:00 PM' },
-            { value: '15:00', label: '3:00 PM' },
-            { value: '16:00', label: '4:00 PM' },
-            { value: '17:00', label: '5:00 PM' },
-            { value: '18:00', label: '6:00 PM' },
-            { value: '19:00', label: '7:00 PM' },
-            { value: '20:00', label: '8:00 PM' },
-            { value: '21:00', label: '9:00 PM' },
-            // { value: '22:00', label: '10:00 PM' },
-            // { value: '23:00', label: '11:00 PM' }
-        ];
+        /**
+         * Load shift configuration from the server.
+         * Calls getShiftConfig, renders buttons, then auto-selects the appropriate shift.
+         */
+        function loadShiftConfig() {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
 
-        function initializeShiftDropdowns() {
-            // Fetch occupied slots first, then populate dropdowns
-            fetchOccupiedSlots(function() {
-                // Default shift: 5:00 AM - 1:00 PM (or first available)
-                const defaultStart = '05:00';
-                const defaultEnd = '13:00';
-                
-                populateShiftStartDropdown(defaultStart);
-                const selectedStart = $('#shiftStart').val();
-                populateShiftEndDropdown(selectedStart, defaultEnd);
-                
-                // Bind change events for dynamic updates
-                $('#shiftStart').on('change', function() {
-                    const selectedStart = $(this).val();
-                    const currentEnd = $('#shiftEnd').val();
-                    
-                    // Update end dropdown to only show times after start
-                    populateShiftEndDropdown(selectedStart, currentEnd);
-                    
-                    // Trigger remittance check
-                    checkExistingRemittance();
-                });
-                
-                $('#shiftEnd').on('change', function() {
-                    // Trigger remittance check
-                    checkExistingRemittance();
-                });
+            $.ajax({
+                url: BASE_URL + 'Sales/getShiftConfig',
+                type: 'GET',
+                data: { date: dateStr },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        shiftConfig = response.shifts || [];
+                        renderShiftButtons(shiftConfig);
+                        // After rendering buttons, fetch occupied slots then auto-select
+                        fetchOccupiedSlots(function() {
+                            autoSelectShift();
+                        });
+                    }
+                },
+                error: function() {
+                    console.error('Failed to load shift config');
+                    $('#shiftButtonGroup').html('<span class="text-xs text-red-500">Failed to load shifts</span>');
+                }
             });
+        }
+
+        /**
+         * Render shift selector buttons inside #shiftButtonGroup.
+         */
+        function renderShiftButtons(shifts) {
+            const $group = $('#shiftButtonGroup');
+            $group.empty();
+
+            if (shifts.length === 0) {
+                $group.html('<span class="text-xs text-gray-400">No shifts available</span>');
+                return;
+            }
+
+            shifts.forEach(function(shift) {
+                const $btn = $(`
+                    <button type="button"
+                        class="shift-btn px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border-2 transition-all duration-200
+                               border-gray-300 text-gray-600 bg-white hover:border-primary hover:text-primary"
+                        data-key="${shift.key}"
+                        data-start="${shift.start}"
+                        data-end="${shift.end}">
+                        ${shift.label}
+                    </button>
+                `);
+                $group.append($btn);
+            });
+
+            // Bind click
+            $group.off('click', '.shift-btn').on('click', '.shift-btn', function() {
+                selectShift($(this));
+            });
+        }
+
+        /**
+         * Handle shift button selection.
+         * Sets hidden inputs, highlights button, then fetches scoped sales data.
+         */
+        function selectShift($btn) {
+            // Visual toggle
+            $('.shift-btn').removeClass('border-primary bg-primary/10 text-primary font-bold')
+                           .addClass('border-gray-300 text-gray-600 bg-white');
+            $btn.removeClass('border-gray-300 text-gray-600 bg-white')
+                .addClass('border-primary bg-primary/10 text-primary font-bold');
+
+            // Set hidden values
+            const shiftStart = $btn.data('start');
+            const shiftEnd   = $btn.data('end');
+            const shiftKey   = $btn.data('key');
+
+            $('#shiftStart').val(shiftStart);
+            $('#shiftEnd').val(shiftEnd);
+            $('#selectedShiftKey').val(shiftKey);
+
+            console.log('Selected shift:', shiftKey, shiftStart, '-', shiftEnd);
+
+            // Check if this shift already has a remittance
+            checkExistingRemittance();
+
+            // Load sales data scoped to this shift
+            loadTodaysSalesData(shiftStart, shiftEnd);
+        }
+
+        /**
+         * Auto-select the best shift based on current time and what's already occupied.
+         */
+        function autoSelectShift() {
+            if (shiftConfig.length === 0) return;
+
+            const now = new Date();
+            const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
+                                String(now.getMinutes()).padStart(2, '0') + ':' +
+                                String(now.getSeconds()).padStart(2, '0');
+
+            // Find which shift the current time falls into
+            let matchedShift = null;
+            for (const shift of shiftConfig) {
+                if (currentTime >= shift.start && currentTime <= shift.end) {
+                    matchedShift = shift;
+                    break;
+                }
+            }
+
+            // If no match, try to find a shift that hasn't been remitted yet
+            if (!matchedShift) {
+                for (const shift of shiftConfig) {
+                    const isOccupied = occupiedSlots.some(occ =>
+                        occ.start === shift.start.substring(0, 5) && occ.end === shift.end.substring(0, 5)
+                    );
+                    if (!isOccupied) {
+                        matchedShift = shift;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback to first shift
+            if (!matchedShift) {
+                matchedShift = shiftConfig[0];
+            }
+
+            // Click the matching button
+            const $btn = $(`.shift-btn[data-key="${matchedShift.key}"]`);
+            if ($btn.length) {
+                selectShift($btn);
+            }
         }
 
         function fetchOccupiedSlots(callback) {
@@ -530,7 +626,9 @@
                         occupiedSlots = response.occupied_slots || [];
                         console.log('Occupied slots:', occupiedSlots);
                         
-                        // Show occupied slots info if any
+                        // Mark occupied shift buttons
+                        markOccupiedShiftButtons();
+                        
                         if (occupiedSlots.length > 0) {
                             showOccupiedSlotsInfo();
                         } else {
@@ -547,170 +645,55 @@
             });
         }
 
+        /**
+         * Add visual indicators to shift buttons that already have remittances.
+         */
+        function markOccupiedShiftButtons() {
+            $('.shift-btn').each(function() {
+                const btnStart = $(this).data('start');
+                const btnEnd   = $(this).data('end');
+                // Normalize to HH:MM for comparison
+                const btnStartHM = String(btnStart).substring(0, 5);
+                const btnEndHM   = String(btnEnd).substring(0, 5);
+
+                const isOccupied = occupiedSlots.some(occ =>
+                    occ.start === btnStartHM && occ.end === btnEndHM
+                );
+
+                if (isOccupied) {
+                    $(this).addClass('opacity-60 line-through');
+                    // Add a small check icon
+                    if (!$(this).find('.occupied-icon').length) {
+                        $(this).append(' <i class="occupied-icon fas fa-check-circle text-green-500 text-xs ml-1"></i>');
+                    }
+                } else {
+                    $(this).removeClass('opacity-60 line-through');
+                    $(this).find('.occupied-icon').remove();
+                }
+            });
+        }
+
         function showOccupiedSlotsInfo() {
-            // Show toast notification for already submitted remittances
             let slotsText = occupiedSlots.map(slot => {
                 return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_name})`;
             }).join(', ');
             
-            // Show persistent toast (duration 0 = stays until closed)
             showToast('warning', `Already submitted shifts today: ${slotsText}`, 0);
         }
 
         function hideOccupiedSlotsInfo() {
-            // Toast is dismissed manually by user, no need to hide programmatically
+            // Toast is dismissed manually by user
         }
 
         function formatTimeLabel(timeValue) {
-            const slot = timeSlots.find(s => s.value === timeValue);
-            return slot ? slot.label : timeValue;
-        }
-
-        // Check if a time slot overlaps with any occupied slot
-        function isTimeOccupied(timeValue) {
-            return occupiedSlots.some(slot => {
-                // Time is occupied if it falls within an existing shift (exclusive of end time)
-                return timeValue >= slot.start && timeValue < slot.end;
-            });
-        }
-
-        // Check if a range would overlap with any occupied slot
-        function wouldRangeOverlap(startTime, endTime) {
-            return occupiedSlots.some(slot => {
-                // Overlap if: start < existing_end AND end > existing_start
-                return startTime < slot.end && endTime > slot.start;
-            });
-        }
-
-        // Get available start times (times that could begin a non-overlapping shift)
-        function getAvailableStartTimes() {
-            const available = [];
-            
-            for (let i = 0; i < timeSlots.length - 1; i++) {
-                const slot = timeSlots[i];
-                
-                // Check if this start time could have at least one valid end time
-                let hasValidEnd = false;
-                for (let j = i + 1; j < timeSlots.length; j++) {
-                    const endSlot = timeSlots[j];
-                    if (!wouldRangeOverlap(slot.value, endSlot.value)) {
-                        hasValidEnd = true;
-                        break;
-                    }
-                }
-                
-                if (hasValidEnd) {
-                    available.push(slot);
-                }
-            }
-            
-            return available;
-        }
-
-        // Get available end times for a given start time
-        function getAvailableEndTimes(startValue) {
-            const startIndex = timeSlots.findIndex(slot => slot.value === startValue);
-            const available = [];
-            
-            for (let i = startIndex + 1; i < timeSlots.length; i++) {
-                const endSlot = timeSlots[i];
-                
-                // Check if this range would overlap with any occupied slot
-                if (!wouldRangeOverlap(startValue, endSlot.value)) {
-                    available.push(endSlot);
-                } else {
-                    // Once we hit an overlap, we can't have any later end times either
-                    // (since extending the range would still overlap)
-                    break;
-                }
-            }
-            
-            return available;
-        }
-
-        function populateShiftStartDropdown(selectedValue) {
-            const $startSelect = $('#shiftStart');
-            $startSelect.empty();
-            
-            const availableStarts = getAvailableStartTimes();
-            
-            if (availableStarts.length === 0) {
-                $startSelect.append(`<option value="" disabled>No available times</option>`);
-                disableSaveButton();
-                showAllSlotsOccupiedMessage();
-                return;
-            }
-            
-            // If we have available starts, hide the message and show shift section
-            hideAllSlotsOccupiedMessage();
-            
-            // Check if selected value is in available starts
-            let hasSelectedValue = availableStarts.some(slot => slot.value === selectedValue);
-            
-            availableStarts.forEach(function(slot, index) {
-                let selected = '';
-                if (hasSelectedValue && slot.value === selectedValue) {
-                    selected = 'selected';
-                } else if (!hasSelectedValue && index === 0) {
-                    selected = 'selected';
-                }
-                $startSelect.append(`<option value="${slot.value}" ${selected}>${slot.label}</option>`);
-            });
-        }
-
-        function populateShiftEndDropdown(startValue, selectedEndValue) {
-            const $endSelect = $('#shiftEnd');
-            $endSelect.empty();
-            
-            const availableEnds = getAvailableEndTimes(startValue);
-            
-            if (availableEnds.length === 0) {
-                $endSelect.append(`<option value="" disabled>No available times</option>`);
-                return;
-            }
-            
-            // Check if current selected end is still valid
-            let hasSelectedValue = availableEnds.some(slot => slot.value === selectedEndValue);
-            
-            availableEnds.forEach(function(slot, index) {
-                let selected = '';
-                if (hasSelectedValue && slot.value === selectedEndValue) {
-                    selected = 'selected';
-                } else if (!hasSelectedValue && index === Math.min(8, availableEnds.length - 1)) {
-                    // Default to ~8 hours shift or last available option
-                    selected = 'selected';
-                }
-                $endSelect.append(`<option value="${slot.value}" ${selected}>${slot.label}</option>`);
-            });
-        }
-
-        function showAllSlotsOccupiedMessage() {
-            // Hide the shift section
-            $('#shiftSection').hide();
-            
-            // Show the message in place of the shift section
-            if ($('#allSlotsOccupied').length === 0) {
-                $('#shiftSection').after(`
-                    <div id="allSlotsOccupied" class="p-3 bg-amber-50 border border-amber-300 rounded-lg">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-exclamation-triangle text-amber-500"></i>
-                            <span class="text-sm font-medium text-amber-700">
-                                All time slots for today have already been covered by existing remittances.
-                            </span>
-                        </div>
-                    </div>
-                `);
-            } else {
-                $('#allSlotsOccupied').show();
-            }
-        }
-
-        function hideAllSlotsOccupiedMessage() {
-            // Show the shift section
-            $('#shiftSection').show();
-            
-            // Hide the message
-            $('#allSlotsOccupied').hide();
+            // Convert HH:MM or HH:MM:SS to 12-hour format
+            if (!timeValue) return timeValue;
+            const parts = timeValue.split(':');
+            const hour = parseInt(parts[0]);
+            const minute = parts[1] || '00';
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minute} ${ampm}`;
         }
 
         function initializeRemittance() {
@@ -722,12 +705,6 @@
                 day: 'numeric'
             };
             $('#remittanceDate').text(today.toLocaleDateString('en-US', options));
-        }
-
-        function bindShiftChangeEvents() {
-            // Shift change events are now bound in initializeShiftDropdowns()
-            // This function is kept for backward compatibility
-            console.log('Shift change events already bound in initializeShiftDropdowns');
         }
 
         function bindOutletChangeEvent() {
@@ -749,14 +726,18 @@
             $('#btnClearOutlet').on('click', function() {
                 $('#outletName').val('').focus();
                 toggleClearButton();
-                fetchOccupiedSlots();
-                checkExistingRemittance();
+                fetchOccupiedSlots(function() {
+                    markOccupiedShiftButtons();
+                    checkExistingRemittance();
+                });
             });
 
             // Re-check existing remittance when outlet changes
             $('#outletName').on('change blur', function() {
-                fetchOccupiedSlots();
-                checkExistingRemittance();
+                fetchOccupiedSlots(function() {
+                    markOccupiedShiftButtons();
+                    checkExistingRemittance();
+                });
             });
         }
 
@@ -852,10 +833,23 @@
 
         var allTransactions = [];
 
-        function loadTodaysSalesData() {
+        function loadTodaysSalesData(shiftStart, shiftEnd) {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
+
+            const requestData = {};
+            if (shiftStart && shiftEnd) {
+                requestData.shift_start = shiftStart;
+                requestData.shift_end   = shiftEnd;
+                requestData.date        = dateStr;
+            }
+
             $.ajax({
                 url: BASE_URL + 'Sales/GetTodaysSummary',
                 type: 'GET',
+                data: requestData,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
@@ -921,6 +915,28 @@
                         // Update statistics
                         $('#totalOrders').text(formatNumber(total_orders));
                         $('#totalItemsSold').text(formatNumber(total_items_sold));
+
+                        // Populate Shift Summary Card
+                        if (shiftStart && shiftEnd) {
+                            const cashSalesTotal = totalSales - totalOnlineRevenue - Number(pandaRevenue);
+                            const expectedCash = Math.max(0, cashSalesTotal);
+                            const selectedLabel = $('#selectedShiftKey').val() || '--';
+                            const labelMap = {
+                                'shift_a': 'Shift A – 3 PM',
+                                'shift_b': 'Shift B – 8 PM',
+                                'sunday': 'Sunday – 5 PM'
+                            };
+
+                            $('#shiftSummaryLabel').text(labelMap[selectedLabel] || selectedLabel);
+                            $('#shiftSummaryTimeRange').text(formatTimeLabel(shiftStart) + ' – ' + formatTimeLabel(shiftEnd));
+                            $('#shiftExpectedCash').text(formatCurrency(expectedCash));
+                            $('#shiftExpectedOnline').text(formatCurrency(totalOnlineRevenue + Number(pandaRevenue)));
+                            $('#shiftOrderCount').text(formatNumber(total_orders));
+                            $('#shiftItemsSold').text(formatNumber(total_items_sold));
+                            $('#shiftSummaryCard').removeClass('hidden');
+                        } else {
+                            $('#shiftSummaryCard').addClass('hidden');
+                        }
 
                         // Calculate variance
                         calculateAllTotals();
@@ -1291,9 +1307,18 @@
             const totalRemitted = amountEnclosed + totalOnlineRevenue + foodPandaRevenue + cashOutAmount;
             const variance = totalRemitted - totalSales;
 
-            // Get shift times from select elements (add :00 for seconds)
-            const shiftStart = $('#shiftStart').val() + ':00';
-            const shiftEnd = $('#shiftEnd').val() + ':00';
+            // Get shift times from hidden inputs (set by shift button selection)
+            const shiftStart = $('#shiftStart').val();
+            const shiftEnd = $('#shiftEnd').val();
+
+            if (!shiftStart || !shiftEnd) {
+                showToast('warning', 'Please select a shift before saving.');
+                return;
+            }
+
+            // Ensure time format includes seconds
+            const shiftStartFull = shiftStart.length === 5 ? shiftStart + ':00' : shiftStart;
+            const shiftEndFull   = shiftEnd.length === 5 ? shiftEnd + ':00' : shiftEnd;
 
             const remittanceData = {
                 // remittance_details table
@@ -1305,8 +1330,8 @@
                     const p = n => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
                 })(),
-                shift_start: shiftStart,
-                shift_end: shiftEnd,
+                shift_start: shiftStartFull,
+                shift_end: shiftEndFull,
                 amount_enclosed: amountEnclosed,
                 total_online_revenue: totalOnlineRevenue,
                 foodpanda_revenue: foodPandaRevenue,
@@ -1344,12 +1369,9 @@
                         remittanceExists = true;
                         disableSaveButton();
                         
-                        // Refresh the occupied slots and update dropdowns
+                        // Refresh the occupied slots and update shift buttons
                         fetchOccupiedSlots(function() {
-                            const currentStart = $('#shiftStart').val();
-                            populateShiftStartDropdown(currentStart);
-                            const newStart = $('#shiftStart').val();
-                            populateShiftEndDropdown(newStart, '');
+                            markOccupiedShiftButtons();
                         });
                     } else {
                         showToast('danger', response.message || 'Failed to save remittance');
