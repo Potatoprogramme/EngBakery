@@ -542,18 +542,39 @@
                 const [year, month] = key.split('-');
                 const label = monthNames[parseInt(month, 10) - 1] + ' ' + year;
                 const option = document.createElement('option');
-                option.value = month;
+                option.value = key;
                 option.textContent = label;
                 select.appendChild(option);
             });
 
             // Restore previous selection if still valid, otherwise default to current month
-            const validValues = sortedMonths.map(k => k.split('-')[1]);
+            const validValues = sortedMonths;
             if (currentValue && validValues.includes(currentValue)) {
                 select.value = currentValue;
             } else {
-                select.value = currentMonth;
+                select.value = currentYear + '-' + currentMonth;
             }
+        }
+
+        function getSelectedPeriodContext() {
+            const selectedKey = document.getElementById('filter-month').value;
+            if (selectedKey) {
+                const [yearStr, monthStr] = selectedKey.split('-');
+                return {
+                    key: selectedKey,
+                    year: parseInt(yearStr, 10),
+                    month: parseInt(monthStr, 10),
+                };
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            return {
+                key: year + '-' + String(month).padStart(2, '0'),
+                year: year,
+                month: month,
+            };
         }
 
         function applyFiltersAndRender() {
@@ -564,10 +585,12 @@
 
             // Filter by month
             if (filterMonth) {
+                const [selectedYear, selectedMonth] = filterMonth.split('-');
                 filtered = filtered.filter(exp => {
                     const date = new Date(exp.billed_at);
+                    const year = String(date.getFullYear());
                     const month = String(date.getMonth() + 1).padStart(2, '0');
-                    return month === filterMonth;
+                    return year === selectedYear && month === selectedMonth;
                 });
             }
 
@@ -621,10 +644,9 @@
         function renderDailyBreakdown(expenses) {
             const tbody = document.getElementById('dailyBreakdownBody');
             const grandTotal = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
-            const now = new Date();
-            const selectedMonth = document.getElementById('filter-month').value;
-            const year = now.getFullYear();
-            const month = selectedMonth ? parseInt(selectedMonth, 10) : now.getMonth() + 1;
+            const period = getSelectedPeriodContext();
+            const year = period.year;
+            const month = period.month;
             const daysInMonth = new Date(year, month, 0).getDate();
 
             console.log('Rendering Daily Breakdown - Total:', grandTotal, 'Days in Month:', daysInMonth);
@@ -736,11 +758,8 @@
 
         function getTotalSales(callback) {
             // Build a YYYY-MM-01 date from the selected filter month (or current month)
-            const now = new Date();
-            const selectedMonth = document.getElementById('filter-month').value;
-            const year = now.getFullYear();
-            const month = selectedMonth ? selectedMonth : String(now.getMonth() + 1).padStart(2, '0');
-            const dateSegment = year + '-' + month + '-01';
+            const period = getSelectedPeriodContext();
+            const dateSegment = period.key + '-01';
 
             $.ajax({
                 url: base_url + 'Utility/GetTotalSales/' + dateSegment,
@@ -765,10 +784,9 @@
         // ================== Render: Overhead Evaluation ==================
         function renderOverheadEvaluation(expenses) {
             const totalMonthly = expenses.reduce((sum, e) => sum + parseFloat(e.expense), 0);
-            const now = new Date();
-            const selectedMonth = document.getElementById('filter-month').value;
-            const year = now.getFullYear();
-            const month = selectedMonth ? parseInt(selectedMonth, 10) : now.getMonth() + 1;
+            const period = getSelectedPeriodContext();
+            const year = period.year;
+            const month = period.month;
             const daysInMonth = new Date(year, month, 0).getDate();
             const dailyAvg = totalMonthly / daysInMonth;
             const overheadPct = 25;
@@ -800,9 +818,21 @@
                     cardEl.className = 'p-3 rounded-lg border border-amber-200 bg-amber-50';
                 }
 
-                // Recommended overhead: what % of sales would cover expenses
-                const recommended = totalSales > 0 ? Math.ceil((totalMonthly / totalSales) * 100) : overheadPct;
-                document.getElementById('recommendedOverhead').textContent = (recommended || overheadPct) + '%';
+                // Recommended overhead: daily expense coverage based on daily sales
+                const dailySales = totalSales / daysInMonth;
+                const recommended = dailySales > 0 ? Math.ceil((dailyAvg / dailySales) * 100) : overheadPct;
+                const recommendedEl = document.getElementById('recommendedOverhead');
+                recommendedEl.textContent = (recommended || overheadPct) + '%';
+
+                let recommendedColorClass = 'text-amber-600';
+                if (dailySales > 0) {
+                    if (recommended <= overheadPct) {
+                        recommendedColorClass = 'text-green-600';
+                    } else if (recommended > overheadPct + 10) {
+                        recommendedColorClass = 'text-red-600';
+                    }
+                }
+                recommendedEl.className = 'text-2xl font-bold ' + recommendedColorClass;
             });
         }
 
