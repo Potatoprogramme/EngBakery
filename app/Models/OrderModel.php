@@ -308,4 +308,41 @@ class OrderModel extends Model
     {
         return $this->where('order_id', $orderId)->first();
     }
+
+    /**
+     * Get today's sales by payment method scoped to a shift time window.
+     * Only counts non-voided orders within the time range.
+     *
+     * @param string $paymentMethod e.g. 'cash', 'gcash', 'maya', 'panda'
+     * @param string $date          Date (Y-m-d)
+     * @param string $shiftStart    Shift start time (H:i:s)
+     * @param string $shiftEnd      Shift end time (H:i:s)
+     * @return float
+     */
+    public function getSalesByPaymentMethodForShift(string $paymentMethod, string $date, string $shiftStart, string $shiftEnd): float
+    {
+        $result = $this->builder()
+            ->selectSum('total_payment_due', 'total')
+            ->where('date_created', $date)
+            ->where('LOWER(payment_method)', strtolower($paymentMethod))
+            ->where('time_created >=', $shiftStart)
+            ->where('time_created <=', $shiftEnd)
+            ->where('voided_at IS NULL')
+            ->get()
+            ->getRowArray();
+
+        return floatval($result['total'] ?? 0);
+    }
+
+    /**
+     * Get order count scoped to a shift time window.
+     */
+    public function getOrderCountForShift(string $date, string $shiftStart, string $shiftEnd): int
+    {
+        return $this->where('date_created', $date)
+            ->where('time_created >=', $shiftStart)
+            ->where('time_created <=', $shiftEnd)
+            ->where('voided_at IS NULL')
+            ->countAllResults();
+    }
 }

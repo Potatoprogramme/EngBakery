@@ -134,6 +134,7 @@ $routes->group('Sales', function (RouteCollection $routes) {
     $routes->get('GetTodaysSummary', 'SalesController::getTodaysSummary');
     $routes->get('checkExistingRemittance', 'SalesController::checkExistingRemittance');
     $routes->get('getRemittancesForDate', 'SalesController::getRemittancesForDate');
+    $routes->get('getShiftConfig', 'SalesController::getShiftConfig');
     $routes->post('SaveRemittance', 'SalesController::saveRemittance');
     // Routes for Sales History
     $routes->get('History', 'SalesController::history');
