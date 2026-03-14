@@ -209,7 +209,7 @@
                         <!-- Legend -->
                         <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
                             <div class="flex items-center gap-1">
-                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary"></div>
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2 border-primary"></div>
                                 <span class="text-[10px] sm:text-xs text-gray-500">Selected</span>
                             </div>
                             <div class="flex items-center gap-1">
@@ -221,7 +221,7 @@
                                 <span class="text-[10px] sm:text-xs text-gray-500">No items</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2 border-primary"></div>
+                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary"></div>
                                 <span class="text-[10px] sm:text-xs text-gray-500">Today</span>
                             </div>
                         </div>
@@ -2033,9 +2033,9 @@
                     const dayData = calendarData[dateStr] || [];
                     const hasItems = dayData.length > 0;
 
-                    let todayClass = isToday ? 'ring-2 ring-primary' : '';
-                    let selectedClass = isSelected ? 'bg-primary text-white' : '';
-                    let bgClass = isSelected ? '' : (hasItems ? 'bg-primary/5' : 'bg-gray-50');
+                    let todayClass = isToday ? 'bg-primary text-white' : '';
+                    let selectedClass = isSelected ? 'ring-2 ring-primary' : '';
+                    let bgClass = isToday ? '' : (hasItems ? 'bg-primary/5' : 'bg-gray-50');
 
                     let groupsPreview = '';
                     if (hasItems) {
@@ -2052,7 +2052,7 @@
                                     return `
                                         <button
                                             type="button"
-                                            class="calendar-group-chip w-full text-left truncate px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium hover:opacity-90 transition-opacity ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}"
+                                            class="calendar-group-chip w-full text-left truncate px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium hover:opacity-90 transition-opacity ${isToday ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}"
                                             data-date="${dateStr}"
                                             data-group-key="${groupKey}"
                                             title="${groupName}">
@@ -2060,7 +2060,7 @@
                                         </button>
                                     `;
                                 }).join('')}
-                                ${hiddenGroupsCount > 0 ? `<div class="text-[8px] sm:text-[9px] font-medium ${isSelected ? 'text-white/80' : 'text-gray-500'}">+${hiddenGroupsCount} more</div>` : ''}
+                                ${hiddenGroupsCount > 0 ? `<div class="text-[8px] sm:text-[9px] font-medium ${isToday ? 'text-white/80' : 'text-gray-500'}">+${hiddenGroupsCount} more</div>` : ''}
                             </div>
                         `;
                     }
@@ -2068,7 +2068,7 @@
                     const dayHtml = `
                         <div class="calendar-day h-16 sm:h-20 md:h-24 p-0.5 sm:p-1 md:p-2 rounded-md sm:rounded-lg cursor-pointer hover:shadow-md transition-all ${bgClass} ${todayClass} ${selectedClass} border border-gray-100"
                              data-date="${dateStr}">
-                            <div class="text-[10px] sm:text-xs md:text-sm font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}">${day}</div>
+                            <div class="text-[10px] sm:text-xs md:text-sm font-semibold ${isToday ? 'text-white' : 'text-gray-700'}">${day}</div>
                             ${groupsPreview}
                         </div>
                     `;

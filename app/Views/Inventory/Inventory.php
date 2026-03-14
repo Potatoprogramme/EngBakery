@@ -53,6 +53,7 @@
                 </div>
             </div>
 
+
             <!-- Floating buttons for mobile -->
             <div class="fixed bottom-6 left-0 right-0 flex justify-center gap-2 z-30 sm:hidden px-6">
                 <button id="btnAddTodaysInventoryMobile" type="button"
@@ -65,8 +66,10 @@
                 </button>
             </div>
 
-            <!-- Category Tabs -->
-            <div class="flex gap-2 mb-3">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+                <div class="xl:col-span-8 min-w-0">
+                    <!-- Category Tabs -->
+                    <div class="flex gap-2 mb-3">
                 <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
                     class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
                     <i class="fas fa-bread-slice mr-1.5 hidden sm:inline"></i> Bakery
@@ -211,6 +214,73 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                </div>
+
+                <div class="xl:col-span-4 min-w-0">
+                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
+                                <p class="text-xs text-gray-500">Items, ingredients, summary, and cost</p>
+                            </div>
+                            <button id="btnRefreshTodayDistribution" type="button"
+                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p class="text-sm">Loading today's distribution...</p>
+                        </div>
+
+                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-box-open text-3xl mb-2"></i>
+                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
+                        </div>
+
+                        <div id="todayDistributionContent" class="hidden space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Items</p>
+                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Batches</p>
+                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Pieces</p>
+                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg">
+                                    <p class="text-[11px] text-gray-600">Direct Cost</p>
+                                    <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">₱0.00</p>
+                                </div>
+                                <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg col-span-2">
+                                    <p class="text-[11px] text-gray-600">Ingredient Cost</p>
+                                    <p id="todayDistSummaryIngredientCost" class="text-base font-semibold text-emerald-600">₱0.00</p>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-white border border-gray-200 rounded-lg">
+                                <p class="text-xs font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-flask mr-1 text-primary"></i> Ingredients Summary
+                                </p>
+                                <div id="todayDistributionIngredientsSummary" class="space-y-1"></div>
+                            </div>
+
+                            <div class="p-3 bg-white border border-gray-200 rounded-lg">
+                                <p class="text-xs font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-list mr-1 text-primary"></i> Distributed Items
+                                </p>
+                                <div id="todayDistributionItems" class="space-y-2"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -656,6 +726,519 @@
     <script>
         // Track which source to use for inventory: 'all' or 'distribution'
         let inventorySource = 'all';
+        const inventoryBaseUrl = '<?= base_url() ?>';
+        let todayDistProductMap = {};
+        let todayDistProductDetailCache = {};
+        let todayDistProductDetailPromiseCache = {};
+        let todayDistHydrationToken = 0;
+
+        function getTodayDateForApi() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function parseInventoryNumericValue(value) {
+            if (value === null || value === undefined || value === '') return 0;
+            if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+            const cleaned = String(value).replace(/[^0-9.-]/g, '');
+            const parsed = parseFloat(cleaned);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function formatInventoryPeso(amount) {
+            const numeric = parseInventoryNumericValue(amount);
+            return '₱' + numeric.toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatInventoryNumber(value, maxFractionDigits = 0) {
+            const numeric = parseInventoryNumericValue(value);
+            return numeric.toLocaleString('en-PH', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: maxFractionDigits
+            });
+        }
+
+        function escapeInventoryHtml(value) {
+            const text = value == null ? '' : String(value);
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getTodayDistProductData(productId) {
+            const key = String(productId || '').trim();
+            if (!key) return null;
+            return todayDistProductMap[key] || todayDistProductDetailCache[key] || null;
+        }
+
+        function getTodayDistPiecesPerYield(product) {
+            const pieces = parseInventoryNumericValue(product && product.pieces_per_yield);
+            return pieces > 0 ? pieces : 1;
+        }
+
+        function getTodayDistPieces(item, product) {
+            const qty = parseInventoryNumericValue(item && item.product_qnty);
+            const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+            const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
+
+            if (qtyMode === 'pieces') {
+                return qty;
+            }
+
+            if (category === 'drinks' || category === 'grocery') {
+                return qty;
+            }
+
+            return qty * getTodayDistPiecesPerYield(product || {});
+        }
+
+        function calculateTodayDistItemDirectCost(item, product) {
+            const productData = product || {};
+            const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
+            if (directCostPerYield <= 0) return 0;
+
+            const pieces = getTodayDistPieces(item, productData);
+            const piecesPerYield = getTodayDistPiecesPerYield(productData);
+            const yieldsNeeded = piecesPerYield > 0 ? (pieces / piecesPerYield) : 0;
+
+            return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
+        }
+
+        function getTodayDistMaterialAggregateKey(materialId, materialName, unit) {
+            if (materialId != null && materialId !== '') {
+                return `id-${materialId}-${(unit || '').toString().trim().toLowerCase()}`;
+            }
+
+            return `name-${(materialName || 'unknown').toString().trim().toLowerCase()}-${(unit || '').toString().trim().toLowerCase()}`;
+        }
+
+        function mergeTodayDistMaterialUsageEntry(materialMap, usageEntry) {
+            if (!materialMap || !usageEntry) return;
+
+            const mapKey = getTodayDistMaterialAggregateKey(
+                usageEntry.material_id,
+                usageEntry.material_name,
+                usageEntry.unit
+            );
+
+            if (!materialMap[mapKey]) {
+                materialMap[mapKey] = {
+                    material_id: usageEntry.material_id,
+                    material_name: usageEntry.material_name || 'Unknown Material',
+                    unit: usageEntry.unit || '',
+                    amount: 0,
+                    line_cost: 0,
+                };
+            }
+
+            materialMap[mapKey].amount += parseInventoryNumericValue(usageEntry.amount);
+            materialMap[mapKey].line_cost += parseInventoryNumericValue(usageEntry.line_cost);
+        }
+
+        function todayDistMaterialMapToArray(materialMap) {
+            return Object.values(materialMap || {}).sort(function (a, b) {
+                return String(a.material_name || '').localeCompare(String(b.material_name || ''));
+            });
+        }
+
+        function fetchTodayDistProducts(forceReload = false) {
+            return new Promise(function (resolve) {
+                if (!forceReload && Object.keys(todayDistProductMap).length > 0) {
+                    resolve(todayDistProductMap);
+                    return;
+                }
+
+                $.ajax({
+                    url: inventoryBaseUrl + 'Products/GetAll',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.success && Array.isArray(response.data)) {
+                            const nextMap = {};
+                            response.data.forEach(function (product) {
+                                const key = String(product.product_id || '').trim();
+                                if (!key) return;
+                                nextMap[key] = Object.assign({}, product);
+                            });
+                            todayDistProductMap = nextMap;
+                        }
+                    },
+                    complete: function () {
+                        resolve(todayDistProductMap);
+                    }
+                });
+            });
+        }
+
+        function fetchTodayDistProductDetail(productId) {
+            const key = String(productId || '').trim();
+            if (!key) {
+                return Promise.resolve(null);
+            }
+
+            if (todayDistProductDetailCache[key]) {
+                return Promise.resolve(todayDistProductDetailCache[key]);
+            }
+
+            if (todayDistProductDetailPromiseCache[key]) {
+                return todayDistProductDetailPromiseCache[key];
+            }
+
+            todayDistProductDetailPromiseCache[key] = new Promise(function (resolve) {
+                $.ajax({
+                    url: inventoryBaseUrl + 'Products/GetProduct/' + key,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.success && response.data) {
+                            const productData = response.data;
+                            todayDistProductDetailCache[key] = productData;
+                            todayDistProductMap[key] = Object.assign({}, todayDistProductMap[key] || {}, productData);
+                            resolve(productData);
+                            return;
+                        }
+
+                        resolve(null);
+                    },
+                    error: function () {
+                        resolve(null);
+                    },
+                    complete: function () {
+                        delete todayDistProductDetailPromiseCache[key];
+                    }
+                });
+            });
+
+            return todayDistProductDetailPromiseCache[key];
+        }
+
+        function fetchTodayDistributionByDate(dateValue) {
+            return new Promise(function (resolve) {
+                $.ajax({
+                    url: inventoryBaseUrl + 'Distribution/GetDistributionByDate',
+                    method: 'GET',
+                    dataType: 'json',
+                    data: { date: dateValue },
+                    success: function (response) {
+                        resolve(response || { success: false, data: [] });
+                    },
+                    error: function () {
+                        resolve({ success: false, data: [] });
+                    }
+                });
+            });
+        }
+
+        async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap, visitedProducts = new Set(), productHint = null) {
+            const key = String(productId || '').trim();
+            if (!key || yieldsNeeded <= 0 || visitedProducts.has(key)) return;
+
+            const productData = productHint || await fetchTodayDistProductDetail(key);
+            if (!productData) return;
+
+            const nextVisited = new Set(visitedProducts);
+            nextVisited.add(key);
+
+            const ingredients = Array.isArray(productData.ingredients) ? productData.ingredients : [];
+            ingredients.forEach(function (ingredient) {
+                const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient.quantity_needed);
+                if (quantityPerYield <= 0) return;
+
+                const amount = quantityPerYield * yieldsNeeded;
+                const lineCost = amount * parseInventoryNumericValue(ingredient.cost_per_unit);
+
+                mergeTodayDistMaterialUsageEntry(materialMap, {
+                    material_id: ingredient.material_id,
+                    material_name: ingredient.material_name || ('Material #' + (ingredient.material_id ?? 'N/A')),
+                    unit: ingredient.unit || '',
+                    amount: amount,
+                    line_cost: lineCost,
+                });
+            });
+
+            const combinedRecipes = Array.isArray(productData.combined_recipes) ? productData.combined_recipes : [];
+
+            for (const combinedRecipe of combinedRecipes) {
+                const sourceProductId = parseInventoryNumericValue(combinedRecipe.source_product_id || combinedRecipe.id);
+                if (!sourceProductId) continue;
+
+                const gramsPerPiece = parseInventoryNumericValue(combinedRecipe.grams_per_piece ?? combinedRecipe.gramsPerPiece);
+                if (gramsPerPiece <= 0 || piecesNeeded <= 0) continue;
+
+                const sourceProduct = await fetchTodayDistProductDetail(sourceProductId);
+                if (!sourceProduct) continue;
+
+                const sourceYieldGrams = parseInventoryNumericValue(sourceProduct.yield_grams || combinedRecipe.source_yield_grams);
+                if (sourceYieldGrams <= 0) continue;
+
+                const totalGramsNeeded = gramsPerPiece * piecesNeeded;
+                const sourceYieldsNeeded = totalGramsNeeded / sourceYieldGrams;
+                const sourcePiecesPerYield = getTodayDistPiecesPerYield(sourceProduct);
+                const sourcePiecesNeeded = sourceYieldsNeeded * sourcePiecesPerYield;
+
+                await accumulateTodayDistRawMaterialUsage(
+                    sourceProductId,
+                    sourceYieldsNeeded,
+                    sourcePiecesNeeded,
+                    materialMap,
+                    nextVisited,
+                    sourceProduct
+                );
+            }
+        }
+
+        async function computeTodayDistRawMaterialUsageForItem(item, productHint = null, piecesHint = null) {
+            let productData = productHint || getTodayDistProductData(item && item.product_id);
+
+            if (!productData || !Array.isArray(productData.ingredients)) {
+                productData = await fetchTodayDistProductDetail(item && item.product_id);
+            }
+
+            if (!productData) return [];
+
+            const pieces = parseInventoryNumericValue(piecesHint) > 0
+                ? parseInventoryNumericValue(piecesHint)
+                : getTodayDistPieces(item, productData);
+
+            if (pieces <= 0) return [];
+
+            const piecesPerYield = getTodayDistPiecesPerYield(productData);
+            const yieldsNeeded = piecesPerYield > 0 ? (pieces / piecesPerYield) : 0;
+            if (yieldsNeeded <= 0) return [];
+
+            const materialMap = {};
+            await accumulateTodayDistRawMaterialUsage(item.product_id, yieldsNeeded, pieces, materialMap, new Set(), productData);
+            return todayDistMaterialMapToArray(materialMap);
+        }
+
+        function setTodayDistributionRefreshLoadingState(isLoading) {
+            if (isLoading) {
+                $('#btnRefreshTodayDistribution')
+                    .prop('disabled', true)
+                    .addClass('opacity-60 cursor-not-allowed');
+            } else {
+                $('#btnRefreshTodayDistribution')
+                    .prop('disabled', false)
+                    .removeClass('opacity-60 cursor-not-allowed');
+            }
+        }
+
+        function renderTodayDistributionPanelLoading() {
+            setTodayDistributionRefreshLoadingState(true);
+            $('#todayDistributionLoading').removeClass('hidden');
+            $('#todayDistributionEmpty').addClass('hidden');
+            $('#todayDistributionContent').addClass('hidden');
+        }
+
+        function renderTodayDistributionPanelEmpty(message = 'No distribution records for today.') {
+            setTodayDistributionRefreshLoadingState(false);
+
+            $('#todayDistSummaryItems').text('0');
+            $('#todayDistSummaryBatches').text('0');
+            $('#todayDistSummaryPieces').text('0');
+            $('#todayDistSummaryDirectCost').text(formatInventoryPeso(0));
+            $('#todayDistSummaryIngredientCost').text(formatInventoryPeso(0));
+
+            $('#todayDistributionIngredientsSummary').html('<p class="text-xs text-gray-400">No ingredient usage data.</p>');
+            $('#todayDistributionItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
+
+            $('#todayDistributionEmptyText').text(message);
+            $('#todayDistributionLoading').addClass('hidden');
+            $('#todayDistributionContent').addClass('hidden');
+            $('#todayDistributionEmpty').removeClass('hidden');
+        }
+
+        function formatTodayDistQuantityLabel(item) {
+            const qtyMode = ((item.qty_mode || 'batch') + '').toLowerCase();
+            const quantity = parseInventoryNumericValue(item.product_qnty);
+            const pieces = parseInventoryNumericValue(item.pieces_calculated);
+
+            if (qtyMode === 'pieces') {
+                return formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            if (qtyMode === 'batch' || qtyMode === 'box') {
+                const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
+                return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+        }
+
+        function renderTodayDistributionPanelData(items) {
+            const normalizedItems = Array.isArray(items) ? items : [];
+
+            const totalItems = normalizedItems.length;
+            const totalBatches = normalizedItems.reduce(function (sum, item) {
+                const mode = ((item.qty_mode || 'batch') + '').toLowerCase();
+                if (mode === 'pieces') return sum;
+                return sum + parseInventoryNumericValue(item.product_qnty);
+            }, 0);
+            const totalPieces = normalizedItems.reduce(function (sum, item) {
+                return sum + parseInventoryNumericValue(item.pieces_calculated);
+            }, 0);
+            const totalDirectCost = normalizedItems.reduce(function (sum, item) {
+                return sum + parseInventoryNumericValue(item.direct_cost_calculated);
+            }, 0);
+            const totalIngredientCost = normalizedItems.reduce(function (sum, item) {
+                return sum + parseInventoryNumericValue(item.ingredient_cost_total);
+            }, 0);
+
+            $('#todayDistSummaryItems').text(formatInventoryNumber(totalItems, 0));
+            $('#todayDistSummaryBatches').text(formatInventoryNumber(totalBatches, 0));
+            $('#todayDistSummaryPieces').text(formatInventoryNumber(totalPieces, 0));
+            $('#todayDistSummaryDirectCost').text(formatInventoryPeso(totalDirectCost));
+            $('#todayDistSummaryIngredientCost').text(formatInventoryPeso(totalIngredientCost));
+
+            const ingredientMap = {};
+            normalizedItems.forEach(function (item) {
+                (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(function (usageEntry) {
+                    mergeTodayDistMaterialUsageEntry(ingredientMap, usageEntry);
+                });
+            });
+
+            const ingredientTotals = todayDistMaterialMapToArray(ingredientMap);
+            if (ingredientTotals.length > 0) {
+                const ingredientsHtml = ingredientTotals.map(function (material) {
+                    const amount = formatInventoryNumber(material.amount, 4);
+                    const unit = (material.unit || '').toString().trim();
+                    return `
+                        <div class="flex items-center justify-between text-xs text-gray-700 border-b border-gray-100 pb-1">
+                            <span class="truncate pr-2">${escapeInventoryHtml(material.material_name)}: ${amount}${unit ? ' ' + escapeInventoryHtml(unit) : ''}</span>
+                            <span class="font-semibold text-gray-800">${formatInventoryPeso(material.line_cost)}</span>
+                        </div>
+                    `;
+                }).join('');
+                $('#todayDistributionIngredientsSummary').html(ingredientsHtml);
+            } else {
+                $('#todayDistributionIngredientsSummary').html('<p class="text-xs text-gray-400">No ingredient usage data.</p>');
+            }
+
+            if (normalizedItems.length > 0) {
+                const itemsHtml = normalizedItems.map(function (item) {
+                    const productName = escapeInventoryHtml(item.product_name || 'Unknown Product');
+                    const category = escapeInventoryHtml(item.category || 'N/A');
+                    const quantityLabel = formatTodayDistQuantityLabel(item);
+                    const directCost = parseInventoryNumericValue(item.direct_cost_calculated);
+                    const ingredientCost = parseInventoryNumericValue(item.ingredient_cost_total);
+                    const ingredients = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
+
+                    const ingredientLines = ingredients.length > 0
+                        ? ingredients.map(function (material) {
+                            const amount = formatInventoryNumber(material.amount, 4);
+                            const unit = (material.unit || '').toString().trim();
+                            return `
+                                <div class="flex items-center justify-between text-[11px] text-gray-600">
+                                    <span class="truncate pr-2">${escapeInventoryHtml(material.material_name)}: ${amount}${unit ? ' ' + escapeInventoryHtml(unit) : ''}</span>
+                                    <span class="font-medium text-gray-700">${formatInventoryPeso(material.line_cost)}</span>
+                                </div>
+                            `;
+                        }).join('')
+                        : '<p class="text-[11px] text-gray-400">No ingredient data.</p>';
+
+                    return `
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
+                                    <p class="text-[11px] text-gray-500">${quantityLabel} • ${category}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-[11px] text-gray-500">Direct Cost</p>
+                                    <p class="text-sm font-semibold text-emerald-600">${formatInventoryPeso(directCost)}</p>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-1.5">Ingredient Cost: <span class="font-semibold text-gray-700">${formatInventoryPeso(ingredientCost)}</span></p>
+                            <div class="pl-1 border-l-2 border-primary/20 space-y-1">${ingredientLines}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                $('#todayDistributionItems').html(itemsHtml);
+            } else {
+                $('#todayDistributionItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
+            }
+
+            setTodayDistributionRefreshLoadingState(false);
+            $('#todayDistributionLoading').addClass('hidden');
+            $('#todayDistributionEmpty').addClass('hidden');
+            $('#todayDistributionContent').removeClass('hidden');
+        }
+
+        async function loadTodaysDistributionOverview(forceProductReload = false) {
+            const requestToken = ++todayDistHydrationToken;
+            renderTodayDistributionPanelLoading();
+
+            try {
+                await fetchTodayDistProducts(forceProductReload);
+
+                const todayDate = getTodayDateForApi();
+                const response = await fetchTodayDistributionByDate(todayDate);
+
+                if (requestToken !== todayDistHydrationToken) return;
+
+                const dayItems = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+                $('#distCount').text(dayItems.length || 0);
+
+                if (!dayItems.length) {
+                    renderTodayDistributionPanelEmpty('No distribution records for today.');
+                    return;
+                }
+
+                const hydratedItems = await Promise.all(dayItems.map(async function (item) {
+                    const normalizedItem = Object.assign({}, item);
+
+                    try {
+                        let productData = getTodayDistProductData(normalizedItem.product_id);
+                        if (!productData || !Array.isArray(productData.ingredients)) {
+                            const fetchedDetail = await fetchTodayDistProductDetail(normalizedItem.product_id);
+                            if (fetchedDetail) {
+                                productData = fetchedDetail;
+                            }
+                        }
+
+                        const pieces = getTodayDistPieces(normalizedItem, productData || normalizedItem);
+                        const directCost = calculateTodayDistItemDirectCost(normalizedItem, productData || normalizedItem);
+                        const usage = await computeTodayDistRawMaterialUsageForItem(normalizedItem, productData, pieces);
+                        const ingredientCostTotal = (Array.isArray(usage) ? usage : []).reduce(function (sum, material) {
+                            return sum + parseInventoryNumericValue(material.line_cost);
+                        }, 0);
+
+                        return Object.assign({}, normalizedItem, {
+                            pieces_calculated: pieces,
+                            direct_cost_calculated: directCost,
+                            raw_material_usage: usage,
+                            ingredient_cost_total: ingredientCostTotal,
+                        });
+                    } catch (error) {
+                        const fallbackPieces = getTodayDistPieces(normalizedItem, normalizedItem);
+                        const fallbackDirectCost = calculateTodayDistItemDirectCost(normalizedItem, normalizedItem);
+                        return Object.assign({}, normalizedItem, {
+                            pieces_calculated: fallbackPieces,
+                            direct_cost_calculated: fallbackDirectCost,
+                            raw_material_usage: [],
+                            ingredient_cost_total: 0,
+                        });
+                    }
+                }));
+
+                if (requestToken !== todayDistHydrationToken) return;
+                renderTodayDistributionPanelData(hydratedItems);
+            } catch (error) {
+                if (requestToken !== todayDistHydrationToken) return;
+                renderTodayDistributionPanelEmpty('Unable to load today\'s distribution right now.');
+            }
+        }
 
         $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
@@ -673,9 +1256,14 @@
             $(document).ready(function () {
                 checkIfDistributionExists();
                 checkIfInventoryExists();
+                loadTodaysDistributionOverview();
             });
 
             $('#todayDate').text(dateString);
+
+            $('#btnRefreshTodayDistribution').on('click', function () {
+                loadTodaysDistributionOverview(true);
+            });
 
             // Open Add Inventory Modal (Desktop & Mobile)
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
