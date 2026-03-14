@@ -241,14 +241,14 @@
 
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
-                            <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Raw Material Usage (Entire Day)</h4>
+                            <h4 id="ownerRawUsageHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Raw Material Usage (Entire Day)</h4>
                             <div id="ownerDayRawMaterialUsage" class="space-y-1.5 max-h-[340px] overflow-y-auto">
                                 <p class="text-xs text-gray-400">No raw material usage for this date.</p>
                             </div>
                         </div>
 
                         <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
-                            <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per-Group Forecast & Direct Cost</h4>
+                            <h4 id="ownerForecastDirectCostHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per-Group Forecast & Direct Cost</h4>
                             <div id="ownerGroupAnalyticsContainer" class="space-y-2 max-h-[340px] overflow-y-auto">
                                 <p class="text-xs text-gray-400">No distribution groups yet.</p>
                             </div>
@@ -392,9 +392,25 @@
                 <span id="modalForecastedSalesTotal" class="text-sm font-bold text-primary">₱0.00</span>
             </div>
 
-            <!-- Items List -->
-            <div id="calendarDayItemsList" class="space-y-2 max-h-[300px] overflow-y-auto mb-4">
-                <!-- Dynamically populated -->
+            <!-- Slide View: Group List -> Group Detail -->
+            <div id="calendarDaySlideViewport" class="relative overflow-hidden mb-4">
+                <div id="calendarDaySlideTrack" class="flex transition-transform duration-300 ease-in-out" style="width: 200%; transform: translateX(0);">
+                    <div class="flex-shrink-0" style="width: 50%;">
+                        <div id="calendarDayItemsList" class="space-y-2 max-h-[300px] overflow-y-auto">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0" style="width: 50%;">
+                        <div class="mb-2">
+                            <button type="button" id="btnCalendarDayBackToGroups" class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
+                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
+                            </button>
+                        </div>
+                        <div id="calendarDayGroupDetailContent" class="space-y-2 max-h-[300px] overflow-y-auto">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Empty State -->
@@ -426,7 +442,7 @@
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 id="addItemsModalTitle" class="text-lg font-semibold text-primary">Add Baking Items</h3>
-                    <p class="text-sm text-gray-500">Search and add products for a specific date</p>
+                    <p id="addItemsModalSubtitle" class="text-sm text-gray-500">Search and add products for a specific date</p>
                 </div>
                 <button type="button" id="btnCloseAddItemsModal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
@@ -632,12 +648,15 @@
         let productDetailPromiseCache = {}; // In-flight product detail requests
         let utilityExpensesByDate = {}; // Utility totals keyed by billed date
         let ownerRawUsageHydrationToken = 0; // Prevent stale async owner analytics updates
+        let modalGroupDetailHydrationToken = 0; // Prevent stale modal group detail ingredient hydration
         let calendarData = {}; // Store distribution data keyed by date
         let allDistributionData = {}; // Store all distribution records keyed by date
         let currentDayDistributionItems = []; // Store current selected date distribution items
         let currentDayGroupedData = []; // Grouped analytics for selected date
         let currentDaySummary = {}; // Day analytics summary for selected date
         let selectedGroupFilter = { date: '', key: '' }; // Active selected group scope for analytics cards/panels
+        let addItemsModalMode = 'create'; // create | edit
+        let editingGroupContext = null; // Active group edit metadata context
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         const distributionGroupStorageKey = 'engbakery_distribution_group_meta_v1';
@@ -1414,7 +1433,10 @@
             }
 
             async function computeRawMaterialUsageForItem(item) {
-                const productData = getProductAnalyticsData(item.product_id);
+                let productData = getProductAnalyticsData(item.product_id);
+                if (!productData) {
+                    productData = await fetchProductDetail(item.product_id);
+                }
                 if (!productData) return [];
 
                 const pieces = getDistributionPieces(item, productData);
@@ -1520,15 +1542,33 @@
                 const normalizedGroups = Array.isArray(groups) ? groups : [];
                 const groupContainer = $('#ownerGroupAnalyticsContainer');
                 const materialsContainer = $('#ownerDayRawMaterialUsage');
+                const rawUsageHeading = $('#ownerRawUsageHeading');
+                const forecastHeading = $('#ownerForecastDirectCostHeading');
+                const selectedDateValue = ($('#selectedDate').val() || '').toString().trim();
+                const activeScopeDate = (selectedGroupFilter.date || '').toString().trim();
+                const activeScopeKey = (selectedGroupFilter.key || '').toString().trim();
+                const isGroupScoped = Boolean(activeScopeDate && activeScopeKey && activeScopeDate === selectedDateValue);
+                const scopedGroupName = isGroupScoped && normalizedGroups.length === 1
+                    ? (normalizedGroups[0].group_name || 'Selected Group')
+                    : 'Selected Group';
 
                 $('#ownerGroupCountBadge').text(`${normalizedGroups.length} ${normalizedGroups.length === 1 ? 'group' : 'groups'}`);
+
+                rawUsageHeading.text(isGroupScoped
+                    ? `Raw Material Usage (${scopedGroupName})`
+                    : 'Raw Material Usage (Entire Day)'
+                );
+                forecastHeading.text(isGroupScoped
+                    ? `Forecast & Direct Cost (${scopedGroupName})`
+                    : 'Per-Group Forecast & Direct Cost'
+                );
 
                 const dayMaterials = Array.isArray(summary.raw_material_usage_total)
                     ? summary.raw_material_usage_total
                     : [];
 
                 if (dayMaterials.length === 0) {
-                    materialsContainer.html('<p class="text-xs text-gray-400">No raw material usage for this date.</p>');
+                    materialsContainer.html(`<p class="text-xs text-gray-400">${isGroupScoped ? 'No raw material usage for this selected group.' : 'No raw material usage for this date.'}</p>`);
                 } else {
                     materialsContainer.html(dayMaterials.map(function(material) {
                         return `
@@ -1847,6 +1887,63 @@
                 });
             }
 
+            function deleteDistributionItemRequest(itemId) {
+                return new Promise(function(resolve, reject) {
+                    $.ajax({
+                        url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
+                        method: 'POST',
+                        dataType: 'json',
+                        success: function(response) {
+                            resolve(response || {});
+                        },
+                        error: function(xhr) {
+                            reject(xhr);
+                        }
+                    });
+                });
+            }
+
+            function fetchDistributionItemsByDateRequest(dateStr) {
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        url: baseUrl + 'Distribution/GetDistributionByDate',
+                        method: 'GET',
+                        data: { date: dateStr },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response && response.success) {
+                                resolve(decorateDistributionItems(response.data || [], dateStr));
+                                return;
+                            }
+                            resolve([]);
+                        },
+                        error: function() {
+                            resolve([]);
+                        }
+                    });
+                });
+            }
+
+            function getDistributionItemId(item) {
+                const rawId = item && (
+                    item.distribution_id
+                    ?? item.id
+                    ?? item.item_id
+                    ?? item.distribution_item_id
+                );
+                const parsed = parseInt(rawId, 10);
+                return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+            }
+
+            function getDistributionItemIdentityKey(item) {
+                const distributionItemId = getDistributionItemId(item);
+                if (distributionItemId) {
+                    return `id-${distributionItemId}`;
+                }
+
+                return `product-${String(item && item.product_id || '').trim()}`;
+            }
+
             function deleteDistributionItem(itemId, productId = null, dateValue = null) {
                 $.ajax({
                     url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
@@ -1998,6 +2095,222 @@
                 loadMonthDistributions();
             });
 
+            function setCalendarDaySelectButtonScope(scope, groupKey = '') {
+                const normalizedScope = (scope === 'group') ? 'group' : 'date';
+                const normalizedGroupKey = (groupKey || '').toString();
+
+                $('#calendarDayModal').data('selection-scope', normalizedScope);
+
+                if (normalizedScope === 'group' && normalizedGroupKey) {
+                    $('#calendarDayModal').data('selected-group-key', normalizedGroupKey);
+                } else {
+                    $('#calendarDayModal').removeData('selected-group-key');
+                }
+
+                $('#btnCalendarDaySelect').html(
+                    `<i class="fas fa-arrow-right mr-1"></i>${normalizedScope === 'group' ? 'Go to this group' : 'Go to this date'}`
+                );
+            }
+
+            function setCalendarDayModalPane(pane = 'list') {
+                const isDetail = pane === 'detail';
+                $('#calendarDaySlideTrack').css('transform', isDetail ? 'translateX(-50%)' : 'translateX(0)');
+            }
+
+            function renderCalendarModalGroupDetail(dateStr, group, options = {}) {
+                const groupItems = Array.isArray(group && group.items) ? group.items : [];
+                const groupSummary = buildGroupScopedSummary(group, groupItems, dateStr);
+                const groupName = escapeHtml((group && group.group_name ? group.group_name : 'Default Group').toString());
+                const groupNote = escapeHtml((group && group.group_note ? group.group_note : '').toString().trim());
+                const groupKey = escapeHtml((group && group.group_key ? group.group_key : '').toString());
+                const totalForecast = parseNumericValue(groupSummary.forecasted_sales_total);
+                const totalDirectCost = parseNumericValue(groupSummary.direct_cost_total);
+                const totalBatches = parseNumericValue(groupSummary.total_batches);
+                const totalPieces = parseNumericValue(groupSummary.total_pieces);
+                const isMaterialLoading = Boolean(options && options.materialLoading);
+
+                const materialUsageByItemHtml = groupItems.map(function(item) {
+                    const quantity = parseNumericValue(item.product_qnty);
+                    const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
+                    const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0)
+                        ? '<p class="text-[11px] text-gray-400">Loading ingredients used...</p>'
+                        : renderMaterialUsageList(itemMaterials);
+
+                    return `
+                        <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-xs font-semibold text-gray-800 truncate">${escapeHtml(item.product_name || '')}</p>
+                                <p class="text-[11px] text-gray-500 flex-shrink-0">${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}</p>
+                            </div>
+                            <div class="mt-1.5 pl-1 border-l-2 border-primary/20 space-y-1">${itemMaterialHtml}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                const itemsHtml = groupItems.map(function(item) {
+                    const quantity = parseNumericValue(item.product_qnty);
+                    const itemForecast = parseNumericValue(item.forecasted_sales) || (quantity * getForecastUnitPrice(
+                        getProductAnalyticsData(item.product_id),
+                        item.qty_mode || 'batch'
+                    ));
+                    const itemDirect = parseNumericValue(item.direct_cost);
+
+                    return `
+                        <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-xs font-semibold text-gray-800 truncate">${escapeHtml(item.product_name || '')}</p>
+                                    <p class="text-[11px] text-gray-500">${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[11px] text-primary font-semibold">${formatPesoAmount(itemForecast)}</p>
+                                    <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemDirect)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="space-y-2.5">
+                        <div class="p-2.5 bg-white border border-gray-200 rounded-lg">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s) • ${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
+                                </div>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button type="button" class="btn-modal-edit-group px-2 py-1 text-[10px] font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20" data-date="${dateStr}" data-group-key="${groupKey}">
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-modal-delete-group px-2 py-1 text-[10px] font-medium rounded-md bg-red-100 text-red-600 hover:bg-red-200" data-date="${dateStr}" data-group-key="${groupKey}">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                            ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg">
+                                <p class="text-[11px] text-gray-600">Group Forecast</p>
+                                <p class="text-sm font-semibold text-primary">${formatPesoAmount(totalForecast)}</p>
+                            </div>
+                            <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+                                <p class="text-[11px] text-gray-600">Group Direct Cost</p>
+                                <p class="text-sm font-semibold text-emerald-600">${formatPesoAmount(totalDirectCost)}</p>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 bg-white border border-gray-200 rounded-lg">
+                            <p class="text-xs font-semibold text-gray-700 mb-1"><i class="fas fa-flask mr-1 text-primary"></i>Raw Material Usage (Per Item)</p>
+                            <div class="space-y-1.5">${materialUsageByItemHtml || '<p class="text-[11px] text-gray-400">No items in this group.</p>'}</div>
+                        </div>
+
+                        <div class="p-2.5 bg-white border border-gray-200 rounded-lg">
+                            <p class="text-xs font-semibold text-gray-700 mb-1.5"><i class="fas fa-list mr-1 text-primary"></i>Group Items</p>
+                            <div class="space-y-1.5">${itemsHtml || '<p class="text-[11px] text-gray-400">No items in this group.</p>'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async function hydrateGroupItemsRawMaterialUsageForModal(items) {
+                const normalizedItems = Array.isArray(items) ? items : [];
+
+                const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
+                    const existingUsage = Array.isArray(item && item.raw_material_usage)
+                        ? item.raw_material_usage
+                        : [];
+
+                    if (existingUsage.length > 0) {
+                        return Object.assign({}, item, { raw_material_usage: existingUsage });
+                    }
+
+                    try {
+                        const usage = await computeRawMaterialUsageForItem(item);
+                        return Object.assign({}, item, { raw_material_usage: usage });
+                    } catch (error) {
+                        return Object.assign({}, item, { raw_material_usage: [] });
+                    }
+                }));
+
+                const materialMap = {};
+                hydratedItems.forEach(function(item) {
+                    (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(function(material) {
+                        mergeMaterialUsageEntry(materialMap, material);
+                    });
+                });
+
+                return {
+                    items: hydratedItems,
+                    materialTotal: materialUsageMapToArray(materialMap),
+                };
+            }
+
+            async function openCalendarModalGroupDetail(dateStr, groupKey, sourceItems = null) {
+                const normalizedDate = (dateStr || '').toString();
+                const normalizedGroupKey = (groupKey || '').toString();
+                const candidateItems = Array.isArray(sourceItems)
+                    ? sourceItems
+                    : ($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []);
+
+                const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
+                const matchedGroup = groupedData.find(function(group) {
+                    return String(group.group_key || '') === normalizedGroupKey;
+                });
+
+                if (!matchedGroup) return;
+
+                const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
+                const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
+                const needsHydration = groupItems.some(function(item) {
+                    return !Array.isArray(item && item.raw_material_usage) || item.raw_material_usage.length === 0;
+                });
+
+                const hydrationToken = ++modalGroupDetailHydrationToken;
+
+                $('#calendarDayGroupDetailContent').html(renderCalendarModalGroupDetail(normalizedDate, matchedGroup, {
+                    materialLoading: needsHydration
+                }));
+                $('#calendarDayModal').data('day-summary', groupSummary);
+                updateModalForecastedSales(groupItems, groupSummary);
+                setCalendarDaySelectButtonScope('group', normalizedGroupKey);
+                setCalendarDayModalPane('detail');
+
+                if (!needsHydration) {
+                    return;
+                }
+
+                const hydrated = await hydrateGroupItemsRawMaterialUsageForModal(groupItems);
+
+                if (hydrationToken !== modalGroupDetailHydrationToken) {
+                    return;
+                }
+
+                const activeDate = ($('#calendarDayModal').data('selected-date') || '').toString();
+                const activeScope = ($('#calendarDayModal').data('selection-scope') || '').toString();
+                const activeGroupKey = ($('#calendarDayModal').data('selected-group-key') || '').toString();
+
+                if ($('#calendarDayModal').hasClass('hidden')
+                    || activeDate !== normalizedDate
+                    || activeScope !== 'group'
+                    || activeGroupKey !== normalizedGroupKey) {
+                    return;
+                }
+
+                const hydratedGroup = Object.assign({}, matchedGroup, {
+                    items: hydrated.items,
+                    raw_material_usage_total: hydrated.materialTotal,
+                    total_items: hydrated.items.length,
+                });
+                const hydratedSummary = buildGroupScopedSummary(hydratedGroup, hydrated.items, normalizedDate);
+
+                $('#calendarDayGroupDetailContent').html(renderCalendarModalGroupDetail(normalizedDate, hydratedGroup));
+                $('#calendarDayModal').data('day-summary', hydratedSummary);
+                updateModalForecastedSales(hydrated.items, hydratedSummary);
+            }
+
             function openSpecificGroupView(dateStr, groupKey, sourceItems = null) {
                 const normalizedDate = (dateStr || '').toString();
                 const normalizedGroupKey = (groupKey || '').toString();
@@ -2028,7 +2341,8 @@
 
                 showCalendarDayModal(normalizedDate, groupItems, {
                     summary: groupSummary,
-                    scope: 'group'
+                    scope: 'group',
+                    groupKey: normalizedGroupKey
                 });
             }
 
@@ -2058,7 +2372,44 @@
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '').toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
-                openSpecificGroupView(dateStr, groupKey, dayItems);
+                openCalendarModalGroupDetail(dateStr, groupKey, dayItems);
+            });
+
+            // Group list (non-picker mode) - open selected group detail pane
+            $(document).on('click', '.modal-group-detail-btn', function() {
+                const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+                const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
+                openCalendarModalGroupDetail(dateStr, groupKey, dayItems);
+            });
+
+            $(document).on('click', '.btn-modal-edit-group', function() {
+                const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+                const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
+                openDistributionGroupEditModal(dateStr, groupKey, dayItems);
+            });
+
+            $(document).on('click', '.btn-modal-delete-group', function() {
+                const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+                const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
+
+                Confirm.delete('Delete this distribution group and all its items?', async function() {
+                    await deleteDistributionGroupByKey(dateStr, groupKey, dayItems);
+                });
+            });
+
+            $(document).on('click', '#btnCalendarDayBackToGroups', function() {
+                const dayItems = $('#calendarDayModal').data('day-items') || [];
+                const baseSummary = $('#calendarDayModal').data('base-day-summary') || {};
+                const baseScope = ($('#calendarDayModal').data('base-selection-scope') || 'date').toString();
+                const baseGroupKey = ($('#calendarDayModal').data('base-selected-group-key') || '').toString();
+
+                $('#calendarDayModal').data('day-summary', baseSummary);
+                updateModalForecastedSales(dayItems, baseSummary);
+                setCalendarDaySelectButtonScope(baseScope, baseGroupKey);
+                setCalendarDayModalPane('list');
             });
 
             function showCalendarDayModal(dateStr, items, modalOptions = {}) {
@@ -2075,6 +2426,9 @@
                 const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope === 'group')
                     ? 'group'
                     : 'date';
+                const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions.groupKey)
+                    ? String(modalOptions.groupKey)
+                    : '';
                 const selectionScope = isGroupPickerMode ? 'date' : requestedScope;
                 const shouldUseCurrentDaySummary = (selectedDate === dateStr)
                     && Array.isArray(currentDayDistributionItems)
@@ -2098,10 +2452,12 @@
                 );
                 $('#calendarDayModal').data('selected-date', dateStr);
                 $('#calendarDayModal').data('day-summary', modalSummary);
-                $('#calendarDayModal').data('selection-scope', selectionScope);
-                $('#btnCalendarDaySelect').html(
-                    `<i class="fas fa-arrow-right mr-1"></i>${selectionScope === 'group' ? 'Go to this group' : 'Go to this date'}`
-                );
+                $('#calendarDayModal').data('base-day-summary', modalSummary);
+                $('#calendarDayModal').data('base-selection-scope', selectionScope);
+                $('#calendarDayModal').data('base-selected-group-key', providedGroupKey);
+                $('#calendarDayGroupDetailContent').empty();
+                setCalendarDaySelectButtonScope(selectionScope, providedGroupKey);
+                setCalendarDayModalPane('list');
 
                 const batchTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
                 const piecesTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
@@ -2137,9 +2493,14 @@
                                             <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
                                             <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
                                         </div>
-                                        <div class="text-right flex-shrink-0">
-                                            <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(parseNumericValue(groupSummary.forecasted_sales_total))}</p>
-                                            <p class="text-[10px] text-gray-500 mt-0.5">Tap to open</p>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <div class="text-right">
+                                                <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(parseNumericValue(groupSummary.forecasted_sales_total))}</p>
+                                                <p class="text-[10px] text-gray-500 mt-0.5">View details</p>
+                                            </div>
+                                            <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                                <i class="fas fa-chevron-right text-[10px]"></i>
+                                            </span>
                                         </div>
                                     </div>
                                     ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
@@ -2154,6 +2515,7 @@
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
+                            const groupKey = escapeHtml((group.group_key || '').toString());
 
                             const rowsHtml = groupItems.map(function(item) {
                                 return `
@@ -2175,10 +2537,15 @@
                                 <div class="p-2.5 bg-white border border-gray-200 rounded-lg space-y-2">
                                     <div class="p-2 bg-primary/5 border border-primary/20 rounded-lg">
                                         <div class="flex items-center justify-between gap-2">
-                                            <p class="text-xs font-semibold text-primary truncate">
-                                                <i class="fas fa-layer-group mr-1"></i>${groupName}
-                                            </p>
-                                            <p class="text-[11px] text-gray-600">${groupItems.length} item(s)</p>
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-semibold text-primary truncate">
+                                                    <i class="fas fa-layer-group mr-1"></i>${groupName}
+                                                </p>
+                                                <p class="text-[11px] text-gray-600">${groupItems.length} item(s)</p>
+                                            </div>
+                                            <button type="button" class="modal-group-detail-btn w-6 h-6 rounded-full bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center flex-shrink-0" data-date="${dateStr}" data-group-key="${groupKey}" title="View group details">
+                                                <i class="fas fa-chevron-right text-[10px]"></i>
+                                            </button>
                                         </div>
                                         ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
                                     </div>
@@ -2190,6 +2557,10 @@
 
                             listContainer.append(groupCard);
                         });
+                    }
+
+                    if (!isGroupPickerMode && selectionScope === 'group' && providedGroupKey) {
+                        openCalendarModalGroupDetail(dateStr, providedGroupKey, items);
                     }
                 }
 
@@ -2205,8 +2576,11 @@
             $('#btnCalendarDaySelect').on('click', function() {
                 const dateStr = $('#calendarDayModal').data('selected-date');
                 const selectionScope = ($('#calendarDayModal').data('selection-scope') || 'date').toString();
+                const selectedGroupKey = ($('#calendarDayModal').data('selected-group-key') || '').toString();
 
-                if (selectionScope !== 'group') {
+                if (selectionScope === 'group' && selectedGroupKey) {
+                    setSelectedGroupFilter(dateStr, selectedGroupKey);
+                } else {
                     clearSelectedGroupFilter(dateStr);
                 }
 
@@ -2368,8 +2742,34 @@
 
             let itemsToAddList = [];
 
-            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
-                $('#scheduleDate').val($('#selectedDate').val());
+            function setAddItemsModalUiMode(mode) {
+                const normalizedMode = (mode === 'edit') ? 'edit' : 'create';
+                addItemsModalMode = normalizedMode;
+
+                const isEditMode = normalizedMode === 'edit';
+                $('#addItemsModalTitle').text(isEditMode ? 'Edit Distribution Group' : 'Add Baking Items');
+                $('#addItemsModalSubtitle').text(isEditMode
+                    ? 'Add/remove items, rename group, and update note'
+                    : 'Search and add products for a specific date'
+                );
+                $('#btnSaveItems').html(
+                    isEditMode
+                        ? '<i class="fas fa-save mr-2"></i>Save Group Changes'
+                        : '<i class="fas fa-save mr-2"></i>Save to Schedule'
+                );
+
+                $('#scheduleDate').prop('disabled', isEditMode);
+                $('.schedule-quick-btn').prop('disabled', isEditMode);
+
+                if (isEditMode) {
+                    $('.schedule-quick-btn').addClass('opacity-50 cursor-not-allowed');
+                } else {
+                    $('.schedule-quick-btn').removeClass('opacity-50 cursor-not-allowed');
+                }
+            }
+
+            function resetAddItemsModalForm(dateValue = '') {
+                $('#scheduleDate').val(dateValue || $('#selectedDate').val());
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
                 renderAddedItemsList();
@@ -2380,7 +2780,6 @@
                 $('#productYieldInfo').addClass('hidden');
                 $('#piecesConversionHint').addClass('hidden');
                 $('#qtyModeSection').addClass('hidden');
-                // Reset mode toggle to batch and re-enable buttons
                 $('#btnModeBatch').removeClass('hidden');
                 $('#btnModeBox').removeClass('hidden');
                 $('#btnModePieces').removeClass('pointer-events-none w-full');
@@ -2390,6 +2789,165 @@
                 $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass('bg-primary text-white');
                 $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
                 hideProductDropdown();
+            }
+
+            function clearGroupEditContext() {
+                editingGroupContext = null;
+                setAddItemsModalUiMode('create');
+            }
+
+            async function resolveGroupForDateAndKey(dateStr, groupKey, sourceItems = null, ensureIds = false) {
+                const normalizedDate = (dateStr || '').toString();
+                const normalizedGroupKey = (groupKey || '').toString();
+
+                let candidateItems = Array.isArray(sourceItems)
+                    ? sourceItems
+                    : ($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []);
+
+                let groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
+                let matchedGroup = groupedData.find(function(group) {
+                    return String(group.group_key || '') === normalizedGroupKey;
+                });
+
+                if (!matchedGroup || (ensureIds && Array.isArray(matchedGroup.items) && matchedGroup.items.some(function(item) {
+                    return !getDistributionItemId(item);
+                }))) {
+                    const byDateItems = await fetchDistributionItemsByDateRequest(normalizedDate);
+                    groupedData = normalizeGroupedData(byDateItems, null, normalizedDate);
+                    matchedGroup = groupedData.find(function(group) {
+                        return String(group.group_key || '') === normalizedGroupKey;
+                    });
+
+                    if (matchedGroup) {
+                        candidateItems = byDateItems;
+                    }
+                }
+
+                return {
+                    date: normalizedDate,
+                    groupKey: normalizedGroupKey,
+                    matchedGroup: matchedGroup || null,
+                    items: candidateItems,
+                };
+            }
+
+            async function openDistributionGroupEditModal(dateStr, groupKey, sourceItems = null) {
+                const resolved = await resolveGroupForDateAndKey(dateStr, groupKey, sourceItems, true);
+                if (!resolved.matchedGroup) {
+                    showToast('warning', 'Unable to load this group for editing.', 3200);
+                    return;
+                }
+
+                const group = resolved.matchedGroup;
+                const groupItems = Array.isArray(group.items) ? group.items : [];
+                const normalizedDate = resolved.date;
+                const normalizedGroupKey = resolved.groupKey;
+
+                editingGroupContext = {
+                    date: normalizedDate,
+                    group_key: normalizedGroupKey,
+                    original_name: (group.group_name || '').toString().trim(),
+                    original_note: (group.group_note || '').toString(),
+                    existing_items: groupItems.map(function(item) {
+                        return {
+                            item_id: getDistributionItemId(item),
+                            identity_key: getDistributionItemIdentityKey(item),
+                            product_id: String(item.product_id || '').trim(),
+                            product_name: (item.product_name || '').toString(),
+                            quantity: parseNumericValue(item.product_qnty),
+                            qty_mode: ((item.qty_mode || 'batch') || 'batch').toString().toLowerCase(),
+                        };
+                    })
+                };
+
+                setAddItemsModalUiMode('edit');
+                resetAddItemsModalForm(normalizedDate);
+
+                itemsToAddList = editingGroupContext.existing_items.map(function(item) {
+                    return {
+                        product_id: item.product_id,
+                        product_name: item.product_name,
+                        quantity: item.quantity,
+                        qty_mode: item.qty_mode,
+                        pieces_per_yield: parseNumericValue((getProductAnalyticsData(item.product_id) || {}).pieces_per_yield),
+                        existing: true,
+                        item_id: item.item_id,
+                        identity_key: item.identity_key,
+                    };
+                });
+                renderAddedItemsList();
+
+                $('#distributionGroupName').val(editingGroupContext.original_name);
+                $('#overallDistributionNote').val(editingGroupContext.original_note);
+                $('#calendarDayModal').addClass('hidden');
+                $('#addItemsModal').removeClass('hidden');
+            }
+
+            async function deleteDistributionGroupByKey(dateStr, groupKey, sourceItems = null) {
+                const resolved = await resolveGroupForDateAndKey(dateStr, groupKey, sourceItems, true);
+                if (!resolved.matchedGroup) {
+                    showToast('warning', 'Group not found.', 3000);
+                    return;
+                }
+
+                const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items : [];
+                if (groupItems.length === 0) {
+                    showToast('warning', 'Group has no items to delete.', 3000);
+                    return;
+                }
+
+                const deletableItems = groupItems
+                    .map(function(item) {
+                        return {
+                            item_id: getDistributionItemId(item),
+                            product_id: item.product_id,
+                        };
+                    })
+                    .filter(function(item) {
+                        return item.item_id != null;
+                    });
+
+                if (deletableItems.length === 0) {
+                    showToast('danger', 'Unable to delete this group because item IDs are missing.', 3600);
+                    return;
+                }
+
+                const results = await Promise.allSettled(deletableItems.map(function(item) {
+                    return deleteDistributionItemRequest(item.item_id);
+                }));
+
+                let deletedCount = 0;
+                let failedCount = 0;
+
+                results.forEach(function(result, index) {
+                    if (result.status === 'fulfilled' && !(result.value && result.value.success === false)) {
+                        deletedCount += 1;
+                        removeLocalDistributionGroupMeta(resolved.date, deletableItems[index].product_id);
+                    } else {
+                        failedCount += 1;
+                    }
+                });
+
+                clearSelectedGroupFilter(resolved.date);
+                $('#calendarDayModal').addClass('hidden');
+                if (($('#selectedDate').val() || '').toString() === resolved.date) {
+                    loadDistributionByDate();
+                }
+                loadMonthDistributions();
+                loadAllDistributions();
+
+                if (failedCount === 0) {
+                    showToast('success', 'Distribution group deleted successfully.', 3200);
+                } else if (deletedCount > 0) {
+                    showToast('warning', `Deleted ${deletedCount} item(s). ${failedCount} item(s) failed.`, 4200);
+                } else {
+                    showToast('danger', 'Failed to delete distribution group.', 3200);
+                }
+            }
+
+            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
+                clearGroupEditContext();
+                resetAddItemsModalForm($('#selectedDate').val());
                 $('#distributionGroupName').val('');
                 $('#overallDistributionNote').val('');
                 $('#addItemsModal').removeClass('hidden');
@@ -2397,6 +2955,7 @@
 
             $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function() {
                 $('#addItemsModal').addClass('hidden');
+                clearGroupEditContext();
             });
 
             // Product search input events
@@ -2766,65 +3325,108 @@
 
             // ===== FORM SUBMISSIONS =====
 
-            $('#addItemsForm').on('submit', function(e) {
+            $('#addItemsForm').on('submit', async function(e) {
                 e.preventDefault();
 
-                const scheduleDate = $('#scheduleDate').val();
+                const scheduleDate = ($('#scheduleDate').val() || '').toString();
                 const distributionGroupName = ($('#distributionGroupName').val() || '').trim();
                 const distributionGroupNote = ($('#overallDistributionNote').val() || '').trim();
+                const isEditMode = addItemsModalMode === 'edit' && editingGroupContext;
 
-                if (itemsToAddList.length === 0) {
+                if (itemsToAddList.length === 0 && !isEditMode) {
                     showToast('warning', 'Please add at least one product to the list.', 3000);
                     return;
                 }
 
-                const itemsToAdd = itemsToAddList.map(function(item) {
-                    return {
-                        product_id: item.product_id,
-                        quantity: parseNumericValue(item.quantity),
-                        qty_mode: item.qty_mode === 'box' ? 'batch' : item.qty_mode
-                    };
-                });
-
-                const savedGroupName = distributionGroupName || getNextAutoGroupName(scheduleDate);
-                const groupMeta = {
-                    group_key: buildClientGroupKey(scheduleDate, savedGroupName),
-                    group_name: savedGroupName,
-                    group_note: distributionGroupNote,
-                };
-
                 $('#btnSaveItems').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Saving...');
 
-                const payloads = itemsToAdd.map(function(item) {
-                    return {
-                        product_id: item.product_id,
-                        product_qnty: item.quantity,
-                        qty_mode: item.qty_mode,
-                        distribution_date: scheduleDate,
-                    };
-                });
+                try {
+                    if (isEditMode) {
+                        const context = editingGroupContext;
+                        const targetDate = (context.date || scheduleDate || '').toString();
+                        const targetGroupKey = (context.group_key || '').toString();
+                        const savedGroupName = distributionGroupName
+                            || (context.original_name || '').toString().trim()
+                            || getNextAutoGroupName(targetDate);
 
-                Promise.allSettled(payloads.map(function(payload) {
-                    return addDistributionItemRequest(payload);
-                }))
-                    .then(function(results) {
-                        const succeededPayloads = [];
+                        const normalizedItems = itemsToAddList.map(function(item) {
+                            return {
+                                product_id: String(item.product_id || '').trim(),
+                                quantity: parseNumericValue(item.quantity),
+                                qty_mode: (item.qty_mode === 'box') ? 'batch' : ((item.qty_mode || 'batch').toString().toLowerCase()),
+                                existing: Boolean(item.existing),
+                                item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
+                                identity_key: (item.identity_key || `product-${String(item.product_id || '').trim()}`).toString(),
+                            };
+                        });
+
+                        const existingItemsNow = normalizedItems.filter(function(item) {
+                            return item.existing;
+                        });
+                        const existingIdentitySet = new Set(existingItemsNow.map(function(item) {
+                            return item.identity_key;
+                        }));
+                        const existingBefore = Array.isArray(context.existing_items) ? context.existing_items : [];
+                        const removedExisting = existingBefore.filter(function(item) {
+                            return !existingIdentitySet.has(String(item.identity_key || ''));
+                        });
+
+                        const removableWithIds = removedExisting.filter(function(item) {
+                            return item.item_id != null;
+                        });
+                        const removedMissingIdCount = Math.max(0, removedExisting.length - removableWithIds.length);
+
+                        const deleteResults = await Promise.allSettled(removableWithIds.map(function(item) {
+                            return deleteDistributionItemRequest(item.item_id);
+                        }));
+
+                        let deletedCount = 0;
+                        let deleteFailedCount = 0;
+                        const deletedProductIds = [];
+
+                        deleteResults.forEach(function(result, index) {
+                            if (result.status === 'fulfilled' && !(result.value && result.value.success === false)) {
+                                deletedCount += 1;
+                                deletedProductIds.push(removableWithIds[index].product_id);
+                            } else {
+                                deleteFailedCount += 1;
+                            }
+                        });
+
+                        const newItems = normalizedItems.filter(function(item) {
+                            return !item.existing;
+                        });
+
+                        const addPayloads = newItems.map(function(item) {
+                            return {
+                                product_id: item.product_id,
+                                product_qnty: item.quantity,
+                                qty_mode: item.qty_mode,
+                                distribution_date: targetDate,
+                            };
+                        });
+
+                        const addResults = await Promise.allSettled(addPayloads.map(function(payload) {
+                            return addDistributionItemRequest(payload);
+                        }));
+
+                        const succeededAdds = [];
                         let duplicateCount = 0;
-                        let genericErrorCount = 0;
+                        let addFailedCount = 0;
                         let sawInsufficient = false;
                         let insufficientMaterials = [];
 
-                        results.forEach(function(result, index) {
-                            const currentPayload = payloads[index];
+                        addResults.forEach(function(result, index) {
+                            const currentPayload = addPayloads[index];
 
                             if (result.status === 'fulfilled') {
                                 const response = result.value || {};
                                 if (response.success === false && response.error) {
-                                    genericErrorCount += 1;
+                                    addFailedCount += 1;
                                     return;
                                 }
 
-                                succeededPayloads.push(currentPayload);
+                                succeededAdds.push(currentPayload);
                                 return;
                             }
 
@@ -2842,63 +3444,198 @@
                                 return;
                             }
 
-                            genericErrorCount += 1;
+                            addFailedCount += 1;
                         });
 
-                        if (succeededPayloads.length > 0) {
-                            const productIds = succeededPayloads.map(function(payload) {
-                                return payload.product_id;
+                        deletedProductIds.forEach(function(productId) {
+                            removeLocalDistributionGroupMeta(targetDate, productId);
+                        });
+
+                        const remainingExistingProductIds = existingItemsNow.map(function(item) {
+                            return item.product_id;
+                        });
+                        const succeededAddProductIds = succeededAdds.map(function(item) {
+                            return item.product_id;
+                        });
+                        const finalProductIds = Array.from(new Set(
+                            remainingExistingProductIds.concat(succeededAddProductIds).map(function(productId) {
+                                return String(productId || '').trim();
+                            }).filter(Boolean)
+                        ));
+
+                        if (finalProductIds.length > 0) {
+                            setLocalDistributionGroupMetaForItems(targetDate, finalProductIds, {
+                                group_key: targetGroupKey,
+                                group_name: savedGroupName,
+                                group_note: distributionGroupNote,
                             });
-
-                            setLocalDistributionGroupMetaForItems(scheduleDate, productIds, groupMeta);
-
-                            $('#addItemsModal').addClass('hidden');
-                            $('#selectedDate').val(scheduleDate).trigger('change');
-                            loadMonthDistributions();
-                            loadAllDistributions();
-
-                            itemsToAddList = [];
-                            renderAddedItemsList();
+                            setSelectedGroupFilter(targetDate, targetGroupKey);
+                        } else {
+                            clearSelectedGroupFilter(targetDate);
                         }
 
                         if (sawInsufficient && insufficientMaterials.length > 0) {
                             showInsufficientMaterialsAlert(Array.from(new Set(insufficientMaterials)));
                         }
 
-                        const totalAttempted = payloads.length;
-                        if (succeededPayloads.length === totalAttempted) {
-                            showToast('success', `Distribution group "${savedGroupName}" added successfully!`, 3200);
-                            return;
-                        }
+                        $('#addItemsModal').addClass('hidden');
+                        clearGroupEditContext();
+                        resetAddItemsModalForm(targetDate);
+                        $('#distributionGroupName').val('');
+                        $('#overallDistributionNote').val('');
+                        $('#selectedDate').val(targetDate).trigger('change');
+                        loadMonthDistributions();
+                        loadAllDistributions();
 
-                        if (succeededPayloads.length > 0) {
-                            let partialMessage = `Saved ${succeededPayloads.length} of ${totalAttempted} item(s) to group "${savedGroupName}".`;
-                            if (duplicateCount > 0) {
-                                partialMessage += ` ${duplicateCount} duplicate item(s) skipped.`;
+                        const attemptedAdds = addPayloads.length;
+                        if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length > 0 && (distributionGroupName || distributionGroupNote !== context.original_note))) {
+                            let message = `Distribution group "${savedGroupName}" updated.`;
+                            if (deletedCount > 0) {
+                                message += ` Removed ${deletedCount} item(s).`;
                             }
-                            if (sawInsufficient || genericErrorCount > 0) {
-                                partialMessage += ' Some items were not added.';
+                            if (succeededAdds.length > 0) {
+                                message += ` Added ${succeededAdds.length} item(s).`;
+                            }
+                            if (attemptedAdds > 0 && (duplicateCount > 0 || addFailedCount > 0 || sawInsufficient)) {
+                                message += ' Some items were not added.';
+                            }
+                            if (removedMissingIdCount > 0 || deleteFailedCount > 0) {
+                                message += ' Some removed items could not be deleted.';
                             }
 
-                            showToast('warning', partialMessage, 4500);
-                            return;
-                        }
-
-                        if (duplicateCount === totalAttempted) {
+                            showToast((duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount > 0 || removedMissingIdCount > 0) ? 'warning' : 'success', message, 4500);
+                        } else if (attemptedAdds > 0 && duplicateCount === attemptedAdds) {
                             showToast('warning', 'All selected products already exist for that date.', 4000);
-                        } else if (sawInsufficient) {
-                            showToast('danger', 'Insufficient raw materials for one or more selected items.', 4500);
+                        } else if (finalProductIds.length === 0 && removedExisting.length > 0) {
+                            showToast('success', 'Distribution group is now empty.', 3200);
                         } else {
-                            showToast('danger', 'Failed to add distribution group. Please try again.', 3200);
+                            showToast('warning', 'No changes were made to this group.', 3200);
                         }
-                    })
-                    .catch(function(error) {
-                        console.error('Error saving distribution group:', error);
-                        showToast('danger', 'Failed to add distribution group. Please try again.', 3200);
-                    })
-                    .finally(function() {
-                        $('#btnSaveItems').prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Save to Schedule');
+
+                        return;
+                    }
+
+                    const itemsToAdd = itemsToAddList.map(function(item) {
+                        return {
+                            product_id: item.product_id,
+                            quantity: parseNumericValue(item.quantity),
+                            qty_mode: item.qty_mode === 'box' ? 'batch' : item.qty_mode
+                        };
                     });
+
+                    const savedGroupName = distributionGroupName || getNextAutoGroupName(scheduleDate);
+                    const groupMeta = {
+                        group_key: buildClientGroupKey(scheduleDate, savedGroupName),
+                        group_name: savedGroupName,
+                        group_note: distributionGroupNote,
+                    };
+
+                    const payloads = itemsToAdd.map(function(item) {
+                        return {
+                            product_id: item.product_id,
+                            product_qnty: item.quantity,
+                            qty_mode: item.qty_mode,
+                            distribution_date: scheduleDate,
+                        };
+                    });
+
+                    const results = await Promise.allSettled(payloads.map(function(payload) {
+                        return addDistributionItemRequest(payload);
+                    }));
+
+                    const succeededPayloads = [];
+                    let duplicateCount = 0;
+                    let genericErrorCount = 0;
+                    let sawInsufficient = false;
+                    let insufficientMaterials = [];
+
+                    results.forEach(function(result, index) {
+                        const currentPayload = payloads[index];
+
+                        if (result.status === 'fulfilled') {
+                            const response = result.value || {};
+                            if (response.success === false && response.error) {
+                                genericErrorCount += 1;
+                                return;
+                            }
+
+                            succeededPayloads.push(currentPayload);
+                            return;
+                        }
+
+                        const xhr = result.reason || {};
+                        const responseJson = xhr.responseJSON || {};
+
+                        if (xhr.status === 409 || responseJson.duplicate) {
+                            duplicateCount += 1;
+                            return;
+                        }
+
+                        if (xhr.status === 400 && Array.isArray(responseJson.insufficient_materials)) {
+                            sawInsufficient = true;
+                            insufficientMaterials = insufficientMaterials.concat(responseJson.insufficient_materials);
+                            return;
+                        }
+
+                        genericErrorCount += 1;
+                    });
+
+                    if (succeededPayloads.length > 0) {
+                        const productIds = succeededPayloads.map(function(payload) {
+                            return payload.product_id;
+                        });
+
+                        setLocalDistributionGroupMetaForItems(scheduleDate, productIds, groupMeta);
+
+                        $('#addItemsModal').addClass('hidden');
+                        clearGroupEditContext();
+                        resetAddItemsModalForm(scheduleDate);
+                        $('#distributionGroupName').val('');
+                        $('#overallDistributionNote').val('');
+                        $('#selectedDate').val(scheduleDate).trigger('change');
+                        loadMonthDistributions();
+                        loadAllDistributions();
+                    }
+
+                    if (sawInsufficient && insufficientMaterials.length > 0) {
+                        showInsufficientMaterialsAlert(Array.from(new Set(insufficientMaterials)));
+                    }
+
+                    const totalAttempted = payloads.length;
+                    if (succeededPayloads.length === totalAttempted) {
+                        showToast('success', `Distribution group "${savedGroupName}" added successfully!`, 3200);
+                        return;
+                    }
+
+                    if (succeededPayloads.length > 0) {
+                        let partialMessage = `Saved ${succeededPayloads.length} of ${totalAttempted} item(s) to group "${savedGroupName}".`;
+                        if (duplicateCount > 0) {
+                            partialMessage += ` ${duplicateCount} duplicate item(s) skipped.`;
+                        }
+                        if (sawInsufficient || genericErrorCount > 0) {
+                            partialMessage += ' Some items were not added.';
+                        }
+
+                        showToast('warning', partialMessage, 4500);
+                        return;
+                    }
+
+                    if (duplicateCount === totalAttempted) {
+                        showToast('warning', 'All selected products already exist for that date.', 4000);
+                    } else if (sawInsufficient) {
+                        showToast('danger', 'Insufficient raw materials for one or more selected items.', 4500);
+                    } else {
+                        showToast('danger', 'Failed to add distribution group. Please try again.', 3200);
+                    }
+                } catch (error) {
+                    console.error('Error saving distribution group:', error);
+                    showToast('danger', 'Failed to save distribution group. Please try again.', 3200);
+                } finally {
+                    const saveButtonLabel = addItemsModalMode === 'edit'
+                        ? '<i class="fas fa-save mr-2"></i>Save Group Changes'
+                        : '<i class="fas fa-save mr-2"></i>Save to Schedule';
+                    $('#btnSaveItems').prop('disabled', false).html(saveButtonLabel);
+                }
             });
 
             $('#editQtyForm').on('submit', function(e) {
