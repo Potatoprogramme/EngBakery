@@ -870,12 +870,12 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
-                    if (response.success.data === null) {
-                        inventorySource = 'all';
-                        console.log('No distribution found, will use all products');
-                    } else {
+                    if (response.success && response.data && response.data.length > 0) {
                         inventorySource = 'distribution';
-                        console.log('Distribution found, will use distribution data');
+                        console.log('Distribution found, will use distribution-aware flow');
+                    } else {
+                        inventorySource = 'all';
+                        console.log('No distribution found, will use all products flow');
                     }
                 },
                 error: function (xhr, status, error) {

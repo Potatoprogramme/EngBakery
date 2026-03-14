@@ -39,7 +39,7 @@
             </div>
 
             <!-- Main Layout: List + Calendar -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 lg:mb-0">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 mb-4 lg:mb-6">
                 
                 <!-- Left Side: Baking List (hidden on mobile, shown on lg+) -->
                 <div class="hidden lg:block lg:col-span-5 xl:col-span-4">
@@ -115,6 +115,12 @@
                             </button>
                         </div>
 
+                        <!-- Distribution Note -->
+                        <div id="distributionNotePanel" class="hidden mb-3 flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                            <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
+                            <p id="distributionNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
+                        </div>
+
                         <!-- List Items -->
                         <div id="distributionListContainer" class="space-y-2 max-h-[400px] overflow-y-auto">
                             <!-- Dynamically populated via JS -->
@@ -185,7 +191,7 @@
             </div>
 
             <!-- Mobile Card View (shown below on mobile) -->
-            <div class="lg:hidden mb-24" id="mobileCardSection">
+            <div class="lg:hidden mb-10" id="mobileCardSection">
                 <!-- Date Header for Mobile -->
                 <div class="bg-primary text-white rounded-lg p-3 mb-3">
                     <div class="flex items-center justify-between">
@@ -211,6 +217,12 @@
                     </div>
                 </div>
 
+                <!-- Distribution Note (Mobile) -->
+                <div id="mobileDistributionNotePanel" class="hidden flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg mb-2">
+                    <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
+                    <p id="mobileDistributionNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
+                </div>
+
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-2">
                     <!-- Dynamically populated via JS -->
@@ -220,10 +232,30 @@
                 <div id="mobileNoResults" class="hidden text-center py-8 text-gray-500">
                     <i class="fas fa-clipboard-list text-4xl mb-2 text-gray-300"></i>
                     <p>No items for this day</p>
-                    <button type="button" id="btnAddItemsMobileEmpty"
-                        class="mt-3 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary">
-                        <i class="fas fa-plus mr-2"></i>Add Items
-                    </button>
+                </div>
+            </div>
+
+            <!-- All Distributions List -->
+            <div class="mb-24 lg:mb-0">
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                            <i class="fas fa-list text-primary mr-1"></i>Upcoming Distributions
+                        </h3>
+                        <span id="allDistributionDatesCount" class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">0 dates</span>
+                    </div>
+
+                    <div id="allDistributionsListContainer" class="space-y-2 max-h-[360px] overflow-y-auto">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+
+                    <div id="allDistributionsEmptyState" class="hidden text-center py-8 text-gray-500">
+                        <div class="w-14 h-14 rounded-full bg-gray-100 mx-auto mb-2 flex items-center justify-center">
+                            <i class="fas fa-calendar-times text-gray-400 text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium text-gray-700">No upcoming distributions found</p>
+                        <p class="text-xs text-gray-500 mt-1">Add items for today or future dates to see them here</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -257,6 +289,12 @@
                     <p class="text-2xl font-bold text-blue-600" id="modalPiecesCount">0</p>
                     <p class="text-xs text-gray-600">Pieces</p>
                 </div>
+            </div>
+
+            <!-- Distribution Note -->
+            <div id="calendarDayNotePanel" class="hidden flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
+                <p id="calendarDayNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
             </div>
 
             <!-- Items List -->
@@ -395,6 +433,17 @@
                     </div>
                 </div>
 
+                <!-- Distribution Note -->
+                <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <label for="overallDistributionNote" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-sticky-note text-primary mr-1"></i>Distribution Note
+                        <span class="text-xs text-gray-400 font-normal ml-1">(optional)</span>
+                    </label>
+                    <textarea id="overallDistributionNote" name="overall_note" rows="2" maxlength="500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm resize-none"
+                        placeholder="e.g. Rush delivery for all branches, special occasion order..."></textarea>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="flex gap-2 justify-end">
                     <button type="button" id="btnCancelAddItems"
@@ -468,6 +517,7 @@
     <script>
         let productsData = []; // Store fetched products (global scope for template function)
         let calendarData = {}; // Store distribution data keyed by date
+        let allDistributionData = {}; // Store all distribution records keyed by date
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
 
@@ -479,6 +529,7 @@
             loadDistributionByDate();
             renderCalendar();
             loadMonthDistributions();
+            loadAllDistributions();
 
             // ===== API FUNCTIONS =====
 
@@ -498,6 +549,136 @@
                 });
             }
 
+            function extractDistributionNote(items, fallbackNote = '') {
+                const fallback = (fallbackNote || '').toString().trim();
+                if (fallback) return fallback;
+
+                if (!Array.isArray(items) || items.length === 0) return '';
+
+                const noteFields = [
+                    'distribution_note',
+                    'overall_note',
+                    'note',
+                    'distributed_note',
+                    'place_distributed_to',
+                    'place_distributed'
+                ];
+
+                for (const item of items) {
+                    for (const key of noteFields) {
+                        const value = (item && item[key] != null) ? String(item[key]).trim() : '';
+                        if (value) return value;
+                    }
+                }
+
+                return '';
+            }
+
+            function updateMainDistributionNotePanels(items, fallbackNote = '') {
+                const note = extractDistributionNote(items, fallbackNote);
+
+                if (note) {
+                    $('#distributionNoteText').text(note);
+                    $('#mobileDistributionNoteText').text(note);
+                    $('#distributionNotePanel').removeClass('hidden');
+                    $('#mobileDistributionNotePanel').removeClass('hidden');
+                } else {
+                    $('#distributionNoteText').text('');
+                    $('#mobileDistributionNoteText').text('');
+                    $('#distributionNotePanel').addClass('hidden');
+                    $('#mobileDistributionNotePanel').addClass('hidden');
+                }
+            }
+
+            function updateCalendarDayNotePanel(items, fallbackNote = '') {
+                const note = extractDistributionNote(items, fallbackNote);
+
+                if (note) {
+                    $('#calendarDayNoteText').text(note);
+                    $('#calendarDayNotePanel').removeClass('hidden');
+                } else {
+                    $('#calendarDayNoteText').text('');
+                    $('#calendarDayNotePanel').addClass('hidden');
+                }
+            }
+
+            function groupDistributionsByDate(items) {
+                const grouped = {};
+                (items || []).forEach(function(item) {
+                    if (!grouped[item.distribution_date]) {
+                        grouped[item.distribution_date] = [];
+                    }
+                    grouped[item.distribution_date].push(item);
+                });
+                return grouped;
+            }
+
+            function formatDateLabel(dateStr) {
+                const parsed = new Date(dateStr + 'T00:00:00');
+                if (isNaN(parsed.getTime())) return dateStr;
+
+                return parsed.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+
+            function renderAllDistributionsList() {
+                const container = $('#allDistributionsListContainer');
+                container.empty();
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const dates = Object.keys(allDistributionData).filter(function(dateStr) {
+                    const parsed = new Date(dateStr + 'T00:00:00');
+                    return !isNaN(parsed.getTime()) && parsed >= today;
+                }).sort(function(a, b) {
+                    return new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00');
+                });
+
+                $('#allDistributionDatesCount').text(dates.length + (dates.length === 1 ? ' date' : ' dates'));
+
+                if (dates.length === 0) {
+                    $('#allDistributionsEmptyState').removeClass('hidden');
+                    return;
+                }
+
+                $('#allDistributionsEmptyState').addClass('hidden');
+
+                dates.forEach(function(dateStr) {
+                    const dayItems = allDistributionData[dateStr] || [];
+                    const batchQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
+                    const piecesQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? (parseInt(item.product_qnty) || 0) : 0), 0);
+                    const previewNames = dayItems.slice(0, 2).map(item => item.product_name).join(', ');
+                    const extraItems = dayItems.length > 2 ? ' +' + (dayItems.length - 2) + ' more' : '';
+                    const note = extractDistributionNote(dayItems);
+                    const noteHtml = note
+                        ? `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${note}</p>`
+                        : '';
+
+                    const row = `
+                        <button type="button" class="all-distribution-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-date="${dateStr}">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-gray-800">${formatDateLabel(dateStr)}</p>
+                                    <p class="text-xs text-gray-500 truncate">${previewNames || 'No product details'}${extraItems}</p>
+                                    ${noteHtml}
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-xs font-semibold text-gray-700">${dayItems.length} ${dayItems.length === 1 ? 'item' : 'items'}</p>
+                                    <p class="text-[11px] text-gray-500">${batchQty} batches · ${piecesQty} pieces</p>
+                                </div>
+                            </div>
+                        </button>
+                    `;
+
+                    container.append(row);
+                });
+            }
+
 
 
             function loadDistributionByDate() {
@@ -508,21 +689,26 @@
                     data: { date: date },
                     dataType: 'json',
                     success: function(response) {
+                        const responseNote = extractDistributionNote([], response.distribution_note || response.overall_note || response.note || response.place_distributed_to || response.place_distributed || '');
+
                         if (response.success) {
                             const items = response.data || [];
                             renderDistributionList(items);
                             renderMobileCards(items);
                             updateSummaryCounts(items);
+                            updateMainDistributionNotePanels(items, responseNote);
                         } else {
                             renderDistributionList([]);
                             renderMobileCards([]);
                             updateSummaryCounts([]);
+                            updateMainDistributionNotePanels([]);
                         }
                     },
                     error: function(xhr, status, error) {
                         renderDistributionList([]);
                         renderMobileCards([]);
                         updateSummaryCounts([]);
+                        updateMainDistributionNotePanels([]);
                     }
                 });
             }
@@ -541,20 +727,41 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.data) {
-                            // Group by date
+                            calendarData = groupDistributionsByDate(response.data);
+                        } else {
                             calendarData = {};
-                            response.data.forEach(function(item) {
-                                if (!calendarData[item.distribution_date]) {
-                                    calendarData[item.distribution_date] = [];
-                                }
-                                calendarData[item.distribution_date].push(item);
-                            });
-                            renderCalendar();
                         }
+                        renderCalendar();
                     },
                     error: function() {
                         calendarData = {};
                         renderCalendar();
+                    }
+                });
+            }
+
+            function loadAllDistributions() {
+                const todayStr = formatDate(new Date());
+
+                $.ajax({
+                    url: baseUrl + 'Distribution/GetDistributionByDateRange',
+                    method: 'GET',
+                    data: {
+                        start_date: todayStr,
+                        end_date: '2100-12-31'
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            allDistributionData = groupDistributionsByDate(response.data);
+                        } else {
+                            allDistributionData = {};
+                        }
+                        renderAllDistributionsList();
+                    },
+                    error: function() {
+                        allDistributionData = {};
+                        renderAllDistributionsList();
                     }
                 });
             }
@@ -592,6 +799,7 @@
                         showToast('success', 'Item removed successfully!', 3000);
                         loadDistributionByDate();
                         loadMonthDistributions();
+                        loadAllDistributions();
                     },
                     error: function(xhr, status, error) {
                         showToast('danger', 'Failed to delete item. Please try again.', 3000);
@@ -621,6 +829,7 @@
                         showToast('success', 'Quantity updated successfully!', 3000);
                         loadDistributionByDate();
                         loadMonthDistributions();
+                        loadAllDistributions();
                     },
                     error: function(xhr, status, error) {
                         if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
@@ -741,6 +950,7 @@
 
                 const listContainer = $('#calendarDayItemsList');
                 listContainer.empty();
+                updateCalendarDayNotePanel(items);
 
                 if (items.length === 0) {
                     $('#calendarDayItemsList').addClass('hidden');
@@ -776,8 +986,22 @@
             // Go to selected date from modal
             $('#btnCalendarDaySelect').on('click', function() {
                 const dateStr = $('#calendarDayModal').data('selected-date');
+
+                const parsedDate = new Date(dateStr + 'T00:00:00');
+                if (!isNaN(parsedDate.getTime())) {
+                    currentCalendarMonth = parsedDate.getMonth();
+                    currentCalendarYear = parsedDate.getFullYear();
+                    loadMonthDistributions();
+                }
+
                 $('#selectedDate').val(dateStr).trigger('change');
                 $('#calendarDayModal').addClass('hidden');
+            });
+
+            $(document).on('click', '.all-distribution-entry', function() {
+                const dateStr = $(this).data('date');
+                const dayData = allDistributionData[dateStr] || [];
+                showCalendarDayModal(dateStr, dayData);
             });
 
             // ===== RENDERING FUNCTIONS =====
@@ -898,7 +1122,7 @@
 
             let itemsToAddList = [];
 
-            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty, #btnAddItemsMobileEmpty').on('click', function() {
+            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
                 $('#scheduleDate').val($('#selectedDate').val());
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
@@ -919,6 +1143,7 @@
                 $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass('bg-primary text-white');
                 $('#addQtyLabel').html('Quantity (batches) <span class="text-red-500">*</span>');
                 hideProductDropdown();
+                $('#overallDistributionNote').val('');
                 $('#addItemsModal').removeClass('hidden');
             });
 
@@ -1348,6 +1573,7 @@
 
                     $('#selectedDate').val(scheduleDate).trigger('change');
                     loadMonthDistributions();
+                    loadAllDistributions();
 
                     // Reset form
                     itemsToAddList = [];

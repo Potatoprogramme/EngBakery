@@ -22,7 +22,7 @@ use App\Models\UsersModel;
  *
  * Schedule
  * ────────────────────────────────────────────────────────────────────────────
- *  AM slot : 03:00 – 03:59  →  start-of-production inventory snapshot
+ *  AM slot : 15:00 – 15:59  →  afternoon inventory snapshot
  *  PM slot : 20:00 – 20:59  →  end-of-business-day  inventory snapshot
  *
  * Flag files (in WRITEPATH)
@@ -44,7 +44,7 @@ class AutoReportScheduler
      * @var array<string, array{start_h: int, end_h: int}>
      */
     private const SLOTS = [
-        'am' => ['start_h' => 3,  'end_h' => 4],   // 03:00 – 03:59
+        'am' => ['start_h' => 15, 'end_h' => 16],  // 15:00 – 15:59
         'pm' => ['start_h' => 20, 'end_h' => 21],  // 20:00 – 20:59
     ];
 
@@ -191,7 +191,7 @@ class AutoReportScheduler
         }
 
         $ownerEmails = array_column($owners, 'email');
-        $slotLabel   = $slot === 'am' ? 'Morning (3:00 AM)' : 'Evening (8:00 PM)';
+        $slotLabel   = $slot === 'am' ? 'Afternoon (3:00 PM)' : 'Evening (8:00 PM)';
         $subject     = '📦 Inventory Status Report — ' . $slotLabel
                      . ' — ' . date('F d, Y', strtotime($date));
 
@@ -238,8 +238,8 @@ class AutoReportScheduler
         $reportDate   = date('F d, Y', strtotime($date));
         $reportTime   = date('h:i A');
         $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
-        $slotTitle    = $slot === 'am' ? 'Morning Inventory Report'      : 'Evening Inventory Report';
-        $slotSubtitle = $slot === 'am' ? '3:00 AM Scheduled Snapshot'    : '8:00 PM Scheduled Snapshot';
+        $slotTitle    = $slot === 'am' ? 'Afternoon Inventory Report'    : 'Evening Inventory Report';
+        $slotSubtitle = $slot === 'am' ? '3:00 PM Scheduled Snapshot'    : '8:00 PM Scheduled Snapshot';
         $headerColor  = $slot === 'am' ? '#17a2b8'                       : '#6f42c1';
 
         $totalCritical = count($criticalItems);
