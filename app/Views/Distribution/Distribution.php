@@ -148,11 +148,11 @@
                     </div>
                     <?php endif; ?>
 
-                    <!-- Baking List Panel -->
+                    <!-- Distribution Groups Panel -->
                     <div class="bg-white rounded-lg shadow-md p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                                <i class="fas fa-clipboard-list text-primary mr-1"></i>Baking List
+                                <i class="fas fa-layer-group text-primary mr-1"></i>Distribution Groups
                             </h3>
                             <button type="button" id="btnAddItemsEmpty"
                                 class="text-xs text-primary hover:text-secondary font-medium">
@@ -168,10 +168,10 @@
                         <!-- Empty State -->
                         <div id="emptyState" class="hidden text-center py-8">
                             <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
-                                <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                                <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
                             </div>
-                            <h3 class="text-sm font-medium text-gray-800 mb-1">No items scheduled</h3>
-                            <p class="text-xs text-gray-500">Click "Add" to add baking items</p>
+                            <h3 class="text-sm font-medium text-gray-800 mb-1">No distribution groups scheduled</h3>
+                            <p class="text-xs text-gray-500">Click "Add" to add a distribution group</p>
                         </div>
                     </div>
                 </div>
@@ -264,7 +264,7 @@
                 <div class="bg-primary text-white rounded-lg p-3 mb-3">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-xs opacity-80">Baking List</span>
+                            <span class="text-xs opacity-80">Distribution Groups</span>
                             <h3 id="mobileDateHeader" class="font-semibold"><?= date('F d, Y') ?></h3>
                         </div>
                         <div class="flex items-center gap-3 text-right">
@@ -322,7 +322,7 @@
                 <!-- No results message -->
                 <div id="mobileNoResults" class="hidden text-center py-8 text-gray-500">
                     <i class="fas fa-clipboard-list text-4xl mb-2 text-gray-300"></i>
-                    <p>No items for this day</p>
+                    <p>No distribution groups for this day</p>
                 </div>
             </div>
 
@@ -358,7 +358,7 @@
         <div class="relative w-full max-w-2xl mx-auto p-4 sm:p-6 border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h3 id="calendarDayModalTitle" class="text-lg font-semibold text-primary">Baking List</h3>
+                    <h3 id="calendarDayModalTitle" class="text-lg font-semibold text-primary">Distribution Groups</h3>
                     <p id="calendarDayModalDate" class="text-sm text-gray-500">January 15, 2026</p>
                 </div>
                 <button type="button" id="btnCloseCalendarDayModal" class="text-gray-400 hover:text-gray-600">
@@ -1864,7 +1864,7 @@
                 const selectedDate = $('#selectedDate').val();
                 const modalSummary = (selectedDate === dateStr && currentDaySummary) ? currentDaySummary : {};
 
-                $('#calendarDayModalTitle').text(groupCount > 1 ? 'Distribution Groups' : 'Distribution List');
+                $('#calendarDayModalTitle').text(groupCount > 1 ? 'Distribution Groups' : 'Distribution Group');
                 $('#calendarDayModalDate').text(groupCount > 0
                     ? `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}`
                     : formatted
@@ -1962,6 +1962,26 @@
                 showCalendarDayModal(dateStr, dayData);
             });
 
+            $(document).on('click', '.distribution-group-entry', function() {
+                const dateStr = ($(this).data('date') || $('#selectedDate').val() || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+
+                const groupedData = normalizeGroupedData(currentDayDistributionItems, null, dateStr);
+                const matchedGroup = groupedData.find(function(group) {
+                    return String(group.group_key || '') === groupKey;
+                });
+
+                const groupItems = (matchedGroup && Array.isArray(matchedGroup.items))
+                    ? matchedGroup.items
+                    : [];
+
+                const modalItems = groupItems.length > 0
+                    ? groupItems
+                    : (calendarData[dateStr] || currentDayDistributionItems || []);
+
+                showCalendarDayModal(dateStr, modalItems);
+            });
+
             // ===== RENDERING FUNCTIONS =====
 
             function renderDistributionList(items, groupedData = null, fallbackDate = '') {
@@ -1977,59 +1997,43 @@
                 container.removeClass('hidden');
                 $('#emptyState').addClass('hidden');
 
-                const normalizedGroups = normalizeGroupedData(items, groupedData, fallbackDate);
-                const showGroupHeaders = normalizedGroups.length > 1;
+                const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
+                const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
                 normalizedGroups.forEach(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
-                    const groupName = (group.group_name || 'Default Group').toString();
-                    const groupNote = (group.group_note || '').toString().trim();
+                    const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                    const groupNoteRaw = (group.group_note || '').toString().trim();
+                    const groupNote = escapeHtml(groupNoteRaw);
+                    const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    if (showGroupHeaders) {
-                        const groupHeader = `
-                            <div class="flex items-start justify-between p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                    const totalBatches = groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+
+                    const totalPieces = groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+
+                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+
+                    const row = `
+                        <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
+                            <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
-                                    <p class="text-xs font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
-                                    <p class="text-[11px] text-gray-500">${groupItems.length} item(s)</p>
+                                    <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
                                 </div>
-                                ${groupNote ? `<p class="text-[11px] text-amber-700 text-right max-w-[65%] truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-xs font-semibold text-primary">${formatPesoAmount(forecastTotal)}</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
+                                </div>
                             </div>
-                        `;
-                        container.append(groupHeader);
-                    }
+                            ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                        </button>
+                    `;
 
-                    groupItems.forEach(function(item) {
-                        const qtyMode = item.qty_mode || 'batch';
-                        const modeLabel = getQtyModeShortLabel(qtyMode);
-                        const modeBadgeColor = getQtyModeBadgeColor(qtyMode);
-                        const row = `
-                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-id="${item.distribution_id}" data-product-id="${item.product_id}" data-qty-mode="${qtyMode}">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <i class="fas fa-bread-slice text-primary text-xs"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
-                                        <div class="flex items-center gap-1 flex-wrap">
-                                            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${modeBadgeColor} font-medium">${qtyMode}</span>
-                                            ${!showGroupHeaders ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium"><i class="fas fa-layer-group mr-1"></i>${groupName}</span>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-bold text-gray-800">${item.product_qnty}</span>
-                                    <span class="text-xs text-gray-500">${modeLabel}</span>
-                                    <button type="button" class="btn-edit-qty p-1.5 text-primary hover:bg-primary/10 rounded" title="Edit">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete p-1.5 text-red-500 hover:bg-red-50 rounded" title="Remove">
-                                        <i class="fas fa-trash text-xs"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        container.append(row);
-                    });
+                    container.append(row);
                 });
             }
 
@@ -2044,62 +2048,40 @@
 
                 $('#mobileNoResults').addClass('hidden');
 
-                const normalizedGroups = normalizeGroupedData(items, groupedData, fallbackDate);
-                const showGroupHeaders = normalizedGroups.length > 1;
+                const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
+                const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
                 normalizedGroups.forEach(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
-                    const groupName = (group.group_name || 'Default Group').toString();
-                    const groupNote = (group.group_note || '').toString().trim();
+                    const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                    const groupNoteRaw = (group.group_note || '').toString().trim();
+                    const groupNote = escapeHtml(groupNoteRaw);
+                    const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    if (showGroupHeaders) {
-                        const groupHeader = `
-                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-2">
-                                <div class="flex items-start justify-between gap-2">
-                                    <div class="min-w-0">
-                                        <p class="text-xs font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
-                                        <p class="text-[11px] text-gray-500">${groupItems.length} item(s)</p>
-                                    </div>
-                                    ${groupNote ? `<p class="text-[11px] text-amber-700 max-w-[65%] truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
-                                </div>
-                            </div>
-                        `;
-                        container.append(groupHeader);
-                    }
+                    const totalBatches = groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
 
-                    groupItems.forEach(function(item) {
-                        const qtyMode = item.qty_mode || 'batch';
-                        const modeLabel = getQtyModeShortLabel(qtyMode);
-                        const modeBadgeColor = getQtyModeBadgeColor(qtyMode);
-                        const card = `
-                            <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-id="${item.distribution_id}" data-product-id="${item.product_id}" data-qty-mode="${qtyMode}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-bread-slice text-primary"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-medium text-gray-800 truncate">${item.product_name}</h4>
-                                            <div class="flex items-center gap-1 flex-wrap">
-                                                <span class="text-xs text-gray-500">${item.product_qnty} ${modeLabel}</span>
-                                                <span class="text-[10px] px-1.5 py-0.5 rounded-full ${modeBadgeColor} font-medium">${qtyMode}</span>
-                                                ${!showGroupHeaders ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium"><i class="fas fa-layer-group mr-1"></i>${groupName}</span>` : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <button type="button" class="btn-edit-qty-mobile p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit">
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </button>
-                                        <button type="button" class="btn-delete-mobile p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Remove">
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    </div>
+                    const totalPieces = groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+
+                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+
+                    const card = `
+                        <button type="button" class="distribution-group-entry w-full text-left bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-group-key="${groupKey}" data-date="${selectedDate}">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <h4 class="font-medium text-gray-800 truncate"><i class="fas fa-layer-group text-primary mr-1"></i>${groupName}</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">${groupItems.length} item(s) • ${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
                                 </div>
+                                <span class="text-[11px] font-semibold text-primary flex-shrink-0">${formatPesoAmount(forecastTotal)}</span>
                             </div>
-                        `;
-                        container.append(card);
-                    });
+                            ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                        </button>
+                    `;
+
+                    container.append(card);
                 });
             }
 
