@@ -153,8 +153,9 @@ class InventoryController extends BaseController
 
     /**
      * Add today's inventory using distribution data.
-     * Only products from the distributions table for today will be added,
-     * with product_qnty as the beginning stock.
+     * Strict flow: this may only run AFTER today's distribution is completed.
+     * Only products from today's distribution records are added to inventory,
+     * with yesterday carryover merged into beginning stock.
      */
     public function addInventoryFromDistribution()
     {
@@ -177,51 +178,12 @@ class InventoryController extends BaseController
 
         $distributionItems = $this->distributionModel->getDistributionByDate($today);
 
-        // No distribution records — fall back to adding all products
+        // Strict rule: inventory-from-distribution must only run when distribution exists.
         if (!$distributionItems || count($distributionItems) === 0) {
-            $insertData = [
-                'inventory_date' => $today,
-                'time_start' => $data['time_start'],
-                'time_end' => $data['time_end'],
-            ];
-
-            if ($this->dailyStockModel->addTodaysInventory($insertData)) {
-                $lastInsertId = $this->dailyStockModel->getInsertID();
-                $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
-
-                // Get yesterday's remaining stock (carryover)
-                $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
-
-                if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds, $carryover)) {
-                    $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
-                    $message = 'Today\'s inventory added successfully (no distribution data found, added all products).';
-                    if ($carryoverCount > 0) {
-                        $message .= " Carried over remaining stock for {$carryoverCount} product(s).";
-                    }
-
-                    // Immediate notification: inventory created (fallback)
-                    $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
-
-                    return $this->response->setStatusCode(201)->setJSON([
-                        'success' => true,
-                        'message' => $message,
-                        'fallback_mode' => true,
-                        'carryover_count' => $carryoverCount
-                    ]);
-                } else {
-                    $this->dailyStockModel->delete($lastInsertId);
-                    return $this->response->setStatusCode(500)->setJSON([
-                        'success' => false,
-                        'message' => 'Failed to add daily stock items.',
-                        'error' => $this->dailyStockItemsModel->errors(),
-                    ]);
-                }
-            } else {
-                return $this->response->setStatusCode(500)->setJSON([
-                    'success' => false,
-                    'message' => 'Failed to create today\'s inventory.'
-                ]);
-            }
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today. Complete distribution first before creating inventory from distribution.'
+            ]);
         }
 
         // Raw materials are already deducted at distribution time
@@ -290,7 +252,7 @@ class InventoryController extends BaseController
         if (!$distributionItems || count($distributionItems) === 0) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'No distribution records found for today.'
+                'message' => 'No distribution records found for today. Complete distribution first, then load it into inventory.'
             ]);
         }
 
