@@ -285,17 +285,23 @@
             $('#filterDateTo').val(todayStr);
 
             loadOrders(firstStr, todayStr); // Load this month's orders by default
-            loadTodaysSummary();
-            loadStockSummary();
             initFilters();
             initOrderDetailsModal();
             initStockSummaryToggle();
         });
 
-        // Load Today's Sales Summary
-        function loadTodaysSummary() {
+        // Load summary cards using current order history filters
+        function loadFilteredSummary(dateFrom = null, dateTo = null, orderType = null) {
+            const params = [];
+            if (dateFrom) params.push('date_from=' + encodeURIComponent(dateFrom));
+            if (dateTo) params.push('date_to=' + encodeURIComponent(dateTo));
+            if (orderType) params.push('order_type=' + encodeURIComponent(orderType));
+
+            let url = BASE_URL + 'Order/GetOrderHistorySummary';
+            if (params.length) url += '?' + params.join('&');
+
             $.ajax({
-                url: BASE_URL + 'Order/GetTodaysSales',
+                url: url,
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
@@ -309,9 +315,14 @@
         }
 
         // Load Stock Summary
-        function loadStockSummary() {
+        function loadStockSummary(dateForStock = null) {
+            let url = BASE_URL + 'Order/GetTodaysStockSummary';
+            if (dateForStock) {
+                url += '?date=' + encodeURIComponent(dateForStock);
+            }
+
             $.ajax({
-                url: BASE_URL + 'Order/GetTodaysStockSummary',
+                url: url,
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
@@ -444,7 +455,7 @@
                         $('#todayStockCount').text(totalProducts);
                         $('#stockSummaryBadge').text(totalProducts + ' items');
                     } else {
-                        $('#stockSummaryBody').html('<div class="text-center text-gray-500 py-8">No inventory data for today. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>');
+                        $('#stockSummaryBody').html('<div class="text-center text-gray-500 py-8">No inventory data for selected date. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>');
                         $('#todayStockCount').text('0');
                         $('#stockSummaryBadge').text('No inventory');
                     }
@@ -482,6 +493,10 @@
                 success: function (response) {
                     if (response.success) {
                         renderOrders(response.data);
+                        // Keep summary cards in sync with selected filters
+                        loadFilteredSummary(dateFrom, dateTo, orderType);
+                        // Show stock snapshot based on end date (or start date if end is empty)
+                        loadStockSummary(dateTo || dateFrom || null);
                     } else {
                         $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
                     }
@@ -683,6 +698,14 @@
             });
         }
 
+        function getCurrentFilters() {
+            return {
+                dateFrom: $('#filterDateFrom').val() || null,
+                dateTo: $('#filterDateTo').val() || null,
+                orderType: $('#filterOrderType').val() || null
+            };
+        }
+
         function initOrderDetailsModal() {
             $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
 
@@ -819,7 +842,8 @@
                     if (response.success) {
                         Toast.success('Order voided successfully');
                         $('#orderDetailsModal').addClass('hidden');
-                        loadOrders();
+                        const filters = getCurrentFilters();
+                        loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
                     } else {
                         Toast.error(response.message || 'Failed to void order');
                     }
