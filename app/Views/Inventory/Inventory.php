@@ -295,7 +295,17 @@
                         <i class="fas fa-times text-lg"></i>
                     </button>
                     <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-3">Set the operating hours for today.</p>
+                    <p class="text-xs text-gray-500 mb-2">Set the operating hours for today.</p>
+
+                    <!-- Inventory Source Badge -->
+                    <div id="inventoryModeBadge" class="hidden mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-truck-loading text-blue-500 text-xs"></i>
+                        <span class="text-xs font-medium text-blue-700">Using today's distribution data</span>
+                    </div>
+                    <div id="noDistributionModeBadge" class="hidden mb-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-boxes text-gray-400 text-xs"></i>
+                        <span class="text-xs text-gray-500">Using all active products (no distribution today)</span>
+                    </div>
 
                     <!-- Carryover Preview -->
                     <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1267,8 +1277,9 @@
 
             // Open Add Inventory Modal (Desktop & Mobile)
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
-                // Re-check distribution before opening modal to ensure we have the latest state
-                checkIfDistributionExists();
+                // Show badge immediately from current known source, then re-check in background
+                updateInventoryModeBadge(inventorySource);
+                checkIfDistributionExists(); // refreshes inventorySource + badge in background
                 fetchYesterdayRemaining(); // Load carryover preview
                 $('#timeInputModal').removeClass('hidden');
                 $('#time_start').val('08:00'); // 8:00 AM (morning)
@@ -1301,9 +1312,12 @@
 
                 $('#timeInputModal').addClass('hidden');
 
-                // Always create inventory with all products
-                // Distribution data is loaded separately via "Load from Distribution" button
-                addTodaysInventory(timeStart, timeEnd);
+                // Route to the correct endpoint based on whether distribution exists today
+                if (inventorySource === 'distribution') {
+                    addTodaysInventoryFromDistribution(timeStart, timeEnd);
+                } else {
+                    addTodaysInventory(timeStart, timeEnd);
+                }
 
                 $('#timeInputForm')[0].reset();
             });
@@ -1460,18 +1474,27 @@
                 success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         inventorySource = 'distribution';
-                        console.log('Distribution found, will use distribution-aware flow');
                     } else {
                         inventorySource = 'all';
-                        console.log('No distribution found, will use all products flow');
                     }
+                    updateInventoryModeBadge(inventorySource);
                 },
-                error: function (xhr, status, error) {
+                error: function () {
                     // On error, default to 'all' to be safe
                     inventorySource = 'all';
-                    console.log('Error checking distribution, defaulting to all products: ' + error);
+                    updateInventoryModeBadge(inventorySource);
                 }
             });
+        }
+
+        function updateInventoryModeBadge(source) {
+            if (source === 'distribution') {
+                $('#inventoryModeBadge').removeClass('hidden');
+                $('#noDistributionModeBadge').addClass('hidden');
+            } else {
+                $('#inventoryModeBadge').addClass('hidden');
+                $('#noDistributionModeBadge').removeClass('hidden');
+            }
         }
 
         function checkIfInventoryExists() {
@@ -1876,42 +1899,22 @@
                 }),
                 success: function (response) {
                     if (response.success) {
-                        showToast('success', response.message, 2000);
+                        let msg = response.message;
+                        if (response.carryover_count > 0) {
+                            msg += ' (' + response.carryover_count + ' item(s) carried over from yesterday.)';
+                        }
+                        showToast('success', msg, 3000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
-
-                        // Show deduction summary
-                        if (response.deduction) {
-                            const d = response.deduction;
-                            const deducted = d.products_deducted || 0;
-                            const total = d.total_products || 0;
-
-                            if (deducted > 0) {
-                                showToast('info', `Raw materials deducted for ${deducted} of ${total} products (${d.total_deductions} materials used).`, 4000);
-                            }
-                        }
-
-                        // Show warnings for products with no recipe or insufficient stock
-                        if (response.warnings && response.warnings.length > 0) {
-                            showDeductionWarningModal(response.warnings, response.deduction);
-                        }
                     } else {
-                        showToast('error', response.message, 2000);
+                        showToast('error', response.message, 3000);
                     }
                 },
-                error: function (xhr, status, error) {
-                    let errorMessage = 'An error occurred while adding inventory from distribution';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-
-                    // Show detailed insufficient materials modal
-                    if (xhr.responseJSON && xhr.responseJSON.insufficient_products) {
-                        showInsufficientStockModal(xhr.responseJSON);
-                    } else {
-                        showToast('danger', errorMessage, 3000);
-                    }
-                    console.log(xhr.responseJSON);
+                error: function (xhr) {
+                    const errorMessage = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'An error occurred while creating inventory from distribution.';
+                    showToast('danger', errorMessage, 4000);
                 }
             });
         }
