@@ -160,12 +160,6 @@
                             </button>
                         </div>
 
-                        <!-- Distribution Note -->
-                        <div id="distributionNotePanel" class="hidden mb-3 flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                            <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
-                            <p id="distributionNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
-                        </div>
-
                         <!-- List Items -->
                         <div id="distributionListContainer" class="space-y-2 max-h-[400px] overflow-y-auto">
                             <!-- Dynamically populated via JS -->
@@ -320,12 +314,6 @@
                 </div>
                 <?php endif; ?>
 
-                <!-- Distribution Note (Mobile) -->
-                <div id="mobileDistributionNotePanel" class="hidden flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg mb-2">
-                    <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
-                    <p id="mobileDistributionNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
-                </div>
-
                 <!-- Cards Container -->
                 <div id="mobileCardsContainer" class="space-y-2">
                     <!-- Dynamically populated via JS -->
@@ -394,12 +382,7 @@
                 </div>
             </div>
 
-            <!-- Distribution Note -->
-            <div id="calendarDayNotePanel" class="hidden flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                <i class="fas fa-sticky-note text-amber-500 text-sm flex-shrink-0"></i>
-                <p id="calendarDayNoteText" class="text-xs text-amber-800 leading-relaxed"></p>
-            </div>
-
+            
             <!-- Forecasted Sales (Modal) -->
             <div class="flex items-center justify-between p-2.5 bg-primary/10 border border-primary/20 rounded-lg mb-4">
                 <div class="flex items-center gap-2">
@@ -1908,15 +1891,29 @@
                     $('#calendarDayItemsList').removeClass('hidden');
                     $('#calendarDayEmptyState').addClass('hidden');
 
-                    const showGroupHeaders = groupCount > 1;
-
                     groupedData.forEach(function(group) {
                         const groupItems = Array.isArray(group.items) ? group.items : [];
-                        const groupName = (group.group_name || 'Default Group').toString();
-                        const groupNote = (group.group_note || '').toString().trim();
+                        const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                        const groupNote = escapeHtml((group.group_note || '').toString().trim());
 
-                        if (showGroupHeaders) {
-                            const groupHeader = `
+                        const rowsHtml = groupItems.map(function(item) {
+                            return `
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-bread-slice text-primary text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <span class="text-sm font-medium text-gray-800 truncate block">${escapeHtml(item.product_name || '')}</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-800">${formatQuantityValue(item.product_qnty)} <span class="text-xs text-gray-500 font-normal">${getQtyModeShortLabel(item.qty_mode || 'batch')}</span></span>
+                                </div>
+                            `;
+                        }).join('');
+
+                        const groupCard = `
+                            <div class="p-2.5 bg-white border border-gray-200 rounded-lg space-y-2">
                                 <div class="p-2 bg-primary/5 border border-primary/20 rounded-lg">
                                     <div class="flex items-center justify-between gap-2">
                                         <p class="text-xs font-semibold text-primary truncate">
@@ -1926,27 +1923,13 @@
                                     </div>
                                     ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
                                 </div>
-                            `;
-                            listContainer.append(groupHeader);
-                        }
-
-                        groupItems.forEach(function(item) {
-                            const row = `
-                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-bread-slice text-primary text-xs"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <span class="text-sm font-medium text-gray-800 truncate block">${item.product_name}</span>
-                                            ${!showGroupHeaders ? `<span class="text-[10px] text-gray-500"><i class="fas fa-layer-group mr-1 text-primary/80"></i>${groupName}</span>` : ''}
-                                        </div>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-800">${item.product_qnty} <span class="text-xs text-gray-500 font-normal">${getQtyModeShortLabel(item.qty_mode || 'batch')}</span></span>
+                                <div class="space-y-2">
+                                    ${rowsHtml || '<p class="text-xs text-gray-400 px-1 py-1">No items in this group.</p>'}
                                 </div>
-                            `;
-                            listContainer.append(row);
-                        });
+                            </div>
+                        `;
+
+                        listContainer.append(groupCard);
                     });
                 }
 
