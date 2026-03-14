@@ -367,7 +367,7 @@
             </div>
 
             <!-- Summary -->
-            <div class="flex gap-3 mb-4">
+            <div id="calendarDaySummaryCards" class="flex gap-3 mb-4">
                 <div class="flex-1 bg-primary/10 rounded-lg p-3 text-center">
                     <p class="text-2xl font-bold text-primary" id="modalItemCount">0</p>
                     <p class="text-xs text-gray-600">Items</p>
@@ -637,6 +637,7 @@
         let currentDayDistributionItems = []; // Store current selected date distribution items
         let currentDayGroupedData = []; // Grouped analytics for selected date
         let currentDaySummary = {}; // Day analytics summary for selected date
+        let selectedGroupFilter = { date: '', key: '' }; // Active selected group scope for analytics cards/panels
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         const distributionGroupStorageKey = 'engbakery_distribution_group_meta_v1';
@@ -665,7 +666,20 @@
                             productsData = response.data;
                             mergeProductCostRecords(productsData);
                         }
-                        updateForecastedSales(currentDayDistributionItems, currentDaySummary);
+
+                        const selectedDate = ($('#selectedDate').val() || '').toString();
+                        const displayState = getDisplayStateForSelectedGroup(
+                            selectedDate,
+                            currentDayDistributionItems,
+                            currentDayGroupedData,
+                            currentDaySummary
+                        );
+
+                        updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
+                        updateForecastedSales(displayState.items, displayState.summary);
+                        renderOwnerDayMetrics(displayState.summary);
+                        renderOwnerAnalytics(displayState.groups, displayState.summary);
+
                         renderAllDistributionsList();
 
                         if (!$('#calendarDayModal').hasClass('hidden')) {
@@ -732,7 +746,16 @@
                         const selectedDate = ($('#selectedDate').val() || '').toString();
                         if (selectedDate && currentDaySummary) {
                             currentDaySummary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
-                            renderOwnerDayMetrics(currentDaySummary);
+
+                            const displayState = getDisplayStateForSelectedGroup(
+                                selectedDate,
+                                currentDayDistributionItems,
+                                currentDayGroupedData,
+                                currentDaySummary
+                            );
+                            displayState.summary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
+
+                            renderOwnerDayMetrics(displayState.summary);
                         }
                     },
                     error: function() {
@@ -1130,6 +1153,104 @@
                 return groupDistributionsByGroup(items, fallbackDate);
             }
 
+            function buildGroupScopedSummary(group, items, dateStr) {
+                const groupItems = Array.isArray(items) ? items : [];
+
+                const totalBatches = group
+                    ? parseNumericValue(group.total_batches)
+                    : groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+
+                const totalPieces = group
+                    ? parseNumericValue(group.total_pieces)
+                    : groupItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+
+                const forecastTotal = group
+                    ? (parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems))
+                    : calculateForecastedSalesTotal(groupItems);
+
+                const directCostTotal = group
+                    ? parseNumericValue(group.direct_cost)
+                    : groupItems.reduce(function(sum, item) {
+                        return sum + parseNumericValue(item.direct_cost);
+                    }, 0);
+
+                return {
+                    total_items: groupItems.length,
+                    total_groups: groupItems.length > 0 ? 1 : 0,
+                    total_batches: totalBatches,
+                    total_pieces: totalPieces,
+                    forecasted_sales_total: forecastTotal,
+                    direct_cost_total: directCostTotal,
+                    utilities_expense_total: getUtilityExpenseForDate(dateStr),
+                    raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total)
+                        ? group.raw_material_usage_total
+                        : [],
+                };
+            }
+
+            function setSelectedGroupFilter(dateStr, groupKey) {
+                selectedGroupFilter = {
+                    date: (dateStr || '').toString().trim(),
+                    key: (groupKey || '').toString().trim(),
+                };
+            }
+
+            function clearSelectedGroupFilter(dateStr = null) {
+                if (dateStr == null) {
+                    selectedGroupFilter = { date: '', key: '' };
+                    return;
+                }
+
+                const normalizedDate = (dateStr || '').toString().trim();
+                if ((selectedGroupFilter.date || '') === normalizedDate) {
+                    selectedGroupFilter = { date: '', key: '' };
+                }
+            }
+
+            function getDisplayStateForSelectedGroup(dateStr, items, groupedData, summary) {
+                const normalizedDate = (dateStr || '').toString().trim();
+                const normalizedItems = Array.isArray(items) ? items : [];
+                const normalizedGroups = normalizeGroupedData(normalizedItems, groupedData, normalizedDate);
+                const normalizedSummary = (summary && typeof summary === 'object') ? summary : {};
+
+                const activeDate = (selectedGroupFilter.date || '').toString().trim();
+                const activeKey = (selectedGroupFilter.key || '').toString().trim();
+
+                if (!activeDate || !activeKey || activeDate !== normalizedDate) {
+                    return {
+                        items: normalizedItems,
+                        groups: normalizedGroups,
+                        summary: normalizedSummary,
+                    };
+                }
+
+                const matchedGroup = normalizedGroups.find(function(group) {
+                    return String(group.group_key || '').trim() === activeKey;
+                });
+
+                if (!matchedGroup) {
+                    clearSelectedGroupFilter(normalizedDate);
+                    return {
+                        items: normalizedItems,
+                        groups: normalizedGroups,
+                        summary: normalizedSummary,
+                    };
+                }
+
+                const matchedItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
+                const matchedSummary = buildGroupScopedSummary(matchedGroup, matchedItems, normalizedDate);
+
+                return {
+                    items: matchedItems,
+                    groups: [matchedGroup],
+                    summary: matchedSummary,
+                };
+            }
+
             function formatMaterialAmount(amount) {
                 const value = parseNumericValue(amount);
                 return Number.isFinite(value)
@@ -1317,7 +1438,12 @@
                 if (!Array.isArray(decoratedItems) || decoratedItems.length === 0) {
                     const emptySummary = Object.assign({}, summaryTemplate, { raw_material_usage_total: [] });
                     currentDaySummary = emptySummary;
-                    renderOwnerAnalytics(currentDayGroupedData, emptySummary);
+
+                    const emptyDisplayState = getDisplayStateForSelectedGroup(targetDate, [], [], emptySummary);
+                    updateSummaryCounts(emptyDisplayState.items, emptyDisplayState.summary, targetDate);
+                    updateForecastedSales(emptyDisplayState.items, emptyDisplayState.summary);
+                    renderOwnerDayMetrics(emptyDisplayState.summary);
+                    renderOwnerAnalytics(emptyDisplayState.groups, emptyDisplayState.summary);
                     return;
                 }
 
@@ -1357,7 +1483,17 @@
                 currentDayGroupedData = groupDistributionsByGroup(ownerDecoratedItems, targetDate);
                 currentDaySummary = ownerSummary;
 
-                renderOwnerAnalytics(currentDayGroupedData, ownerSummary);
+                const displayState = getDisplayStateForSelectedGroup(
+                    targetDate,
+                    currentDayDistributionItems,
+                    currentDayGroupedData,
+                    currentDaySummary
+                );
+
+                updateSummaryCounts(displayState.items, displayState.summary, targetDate);
+                updateForecastedSales(displayState.items, displayState.summary);
+                renderOwnerDayMetrics(displayState.summary);
+                renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data('selected-date') === targetDate) {
                     $('#calendarDayModal').data('day-items', ownerDecoratedItems);
@@ -1592,11 +1728,14 @@
 
                             renderDistributionList(items, groupedData, date);
                             renderMobileCards(items, groupedData, date);
-                            updateSummaryCounts(items, summary, date);
-                            updateForecastedSales(items, summary);
-                            renderOwnerDayMetrics(summary);
-                            renderOwnerAnalytics(groupedData, summary);
-                            updateMainDistributionNotePanels(items, responseNote);
+
+                            const displayState = getDisplayStateForSelectedGroup(date, items, groupedData, summary);
+
+                            updateSummaryCounts(displayState.items, displayState.summary, date);
+                            updateForecastedSales(displayState.items, displayState.summary);
+                            renderOwnerDayMetrics(displayState.summary);
+                            renderOwnerAnalytics(displayState.groups, displayState.summary);
+                            updateMainDistributionNotePanels(displayState.items, responseNote);
 
                             if (isOwnerView) {
                                 hydrateOwnerRawMaterialAnalytics(date, items, summary);
@@ -1608,6 +1747,7 @@
                                 updateModalForecastedSales(items, summary);
                             }
                         } else {
+                            clearSelectedGroupFilter(date);
                             currentDayDistributionItems = [];
                             currentDayGroupedData = [];
                             currentDaySummary = {};
@@ -1621,6 +1761,7 @@
                         }
                     },
                     error: function(xhr, status, error) {
+                        clearSelectedGroupFilter(date);
                         currentDayDistributionItems = [];
                         currentDayGroupedData = [];
                         currentDaySummary = {};
@@ -1810,7 +1951,17 @@
                             <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1">
                                 ${visibleGroups.map(function(group) {
                                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
-                                    return `<div class="truncate px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}">${groupName}</div>`;
+                                    const groupKey = escapeHtml((group.group_key || '').toString());
+                                    return `
+                                        <button
+                                            type="button"
+                                            class="calendar-group-chip w-full text-left truncate px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium hover:opacity-90 transition-opacity ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}"
+                                            data-date="${dateStr}"
+                                            data-group-key="${groupKey}"
+                                            title="${groupName}">
+                                            ${groupName}
+                                        </button>
+                                    `;
                                 }).join('')}
                                 ${hiddenGroupsCount > 0 ? `<div class="text-[8px] sm:text-[9px] font-medium ${isSelected ? 'text-white/80' : 'text-gray-500'}">+${hiddenGroupsCount} more</div>` : ''}
                             </div>
@@ -1847,30 +1998,110 @@
                 loadMonthDistributions();
             });
 
-            // Calendar day click - show modal
-            $(document).on('click', '.calendar-day', function() {
-                const dateStr = $(this).data('date');
+            function openSpecificGroupView(dateStr, groupKey, sourceItems = null) {
+                const normalizedDate = (dateStr || '').toString();
+                const normalizedGroupKey = (groupKey || '').toString();
+
+                setSelectedGroupFilter(normalizedDate, normalizedGroupKey);
+
+                const candidateItems = Array.isArray(sourceItems)
+                    ? sourceItems
+                    : (calendarData[normalizedDate] || currentDayDistributionItems || []);
+
+                const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
+                const matchedGroup = groupedData.find(function(group) {
+                    return String(group.group_key || '') === normalizedGroupKey;
+                });
+
+                if (!matchedGroup) {
+                    clearSelectedGroupFilter(normalizedDate);
+                    return;
+                }
+
+                const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
+                const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
+
+                updateSummaryCounts(groupItems, groupSummary, normalizedDate);
+                updateForecastedSales(groupItems, groupSummary);
+                renderOwnerDayMetrics(groupSummary);
+                renderOwnerAnalytics([matchedGroup], groupSummary);
+
+                showCalendarDayModal(normalizedDate, groupItems, {
+                    summary: groupSummary,
+                    scope: 'group'
+                });
+            }
+
+            // Calendar date click - show all groups so user can choose one
+            $(document).on('click', '.calendar-day', function(e) {
+                if ($(e.target).closest('.calendar-group-chip').length) {
+                    return;
+                }
+
+                const dateStr = ($(this).data('date') || '').toString();
                 const dayData = calendarData[dateStr] || [];
-                
-                showCalendarDayModal(dateStr, dayData);
+                showCalendarDayModal(dateStr, dayData, { groupPicker: true });
             });
 
-            function showCalendarDayModal(dateStr, items) {
+            // Calendar group chip click - open selected group directly
+            $(document).on('click', '.calendar-group-chip', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const dateStr = ($(this).data('date') || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+                openSpecificGroupView(dateStr, groupKey, calendarData[dateStr] || []);
+            });
+
+            // Group picker inside modal - open selected group
+            $(document).on('click', '.modal-group-picker-btn', function() {
+                const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '').toString();
+                const groupKey = ($(this).data('group-key') || '').toString();
+                const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
+                openSpecificGroupView(dateStr, groupKey, dayItems);
+            });
+
+            function showCalendarDayModal(dateStr, items, modalOptions = {}) {
                 const date = new Date(dateStr + 'T00:00:00');
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const formatted = date.toLocaleDateString('en-US', options);
+                const dateDisplayOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formatted = date.toLocaleDateString('en-US', dateDisplayOptions);
                 const groupedData = normalizeGroupedData(items, null, dateStr);
                 const groupCount = groupedData.length;
                 const selectedDate = $('#selectedDate').val();
-                const modalSummary = (selectedDate === dateStr && currentDaySummary) ? currentDaySummary : {};
+                const providedSummary = (modalOptions && typeof modalOptions === 'object' && modalOptions.summary)
+                    ? modalOptions.summary
+                    : null;
+                const isGroupPickerMode = Boolean(modalOptions && modalOptions.groupPicker);
+                const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope === 'group')
+                    ? 'group'
+                    : 'date';
+                const selectionScope = isGroupPickerMode ? 'date' : requestedScope;
+                const shouldUseCurrentDaySummary = (selectedDate === dateStr)
+                    && Array.isArray(currentDayDistributionItems)
+                    && currentDayDistributionItems.length === items.length;
+                const modalSummary = providedSummary || (shouldUseCurrentDaySummary && currentDaySummary ? currentDaySummary : {});
 
-                $('#calendarDayModalTitle').text(groupCount > 1 ? 'Distribution Groups' : 'Distribution Group');
+                if (isGroupPickerMode) {
+                    $('#calendarDaySummaryCards').addClass('hidden');
+                } else {
+                    $('#calendarDaySummaryCards').removeClass('hidden');
+                }
+
+                $('#calendarDayModalTitle').text(
+                    isGroupPickerMode
+                        ? 'Select Distribution Group'
+                        : (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                );
                 $('#calendarDayModalDate').text(groupCount > 0
                     ? `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}`
                     : formatted
                 );
                 $('#calendarDayModal').data('selected-date', dateStr);
                 $('#calendarDayModal').data('day-summary', modalSummary);
+                $('#calendarDayModal').data('selection-scope', selectionScope);
+                $('#btnCalendarDaySelect').html(
+                    `<i class="fas fa-arrow-right mr-1"></i>${selectionScope === 'group' ? 'Go to this group' : 'Go to this date'}`
+                );
 
                 const batchTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
                 const piecesTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
@@ -1891,46 +2122,75 @@
                     $('#calendarDayItemsList').removeClass('hidden');
                     $('#calendarDayEmptyState').addClass('hidden');
 
-                    groupedData.forEach(function(group) {
-                        const groupItems = Array.isArray(group.items) ? group.items : [];
-                        const groupName = escapeHtml((group.group_name || 'Default Group').toString());
-                        const groupNote = escapeHtml((group.group_note || '').toString().trim());
+                    if (isGroupPickerMode) {
+                        const pickerHtml = groupedData.map(function(group) {
+                            const groupItems = Array.isArray(group.items) ? group.items : [];
+                            const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                            const groupNote = escapeHtml((group.group_note || '').toString().trim());
+                            const groupKey = escapeHtml((group.group_key || '').toString());
+                            const groupSummary = buildGroupScopedSummary(group, groupItems, dateStr);
 
-                        const rowsHtml = groupItems.map(function(item) {
                             return `
-                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-bread-slice text-primary text-xs"></i>
-                                        </div>
+                                <button type="button" class="modal-group-picker-btn w-full text-left p-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-date="${dateStr}" data-group-key="${groupKey}">
+                                    <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
-                                            <span class="text-sm font-medium text-gray-800 truncate block">${escapeHtml(item.product_name || '')}</span>
+                                            <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
+                                            <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
+                                        </div>
+                                        <div class="text-right flex-shrink-0">
+                                            <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(parseNumericValue(groupSummary.forecasted_sales_total))}</p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5">Tap to open</p>
                                         </div>
                                     </div>
-                                    <span class="text-sm font-bold text-gray-800">${formatQuantityValue(item.product_qnty)} <span class="text-xs text-gray-500 font-normal">${getQtyModeShortLabel(item.qty_mode || 'batch')}</span></span>
-                                </div>
+                                    ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                                </button>
                             `;
                         }).join('');
 
-                        const groupCard = `
-                            <div class="p-2.5 bg-white border border-gray-200 rounded-lg space-y-2">
-                                <div class="p-2 bg-primary/5 border border-primary/20 rounded-lg">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <p class="text-xs font-semibold text-primary truncate">
-                                            <i class="fas fa-layer-group mr-1"></i>${groupName}
-                                        </p>
-                                        <p class="text-[11px] text-gray-600">${groupItems.length} item(s)</p>
-                                    </div>
-                                    ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
-                                </div>
-                                <div class="space-y-2">
-                                    ${rowsHtml || '<p class="text-xs text-gray-400 px-1 py-1">No items in this group.</p>'}
-                                </div>
-                            </div>
-                        `;
+                        listContainer.html(pickerHtml || '<p class="text-xs text-gray-400">No groups available.</p>');
+                    } else {
 
-                        listContainer.append(groupCard);
-                    });
+                        groupedData.forEach(function(group) {
+                            const groupItems = Array.isArray(group.items) ? group.items : [];
+                            const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                            const groupNote = escapeHtml((group.group_note || '').toString().trim());
+
+                            const rowsHtml = groupItems.map(function(item) {
+                                return `
+                                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i class="fas fa-bread-slice text-primary text-xs"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <span class="text-sm font-medium text-gray-800 truncate block">${escapeHtml(item.product_name || '')}</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-bold text-gray-800">${formatQuantityValue(item.product_qnty)} <span class="text-xs text-gray-500 font-normal">${getQtyModeShortLabel(item.qty_mode || 'batch')}</span></span>
+                                    </div>
+                                `;
+                            }).join('');
+
+                            const groupCard = `
+                                <div class="p-2.5 bg-white border border-gray-200 rounded-lg space-y-2">
+                                    <div class="p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <p class="text-xs font-semibold text-primary truncate">
+                                                <i class="fas fa-layer-group mr-1"></i>${groupName}
+                                            </p>
+                                            <p class="text-[11px] text-gray-600">${groupItems.length} item(s)</p>
+                                        </div>
+                                        ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                                    </div>
+                                    <div class="space-y-2">
+                                        ${rowsHtml || '<p class="text-xs text-gray-400 px-1 py-1">No items in this group.</p>'}
+                                    </div>
+                                </div>
+                            `;
+
+                            listContainer.append(groupCard);
+                        });
+                    }
                 }
 
                 $('#calendarDayModal').removeClass('hidden');
@@ -1944,6 +2204,11 @@
             // Go to selected date from modal
             $('#btnCalendarDaySelect').on('click', function() {
                 const dateStr = $('#calendarDayModal').data('selected-date');
+                const selectionScope = ($('#calendarDayModal').data('selection-scope') || 'date').toString();
+
+                if (selectionScope !== 'group') {
+                    clearSelectedGroupFilter(dateStr);
+                }
 
                 const parsedDate = new Date(dateStr + 'T00:00:00');
                 if (!isNaN(parsedDate.getTime())) {
@@ -1965,21 +2230,7 @@
             $(document).on('click', '.distribution-group-entry', function() {
                 const dateStr = ($(this).data('date') || $('#selectedDate').val() || '').toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
-
-                const groupedData = normalizeGroupedData(currentDayDistributionItems, null, dateStr);
-                const matchedGroup = groupedData.find(function(group) {
-                    return String(group.group_key || '') === groupKey;
-                });
-
-                const groupItems = (matchedGroup && Array.isArray(matchedGroup.items))
-                    ? matchedGroup.items
-                    : [];
-
-                const modalItems = groupItems.length > 0
-                    ? groupItems
-                    : (calendarData[dateStr] || currentDayDistributionItems || []);
-
-                showCalendarDayModal(dateStr, modalItems);
+                openSpecificGroupView(dateStr, groupKey, currentDayDistributionItems);
             });
 
             // ===== RENDERING FUNCTIONS =====
@@ -2088,6 +2339,11 @@
             // ===== DATE NAVIGATION =====
 
             $('#selectedDate').on('change', function() {
+                const selectedDate = ($('#selectedDate').val() || '').toString();
+                if ((selectedGroupFilter.date || '') !== selectedDate) {
+                    clearSelectedGroupFilter();
+                }
+
                 updateDateLabel();
                 loadDistributionByDate();
                 renderCalendar();
