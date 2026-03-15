@@ -994,6 +994,38 @@
             });
         }
 
+        function normalizeTodayDistributionItems(apiData) {
+            const source = Array.isArray(apiData) ? apiData : [];
+            const items = [];
+
+            source.forEach(function (entry) {
+                if (!entry || typeof entry !== 'object') {
+                    return;
+                }
+
+                const groupItems = Array.isArray(entry.items) ? entry.items : null;
+
+                if (groupItems) {
+                    groupItems.forEach(function (groupItem) {
+                        if (!groupItem || typeof groupItem !== 'object') {
+                            return;
+                        }
+
+                        items.push(Object.assign({}, groupItem, {
+                            distribution_date: groupItem.distribution_date || entry.distribution_date || null,
+                        }));
+                    });
+                    return;
+                }
+
+                if (entry.product_id || entry.product_qnty !== undefined) {
+                    items.push(entry);
+                }
+            });
+
+            return items;
+        }
+
         async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap, visitedProducts = new Set(), productHint = null) {
             const key = String(productId || '').trim();
             if (!key || yieldsNeeded <= 0 || visitedProducts.has(key)) return;
@@ -1247,7 +1279,9 @@
 
                 if (requestToken !== todayDistHydrationToken) return;
 
-                const dayItems = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+                const dayItems = normalizeTodayDistributionItems(
+                    (response && response.success && Array.isArray(response.data)) ? response.data : []
+                );
                 $('#distCount').text(dayItems.length || 0);
 
                 if (!dayItems.length) {
