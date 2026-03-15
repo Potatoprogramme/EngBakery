@@ -64,7 +64,15 @@ class DailyStockItemsModel extends Model
             $productId = intval($productRow['product_id']);
             $distributionPieces = intval($productRow['distribution_qty']);
             $carryoverQty = intval($productRow['carryover_qty']);
-            $totalBeginning = $distributionPieces + $carryoverQty;
+
+            // Business rules:
+            // - Carryover means already baked stock exists -> enabled.
+            // - If carryover exists, do NOT auto-load today's distribution yet.
+            //   Staff will load distribution manually once new batch is baked.
+            // - Distribution-only rows are initialized as disabled.
+            $autoLoadedDistribution = ($carryoverQty > 0) ? 0 : $distributionPieces;
+            $totalBeginning = $carryoverQty + $autoLoadedDistribution;
+            $isEnabled = ($carryoverQty > 0) ? 1 : 0;
 
             log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution pieces: {pieces} + Carryover: {carryover} = {total}', [
                 'product' => $productId,
@@ -79,8 +87,8 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
-                'distribution_qty' => $distributionPieces,
-                'is_enabled' => ($totalBeginning > 0) ? 1 : 0,
+                'distribution_qty' => $autoLoadedDistribution,
+                'is_enabled' => $isEnabled,
             ];
         }
 

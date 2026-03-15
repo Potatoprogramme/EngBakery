@@ -368,10 +368,14 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $enriched = [];
+        $aggregatedByProduct = [];
 
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
+            if ($productId <= 0) {
+                continue;
+            }
+
             $distributionQty = intval($item['product_qnty'] ?? 0);
             $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
             $product = $this->productModel->find($productId);
@@ -379,8 +383,36 @@ class InventoryController extends BaseController
             $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($distributionQty, $qtyMode, $product, $costData);
             $pieces = (int) $metrics['pieces'];
 
-            // Check loaded status from inventory
+            if (!isset($aggregatedByProduct[$productId])) {
+                $aggregatedByProduct[$productId] = [
+                    'distribution_id' => $item['distribution_id'],
+                    'product_id' => $productId,
+                    'product_name' => $item['product_name'] ?? ($product['product_name'] ?? 'N/A'),
+                    'category' => $item['category'] ?? ($product['category'] ?? ''),
+                    'product_qnty' => 0,
+                    'qty_mode' => $qtyMode,
+                    'calculated_pieces' => 0,
+                ];
+            }
+
+            $aggregatedByProduct[$productId]['product_qnty'] += $distributionQty;
+            $aggregatedByProduct[$productId]['calculated_pieces'] += $pieces;
+
+            // Prefer the most specific mode when mixed records exist.
+            if ($aggregatedByProduct[$productId]['qty_mode'] !== 'pieces' && $qtyMode === 'pieces') {
+                $aggregatedByProduct[$productId]['qty_mode'] = 'pieces';
+            }
+
+            if ($aggregatedByProduct[$productId]['qty_mode'] === 'batch' && $qtyMode === 'box') {
+                $aggregatedByProduct[$productId]['qty_mode'] = 'box';
+            }
+        }
+
+        $enriched = [];
+        foreach ($aggregatedByProduct as $productId => $row) {
             $loadedQty = 0;
+
+            // Check loaded status from inventory
             if ($dailyStockId > 0) {
                 $inventoryItem = $this->dailyStockItemsModel
                     ->where('daily_stock_id', $dailyStockId)
@@ -392,17 +424,26 @@ class InventoryController extends BaseController
             }
 
             $enriched[] = [
-                'distribution_id' => $item['distribution_id'],
+                'distribution_id' => $row['distribution_id'],
                 'product_id' => $productId,
-                'product_name' => $item['product_name'] ?? 'N/A',
-                'category' => $item['category'] ?? '',
-                'product_qnty' => $distributionQty,
-                'qty_mode' => $qtyMode,
-                'calculated_pieces' => $pieces,
+                'product_name' => $row['product_name'],
+                'category' => $row['category'],
+                'product_qnty' => intval($row['product_qnty']),
+                'qty_mode' => $row['qty_mode'],
+                'calculated_pieces' => intval($row['calculated_pieces']),
                 'loaded_qty' => $loadedQty,
                 'loaded' => $loadedQty > 0,
             ];
         }
+
+        usort($enriched, static function (array $a, array $b): int {
+            $catCompare = strcmp((string) ($a['category'] ?? ''), (string) ($b['category'] ?? ''));
+            if ($catCompare !== 0) {
+                return $catCompare;
+            }
+
+            return strcmp((string) ($a['product_name'] ?? ''), (string) ($b['product_name'] ?? ''));
+        });
 
         return $this->response->setJSON([
             'success' => true,
