@@ -5,8 +5,8 @@ namespace App\Libraries;
 use App\Models\NotificationModel;
 use App\Models\RawMaterialStockModel;
 use App\Models\RemittanceDetailsModel;
-use App\Models\DistributionModel;
 use App\Models\DailyStockModel;
+use App\Models\DistributionGroupModel;
 use App\Models\OrderModel;
 
 /**
@@ -232,8 +232,9 @@ class NotificationGenerator
             return;
         }
 
-        $distModel = new DistributionModel();
-        $todayDist = $distModel->where('distribution_date', $today)->findAll();
+        $distributionGroupModel = new DistributionGroupModel();
+
+        $todayDist = $distributionGroupModel->where('distribution_date', $today)->findAll();
 
         if (!empty($todayDist)) {
             return; // Distribution already exists today

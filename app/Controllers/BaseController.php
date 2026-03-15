@@ -24,7 +24,8 @@ use App\Models\UsersModel;
 use App\Models\RemittanceDetailsModel;
 use App\Models\RemittanceItemsModel;
 use App\Models\RemittanceDenominationsModel;
-use App\Models\DistributionModel;
+use App\Models\DistributionGroupModel;
+use App\Models\DistributionItemModel;
 use App\Models\UtilityExpensesModel;
 use App\Models\NotificationModel;
 use App\Libraries\NotificationGenerator;
@@ -66,7 +67,8 @@ abstract class BaseController extends Controller
     protected $remittanceDetailsModel;
     protected $remittanceItemsModel;
     protected $remittanceDenominationsModel;
-    protected $distributionModel;
+    protected $distributionGroupModel;
+    protected $distributionItemModel;
     protected $utilityExpensesModel;
     protected $notificationModel;
 
@@ -103,7 +105,8 @@ abstract class BaseController extends Controller
         $this->remittanceDetailsModel = new RemittanceDetailsModel();
         $this->remittanceItemsModel = new RemittanceItemsModel();
         $this->remittanceDenominationsModel = new RemittanceDenominationsModel();
-        $this->distributionModel = new DistributionModel();
+        $this->distributionGroupModel = new DistributionGroupModel();
+        $this->distributionItemModel = new DistributionItemModel();
         $this->utilityExpensesModel = new UtilityExpensesModel();
         $this->notificationModel = new NotificationModel();
         // Initialize database connection once

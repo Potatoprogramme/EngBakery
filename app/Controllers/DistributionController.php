@@ -1,421 +1,515 @@
 <?php
+
 namespace App\Controllers;
+
+use App\Libraries\DistributionQuantityCalculator;
 
 class DistributionController extends BaseController
 {
     public function index()
     {
         $sessionData = $this->getSessionData();
-        $data = array_merge($sessionData, [
-            'title' => 'Distribution',
-        ]);
+        $data = array_merge($sessionData, ['title' => 'Distribution']);
 
-        if ($redirect = $this->redirectIfNotLoggedIn()) {
-            return $redirect;
-        }
+        if ($redirect = $this->redirectIfNotLoggedIn())          return $redirect;
+        if ($redirect = $this->redirectIfNotOwnerAndAdmin())     return $redirect;
 
-        if ($redirect = $this->redirectIfNotOwnerAndAdmin()) {
-            return $redirect;
-        }
-
-        return view('Template/Header', $data) .
-            view('Template/SideNav', $data) .
-            view('Template/Notification') .
-            view('Distribution/Distribution', $data) .
-            view('Template/Footer');
+        return view('Template/Header',       $data)
+             . view('Template/SideNav',      $data)
+             . view('Template/Notification')
+             . view('Distribution/Distribution', $data)
+             . view('Template/Footer');
     }
 
     public function getDistributionByDate()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
-        
-        $distributionData = $this->distributionModel->getDistributionByDate($date);
 
-        // Check if inventory exists for this date
-        $inventoryExists = $this->dailyStockModel->checkInventoryExists($date) ? true : false;
+        $groups          = model('DistributionGroupModel')->getGroupsByDate($date);
+        $inventoryLocked = (bool) $this->dailyStockModel->checkInventoryExists($date);
 
         return $this->response->setJSON([
-            'success' => true,
-            'message' => $distributionData ? 'Distribution records retrieved successfully' : 'No distribution records for this date',
-            'data' => $distributionData ?: [],
-            'inventory_locked' => $inventoryExists
+            'success'          => true,
+            'message'          => $groups ? 'Distribution groups retrieved' : 'No distribution groups for this date',
+            'data'             => $groups,
+            'inventory_locked' => $inventoryLocked,
         ]);
     }
 
-    /**
-     * Check if inventory already exists for a given date.
-     * Used by the distribution page to lock editing.
-     */
-    public function checkInventoryByDate()
-    {
-        $date = $this->request->getGet('date') ?? date('Y-m-d');
-        $inventory = $this->dailyStockModel->checkInventoryExists($date);
-
-        return $this->response->setJSON([
-            'success' => true,
-            'inventory_exists' => $inventory ? true : false,
-            'date' => $date
-        ]);
-    }
-
-    /**
-     * Get distribution records for a date range (for calendar view).
-     */
     public function getDistributionByDateRange()
     {
         $startDate = $this->request->getGet('start_date');
-        $endDate = $this->request->getGet('end_date');
+        $endDate   = $this->request->getGet('end_date');
 
         if (!$startDate || !$endDate) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'error' => 'start_date and end_date are required'
+                'error'   => 'start_date and end_date are required',
             ]);
         }
 
-        $distributionData = $this->distributionModel->getDistributionByDateRange($startDate, $endDate);
+        $groups = model('DistributionGroupModel')->getGroupsByDateRange($startDate, $endDate);
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Distribution records retrieved successfully',
-            'data' => $distributionData ?: []
+            'message' => 'Distribution groups retrieved',
+            'data'    => $groups,
         ]);
     }
 
-    public function addDistribution()
+    public function getGroup(int $id)
+    {
+        $group = model('DistributionGroupModel')->getGroupWithItems($id);
+
+        if (!$group) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'error'   => 'Distribution group not found',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $group,
+        ]);
+    }
+
+    public function addGroup()
     {
         $data = $this->request->getJSON();
         if (!$data) {
-            log_message('error', 'DISTRIBUTION ADD: Invalid JSON data received');
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
 
-        log_message('info', 'DISTRIBUTION ADD: Starting - Product ID: {product}, Quantity: {qty}, Date: {date}', [
-            'product' => $data->product_id ?? 'N/A',
-            'qty' => $data->product_qnty ?? 'N/A',
-            'date' => $data->distribution_date ?? 'N/A'
-        ]);
-
-        // Validate required fields
-        if (!isset($data->product_id, $data->product_qnty, $data->distribution_date)) {
-            log_message('error', 'DISTRIBUTION ADD: Missing required fields');
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
-        }
-
-        // Check if this product already exists for the given date
-        $existing = $this->distributionModel->existsForDate($data->product_id, $data->distribution_date);
-        if ($existing) {
-            log_message('warning', 'DISTRIBUTION ADD: Duplicate - Product {product} already scheduled for {date}', [
-                'product' => $data->product_id,
-                'date' => $data->distribution_date
-            ]);
-            return $this->response->setStatusCode(409)->setJSON([
-                'error' => 'This product is already scheduled for the selected date.',
-                'duplicate' => true
-            ]);
-        }
-
-        $quantity = intval($data->product_qnty);
-        $qtyMode = $data->qty_mode ?? 'batch';
-
-        // Grocery & Drinks products can only be distributed by pieces
-        $product = $this->productModel->find(intval($data->product_id));
-        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks']) && $qtyMode !== 'pieces') {
-            log_message('warning', 'DISTRIBUTION ADD: Blocked batch mode for {category} product {id}', [
-                'category' => $product['category'],
-                'id' => $data->product_id
-            ]);
+        if (empty($data->title) || empty($data->distribution_date)) {
             return $this->response->setStatusCode(400)->setJSON([
-                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.'
+                'error' => 'title and distribution_date are required',
             ]);
         }
 
-        // Convert to actual pieces based on mode
-        $actualPieces = $this->distributionQtyToPieces(intval($data->product_id), $quantity, $qtyMode);
-        log_message('info', 'DISTRIBUTION ADD: Converted {qty} {mode} to {pieces} pieces', [
-            'qty' => $quantity,
-            'mode' => $qtyMode,
-            'pieces' => $actualPieces
-        ]);
-
-        // Pre-check: block if raw materials are insufficient
-        if ($actualPieces > 0) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(
-                intval($data->product_id),
-                $actualPieces,
-                true // preview only
-            );
-
-            if (!empty($preview['has_insufficient'])) {
-                $shortByMaterial = [];
-                foreach ($preview['deductions'] as $d) {
-                    if (!$d['insufficient']) continue;
-                    $mid = $d['material_id'];
-                    if (!isset($shortByMaterial[$mid])) {
-                        $shortByMaterial[$mid] = $d['material_name']
-                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
-                            . ', have ' . $d['before'] . ')';
-                    }
-                }
-
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'error' => 'Cannot add — insufficient raw material stock for this quantity.',
-                    'insufficient_materials' => array_values($shortByMaterial),
-                    'preview' => $preview,
-                ]);
-            }
-        }
-
-        // Insert distribution record
         $insertData = [
-            'product_id' => $data->product_id,
-            'product_qnty' => $data->product_qnty,
-            'qty_mode' => $qtyMode,
-            'distribution_date' => $data->distribution_date,
+            'title'               => trim($data->title),
+            'distribution_date'   => $data->distribution_date,
+            'distributed_to_note' => $data->distributed_to_note ?? null,
+            'forecasted_sales'    => $data->forecasted_sales    ?? 0,
+            'direct_cost'         => $data->direct_cost         ?? 0,
         ];
 
         try {
-            $this->distributionModel->insert($insertData);
-            $distributionId = $this->distributionModel->getInsertID();
-            log_message('info', 'DISTRIBUTION ADD: Record inserted - ID: {id}', ['id' => $distributionId]);
+            $groupModel = model('DistributionGroupModel');
+            $groupModel->insert($insertData);
+            $groupId = $groupModel->getInsertID();
 
-            // Deduct raw materials
-            if ($actualPieces > 0) {
-                log_message('info', 'DISTRIBUTION ADD: Deducting raw materials for {pieces} pieces', ['pieces' => $actualPieces]);
-                $deductResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($data->product_id),
-                    $actualPieces,
-                    false
-                );
-                log_message('info', 'DISTRIBUTION ADD: Raw materials deducted - {result}', [
-                    'result' => json_encode($deductResult)
-                ]);
-            }
-
-            // Check for low stock and notify owners
-            \App\Libraries\LowStockNotifier::checkAndNotify();
-
-            // Generate in-app notification for new distribution
-            $productName = $product ? $product['product_name'] : 'Unknown Product';
-            $this->notify('notifyDistributionCreated', $productName, intval($data->product_qnty), $data->distribution_date);
-
-            log_message('info', 'DISTRIBUTION ADD: Completed successfully for Product {product}', [
-                'product' => $data->product_id
+            log_message('info', 'DISTRIBUTION GROUP ADD: Created group ID {id} for {date}', [
+                'id'   => $groupId,
+                'date' => $data->distribution_date,
             ]);
 
-            return $this->response->setJSON(['success' => true, 'message' => 'Distribution record added successfully']);
+            return $this->response->setJSON([
+                'success'  => true,
+                'message'  => 'Distribution group created successfully',
+                'group_id' => $groupId,
+            ]);
         } catch (\Exception $e) {
-            log_message('error', 'DISTRIBUTION ADD: Exception - {message}', ['message' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution record']);
+            log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to create distribution group']);
         }
     }
 
-    public function deleteDistribution($id)
-    {
-        log_message('info', 'DISTRIBUTION DELETE: Starting for ID: {id}', ['id' => $id]);
-
-        // Look up the distribution record to get its date
-        $record = $this->distributionModel->find($id);
-        if (!$record) {
-            log_message('error', 'DISTRIBUTION DELETE: Record not found - ID: {id}', ['id' => $id]);
-            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution record not found']);
-        }
-
-        log_message('info', 'DISTRIBUTION DELETE: Found record - Product: {product}, Qty: {qty}, Date: {date}', [
-            'product' => $record['product_id'],
-            'qty' => $record['product_qnty'],
-            'date' => $record['distribution_date']
-        ]);
-
-        try {
-            // Restore raw materials before deleting the distribution
-            $productId = intval($record['product_id']);
-            $quantity  = intval($record['product_qnty']);
-            $qtyMode   = $record['qty_mode'] ?? 'batch';
-            $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
-
-            if ($actualPieces > 0) {
-                log_message('info', 'DISTRIBUTION DELETE: Restoring {pieces} pieces to raw materials', [
-                    'pieces' => $actualPieces
-                ]);
-                $restoreResult = $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
-                log_message('info', 'DISTRIBUTION DELETE: Raw materials restored - {result}', [
-                    'result' => json_encode($restoreResult)
-                ]);
-            }
-
-            $this->distributionModel->delete($id);
-            log_message('info', 'DISTRIBUTION DELETE: Record deleted successfully - ID: {id}', ['id' => $id]);
-
-            // Immediate notification: distribution deleted
-            $product = $this->productModel->find($record['product_id']);
-            $productName = $product['product_name'] ?? 'Unknown Product';
-            $this->notify('notifyDistributionDeleted', $productName, intval($record['product_qnty']), $record['distribution_date']);
-
-            return $this->response->setJSON(['message' => 'Distribution record deleted successfully']);
-        } catch (\Exception $e) {
-            log_message('error', 'DISTRIBUTION DELETE: Exception - {message}', ['message' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to delete distribution record']);
-        }
-    }
-
-    public function updateDistribution($id)
+    public function updateGroup(int $id)
     {
         $data = $this->request->getJSON();
         if (!$data) {
-            log_message('error', 'DISTRIBUTION UPDATE: Invalid JSON data for ID: {id}', ['id' => $id]);
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
 
-        log_message('info', 'DISTRIBUTION UPDATE: Starting - ID: {id}, Product: {product}, New Qty: {qty}, Date: {date}', [
-            'id' => $id,
-            'product' => $data->product_id ?? 'N/A',
-            'qty' => $data->product_qnty ?? 'N/A',
-            'date' => $data->distribution_date ?? 'N/A'
-        ]);
+        $groupModel = model('DistributionGroupModel');
+        $group      = $groupModel->find($id);
 
-        // Validate required fields
-        if (!isset($data->product_id, $data->product_qnty, $data->distribution_date)) {
-            log_message('error', 'DISTRIBUTION UPDATE: Missing required fields for ID: {id}', ['id' => $id]);
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Missing required fields']);
+        if (!$group) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
         }
 
-        $newQtyMode = $data->qty_mode ?? 'batch';
+        $updateData = [];
+        if (isset($data->title))               $updateData['title']               = trim($data->title);
+        if (isset($data->distribution_date))   $updateData['distribution_date']   = $data->distribution_date;
+        if (isset($data->distributed_to_note)) $updateData['distributed_to_note'] = $data->distributed_to_note;
+        if (isset($data->forecasted_sales))    $updateData['forecasted_sales']    = $data->forecasted_sales;
+        if (isset($data->direct_cost))         $updateData['direct_cost']         = $data->direct_cost;
 
-        // Grocery & Drinks products can only be distributed by pieces
-        $product = $this->productModel->find(intval($data->product_id));
-        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks']) && $newQtyMode !== 'pieces') {
-            log_message('warning', 'DISTRIBUTION UPDATE: Blocked batch mode for {category} product {id}', [
-                'category' => $product['category'],
-                'id' => $data->product_id
+        if (empty($updateData)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'No updatable fields provided']);
+        }
+
+        try {
+            $groupModel->update($id, $updateData);
+
+            log_message('info', 'DISTRIBUTION GROUP UPDATE: Updated group ID {id}', ['id' => $id]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution group updated successfully',
             ]);
+        } catch (\Exception $e) {
+            log_message('error', 'DISTRIBUTION GROUP UPDATE: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution group']);
+        }
+    }
+
+    public function deleteGroup(int $id)
+    {
+        $groupModel = model('DistributionGroupModel');
+        $itemModel  = model('DistributionItemModel');
+
+        $group = $groupModel->find($id);
+        if (!$group) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
+        }
+
+        $items = $itemModel->getItemsByGroup($id);
+
+        try {
+            // Restore raw materials for every item in the group
+            foreach ($items as $item) {
+                $productId    = intval($item['product_id']);
+                $quantity     = intval($item['product_qnty']);
+                $qtyMode      = $item['qty_mode'] ?? 'batch';
+                $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
+
+                if ($actualPieces > 0) {
+                    $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
+                    log_message('info', 'DISTRIBUTION GROUP DELETE: Restored {p} pieces for product {pid}', [
+                        'p'   => $actualPieces,
+                        'pid' => $productId,
+                    ]);
+                }
+            }
+
+            // Delete all items then the group itself
+            $itemModel->deleteByGroup($id);
+            $groupModel->delete($id);
+
+            log_message('info', 'DISTRIBUTION GROUP DELETE: Deleted group ID {id} with {c} items', [
+                'id' => $id,
+                'c'  => count($items),
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution group and its items deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'DISTRIBUTION GROUP DELETE: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to delete distribution group']);
+        }
+    }
+
+    public function addItem()
+    {
+        $data = $this->request->getJSON();
+        if (!$data) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
+        }
+
+        // Required fields
+        if (!isset($data->distribution_id, $data->product_id, $data->product_qnty)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'distribution_id, product_id, and product_qnty are required']);
+        }
+
+        $groupId   = intval($data->distribution_id);
+        $productId = intval($data->product_id);
+        $quantity  = intval($data->product_qnty);
+        $qtyMode   = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+
+        $groupModel = model('DistributionGroupModel');
+        $itemModel  = model('DistributionItemModel');
+
+        // Group must exist
+        $group = $groupModel->find($groupId);
+        if (!$group) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
+        }
+
+        // Duplicate check within the group
+        if ($itemModel->existsInGroup($groupId, $productId)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'error'     => 'This product is already in the selected distribution group.',
+                'duplicate' => true,
+            ]);
+        }
+
+        // Category enforcement: grocery/drinks/dough → pieces only
+        $product = $this->productModel->find($productId);
+        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks', 'dough'], true) && $qtyMode !== 'pieces') {
             return $this->response->setStatusCode(400)->setJSON([
-                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.'
+                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.',
             ]);
         }
 
-        // Restore-then-deduct: restore old qty, then deduct new qty
-        $existingRecord = $this->distributionModel->find($id);
-        $oldQty = intval($existingRecord['product_qnty'] ?? 0);
-        $oldQtyMode = $existingRecord['qty_mode'] ?? 'batch';
-        $oldPieces = $this->distributionQtyToPieces(intval($existingRecord['product_id']), $oldQty, $oldQtyMode);
-        $newPieces = $this->distributionQtyToPieces(intval($data->product_id), intval($data->product_qnty), $newQtyMode);
+        $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
-        // Step 1: Restore old raw materials
-        if ($oldPieces > 0) {
-            $this->rawMaterialStockModel->restoreForProduction(intval($existingRecord['product_id']), $oldPieces);
-        }
+        // Pre-check raw material stock
+        if ($actualPieces > 0) {
+            $preview = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, true);
 
-        // Step 2: Check if new qty has sufficient stock
-        if ($newPieces > 0) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(intval($data->product_id), $newPieces, true);
             if (!empty($preview['has_insufficient'])) {
-                // Rollback: re-deduct old amount
-                if ($oldPieces > 0) {
-                    $this->rawMaterialStockModel->deductForProduction(intval($existingRecord['product_id']), $oldPieces, false);
-                }
-                $shortByMaterial = [];
-                foreach ($preview['deductions'] as $d) {
-                    if (!$d['insufficient']) continue;
-                    $mid = $d['material_id'];
-                    if (!isset($shortByMaterial[$mid])) {
-                        $shortByMaterial[$mid] = $d['material_name']
-                            . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
-                            . ', have ' . $d['before'] . ')';
-                    }
-                }
+                $shortages = $this->buildShortageMessages($preview['deductions']);
                 return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'error' => 'Cannot update — insufficient raw material stock.',
-                    'insufficient_materials' => array_values($shortByMaterial),
+                    'success'               => false,
+                    'error'                 => 'Cannot add — insufficient raw material stock.',
+                    'insufficient_materials' => $shortages,
+                    'preview'               => $preview,
                 ]);
             }
         }
 
-        // Update distribution record
-        $updateData = [
-            'product_id' => $data->product_id,
-            'product_qnty' => $data->product_qnty,
-            'qty_mode' => $newQtyMode,
-            'distribution_date' => $data->distribution_date,
-        ];
-
         try {
-            // Step 3: Deduct raw materials for new quantity
-            if ($newPieces > 0) {
-                $this->rawMaterialStockModel->deductForProduction(intval($data->product_id), $newPieces, false);
+            // Compute inventory_amount_used (raw-material units consumed)
+            $inventoryAmountUsed = 0;
+            if ($actualPieces > 0) {
+                $deductResult        = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, false);
+                $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
-            $this->distributionModel->update($id, $updateData);
-            log_message('info', 'DISTRIBUTION UPDATE: Record updated successfully - ID: {id}', ['id' => $id]);
+            $insertData = [
+                'distribution_id'      => $groupId,
+                'product_id'           => $productId,
+                'product_qnty'         => $quantity,
+                'qty_mode'             => $qtyMode,
+                'inventory_amount_used' => $inventoryAmountUsed,
+            ];
 
-            // Check for low stock and notify owners
+            $itemModel->insert($insertData);
+            $itemId = $itemModel->getInsertID();
+
+            // Recompute group-level totals
+            $groupModel->recalculateTotals($groupId);
+
+            // Low-stock notifications
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
-            log_message('info', 'DISTRIBUTION UPDATE: Completed successfully for ID: {id}', ['id' => $id]);
-
-            // Immediate notification: distribution updated
-            $product = $this->productModel->find(intval($data->product_id));
             $productName = $product['product_name'] ?? 'Unknown Product';
-            $oldQty = intval($existingRecord['product_qnty']);
-            $newQty = intval($data->product_qnty);
-            $this->notify('notifyDistributionUpdated', $productName, $oldQty, $newQty, $data->distribution_date);
+            $this->notify('notifyDistributionCreated', $productName, $quantity, $group['distribution_date']);
 
-            return $this->response->setJSON(['message' => 'Distribution record updated successfully']);
+            log_message('info', 'DISTRIBUTION ITEM ADD: Item ID {iid} added to group {gid}', [
+                'iid' => $itemId,
+                'gid' => $groupId,
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution item added successfully',
+                'item_id' => $itemId,
+            ]);
         } catch (\Exception $e) {
-            log_message('error', 'DISTRIBUTION UPDATE: Exception - {message}', ['message' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution record']);
+            log_message('error', 'DISTRIBUTION ITEM ADD: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution item']);
         }
     }
 
-    /**
-     * Convert distribution quantity to actual pieces.
-     * 
-     * When qty_mode = 'batch':
-     *   Distribution qty = batches/yields for bakery & dough products.
-     *   For drinks/grocery, 1 qty = 1 piece (pieces_per_yield defaults to 1).
-     * 
-     * When qty_mode = 'pieces':
-     *   Distribution qty is already in pieces — no conversion needed.
-     *   Raw material deduction will compute yields = pieces / pieces_per_yield.
-     */
-    private function distributionQtyToPieces(int $productId, int $qty, string $qtyMode = 'batch'): int
+    public function updateItem(int $id)
     {
-        // If the owner entered pieces directly, qty IS the pieces count
-        if ($qtyMode === 'pieces') {
-            return $qty;
+        $data = $this->request->getJSON();
+        if (!$data) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
 
-        // --- batch mode (original logic) ---
-        $product = $this->productModel->find($productId);
-        $category = $product['category'] ?? '';
-
-        // Drinks & grocery: 1 distribution qty = 1 serving
-        if (in_array($category, ['drinks', 'grocery'])) {
-            return $qty;
+        if (!isset($data->product_id, $data->product_qnty)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'product_id and product_qnty are required']);
         }
 
-        // Bakery & dough: 1 distribution qty = 1 batch = pieces_per_yield pieces
-        $costData = model('ProductCostModel')->getCostByProductId($productId);
-        $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
+        $itemModel = model('DistributionItemModel');
+        $existing  = $itemModel->find($id);
 
-        if ($piecesPerYield <= 0) {
-            $piecesPerYield = 1;
+        if (!$existing) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
         }
 
-        return $qty * $piecesPerYield;
+        $newProductId = intval($data->product_id);
+        $newQtyMode   = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+        $newQty       = intval($data->product_qnty);
+        $groupId      = intval($existing['distribution_id']);
+
+        // Category enforcement
+        $product = $this->productModel->find($newProductId);
+        if ($product && in_array(strtolower($product['category'] ?? ''), ['grocery', 'drinks', 'dough'], true) && $newQtyMode !== 'pieces') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.',
+            ]);
+        }
+
+        $oldPieces = $this->distributionQtyToPieces(intval($existing['product_id']), intval($existing['product_qnty']), $existing['qty_mode'] ?? 'batch');
+        $newPieces = $this->distributionQtyToPieces($newProductId, $newQty, $newQtyMode);
+
+        // Restore old raw materials first
+        if ($oldPieces > 0) {
+            $this->rawMaterialStockModel->restoreForProduction(intval($existing['product_id']), $oldPieces);
+        }
+
+        // Pre-check new quantity
+        if ($newPieces > 0) {
+            $preview = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, true);
+            if (!empty($preview['has_insufficient'])) {
+                // Rollback: re-deduct the old amount
+                if ($oldPieces > 0) {
+                    $this->rawMaterialStockModel->deductForProduction(intval($existing['product_id']), $oldPieces, false);
+                }
+                $shortages = $this->buildShortageMessages($preview['deductions']);
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success'               => false,
+                    'error'                 => 'Cannot update — insufficient raw material stock.',
+                    'insufficient_materials' => $shortages,
+                ]);
+            }
+        }
+
+        try {
+            $inventoryAmountUsed = 0;
+            if ($newPieces > 0) {
+                $deductResult        = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, false);
+                $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
+            }
+
+            $itemModel->update($id, [
+                'product_id'           => $newProductId,
+                'product_qnty'         => $newQty,
+                'qty_mode'             => $newQtyMode,
+                'inventory_amount_used' => $inventoryAmountUsed,
+            ]);
+
+            // Recompute group-level totals
+            model('DistributionGroupModel')->recalculateTotals($groupId);
+
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+
+            $group       = model('DistributionGroupModel')->find($groupId);
+            $productName = $product['product_name'] ?? 'Unknown Product';
+            $this->notify('notifyDistributionUpdated', $productName, intval($existing['product_qnty']), $newQty, $group['distribution_date'] ?? '');
+
+            log_message('info', 'DISTRIBUTION ITEM UPDATE: Item ID {id} updated', ['id' => $id]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution item updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'DISTRIBUTION ITEM UPDATE: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to update distribution item']);
+        }
+    }
+
+    public function deleteItem(int $id)
+    {
+        $itemModel = model('DistributionItemModel');
+        $item      = $itemModel->find($id);
+
+        if (!$item) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
+        }
+
+        $groupId      = intval($item['distribution_id']);
+        $productId    = intval($item['product_id']);
+        $quantity     = intval($item['product_qnty']);
+        $qtyMode      = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+        $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
+
+        try {
+            if ($actualPieces > 0) {
+                $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
+            }
+
+            $itemModel->delete($id);
+
+            // Recompute group-level totals
+            model('DistributionGroupModel')->recalculateTotals($groupId);
+
+            $product     = $this->productModel->find($productId);
+            $productName = $product['product_name'] ?? 'Unknown Product';
+            $group       = model('DistributionGroupModel')->find($groupId);
+            $this->notify('notifyDistributionDeleted', $productName, $quantity, $group['distribution_date'] ?? '');
+
+            log_message('info', 'DISTRIBUTION ITEM DELETE: Item ID {id} deleted from group {gid}', [
+                'id'  => $id,
+                'gid' => $groupId,
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution item deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'DISTRIBUTION ITEM DELETE: {msg}', ['msg' => $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to delete distribution item']);
+        }
+    }
+
+    public function checkInventoryByDate()
+    {
+        $date      = $this->request->getGet('date') ?? date('Y-m-d');
+        $inventory = $this->dailyStockModel->checkInventoryExists($date);
+
+        return $this->response->setJSON([
+            'success'          => true,
+            'inventory_exists' => (bool) $inventory,
+            'date'             => $date,
+        ]);
     }
 
     public function checkDistributionToday()
     {
-        $today = date('Y-m-d');
-        $distributionData = $this->distributionModel->getDistributionByDate($today);
+        $today  = date('Y-m-d');
+        $groups = model('DistributionGroupModel')->getGroupsByDate($today);
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => $distributionData ? 'Distribution records retrieved successfully' : 'No distribution records for today',
-            'data' => $distributionData ?: []
+            'message' => $groups ? 'Distribution groups retrieved' : 'No distribution groups for today',
+            'data'    => $groups,
         ]);
+    }
+
+    private function distributionQtyToPieces(int $productId, int $qty, string $qtyMode = 'batch'): int
+    {
+        $product = $this->productModel->find($productId);
+        $costData = model('ProductCostModel')->getCostByProductId($productId);
+        $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($qty, $qtyMode, $product, $costData);
+
+        return (int) $metrics['pieces'];
+    }
+
+    /**
+     * Build human-readable shortage messages from a deduction preview.
+     *
+     * @param  array $deductions
+     * @return string[]
+     */
+    private function buildShortageMessages(array $deductions): array
+    {
+        $shortByMaterial = [];
+        foreach ($deductions as $d) {
+            if (empty($d['insufficient'])) continue;
+            $mid = $d['material_id'];
+            if (!isset($shortByMaterial[$mid])) {
+                $shortByMaterial[$mid] = $d['material_name']
+                    . ' (need ' . ($d['total_needed'] ?? $d['deduct_amount']) . ' ' . $d['unit']
+                    . ', have ' . $d['before'] . ')';
+            }
+        }
+        return array_values($shortByMaterial);
+    }
+
+    /**
+     * Sum the total raw-material units deducted across all deduction entries.
+     * Falls back to 0 if the result shape is unexpected.
+     *
+     * @param  array $deductResult – result from rawMaterialStockModel::deductForProduction
+     * @return float
+     */
+    private function sumDeductedAmount(array $deductResult): float
+    {
+        $total = 0.0;
+        foreach ($deductResult['deductions'] ?? [] as $d) {
+            $total += (float)($d['deduct_amount'] ?? 0);
+        }
+        return $total;
     }
 }

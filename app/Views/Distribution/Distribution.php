@@ -42,7 +42,7 @@
 
             <!-- Main Layout: List + Calendar -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 mb-4 lg:mb-6">
-                
+
                 <!-- Left Side: Baking List (hidden on mobile, shown on lg+) -->
                 <div class="hidden lg:block lg:col-span-5 xl:col-span-4">
                     <!-- Date Navigation for Selected Date -->
@@ -122,35 +122,35 @@
                     </div>
 
                     <?php if ($isOwnerView): ?>
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-500">Direct Cost (Day)</p>
-                                    <p id="ownerDirectCostTotalDesktop" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Direct Cost (Day)</p>
+                                        <p id="ownerDirectCostTotalDesktop" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                        <i class="fas fa-calculator text-emerald-600 text-sm"></i>
+                                    </div>
                                 </div>
-                                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                    <i class="fas fa-calculator text-emerald-600 text-sm"></i>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-violet-100 p-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Utilities (Day)</p>
+                                        <p id="ownerUtilityCostTotalDesktop" class="text-sm font-bold text-violet-600">₱0.00</p>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                                        <i class="fas fa-bolt text-violet-600 text-sm"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-white rounded-lg shadow-sm border border-violet-100 p-3">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-500">Utilities (Day)</p>
-                                    <p id="ownerUtilityCostTotalDesktop" class="text-sm font-bold text-violet-600">₱0.00</p>
-                                </div>
-                                <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-                                    <i class="fas fa-bolt text-violet-600 text-sm"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <?php endif; ?>
 
                     <!-- Distribution Groups Panel -->
-                    <div class="bg-white rounded-lg shadow-md p-4">
-                        <div class="flex items-center justify-between mb-3">
+                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-3 flex-shrink-0">
                             <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                                 <i class="fas fa-layer-group text-primary mr-1"></i>Distribution Groups
                             </h3>
@@ -160,8 +160,8 @@
                             </button>
                         </div>
 
-                        <!-- List Items -->
-                        <div id="distributionListContainer" class="space-y-2 max-h-[400px] overflow-y-auto">
+                        <!-- List Items - Scrollable -->
+                        <div id="distributionListContainer" class="space-y-2 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
                             <!-- Dynamically populated via JS -->
                         </div>
 
@@ -230,32 +230,32 @@
             </div>
 
             <?php if ($isOwnerView): ?>
-            <div id="ownerAnalyticsPanel" class="mb-4 lg:mb-6">
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                            <i class="fas fa-chart-line text-primary mr-1"></i>Distribution Analytics
-                        </h3>
-                        <span id="ownerGroupCountBadge" class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">0 groups</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                        <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
-                            <h4 id="ownerRawUsageHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Raw Material Usage (Entire Day)</h4>
-                            <div id="ownerDayRawMaterialUsage" class="space-y-1.5 max-h-[340px] overflow-y-auto">
-                                <p class="text-xs text-gray-400">No raw material usage for this date.</p>
-                            </div>
+                <div id="ownerAnalyticsPanel" class="mb-4 lg:mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                                <i class="fas fa-chart-line text-primary mr-1"></i>Distribution Analytics
+                            </h3>
+                            <span id="ownerGroupCountBadge" class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">0 groups</span>
                         </div>
 
-                        <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
-                            <h4 id="ownerForecastDirectCostHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per-Group Forecast & Direct Cost</h4>
-                            <div id="ownerGroupAnalyticsContainer" class="space-y-2 max-h-[340px] overflow-y-auto">
-                                <p class="text-xs text-gray-400">No distribution groups yet.</p>
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
+                                <h4 id="ownerRawUsageHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Raw Material Usage (Entire Day)</h4>
+                                <div id="ownerDayRawMaterialUsage" class="space-y-1.5 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
+                                    <p class="text-xs text-gray-400">No raw material usage for this date.</p>
+                                </div>
+                            </div>
+
+                            <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
+                                <h4 id="ownerForecastDirectCostHeading" class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per-Group Forecast & Direct Cost</h4>
+                                <div id="ownerGroupAnalyticsContainer" class="space-y-2 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 pr-1">
+                                    <p class="text-xs text-gray-400">No distribution groups yet.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <!-- Mobile Card View (shown below on mobile) -->
@@ -302,16 +302,16 @@
                 </div>
 
                 <?php if ($isOwnerView): ?>
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
-                        <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
+                            <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-violet-100 shadow-sm">
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Utilities</p>
+                            <p id="ownerUtilityCostTotalMobile" class="text-sm font-bold text-violet-600">₱0.00</p>
+                        </div>
                     </div>
-                    <div class="bg-white rounded-lg p-3 border border-violet-100 shadow-sm">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Utilities</p>
-                        <p id="ownerUtilityCostTotalMobile" class="text-sm font-bold text-violet-600">₱0.00</p>
-                    </div>
-                </div>
                 <?php endif; ?>
 
                 <!-- Cards Container -->
@@ -382,7 +382,7 @@
                 </div>
             </div>
 
-            
+
             <!-- Forecasted Sales (Modal) -->
             <div class="flex items-center justify-between p-2.5 bg-primary/10 border border-primary/20 rounded-lg mb-4">
                 <div class="flex items-center gap-2">
@@ -522,33 +522,33 @@
                     <!-- Quantity Mode & Quantity (shown after product is selected) -->
                     <div id="qtyModeSection" class="hidden">
 
-                    <!-- Quantity Mode Toggle -->
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Per</label>
-                        <div class="flex rounded-lg border border-gray-300 overflow-hidden">
-                            <button type="button" id="btnModeBatch" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors" data-mode="batch">
-                                <i class="fas fa-boxes mr-1"></i>Batch
-                            </button>
-                            <button type="button" id="btnModeBox" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-mode="box">
-                                <i class="fas fa-box-open mr-1"></i>Box
-                            </button>
-                            <button type="button" id="btnModePieces" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-mode="pieces">
-                                <i class="fas fa-puzzle-piece mr-1"></i>Piece
-                            </button>
+                        <!-- Quantity Mode Toggle -->
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Per</label>
+                            <div class="flex rounded-lg border border-gray-300 overflow-hidden">
+                                <button type="button" id="btnModeBatch" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors" data-mode="batch">
+                                    <i class="fas fa-boxes mr-1"></i>Batch
+                                </button>
+                                <button type="button" id="btnModeBox" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-mode="box">
+                                    <i class="fas fa-box-open mr-1"></i>Box
+                                </button>
+                                <button type="button" id="btnModePieces" class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-mode="pieces">
+                                    <i class="fas fa-puzzle-piece mr-1"></i>Piece
+                                </button>
+                            </div>
+                            <input type="hidden" id="selectedQtyMode" value="batch">
                         </div>
-                        <input type="hidden" id="selectedQtyMode" value="batch">
-                    </div>
 
-                    <!-- Quantity -->
-                    <div class="mb-3">
-                        <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (per batch) <span class="text-red-500">*</span></label>
-                        <input type="number" id="addProductQty" min="1" value="10" step="0.00001"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="10">
-                        <p id="piecesConversionHint" class="hidden mt-1 text-xs text-gray-500">
-                            <i class="fas fa-calculator mr-1"></i><span id="conversionText"></span>
-                        </p>
-                    </div>
+                        <!-- Quantity -->
+                        <div class="mb-3">
+                            <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (per batch) <span class="text-red-500">*</span></label>
+                            <input type="number" id="addProductQty" min="1" value="10" step="0.00001"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="10">
+                            <p id="piecesConversionHint" class="hidden mt-1 text-xs text-gray-500">
+                                <i class="fas fa-calculator mr-1"></i><span id="conversionText"></span>
+                            </p>
+                        </div>
 
                     </div><!-- /qtyModeSection -->
 
@@ -654,14 +654,41 @@
         let currentDayDistributionItems = []; // Store current selected date distribution items
         let currentDayGroupedData = []; // Grouped analytics for selected date
         let currentDaySummary = {}; // Day analytics summary for selected date
-        let selectedGroupFilter = { date: '', key: '' }; // Active selected group scope for analytics cards/panels
+        let selectedGroupFilter = {
+            date: '',
+            key: ''
+        }; // Active selected group scope for analytics cards/panels
         let addItemsModalMode = 'create'; // create | edit
         let editingGroupContext = null; // Active group edit metadata context
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         const distributionGroupStorageKey = 'engbakery_distribution_group_meta_v1';
+        const enableApiDebugLogs = true;
+
+
 
         $(document).ready(function() {
+
+            function logDistributionFlow(level, message, details = {}) {
+                if (!enableApiDebugLogs) return;
+
+                const logger = (level === 'error') ? console.error :
+                    ((level === 'warn') ? console.warn :
+                        ((level === 'debug') ? console.debug : console.log));
+
+                logger(`[DistributionFlow] ${message}`, Object.assign({
+                    at: new Date().toISOString(),
+                }, details || {}));
+            }
+
+            function normalizeDistributionGroupIdForApi(groupIdOrKey) {
+                const rawValue = String(groupIdOrKey ?? '').trim();
+                if (!rawValue) return '';
+
+                const withoutPrefix = rawValue.replace(/^group-/i, '');
+                const numericOnly = withoutPrefix.match(/^\d+$/) ? withoutPrefix : rawValue;
+                return numericOnly;
+            }
 
             baseUrl = '<?= base_url() ?>';
 
@@ -672,7 +699,6 @@
             renderCalendar();
             loadMonthDistributions();
             loadAllDistributions();
-
             // ===== API FUNCTIONS =====
 
             function getProducts() {
@@ -730,13 +756,13 @@
                     success: function(response) {
                         if (response && response.success && Array.isArray(response.data)) {
                             mergeProductCostRecords(response.data);
+                            // Re-decorate existing items with new cost data instead of re-fetching
+                            if (currentDayDistributionItems.length > 0) {
+                                currentDayDistributionItems = decorateDistributionItems(currentDayDistributionItems, currentSelectedDate);
+                            }
                         }
 
-                        if (currentDayDistributionItems.length > 0) {
-                            loadDistributionByDate();
-                        } else {
-                            renderAllDistributionsList();
-                        }
+                        renderAllDistributionsList();
                     },
                     error: function() {
                         // Keep using lightweight product data fallback.
@@ -757,8 +783,8 @@
                                 const billedDate = (expense.billed_at || '').toString().slice(0, 10);
                                 if (!billedDate) return;
 
-                                utilityExpensesByDate[billedDate] = (utilityExpensesByDate[billedDate] || 0)
-                                    + parseNumericValue(expense.expense);
+                                utilityExpensesByDate[billedDate] = (utilityExpensesByDate[billedDate] || 0) +
+                                    parseNumericValue(expense.expense);
                             });
                         }
 
@@ -809,11 +835,27 @@
                 return parsed > 0 ? parsed : 1;
             }
 
+            function getProductTraysPerYield(product) {
+                const parsed = parseNumericValue(product && product.trays_per_yield);
+                return parsed > 0 ? parsed : 0;
+            }
+
+            function getProductBatchPiecesPerYield(product) {
+                const traysPerYield = getProductTraysPerYield(product);
+                const piecesPerYield = getProductPiecesPerYield(product);
+
+                return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
+            }
+
+            function getProductBoxPieces(product) {
+                return getProductPiecesPerYield(product);
+            }
+
             function getDistributionPieces(item, product) {
                 const quantity = parseNumericValue(item && item.product_qnty);
                 const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
                 const category = ((product && product.category) || '').toLowerCase();
-                const piecesPerYield = getProductPiecesPerYield(product);
+                const batchPiecesPerYield = getProductBatchPiecesPerYield(product);
 
                 if (qtyMode === 'pieces') {
                     return quantity;
@@ -823,16 +865,45 @@
                     return quantity;
                 }
 
-                return quantity * piecesPerYield;
+                if (qtyMode === 'box') {
+                    return quantity * getProductBoxPieces(product);
+                }
+
+                return quantity * batchPiecesPerYield;
+            }
+
+            function getDistributionYieldUnits(item, product) {
+                const quantity = parseNumericValue(item && item.product_qnty);
+                const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
+                const category = ((product && product.category) || '').toLowerCase();
+                const traysPerYield = getProductTraysPerYield(product);
+                const batchPiecesPerYield = getProductBatchPiecesPerYield(product);
+
+                if (qtyMode === 'pieces') {
+                    return batchPiecesPerYield > 0 ? (quantity / batchPiecesPerYield) : quantity;
+                }
+
+                if (category === 'drinks' || category === 'grocery') {
+                    return quantity;
+                }
+
+                if (qtyMode === 'box') {
+                    if (traysPerYield > 0) {
+                        return quantity / traysPerYield;
+                    }
+
+                    const pieces = getDistributionPieces(item, product);
+                    return batchPiecesPerYield > 0 ? (pieces / batchPiecesPerYield) : quantity;
+                }
+
+                return quantity;
             }
 
             function calculateItemDirectCost(item, product) {
                 const directCostPerYield = parseNumericValue(product && product.direct_cost);
                 if (directCostPerYield <= 0) return 0;
 
-                const pieces = getDistributionPieces(item, product);
-                const piecesPerYield = getProductPiecesPerYield(product);
-                const yieldsNeeded = pieces / piecesPerYield;
+                const yieldsNeeded = getDistributionYieldUnits(item, product);
 
                 return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
             }
@@ -845,14 +916,34 @@
                     const productData = getProductAnalyticsData(decoratedItem.product_id);
                     const quantity = parseNumericValue(decoratedItem.product_qnty);
 
+                    // ─────────────────────────────────────────────────────────────
+                    // Compute forecasted sales
+                    // Priority: explicit value > computed from product pricing
+                    // ─────────────────────────────────────────────────────────────
                     const explicitForecast = parseNumericValue(decoratedItem.forecasted_sales);
                     const computedForecast = quantity * getForecastUnitPrice(productData, decoratedItem.qty_mode || 'batch');
                     decoratedItem.forecasted_sales = explicitForecast > 0 ? explicitForecast : computedForecast;
 
+                    // ─────────────────────────────────────────────────────────────
+                    // Compute direct cost
+                    // Priority: explicit value > product direct_cost > calculated
+                    // Use product's direct_cost field (cost to produce one batch/piece/yield)
+                    // ─────────────────────────────────────────────────────────────
                     const explicitDirectCost = parseNumericValue(decoratedItem.direct_cost);
-                    decoratedItem.direct_cost = explicitDirectCost > 0
-                        ? explicitDirectCost
-                        : calculateItemDirectCost(decoratedItem, productData);
+                    let computedDirectCost = 0;
+
+                    if (explicitDirectCost > 0) {
+                        // Use explicit value if available
+                        computedDirectCost = explicitDirectCost;
+                    } else if (productData && parseNumericValue(productData.direct_cost) > 0) {
+                            // Use tray-aware yield conversion so box and piece modes match backend costing.
+                            computedDirectCost = calculateItemDirectCost(decoratedItem, productData);
+                    } else {
+                        // Fallback: calculate from product data
+                        computedDirectCost = calculateItemDirectCost(decoratedItem, productData);
+                    }
+
+                    decoratedItem.direct_cost = computedDirectCost;
 
                     if (!Array.isArray(decoratedItem.raw_material_usage)) {
                         decoratedItem.raw_material_usage = [];
@@ -1028,8 +1119,8 @@
                 const dateMeta = allMeta[dateKey] || {};
                 const usedNames = new Set(
                     Object.values(dateMeta)
-                        .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
-                        .filter(Boolean)
+                    .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
+                    .filter(Boolean)
                 );
 
                 let sequence = 1;
@@ -1102,14 +1193,6 @@
                 return '';
             }
 
-            function getDistinctGroupCount(items, fallbackDate = '') {
-                const set = new Set();
-                (items || []).forEach(function(item) {
-                    set.add(getDistributionGroupKey(item, fallbackDate));
-                });
-                return set.size;
-            }
-
             function groupDistributionsByGroup(items, fallbackDate = '') {
                 const groupedMap = {};
 
@@ -1175,25 +1258,25 @@
             function buildGroupScopedSummary(group, items, dateStr) {
                 const groupItems = Array.isArray(items) ? items : [];
 
-                const totalBatches = group
-                    ? parseNumericValue(group.total_batches)
-                    : groupItems.reduce(function(sum, item) {
+                const totalBatches = group ?
+                    parseNumericValue(group.total_batches) :
+                    groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                const totalPieces = group
-                    ? parseNumericValue(group.total_pieces)
-                    : groupItems.reduce(function(sum, item) {
+                const totalPieces = group ?
+                    parseNumericValue(group.total_pieces) :
+                    groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                const forecastTotal = group
-                    ? (parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems))
-                    : calculateForecastedSalesTotal(groupItems);
+                const forecastTotal = group ?
+                    (parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems)) :
+                    calculateForecastedSalesTotal(groupItems);
 
-                const directCostTotal = group
-                    ? parseNumericValue(group.direct_cost)
-                    : groupItems.reduce(function(sum, item) {
+                const directCostTotal = group ?
+                    parseNumericValue(group.direct_cost) :
+                    groupItems.reduce(function(sum, item) {
                         return sum + parseNumericValue(item.direct_cost);
                     }, 0);
 
@@ -1205,9 +1288,8 @@
                     forecasted_sales_total: forecastTotal,
                     direct_cost_total: directCostTotal,
                     utilities_expense_total: getUtilityExpenseForDate(dateStr),
-                    raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total)
-                        ? group.raw_material_usage_total
-                        : [],
+                    raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
+                        group.raw_material_usage_total : [],
                 };
             }
 
@@ -1220,13 +1302,19 @@
 
             function clearSelectedGroupFilter(dateStr = null) {
                 if (dateStr == null) {
-                    selectedGroupFilter = { date: '', key: '' };
+                    selectedGroupFilter = {
+                        date: '',
+                        key: ''
+                    };
                     return;
                 }
 
                 const normalizedDate = (dateStr || '').toString().trim();
                 if ((selectedGroupFilter.date || '') === normalizedDate) {
-                    selectedGroupFilter = { date: '', key: '' };
+                    selectedGroupFilter = {
+                        date: '',
+                        key: ''
+                    };
                 }
             }
 
@@ -1272,9 +1360,12 @@
 
             function formatMaterialAmount(amount) {
                 const value = parseNumericValue(amount);
-                return Number.isFinite(value)
-                    ? value.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 4 })
-                    : '0';
+                return Number.isFinite(value) ?
+                    value.toLocaleString('en-PH', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 4
+                    }) :
+                    '0';
             }
 
             function renderMaterialUsageList(materials) {
@@ -1452,13 +1543,19 @@
             }
 
             async function hydrateOwnerRawMaterialAnalytics(selectedDate, decoratedItems, summaryTemplate = {}) {
-                if (!isOwnerView) return;
+                if (!isOwnerView) {
+                    return;
+                }
 
                 const targetDate = (selectedDate || '').toString().trim();
-                if (!targetDate) return;
+                if (!targetDate) {
+                    return;
+                }
 
                 if (!Array.isArray(decoratedItems) || decoratedItems.length === 0) {
-                    const emptySummary = Object.assign({}, summaryTemplate, { raw_material_usage_total: [] });
+                    const emptySummary = Object.assign({}, summaryTemplate, {
+                        raw_material_usage_total: []
+                    });
                     currentDaySummary = emptySummary;
 
                     const emptyDisplayState = getDisplayStateForSelectedGroup(targetDate, [], [], emptySummary);
@@ -1474,9 +1571,13 @@
                 const usagePromises = decoratedItems.map(async function(item) {
                     try {
                         const usage = await computeRawMaterialUsageForItem(item);
-                        return Object.assign({}, item, { raw_material_usage: usage });
+                        return Object.assign({}, item, {
+                            raw_material_usage: usage
+                        });
                     } catch (error) {
-                        return Object.assign({}, item, { raw_material_usage: [] });
+                        return Object.assign({}, item, {
+                            raw_material_usage: []
+                        });
                     }
                 });
 
@@ -1537,7 +1638,9 @@
             }
 
             function renderOwnerAnalytics(groups, summary) {
-                if (!isOwnerView) return;
+                if (!isOwnerView) {
+                    return;
+                }
 
                 const normalizedGroups = Array.isArray(groups) ? groups : [];
                 const groupContainer = $('#ownerGroupAnalyticsContainer');
@@ -1548,24 +1651,23 @@
                 const activeScopeDate = (selectedGroupFilter.date || '').toString().trim();
                 const activeScopeKey = (selectedGroupFilter.key || '').toString().trim();
                 const isGroupScoped = Boolean(activeScopeDate && activeScopeKey && activeScopeDate === selectedDateValue);
-                const scopedGroupName = isGroupScoped && normalizedGroups.length === 1
-                    ? (normalizedGroups[0].group_name || 'Selected Group')
-                    : 'Selected Group';
+                const scopedGroupName = isGroupScoped && normalizedGroups.length === 1 ?
+                    (normalizedGroups[0].group_name || 'Selected Group') :
+                    'Selected Group';
 
                 $('#ownerGroupCountBadge').text(`${normalizedGroups.length} ${normalizedGroups.length === 1 ? 'group' : 'groups'}`);
 
-                rawUsageHeading.text(isGroupScoped
-                    ? `Raw Material Usage (${scopedGroupName})`
-                    : 'Raw Material Usage (Entire Day)'
+                rawUsageHeading.text(isGroupScoped ?
+                    `Raw Material Usage (${scopedGroupName})` :
+                    'Raw Material Usage (Entire Day)'
                 );
-                forecastHeading.text(isGroupScoped
-                    ? `Forecast & Direct Cost (${scopedGroupName})`
-                    : 'Per-Group Forecast & Direct Cost'
+                forecastHeading.text(isGroupScoped ?
+                    `Forecast & Direct Cost (${scopedGroupName})` :
+                    'Per-Group Forecast & Direct Cost'
                 );
 
-                const dayMaterials = Array.isArray(summary.raw_material_usage_total)
-                    ? summary.raw_material_usage_total
-                    : [];
+                const dayMaterials = Array.isArray(summary.raw_material_usage_total) ?
+                    summary.raw_material_usage_total : [];
 
                 if (dayMaterials.length === 0) {
                     materialsContainer.html(`<p class="text-xs text-gray-400">${isGroupScoped ? 'No raw material usage for this selected group.' : 'No raw material usage for this date.'}</p>`);
@@ -1694,9 +1796,9 @@
                     const previewNames = dayItems.slice(0, 2).map(item => item.product_name).join(', ');
                     const extraItems = dayItems.length > 2 ? ' +' + (dayItems.length - 2) + ' more' : '';
                     const note = extractDistributionNote(dayItems);
-                    const noteHtml = note
-                        ? `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${note}</p>`
-                        : '';
+                    const noteHtml = note ?
+                        `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${note}</p>` :
+                        '';
 
                     const row = `
                         <button type="button" class="all-distribution-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-date="${dateStr}">
@@ -1727,16 +1829,41 @@
                 $.ajax({
                     url: baseUrl + 'Distribution/GetDistributionByDate',
                     method: 'GET',
-                    data: { date: date },
+                    data: {
+                        date: date
+                    },
                     dataType: 'json',
                     success: function(response) {
                         const responseNote = extractDistributionNote([], response.distribution_note || response.overall_note || response.note || response.place_distributed_to || response.place_distributed || '');
 
                         if (response.success) {
-                            const items = decorateDistributionItems(response.data || [], date);
+                            // Flatten nested groups into a single array of items
+                            // Each item gets decorated with its group metadata and pricing information
+                            const flattenedItems = [];
+                            const apiGroups = Array.isArray(response.data) ? response.data : [];
+
+                            apiGroups.forEach(function(group) {
+                                const groupItems = Array.isArray(group.items) ? group.items : [];
+                                groupItems.forEach(function(item) {
+                                    // Attach group-level information to each item
+                                    const itemWithGroup = Object.assign({}, item, {
+                                        // Group metadata
+                                        distribution_id: group.id,
+                                        distribution_group_key: 'group-' + String(group.id),
+                                        distribution_group_name: group.title,
+                                        group_title: group.title,
+                                        group_forecasted_sales: group.forecasted_sales,
+                                        group_direct_cost: group.direct_cost,
+                                        distributed_to_note: group.distributed_to_note,
+                                        // Trust backend-computed values; don't override
+                                    });
+                                    flattenedItems.push(itemWithGroup);
+                                });
+                            });
+
+                            const items = decorateDistributionItems(flattenedItems, date);
                             const groupedData = groupDistributionsByGroup(items, date);
-                            const summary = Object.assign(
-                                {
+                            const summary = Object.assign({
                                     date: date,
                                     total_items: items.length,
                                     total_groups: getDistinctGroupCount(items, date),
@@ -1801,6 +1928,13 @@
                         }
                     },
                     error: function(xhr, status, error) {
+                        console.error('%c[DISTRIBUTION ERROR]', 'color: #FF0000; font-weight: bold', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            error: error,
+                            responseText: xhr.responseText,
+                            date: date
+                        });
                         clearSelectedGroupFilter(date);
                         currentDayDistributionItems = [];
                         currentDayGroupedData = [];
@@ -1819,11 +1953,11 @@
             function loadMonthDistributions() {
                 const startDate = new Date(currentCalendarYear, currentCalendarMonth, 1);
                 const endDate = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
-                
+
                 $.ajax({
                     url: baseUrl + 'Distribution/GetDistributionByDateRange',
                     method: 'GET',
-                    data: { 
+                    data: {
                         start_date: formatDate(startDate),
                         end_date: formatDate(endDate)
                     },
@@ -1869,34 +2003,99 @@
                 });
             }
 
-            function addDistributionItemRequest(payload) {
+            // OLD → Distribution/AddDistribution
+            // NEW → Distribution/AddItem
+            function addDistributionItemRequest(payload, rawQtyMode = null) {
                 return new Promise(function(resolve, reject) {
+                    const requestId = `add-item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    const normalizedDistributionId = normalizeDistributionGroupIdForApi(payload.distribution_id);
+                    const requestPayload = {
+                        distribution_id: normalizedDistributionId,
+                        product_id: payload.product_id,
+                        product_qnty: payload.product_qnty,
+                        qty_mode: payload.qty_mode,
+                    };
+
+                    logDistributionFlow('log', 'Add distribution item request started.', {
+                        request_id: requestId,
+                        endpoint: 'Distribution/AddItem',
+                        raw_distribution_id: payload.distribution_id,
+                        normalized_distribution_id: normalizedDistributionId,
+                        payload: requestPayload,
+                        raw_qty_mode: rawQtyMode,
+                    });
+
                     $.ajax({
-                        url: baseUrl + 'Distribution/AddDistribution',
+                        url: baseUrl + 'Distribution/AddItem',
                         method: 'POST',
                         contentType: 'application/json',
                         dataType: 'json',
-                        data: JSON.stringify(payload),
+                        data: JSON.stringify(requestPayload),
                         success: function(response) {
+                            logDistributionFlow('log', 'Add distribution item request succeeded.', {
+                                request_id: requestId,
+                                endpoint: 'Distribution/AddItem',
+                                response: response || {},
+                            });
                             resolve(response || {});
                         },
                         error: function(xhr) {
+                            logDistributionFlow('error', 'Add distribution item request failed.', {
+                                request_id: requestId,
+                                endpoint: 'Distribution/AddItem',
+                                status: xhr.status,
+                                status_text: xhr.statusText,
+                                response: xhr.responseJSON,
+                                payload: requestPayload,
+                                raw_qty_mode: rawQtyMode
+                            });
                             reject(xhr);
                         }
                     });
                 });
             }
 
+            // OLD → Distribution/DeleteDistribution/:id
+            // NEW → Distribution/DeleteItem/:id
             function deleteDistributionItemRequest(itemId) {
                 return new Promise(function(resolve, reject) {
                     $.ajax({
-                        url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
+                        url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                         method: 'POST',
                         dataType: 'json',
                         success: function(response) {
                             resolve(response || {});
                         },
                         error: function(xhr) {
+                            console.error('  ERROR - Failed to delete item:', {
+                                status: xhr.status,
+                                error: xhr.responseJSON,
+                                itemId: itemId
+                            });
+                            reject(xhr);
+                        }
+                    });
+                });
+            }
+
+            function deleteDistributionGroupRequest(groupId) {
+                return new Promise(function(resolve, reject) {
+                    const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
+
+                    $.ajax({
+                        url: baseUrl + 'Distribution/DeleteGroup/' + normalizedGroupId,
+                        method: 'POST',
+                        dataType: 'json',
+                        success: function(response) {
+                            resolve(response || {});
+                        },
+                        error: function(xhr) {
+                            console.error('  ERROR - Failed to delete group:', {
+                                status: xhr.status,
+                                error: xhr.responseJSON,
+                                groupId: groupId,
+                                normalizedGroupId: normalizedGroupId,
+                            });
                             reject(xhr);
                         }
                     });
@@ -1908,11 +2107,15 @@
                     $.ajax({
                         url: baseUrl + 'Distribution/GetDistributionByDate',
                         method: 'GET',
-                        data: { date: dateStr },
+                        data: {
+                            date: dateStr
+                        },
                         dataType: 'json',
                         success: function(response) {
                             if (response && response.success) {
-                                resolve(decorateDistributionItems(response.data || [], dateStr));
+                                // Flatten grouped data before decorating
+                                const flattenedData = flattenGroupedDataIfNeeded(response.data || [], dateStr);
+                                resolve(decorateDistributionItems(flattenedData, dateStr));
                                 return;
                             }
                             resolve([]);
@@ -1926,10 +2129,10 @@
 
             function getDistributionItemId(item) {
                 const rawId = item && (
+                    item.id ??
+                    item.item_id ??
+                    item.distribution_item_id ??
                     item.distribution_id
-                    ?? item.id
-                    ?? item.item_id
-                    ?? item.distribution_item_id
                 );
                 const parsed = parseInt(rawId, 10);
                 return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
@@ -1946,7 +2149,7 @@
 
             function deleteDistributionItem(itemId, productId = null, dateValue = null) {
                 $.ajax({
-                    url: baseUrl + 'Distribution/DeleteDistribution/' + itemId,
+                    url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                     method: 'POST',
                     dataType: 'json',
                     success: function(response) {
@@ -1965,40 +2168,66 @@
                 });
             }
 
+
+            // OLD → Distribution/UpdateDistribution/:id
+            // NEW → Distribution/UpdateItem/:id
             function updateDistributionItem(itemId, quantity) {
                 const row = $('[data-id="' + itemId + '"]');
                 const productId = row.data('product-id');
                 const qtyMode = row.data('qty-mode') || 'batch';
                 const date = $('#selectedDate').val();
+                const requestId = `update-item-${itemId}-${Date.now()}`;
+                const requestPayload = {
+                    product_id: productId,
+                    product_qnty: quantity,
+                    qty_mode: qtyMode,
+                };
+
+                logDistributionFlow('log', 'Update distribution item request started.', {
+                    request_id: requestId,
+                    endpoint: 'Distribution/UpdateItem/:id',
+                    item_id: itemId,
+                    selected_date: date,
+                    payload: requestPayload,
+                });
 
                 $.ajax({
-                    url: baseUrl + 'Distribution/UpdateDistribution/' + itemId,
+                    url: baseUrl + 'Distribution/UpdateItem/' + itemId,
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({
-                        product_id: productId,
-                        product_qnty: quantity,
-                        qty_mode: qtyMode === 'box' ? 'batch' : qtyMode,
-                        distribution_date: date
-                    }),
                     dataType: 'json',
+                    data: JSON.stringify(requestPayload),
                     success: function(response) {
+                        logDistributionFlow('log', 'Update distribution item request succeeded.', {
+                            request_id: requestId,
+                            endpoint: 'Distribution/UpdateItem/:id',
+                            item_id: itemId,
+                            response: response || {},
+                        });
                         showToast('success', 'Quantity updated successfully!', 3000);
                         loadDistributionByDate();
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function(xhr, status, error) {
+                    error: function(xhr) {
+                        logDistributionFlow('error', 'Update distribution item request failed.', {
+                            request_id: requestId,
+                            endpoint: 'Distribution/UpdateItem/:id',
+                            item_id: itemId,
+                            status: xhr.status,
+                            response: xhr.responseJSON || null,
+                        });
+
                         if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                             showToast('danger', xhr.responseJSON.error, 4000);
                             showInsufficientMaterialsAlert(xhr.responseJSON.insufficient_materials);
                         } else {
                             showToast('danger', 'Failed to update quantity. Please try again.', 3000);
-                            console.error('Error updating item:', error);
                         }
                     }
                 });
             }
+
 
             // ===== CALENDAR FUNCTIONS =====
 
@@ -2016,8 +2245,9 @@
                 const selectedDate = $('#selectedDate').val();
 
                 // Update month label
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
                 $('#calendarMonth').text(monthNames[currentCalendarMonth] + ' ' + currentCalendarYear);
 
                 // Empty slots for days before month starts
@@ -2039,7 +2269,27 @@
 
                     let groupsPreview = '';
                     if (hasItems) {
-                        const groupedData = normalizeGroupedData(dayData, null, dateStr);
+                        // Determine if data is already grouped
+                        let groupedData = [];
+                        if (dayData.length > 0 && dayData[0] && typeof dayData[0] === 'object' && Array.isArray(dayData[0].items)) {
+                            // Already grouped (from calendar API) - transform to expected format
+                            groupedData = dayData.map(function(apiGroup) {
+                                const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
+                                return {
+                                    group_key: 'group-' + String(apiGroup.id),
+                                    group_name: (apiGroup.title || 'Default Group').toString(),
+                                    group_note: (apiGroup.distributed_to_note || '').toString(),
+                                    forecasted_sales: parseNumericValue(apiGroup.forecasted_sales),
+                                    direct_cost: parseNumericValue(apiGroup.direct_cost),
+                                    items: groupItems,
+                                    _apiId: apiGroup.id
+                                };
+                            });
+                        } else {
+                            // Flat items - need to group
+                            groupedData = normalizeGroupedData(dayData, null, dateStr);
+                        }
+
                         const maxVisibleGroups = window.matchMedia('(max-width: 639px)').matches ? 2 : 3;
                         const visibleGroups = groupedData.slice(0, maxVisibleGroups);
                         const hiddenGroupsCount = Math.max(0, groupedData.length - visibleGroups.length);
@@ -2092,6 +2342,7 @@
                     currentCalendarMonth = 0;
                     currentCalendarYear++;
                 }
+
                 loadMonthDistributions();
             });
 
@@ -2132,9 +2383,9 @@
                 const materialUsageByItemHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
                     const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
-                    const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0)
-                        ? '<p class="text-[11px] text-gray-400">Loading ingredients used...</p>'
-                        : renderMaterialUsageList(itemMaterials);
+                    const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0) ?
+                        '<p class="text-[11px] text-gray-400">Loading ingredients used...</p>' :
+                        renderMaterialUsageList(itemMaterials);
 
                     return `
                         <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
@@ -2219,19 +2470,24 @@
                 const normalizedItems = Array.isArray(items) ? items : [];
 
                 const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
-                    const existingUsage = Array.isArray(item && item.raw_material_usage)
-                        ? item.raw_material_usage
-                        : [];
+                    const existingUsage = Array.isArray(item && item.raw_material_usage) ?
+                        item.raw_material_usage : [];
 
                     if (existingUsage.length > 0) {
-                        return Object.assign({}, item, { raw_material_usage: existingUsage });
+                        return Object.assign({}, item, {
+                            raw_material_usage: existingUsage
+                        });
                     }
 
                     try {
                         const usage = await computeRawMaterialUsageForItem(item);
-                        return Object.assign({}, item, { raw_material_usage: usage });
+                        return Object.assign({}, item, {
+                            raw_material_usage: usage
+                        });
                     } catch (error) {
-                        return Object.assign({}, item, { raw_material_usage: [] });
+                        return Object.assign({}, item, {
+                            raw_material_usage: []
+                        });
                     }
                 }));
 
@@ -2251,9 +2507,9 @@
             async function openCalendarModalGroupDetail(dateStr, groupKey, sourceItems = null) {
                 const normalizedDate = (dateStr || '').toString();
                 const normalizedGroupKey = (groupKey || '').toString();
-                const candidateItems = Array.isArray(sourceItems)
-                    ? sourceItems
-                    : ($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []);
+                const candidateItems = Array.isArray(sourceItems) ?
+                    flattenGroupedDataIfNeeded(sourceItems, normalizedDate) :
+                    flattenGroupedDataIfNeeded(($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []), normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
                 const matchedGroup = groupedData.find(function(group) {
@@ -2292,10 +2548,10 @@
                 const activeScope = ($('#calendarDayModal').data('selection-scope') || '').toString();
                 const activeGroupKey = ($('#calendarDayModal').data('selected-group-key') || '').toString();
 
-                if ($('#calendarDayModal').hasClass('hidden')
-                    || activeDate !== normalizedDate
-                    || activeScope !== 'group'
-                    || activeGroupKey !== normalizedGroupKey) {
+                if ($('#calendarDayModal').hasClass('hidden') ||
+                    activeDate !== normalizedDate ||
+                    activeScope !== 'group' ||
+                    activeGroupKey !== normalizedGroupKey) {
                     return;
                 }
 
@@ -2317,9 +2573,9 @@
 
                 setSelectedGroupFilter(normalizedDate, normalizedGroupKey);
 
-                const candidateItems = Array.isArray(sourceItems)
-                    ? sourceItems
-                    : (calendarData[normalizedDate] || currentDayDistributionItems || []);
+                const candidateItems = Array.isArray(sourceItems) ?
+                    flattenGroupedDataIfNeeded(sourceItems, normalizedDate) :
+                    flattenGroupedDataIfNeeded((calendarData[normalizedDate] || currentDayDistributionItems || []), normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
                 const matchedGroup = groupedData.find(function(group) {
@@ -2354,7 +2610,9 @@
 
                 const dateStr = ($(this).data('date') || '').toString();
                 const dayData = calendarData[dateStr] || [];
-                showCalendarDayModal(dateStr, dayData, { groupPicker: true });
+                showCalendarDayModal(dateStr, dayData, {
+                    groupPicker: true
+                });
             });
 
             // Calendar group chip click - open selected group directly
@@ -2412,27 +2670,123 @@
                 setCalendarDayModalPane('list');
             });
 
+            // Helper function to flatten grouped data from API into flat items array
+            function flattenGroupedDataIfNeeded(data, dateStr) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    return [];
+                }
+
+                // Check if data is already structured as groups with items
+                // (each element has an 'items' property containing actual distribution items)
+                if (data[0] && typeof data[0] === 'object' && Array.isArray(data[0].items)) {
+
+                    const flatItems = [];
+                    data.forEach(function(group) {
+                        const groupDate = (group.distribution_date || dateStr || '').toString();
+                        const groupItems = Array.isArray(group.items) ? group.items : [];
+
+                        // Use group ID as the distribution_group_key to preserve grouping during regroup phase
+                        const groupKey = 'group-' + String(group.id);
+
+                        groupItems.forEach(function(item) {
+                            flatItems.push(Object.assign({}, item, {
+                                distribution_date: groupDate,
+                                distribution_id: group.id,
+                                distribution_group_key: groupKey, // Preserve original group
+                                distribution_group_name: group.title,
+                                distribution_group_note: group.distributed_to_note,
+                                group_title: group.title,
+                                group_forecasted_sales: group.forecasted_sales,
+                                group_direct_cost: group.direct_cost,
+                                distributed_to_note: group.distributed_to_note
+                            }));
+                        });
+                    });
+                    return flatItems;
+                }
+                return data;
+            }
+
             function showCalendarDayModal(dateStr, items, modalOptions = {}) {
+
                 const date = new Date(dateStr + 'T00:00:00');
-                const dateDisplayOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateDisplayOptions = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
                 const formatted = date.toLocaleDateString('en-US', dateDisplayOptions);
-                const groupedData = normalizeGroupedData(items, null, dateStr);
+
+                // Determine if data is already grouped or flat items
+                let groupedData = [];
+                let flatItems = [];
+
+                if (Array.isArray(items) && items.length > 0 && items[0] && typeof items[0] === 'object' && Array.isArray(items[0].items)) {
+
+                    // Transform API groups to match expected format
+                    groupedData = items.map(function(apiGroup) {
+                        const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
+                        const totalBatches = groupItems.reduce(function(sum, item) {
+                            return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                        }, 0);
+                        const totalPieces = groupItems.reduce(function(sum, item) {
+                            return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                        }, 0);
+
+                        return {
+                            group_key: 'group-' + String(apiGroup.id),
+                            group_name: (apiGroup.title || 'Default Group').toString(),
+                            group_note: (apiGroup.distributed_to_note || '').toString(),
+                            total_items: groupItems.length,
+                            total_batches: totalBatches,
+                            total_pieces: totalPieces,
+                            forecasted_sales: parseNumericValue(apiGroup.forecasted_sales),
+                            direct_cost: parseNumericValue(apiGroup.direct_cost),
+                            items: groupItems,
+                            // Keep original API data for reference
+                            _apiId: apiGroup.id,
+                            _apiDate: apiGroup.distribution_date
+                        };
+                    });
+
+                    // Extract all items for calculations (preserve original group key)
+                    flatItems = [];
+                    groupedData.forEach(function(group) {
+                        if (Array.isArray(group.items)) {
+                            group.items.forEach(function(item) {
+                                flatItems.push(Object.assign({}, item, {
+                                    distribution_date: group._apiDate || dateStr,
+                                    distribution_id: group._apiId,
+                                    distribution_group_key: group.group_key,
+                                    distribution_group_name: group.group_name,
+                                    distribution_group_note: group.group_note
+                                }));
+                            });
+                        }
+                    });
+                } else {
+                    flatItems = items;
+                    groupedData = normalizeGroupedData(flatItems, null, dateStr);
+                }
+
                 const groupCount = groupedData.length;
+
                 const selectedDate = $('#selectedDate').val();
-                const providedSummary = (modalOptions && typeof modalOptions === 'object' && modalOptions.summary)
-                    ? modalOptions.summary
-                    : null;
+                const providedSummary = (modalOptions && typeof modalOptions === 'object' && modalOptions.summary) ?
+                    modalOptions.summary :
+                    null;
                 const isGroupPickerMode = Boolean(modalOptions && modalOptions.groupPicker);
-                const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope === 'group')
-                    ? 'group'
-                    : 'date';
-                const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions.groupKey)
-                    ? String(modalOptions.groupKey)
-                    : '';
+                const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope === 'group') ?
+                    'group' :
+                    'date';
+                const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions.groupKey) ?
+                    String(modalOptions.groupKey) :
+                    '';
                 const selectionScope = isGroupPickerMode ? 'date' : requestedScope;
-                const shouldUseCurrentDaySummary = (selectedDate === dateStr)
-                    && Array.isArray(currentDayDistributionItems)
-                    && currentDayDistributionItems.length === items.length;
+                const shouldUseCurrentDaySummary = (selectedDate === dateStr) &&
+                    Array.isArray(currentDayDistributionItems) &&
+                    currentDayDistributionItems.length === flatItems.length;
                 const modalSummary = providedSummary || (shouldUseCurrentDaySummary && currentDaySummary ? currentDaySummary : {});
 
                 if (isGroupPickerMode) {
@@ -2442,13 +2796,13 @@
                 }
 
                 $('#calendarDayModalTitle').text(
-                    isGroupPickerMode
-                        ? 'Select Distribution Group'
-                        : (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                    isGroupPickerMode ?
+                    'Select Distribution Group' :
+                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
-                $('#calendarDayModalDate').text(groupCount > 0
-                    ? `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}`
-                    : formatted
+                $('#calendarDayModalDate').text(groupCount > 0 ?
+                    `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
+                    formatted
                 );
                 $('#calendarDayModal').data('selected-date', dateStr);
                 $('#calendarDayModal').data('day-summary', modalSummary);
@@ -2459,19 +2813,19 @@
                 setCalendarDaySelectButtonScope(selectionScope, providedGroupKey);
                 setCalendarDayModalPane('list');
 
-                const batchTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                const piecesTotal = items.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                $('#modalItemCount').text(items.length);
+                const batchTotal = flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
+                const piecesTotal = flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
+                $('#modalItemCount').text(flatItems.length);
                 $('#modalBatchesCount').text(formatQuantityValue(batchTotal));
                 $('#modalPiecesCount').text(formatQuantityValue(piecesTotal));
-                $('#calendarDayModal').data('day-items', items);
-                updateModalForecastedSales(items, modalSummary);
+                $('#calendarDayModal').data('day-items', flatItems);
+                updateModalForecastedSales(flatItems, modalSummary);
 
                 const listContainer = $('#calendarDayItemsList');
                 listContainer.empty();
-                updateCalendarDayNotePanel(items);
+                updateCalendarDayNotePanel(flatItems);
 
-                if (items.length === 0) {
+                if (flatItems.length === 0) {
                     $('#calendarDayItemsList').addClass('hidden');
                     $('#calendarDayEmptyState').removeClass('hidden');
                 } else {
@@ -2748,14 +3102,14 @@
 
                 const isEditMode = normalizedMode === 'edit';
                 $('#addItemsModalTitle').text(isEditMode ? 'Edit Distribution Group' : 'Add Baking Items');
-                $('#addItemsModalSubtitle').text(isEditMode
-                    ? 'Add/remove items, rename group, and update note'
-                    : 'Search and add products for a specific date'
+                $('#addItemsModalSubtitle').text(isEditMode ?
+                    'Add/remove items, rename group, and update note' :
+                    'Search and add products for a specific date'
                 );
                 $('#btnSaveItems').html(
-                    isEditMode
-                        ? '<i class="fas fa-save mr-2"></i>Save Group Changes'
-                        : '<i class="fas fa-save mr-2"></i>Save to Schedule'
+                    isEditMode ?
+                    '<i class="fas fa-save mr-2"></i>Save Group Changes' :
+                    '<i class="fas fa-save mr-2"></i>Save to Schedule'
                 );
 
                 $('#scheduleDate').prop('disabled', isEditMode);
@@ -2768,7 +3122,13 @@
                 }
             }
 
-            function resetAddItemsModalForm(dateValue = '') {
+            function resetAddItemsModalForm(dateValue = '', preserveContext = false) {
+                // Clear stale editing context to prevent it from leaking into fresh creates
+                // (unless we're in edit mode and want to preserve the context)
+                if (!preserveContext) {
+                    clearGroupEditContext();
+                }
+
                 $('#scheduleDate').val(dateValue || $('#selectedDate').val());
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
@@ -2800,9 +3160,9 @@
                 const normalizedDate = (dateStr || '').toString();
                 const normalizedGroupKey = (groupKey || '').toString();
 
-                let candidateItems = Array.isArray(sourceItems)
-                    ? sourceItems
-                    : ($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []);
+                let candidateItems = Array.isArray(sourceItems) ?
+                    flattenGroupedDataIfNeeded(sourceItems, normalizedDate) :
+                    flattenGroupedDataIfNeeded(($('#calendarDayModal').data('day-items') || calendarData[normalizedDate] || []), normalizedDate);
 
                 let groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
                 let matchedGroup = groupedData.find(function(group) {
@@ -2810,8 +3170,8 @@
                 });
 
                 if (!matchedGroup || (ensureIds && Array.isArray(matchedGroup.items) && matchedGroup.items.some(function(item) {
-                    return !getDistributionItemId(item);
-                }))) {
+                        return !getDistributionItemId(item);
+                    }))) {
                     const byDateItems = await fetchDistributionItemsByDateRequest(normalizedDate);
                     groupedData = normalizeGroupedData(byDateItems, null, normalizedDate);
                     matchedGroup = groupedData.find(function(group) {
@@ -2861,7 +3221,7 @@
                 };
 
                 setAddItemsModalUiMode('edit');
-                resetAddItemsModalForm(normalizedDate);
+                resetAddItemsModalForm(normalizedDate, true);
 
                 itemsToAddList = editingGroupContext.existing_items.map(function(item) {
                     return {
@@ -2964,9 +3324,10 @@
             });
 
             $('#productSearch').on('input', function() {
+                const searchTerm = $(this).val();
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
-                showProductDropdown($(this).val());
+                showProductDropdown(searchTerm);
             });
 
             $('#addProductQty').on('keypress', function(e) {
@@ -3063,7 +3424,7 @@
              */
             function isPiecesOnlyCategory(category) {
                 const cat = (category || '').toLowerCase();
-                return cat === 'grocery' || cat === 'drinks';
+                return cat === 'grocery' || cat === 'drinks' || cat === 'dough';
             }
 
             /**
@@ -3161,14 +3522,17 @@
                 const qtyMode = $('#selectedQtyMode').val();
 
                 if (!productId) {
+                    console.warn('  -> No product selected');
                     showToast('warning', 'Please search and select a product first.', 3000);
                     return;
                 }
                 if (quantity <= 0) {
+                    console.warn('  -> Invalid quantity:', quantity);
                     showToast('warning', 'Please enter a valid quantity.', 3000);
                     return;
                 }
                 if (itemsToAddList.some(i => i.product_id == productId)) {
+                    console.warn('  -> Product already in list');
                     showToast('warning', 'This product is already in the list.', 3000);
                     return;
                 }
@@ -3214,9 +3578,9 @@
 
                 itemsToAddList.forEach(function(item, index) {
                     const modeLabel = getQtyModeShortLabel(item.qty_mode);
-                    const modeBadgeColor = item.qty_mode === 'pieces'
-                        ? 'bg-blue-100 text-blue-700'
-                        : (item.qty_mode === 'box' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary');
+                    const modeBadgeColor = item.qty_mode === 'pieces' ?
+                        'bg-blue-100 text-blue-700' :
+                        (item.qty_mode === 'box' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary');
                     const row = `
                         <div class="flex items-center justify-between p-2 bg-white rounded-md border border-gray-200">
                             <div class="flex items-center gap-2 min-w-0">
@@ -3332,28 +3696,61 @@
                 const distributionGroupName = ($('#distributionGroupName').val() || '').trim();
                 const distributionGroupNote = ($('#overallDistributionNote').val() || '').trim();
                 const isEditMode = addItemsModalMode === 'edit' && editingGroupContext;
+                let createdGroupId = null;
+
+                logDistributionFlow('log', 'Add items form submit started.', {
+                    mode: isEditMode ? 'edit-group' : 'create-group',
+                    schedule_date: scheduleDate,
+                    entered_group_name: distributionGroupName,
+                    entered_group_note_length: distributionGroupNote.length,
+                    list_item_count: itemsToAddList.length,
+                    list_items: itemsToAddList.map(function(item) {
+                        return {
+                            product_id: item.product_id,
+                            product_name: item.product_name,
+                            quantity: parseNumericValue(item.quantity),
+                            qty_mode: item.qty_mode,
+                            existing: Boolean(item.existing),
+                            item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
+                        };
+                    }),
+                });
 
                 if (itemsToAddList.length === 0 && !isEditMode) {
+                    console.warn('  -> No items in list and not edit mode');
                     showToast('warning', 'Please add at least one product to the list.', 3000);
+                    logDistributionFlow('warn', 'Add items form submit aborted.', {
+                        reason: 'No items in create mode.',
+                    });
                     return;
                 }
 
-                $('#btnSaveItems').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Saving...');
+                $('#btnSaveItems').prop('disabled', true).html('<i class=\"fas fa-spinner fa-spin mr-2\"></i>Saving...');
+
 
                 try {
                     if (isEditMode) {
                         const context = editingGroupContext;
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
-                        const savedGroupName = distributionGroupName
-                            || (context.original_name || '').toString().trim()
-                            || getNextAutoGroupName(targetDate);
+                        const savedGroupName = distributionGroupName ||
+                            (context.original_name || '').toString().trim() ||
+                            getNextAutoGroupName(targetDate);
+
+                        logDistributionFlow('log', 'Update group flow started.', {
+                            target_date: targetDate,
+                            target_group_key: targetGroupKey,
+                            original_group_name: (context.original_name || '').toString(),
+                            original_note_length: ((context.original_note || '').toString()).length,
+                            saved_group_name: savedGroupName,
+                            updated_note_length: distributionGroupNote.length,
+                        });
 
                         const normalizedItems = itemsToAddList.map(function(item) {
                             return {
                                 product_id: String(item.product_id || '').trim(),
                                 quantity: parseNumericValue(item.quantity),
-                                qty_mode: (item.qty_mode === 'box') ? 'batch' : ((item.qty_mode || 'batch').toString().toLowerCase()),
+                                qty_mode: ((item.qty_mode || 'batch').toString().toLowerCase()),
                                 existing: Boolean(item.existing),
                                 item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
                                 identity_key: (item.identity_key || `product-${String(item.product_id || '').trim()}`).toString(),
@@ -3376,6 +3773,15 @@
                         });
                         const removedMissingIdCount = Math.max(0, removedExisting.length - removableWithIds.length);
 
+                        logDistributionFlow('log', 'Update group diff summary.', {
+                            normalized_item_count: normalizedItems.length,
+                            existing_now_count: existingItemsNow.length,
+                            existing_before_count: existingBefore.length,
+                            removed_existing_count: removedExisting.length,
+                            removable_with_ids_count: removableWithIds.length,
+                            removed_missing_id_count: removedMissingIdCount,
+                        });
+
                         const deleteResults = await Promise.allSettled(removableWithIds.map(function(item) {
                             return deleteDistributionItemRequest(item.item_id);
                         }));
@@ -3393,17 +3799,30 @@
                             }
                         });
 
+                        logDistributionFlow('log', 'Update group removed-item delete results.', {
+                            attempted: removableWithIds.length,
+                            deleted_count: deletedCount,
+                            failed_count: deleteFailedCount,
+                            deleted_product_ids: deletedProductIds,
+                        });
+
                         const newItems = normalizedItems.filter(function(item) {
                             return !item.existing;
                         });
 
                         const addPayloads = newItems.map(function(item) {
                             return {
+                                distribution_id: targetGroupKey,
                                 product_id: item.product_id,
                                 product_qnty: item.quantity,
                                 qty_mode: item.qty_mode,
-                                distribution_date: targetDate,
                             };
+                        });
+
+                        logDistributionFlow('log', 'Update group add-item phase started.', {
+                            new_item_count: newItems.length,
+                            add_payload_count: addPayloads.length,
+                            add_payloads: addPayloads,
                         });
 
                         const addResults = await Promise.allSettled(addPayloads.map(function(payload) {
@@ -3422,6 +3841,7 @@
                             if (result.status === 'fulfilled') {
                                 const response = result.value || {};
                                 if (response.success === false && response.error) {
+                                    console.warn('Item add returned failure response:', response);
                                     addFailedCount += 1;
                                     return;
                                 }
@@ -3432,19 +3852,35 @@
 
                             const xhr = result.reason || {};
                             const responseJson = xhr.responseJSON || {};
-
                             if (xhr.status === 409 || responseJson.duplicate) {
                                 duplicateCount += 1;
                                 return;
                             }
 
-                            if (xhr.status === 400 && Array.isArray(responseJson.insufficient_materials)) {
+                            // Handle insufficient materials (accept array or object)
+                            if (xhr.status === 400 && responseJson.insufficient_materials) {
                                 sawInsufficient = true;
-                                insufficientMaterials = insufficientMaterials.concat(responseJson.insufficient_materials);
+                                if (Array.isArray(responseJson.insufficient_materials)) {
+                                    insufficientMaterials = insufficientMaterials.concat(responseJson.insufficient_materials);
+                                } else if (typeof responseJson.insufficient_materials === 'object') {
+                                    // Convert object to array of strings
+                                    insufficientMaterials = insufficientMaterials.concat(
+                                        Object.values(responseJson.insufficient_materials).flat()
+                                    );
+                                }
                                 return;
                             }
 
                             addFailedCount += 1;
+                        });
+
+                        logDistributionFlow('log', 'Update group add-item phase completed.', {
+                            attempted: addPayloads.length,
+                            succeeded_count: succeededAdds.length,
+                            duplicate_count: duplicateCount,
+                            failed_count: addFailedCount,
+                            saw_insufficient: sawInsufficient,
+                            insufficient_count: insufficientMaterials.length,
                         });
 
                         deletedProductIds.forEach(function(productId) {
@@ -3462,6 +3898,12 @@
                                 return String(productId || '').trim();
                             }).filter(Boolean)
                         ));
+
+                        logDistributionFlow('log', 'Update group final reconciliation.', {
+                            remaining_existing_product_ids: remainingExistingProductIds,
+                            succeeded_add_product_ids: succeededAddProductIds,
+                            final_product_ids: finalProductIds,
+                        });
 
                         if (finalProductIds.length > 0) {
                             setLocalDistributionGroupMetaForItems(targetDate, finalProductIds, {
@@ -3503,15 +3945,38 @@
                                 message += ' Some removed items could not be deleted.';
                             }
 
+                            logDistributionFlow('log', 'Update group completed with changes.', {
+                                toast_type: (duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount > 0 || removedMissingIdCount > 0) ? 'warning' : 'success',
+                                message: message,
+                            });
+
                             showToast((duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount > 0 || removedMissingIdCount > 0) ? 'warning' : 'success', message, 4500);
                         } else if (attemptedAdds > 0 && duplicateCount === attemptedAdds) {
+                            logDistributionFlow('warn', 'Update group completed with no new adds due to duplicates.', {
+                                attempted_adds: attemptedAdds,
+                                duplicate_count: duplicateCount,
+                            });
                             showToast('warning', 'All selected products already exist for that date.', 4000);
                         } else if (finalProductIds.length === 0 && removedExisting.length > 0) {
+                            logDistributionFlow('log', 'Update group completed with empty group result.', {
+                                removed_existing_count: removedExisting.length,
+                            });
                             showToast('success', 'Distribution group is now empty.', 3200);
                         } else {
+                            logDistributionFlow('warn', 'Update group completed with no effective changes.', {
+                                attempted_adds: attemptedAdds,
+                                final_product_count: finalProductIds.length,
+                            });
                             showToast('warning', 'No changes were made to this group.', 3200);
                         }
 
+                        return;
+                    }
+
+                    // Guard: ensure editingGroupContext is fully cleared in create mode
+                    if (editingGroupContext && editingGroupContext.group_id) {
+                        console.error('BUG: Create mode has stale editingGroupContext:', editingGroupContext);
+                        showToast('danger', 'Unexpected state: stale editing context in create mode. Please refresh and try again.', 4000);
                         return;
                     }
 
@@ -3519,28 +3984,71 @@
                         return {
                             product_id: item.product_id,
                             quantity: parseNumericValue(item.quantity),
-                            qty_mode: item.qty_mode === 'box' ? 'batch' : item.qty_mode
+                            qty_mode: item.qty_mode,
+                            raw_qty_mode: item.qty_mode
                         };
                     });
 
                     const savedGroupName = distributionGroupName || getNextAutoGroupName(scheduleDate);
+                    const addGroupPayload = {
+                        title: savedGroupName,
+                        distribution_date: scheduleDate,
+                        distributed_to_note: distributionGroupNote || null,
+                    };
+
+                    logDistributionFlow('log', 'Create group request started.', {
+                        endpoint: 'Distribution/AddGroup',
+                        payload: addGroupPayload,
+                        normalized_items_to_add: itemsToAdd,
+                    });
+
+                    const groupResponse = await $.ajax({
+                        url: baseUrl + 'Distribution/AddGroup',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(addGroupPayload),
+                    });
+
+                    logDistributionFlow('log', 'Create group request completed.', {
+                        endpoint: 'Distribution/AddGroup',
+                        response: groupResponse || {},
+                    });
+
+                    if (!groupResponse || !groupResponse.group_id) {
+                        logDistributionFlow('error', 'Create group request returned no group_id.', {
+                            response: groupResponse || null,
+                        });
+                        showToast('danger', 'Failed to create distribution group.', 3200);
+                        return;
+                    }
+
+                    const newGroupId = String(groupResponse.group_id).trim();
+                    createdGroupId = newGroupId;
                     const groupMeta = {
-                        group_key: buildClientGroupKey(scheduleDate, savedGroupName),
+                        group_key: newGroupId,
                         group_name: savedGroupName,
                         group_note: distributionGroupNote,
                     };
 
                     const payloads = itemsToAdd.map(function(item) {
                         return {
+                            distribution_id: newGroupId,
                             product_id: item.product_id,
                             product_qnty: item.quantity,
                             qty_mode: item.qty_mode,
-                            distribution_date: scheduleDate,
+                            raw_qty_mode: item.raw_qty_mode
                         };
                     });
 
+                    logDistributionFlow('log', 'Create group add-item phase started.', {
+                        group_id: newGroupId,
+                        payload_count: payloads.length,
+                        payloads: payloads,
+                    });
+
                     const results = await Promise.allSettled(payloads.map(function(payload) {
-                        return addDistributionItemRequest(payload);
+                        return addDistributionItemRequest(payload, payload.raw_qty_mode);
                     }));
 
                     const succeededPayloads = [];
@@ -3555,6 +4063,7 @@
                         if (result.status === 'fulfilled') {
                             const response = result.value || {};
                             if (response.success === false && response.error) {
+                                console.warn('Item add returned failure response:', response);
                                 genericErrorCount += 1;
                                 return;
                             }
@@ -3571,13 +4080,31 @@
                             return;
                         }
 
-                        if (xhr.status === 400 && Array.isArray(responseJson.insufficient_materials)) {
+                        // Handle insufficient materials (accept array or object)
+                        if (xhr.status === 400 && responseJson.insufficient_materials) {
                             sawInsufficient = true;
-                            insufficientMaterials = insufficientMaterials.concat(responseJson.insufficient_materials);
+                            if (Array.isArray(responseJson.insufficient_materials)) {
+                                insufficientMaterials = insufficientMaterials.concat(responseJson.insufficient_materials);
+                            } else if (typeof responseJson.insufficient_materials === 'object') {
+                                // Convert object to array of strings
+                                insufficientMaterials = insufficientMaterials.concat(
+                                    Object.values(responseJson.insufficient_materials).flat()
+                                );
+                            }
                             return;
                         }
 
                         genericErrorCount += 1;
+                    });
+
+                    logDistributionFlow('log', 'Create group add-item phase completed.', {
+                        group_id: newGroupId,
+                        attempted: payloads.length,
+                        succeeded_count: succeededPayloads.length,
+                        duplicate_count: duplicateCount,
+                        generic_error_count: genericErrorCount,
+                        saw_insufficient: sawInsufficient,
+                        insufficient_count: insufficientMaterials.length,
                     });
 
                     if (succeededPayloads.length > 0) {
@@ -3603,6 +4130,11 @@
 
                     const totalAttempted = payloads.length;
                     if (succeededPayloads.length === totalAttempted) {
+                        logDistributionFlow('log', 'Create group completed with full success.', {
+                            group_id: newGroupId,
+                            group_name: savedGroupName,
+                            total_attempted: totalAttempted,
+                        });
                         showToast('success', `Distribution group "${savedGroupName}" added successfully!`, 3200);
                         return;
                     }
@@ -3616,8 +4148,36 @@
                             partialMessage += ' Some items were not added.';
                         }
 
+                        logDistributionFlow('warn', 'Create group completed with partial success.', {
+                            group_id: newGroupId,
+                            message: partialMessage,
+                        });
+
                         showToast('warning', partialMessage, 4500);
                         return;
+                    }
+
+                    // All items failed — rollback by deleting the empty group
+                    console.warn('All items failed to add. Rolling back group creation for group:', newGroupId);
+                    logDistributionFlow('warn', 'Create group add-item phase fully failed; rollback started.', {
+                        group_id: newGroupId,
+                        attempted: totalAttempted,
+                        duplicate_count: duplicateCount,
+                        saw_insufficient: sawInsufficient,
+                        generic_error_count: genericErrorCount,
+                    });
+                    try {
+                        await deleteDistributionGroupRequest(newGroupId);
+                        logDistributionFlow('log', 'Create group rollback succeeded.', {
+                            group_id: newGroupId,
+                        });
+                    } catch (rollbackError) {
+                        console.error('Group rollback failed:', rollbackError);
+                        logDistributionFlow('error', 'Create group rollback failed.', {
+                            group_id: newGroupId,
+                            error: rollbackError,
+                        });
+                        // Still show error to user even if rollback fails
                     }
 
                     if (duplicateCount === totalAttempted) {
@@ -3629,11 +4189,31 @@
                     }
                 } catch (error) {
                     console.error('Error saving distribution group:', error);
+                    logDistributionFlow('error', 'Add items form submit failed with exception.', {
+                        mode: isEditMode ? 'edit-group' : 'create-group',
+                        created_group_id: createdGroupId,
+                        error: error,
+                    });
+                    // If we created a group but hit an error during item addition, clean it up
+                    if (createdGroupId) {
+                        try {
+                            await deleteDistributionGroupRequest(createdGroupId);
+                            logDistributionFlow('log', 'Cleanup after exception succeeded.', {
+                                group_id: createdGroupId,
+                            });
+                        } catch (cleanupError) {
+                            console.error('Group cleanup failed:', cleanupError);
+                            logDistributionFlow('error', 'Cleanup after exception failed.', {
+                                group_id: createdGroupId,
+                                error: cleanupError,
+                            });
+                        }
+                    }
                     showToast('danger', 'Failed to save distribution group. Please try again.', 3200);
                 } finally {
-                    const saveButtonLabel = addItemsModalMode === 'edit'
-                        ? '<i class="fas fa-save mr-2"></i>Save Group Changes'
-                        : '<i class="fas fa-save mr-2"></i>Save to Schedule';
+                    const saveButtonLabel = addItemsModalMode === 'edit' ?
+                        '<i class="fas fa-save mr-2"></i>Save Group Changes' :
+                        '<i class="fas fa-save mr-2"></i>Save to Schedule';
                     $('#btnSaveItems').prop('disabled', false).html(saveButtonLabel);
                 }
             });
@@ -3642,12 +4222,25 @@
                 e.preventDefault();
                 const itemId = $('#editItemId').val();
                 const quantity = $('#editQuantity').val();
-
                 updateDistributionItem(itemId, quantity);
                 $('#editQtyModal').addClass('hidden');
             });
 
         });
+
+
+        function getDistinctGroupCount(items, fallbackDate = '') {
+            // Simply count distinct distribution_group_key values
+            // (items now have group keys set from loadDistributionByDate via flattenGroupedDataIfNeeded)
+            const set = new Set();
+            (items || []).forEach(function(item) {
+                const key = (item && item.distribution_group_key) || '';
+                if (key) {
+                    set.add(key);
+                }
+            });
+            return set.size;
+        }
 
         function formatDate(date) {
             const y = date.getFullYear();
@@ -3724,18 +4317,18 @@
                 return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
             }, 0);
 
-            const total = hasSummary && summary.total_items != null
-                ? (parseInt(summary.total_items) || 0)
-                : computedTotalItems;
-            const totalBatches = hasSummary && summary.total_batches != null
-                ? parseNumericValue(summary.total_batches)
-                : computedTotalBatches;
-            const totalPieces = hasSummary && summary.total_pieces != null
-                ? parseNumericValue(summary.total_pieces)
-                : computedTotalPieces;
-            const totalGroups = hasSummary && summary.total_groups != null
-                ? (parseInt(summary.total_groups) || 0)
-                : getDistinctGroupCount(distributionItems, fallbackDate);
+            const total = hasSummary && summary.total_items != null ?
+                (parseInt(summary.total_items) || 0) :
+                computedTotalItems;
+            const totalBatches = hasSummary && summary.total_batches != null ?
+                parseNumericValue(summary.total_batches) :
+                computedTotalBatches;
+            const totalPieces = hasSummary && summary.total_pieces != null ?
+                parseNumericValue(summary.total_pieces) :
+                computedTotalPieces;
+            const totalGroups = hasSummary && summary.total_groups != null ?
+                (parseInt(summary.total_groups) || 0) :
+                getDistinctGroupCount(distributionItems, fallbackDate);
 
             $('#totalItemsCount').text(total);
             $('#totalBatchCount').text(formatQuantityValue(totalBatches));
@@ -3845,17 +4438,17 @@
 
         function updateModalForecastedSales(items, summary = null) {
             const hasSummaryForecast = summary && Object.prototype.hasOwnProperty.call(summary, 'forecasted_sales_total');
-            const forecastedTotal = hasSummaryForecast
-                ? parseNumericValue(summary.forecasted_sales_total)
-                : calculateForecastedSalesTotal(items);
+            const forecastedTotal = hasSummaryForecast ?
+                parseNumericValue(summary.forecasted_sales_total) :
+                calculateForecastedSalesTotal(items);
             $('#modalForecastedSalesTotal').text(formatPesoAmount(forecastedTotal));
         }
 
         function updateForecastedSales(items, summary = null) {
             const hasSummaryForecast = summary && Object.prototype.hasOwnProperty.call(summary, 'forecasted_sales_total');
-            const forecastedTotal = hasSummaryForecast
-                ? parseNumericValue(summary.forecasted_sales_total)
-                : calculateForecastedSalesTotal(items);
+            const forecastedTotal = hasSummaryForecast ?
+                parseNumericValue(summary.forecasted_sales_total) :
+                calculateForecastedSalesTotal(items);
 
             const formattedTotal = formatPesoAmount(forecastedTotal);
             $('#forecastedSalesTotal').text(formattedTotal);
@@ -3887,26 +4480,26 @@
         }
     </script>
 
-<!-- Insufficient Materials Modal -->
-<div id="insufficientMaterialModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800">
-                <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>Insufficient Raw Materials
-            </h3>
-            <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
-                class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="px-6 py-4 overflow-y-auto" id="insufficientMaterialContent">
-        </div>
-        <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
-            <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
-                class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
-                Got it
-            </button>
+    <!-- Insufficient Materials Modal -->
+    <div id="insufficientMaterialModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>Insufficient Raw Materials
+                </h3>
+                <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
+                    class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4 overflow-y-auto" id="insufficientMaterialContent">
+            </div>
+            <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
+                <button onclick="$('#insufficientMaterialModal').addClass('hidden')"
+                    class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
+                    Got it
+                </button>
+            </div>
         </div>
     </div>
-</div>
 </body>

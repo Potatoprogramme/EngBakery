@@ -796,6 +796,22 @@
             return pieces > 0 ? pieces : 1;
         }
 
+            function getTodayDistTraysPerYield(product) {
+                const trays = parseInventoryNumericValue(product && product.trays_per_yield);
+                return trays > 0 ? trays : 0;
+            }
+
+            function getTodayDistBatchPiecesPerYield(product) {
+                const traysPerYield = getTodayDistTraysPerYield(product);
+                const piecesPerYield = getTodayDistPiecesPerYield(product);
+
+                return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
+            }
+
+            function getTodayDistBoxPieces(product) {
+                return getTodayDistPiecesPerYield(product);
+            }
+
         function getTodayDistPieces(item, product) {
             const qty = parseInventoryNumericValue(item && item.product_qnty);
             const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
@@ -809,7 +825,38 @@
                 return qty;
             }
 
-            return qty * getTodayDistPiecesPerYield(product || {});
+            if (qtyMode === 'box') {
+                return qty * getTodayDistBoxPieces(product || {});
+            }
+
+            return qty * getTodayDistBatchPiecesPerYield(product || {});
+        }
+
+        function getTodayDistYieldUnits(item, product) {
+            const qty = parseInventoryNumericValue(item && item.product_qnty);
+            const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+            const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
+            const traysPerYield = getTodayDistTraysPerYield(product || {});
+            const batchPiecesPerYield = getTodayDistBatchPiecesPerYield(product || {});
+
+            if (qtyMode === 'pieces') {
+                return batchPiecesPerYield > 0 ? (qty / batchPiecesPerYield) : qty;
+            }
+
+            if (category === 'drinks' || category === 'grocery') {
+                return qty;
+            }
+
+            if (qtyMode === 'box') {
+                if (traysPerYield > 0) {
+                    return qty / traysPerYield;
+                }
+
+                const pieces = getTodayDistPieces(item, product || {});
+                return batchPiecesPerYield > 0 ? (pieces / batchPiecesPerYield) : qty;
+            }
+
+            return qty;
         }
 
         function calculateTodayDistItemDirectCost(item, product) {
@@ -817,9 +864,7 @@
             const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
             if (directCostPerYield <= 0) return 0;
 
-            const pieces = getTodayDistPieces(item, productData);
-            const piecesPerYield = getTodayDistPiecesPerYield(productData);
-            const yieldsNeeded = piecesPerYield > 0 ? (pieces / piecesPerYield) : 0;
+            const yieldsNeeded = getTodayDistYieldUnits(item, productData);
 
             return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
         }
@@ -1077,9 +1122,14 @@
                 return formatInventoryNumber(pieces, 0) + ' pcs';
             }
 
-            if (qtyMode === 'batch' || qtyMode === 'box') {
+            if (qtyMode === 'batch') {
                 const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
                 return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            if (qtyMode === 'box') {
+                const isSingleBox = Math.abs(quantity - 1) < 0.000001;
+                return formatInventoryNumber(quantity, 0) + ' box' + (isSingleBox ? '' : 'es') + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
             }
 
             return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
@@ -1639,7 +1689,9 @@
 
                 const qtyLabel = item.qty_mode === 'batch'
                     ? item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item.calculated_pieces + ' pcs'
-                    : item.calculated_pieces + ' pcs';
+                    : item.qty_mode === 'box'
+                        ? item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item.calculated_pieces + ' pcs'
+                        : item.calculated_pieces + ' pcs';
 
                 const isLoaded = item.loaded && item.loaded_qty > 0;
                 if (!isLoaded) hasUnloaded = true;

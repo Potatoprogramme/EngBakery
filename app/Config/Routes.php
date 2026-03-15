@@ -179,15 +179,28 @@ $routes->group('Utility', function (RouteCollection $routes) {
 });
 
 $routes->group('Distribution', function (RouteCollection $routes) {
+    // Page
     $routes->get('/', 'DistributionController::index');
-    $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
+
+    // ── Groups ──────────────────────────────────────────────────────────────
+    $routes->get('GetDistributionByDate',      'DistributionController::getDistributionByDate');
     $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
-    $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
+    $routes->get('GetGroup/(:num)',             'DistributionController::getGroup/$1');
+    $routes->post('AddGroup',                  'DistributionController::addGroup');
+    $routes->post('UpdateGroup/(:num)',         'DistributionController::updateGroup/$1');
+    $routes->post('DeleteGroup/(:num)',         'DistributionController::deleteGroup/$1');
+
+    // ── Items (lines inside a group) ─────────────────────────────────────
+    $routes->post('AddItem',               'DistributionController::addItem');
+    $routes->post('UpdateItem/(:num)',      'DistributionController::updateItem/$1');
+    $routes->post('DeleteItem/(:num)',      'DistributionController::deleteItem/$1');
+
+    // ── Utility / read-only checks ───────────────────────────────────────
+    $routes->get('CheckInventoryByDate',   'DistributionController::checkInventoryByDate');
     $routes->get('CheckDistributionToday', 'DistributionController::checkDistributionToday');
+
+    // ── Products lookup (unchanged) ──────────────────────────────────────
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
-    $routes->post('AddDistribution', 'DistributionController::addDistribution');
-    $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
-    $routes->post('UpdateDistribution/(:num)', 'DistributionController::updateDistribution/$1');
 });
 
 // Notification System Routes

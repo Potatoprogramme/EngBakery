@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Libraries\DistributionQuantityCalculator;
 use CodeIgniter\Model;
 
 class DailyStockItemsModel extends Model
@@ -46,8 +47,9 @@ class DailyStockItemsModel extends Model
     }
 
     /**
-     * Insert daily stock items from distribution data.
-     * Each distribution record provides the product_id and product_qnty (used as beginning_stock).
+    * Insert daily stock items from distribution data.
+    * Each distribution record provides the product_id and product_qnty,
+    * which are converted into pieces using distribution qty mode semantics.
      *
      * @param int   $dailyStockId
      * @param array $distributionItems Array of distribution records with product_id and product_qnty
@@ -56,49 +58,17 @@ class DailyStockItemsModel extends Model
     public function insertDailyStockItemsFromDistribution(int $dailyStockId, array $distributionItems, array $carryover = [])
     {
         $insertData = [];
-        $productModel = model('ProductModel');
-        $productCostModel = model('ProductCostModel');
+        $aggregatedProducts = $this->aggregateDistributionInventoryRows($distributionItems, $carryover);
 
-        // Track which products come from distribution
-        $distributedProductIds = [];
+        foreach ($aggregatedProducts as $productRow) {
+            $productId = intval($productRow['product_id']);
+            $distributionPieces = intval($productRow['distribution_qty']);
+            $carryoverQty = intval($productRow['carryover_qty']);
+            $totalBeginning = $distributionPieces + $carryoverQty;
 
-        foreach ($distributionItems as $item) {
-            $productId = intval($item['product_id']);
-            $distributedProductIds[] = $productId;
-            $distributionQty = intval($item['product_qnty'] ?? 0);
-            $qtyMode = $item['qty_mode'] ?? 'batch';
-
-            // If qty_mode is 'pieces', the value is already in pieces — no conversion needed
-            if ($qtyMode === 'pieces') {
-                $beginningStockPieces = $distributionQty;
-            } else {
-                // Convert batches to pieces
-                $product = $productModel->find($productId);
-                $category = $product['category'] ?? '';
-
-                if (in_array($category, ['drinks', 'grocery'])) {
-                    // For drinks/grocery: 1 distribution qty = 1 piece
-                    $beginningStockPieces = $distributionQty;
-                } else {
-                    // For bakery/dough: 1 distribution qty = 1 batch = pieces_per_yield pieces
-                    $costData = $productCostModel->getCostByProductId($productId);
-                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-                    if ($piecesPerYield <= 0) {
-                        $piecesPerYield = 1;
-                    }
-                    $beginningStockPieces = $distributionQty * $piecesPerYield;
-                }
-            }
-
-            // Add yesterday's remaining stock (carryover)
-            $carryoverQty = $carryover[$productId] ?? 0;
-            $totalBeginning = $beginningStockPieces + $carryoverQty;
-
-            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution: {dist} {mode} → {pieces} pcs + Carryover: {carryover} = {total}', [
+            log_message('info', 'INVENTORY ITEMS INSERT: Product {product}, Distribution pieces: {pieces} + Carryover: {carryover} = {total}', [
                 'product' => $productId,
-                'dist' => $distributionQty,
-                'mode' => $qtyMode,
-                'pieces' => $beginningStockPieces,
+                'pieces' => $distributionPieces,
                 'carryover' => $carryoverQty,
                 'total' => $totalBeginning
             ]);
@@ -109,29 +79,9 @@ class DailyStockItemsModel extends Model
                 'beginning_stock' => $totalBeginning,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
-                'distribution_qty' => $beginningStockPieces, // pieces from distribution (before carryover)
-                'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if distribution is 0
+                'distribution_qty' => $distributionPieces,
+                'is_enabled' => ($totalBeginning > 0) ? 1 : 0,
             ];
-        }
-
-        // Add carryover-only products (not in today's distribution but had remaining stock yesterday)
-        foreach ($carryover as $productId => $carryoverQty) {
-            if (!in_array($productId, $distributedProductIds) && $carryoverQty > 0) {
-                log_message('info', 'INVENTORY ITEMS INSERT (carryover only): Product {product}, Carryover: {carryover}', [
-                    'product' => $productId,
-                    'carryover' => $carryoverQty
-                ]);
-
-                $insertData[] = [
-                    'daily_stock_id' => $dailyStockId,
-                    'product_id' => $productId,
-                    'beginning_stock' => $carryoverQty,
-                    'pull_out_quantity' => 0,
-                    'ending_stock' => $carryoverQty,
-                    'distribution_qty' => 0, // carryover only, no distribution
-                    'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock, even if not in distribution
-                ];
-            }
         }
 
         if (empty($insertData)) {
@@ -139,6 +89,66 @@ class DailyStockItemsModel extends Model
         }
 
         return $this->insertBatch($insertData);
+    }
+
+    public function consolidateDuplicateProductRows(int $dailyStockId): int
+    {
+        $rows = $this->where('daily_stock_id', $dailyStockId)
+            ->orderBy('item_id', 'ASC')
+            ->findAll();
+
+        if (count($rows) <= 1) {
+            return 0;
+        }
+
+        $groupedRows = [];
+        foreach ($rows as $row) {
+            $groupedRows[intval($row['product_id'])][] = $row;
+        }
+
+        $mergedRows = 0;
+        $this->db->transStart();
+
+        foreach ($groupedRows as $productId => $productRows) {
+            if (count($productRows) <= 1) {
+                continue;
+            }
+
+            $primaryRow = array_shift($productRows);
+            $allRows = array_merge([$primaryRow], $productRows);
+            $duplicateIds = array_map(static fn($row) => intval($row['item_id']), $productRows);
+
+            $mergedData = [
+                'beginning_stock' => array_sum(array_map(static fn($row) => intval($row['beginning_stock'] ?? 0), $allRows)),
+                'pull_out_quantity' => array_sum(array_map(static fn($row) => intval($row['pull_out_quantity'] ?? 0), $allRows)),
+                'ending_stock' => array_sum(array_map(static fn($row) => intval($row['ending_stock'] ?? 0), $allRows)),
+                'distribution_qty' => array_sum(array_map(static fn($row) => intval($row['distribution_qty'] ?? 0), $allRows)),
+                'is_enabled' => max(array_map(static fn($row) => intval($row['is_enabled'] ?? 0), $allRows)),
+                'notes' => $this->mergeInventoryNotes(array_map(static fn($row) => $row['notes'] ?? null, $allRows)),
+            ];
+
+            if (!empty($duplicateIds)) {
+                $this->db->table('transactions')
+                    ->whereIn('item_id', $duplicateIds)
+                    ->update(['item_id' => intval($primaryRow['item_id'])]);
+
+                $this->whereIn('item_id', $duplicateIds)->delete();
+            }
+
+            $this->update(intval($primaryRow['item_id']), $mergedData);
+            $mergedRows += count($productRows);
+
+            log_message('warning', 'INVENTORY ITEMS CONSOLIDATE: Merged duplicate rows for product {product} in daily_stock {dailyStockId}. Kept item {itemId}, removed {removedCount} duplicate(s).', [
+                'product' => $productId,
+                'dailyStockId' => $dailyStockId,
+                'itemId' => intval($primaryRow['item_id']),
+                'removedCount' => count($productRows),
+            ]);
+        }
+
+        $this->db->transComplete();
+
+        return $this->db->transStatus() === false ? 0 : $mergedRows;
     }
 
     public function fetchAllStockItems($dailyStockId)
@@ -242,12 +252,12 @@ class DailyStockItemsModel extends Model
     }
 
     /**
-     * Get yesterday's ending_stock per product (strict carryover).
+    * Get the latest earlier ending_stock per product.
      * Returns an associative array keyed by product_id => ending_stock.
      *
      * Carryover rule:
-     * - Only the immediately previous calendar day is allowed.
-     * - If yesterday has no inventory record, carryover is empty.
+    * - Use the most recent earlier inventory date that still has positive stock.
+    * - If no earlier inventory has remaining stock, carryover is empty.
      *
      * @param string $beforeDate  Current inventory date (Y-m-d)
      * @return array<int, int>    [product_id => ending_stock]
@@ -256,11 +266,15 @@ class DailyStockItemsModel extends Model
     {
         $db = \Config\Database::connect();
 
-        // Strict rule: carryover can come only from yesterday.
         try {
-            $yesterday = (new \DateTimeImmutable($beforeDate))
-                ->modify('-1 day')
-                ->format('Y-m-d');
+            $carryoverDateRow = $db->query(
+                "SELECT MAX(ds.inventory_date) AS carryover_date
+                 FROM daily_stock ds
+                 JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id
+                 WHERE ds.inventory_date < ?
+                   AND dsi.ending_stock > 0",
+                [$beforeDate]
+            )->getRowArray();
         } catch (\Throwable $e) {
             log_message('error', 'CARRYOVER: Invalid beforeDate "{date}": {error}', [
                 'date' => $beforeDate,
@@ -269,13 +283,21 @@ class DailyStockItemsModel extends Model
             return [];
         }
 
-        // Get all ending_stock values from yesterday only.
+        $carryoverDate = $carryoverDateRow['carryover_date'] ?? null;
+        if (!$carryoverDate) {
+            log_message('info', 'CARRYOVER: beforeDate={beforeDate}, no earlier inventory with remaining stock', [
+                'beforeDate' => $beforeDate,
+            ]);
+            return [];
+        }
+
         $items = $db->query("
             SELECT dsi.product_id, dsi.ending_stock
             FROM daily_stock_items dsi
             JOIN daily_stock ds ON dsi.daily_stock_id = ds.daily_stock_id
             WHERE ds.inventory_date = ?
-        ", [$yesterday])->getResultArray();
+              AND dsi.ending_stock > 0
+        ", [$carryoverDate])->getResultArray();
 
         $carryover = [];
         foreach ($items as $item) {
@@ -285,12 +307,75 @@ class DailyStockItemsModel extends Model
             }
         }
 
-        log_message('info', 'CARRYOVER: beforeDate={beforeDate}, yesterday={yesterday}, products={count}', [
+        log_message('info', 'CARRYOVER: beforeDate={beforeDate}, carryover_date={carryoverDate}, products={count}', [
             'beforeDate' => $beforeDate,
-            'yesterday' => $yesterday,
+            'carryoverDate' => $carryoverDate,
             'count' => count($carryover),
         ]);
 
         return $carryover;
+    }
+
+    private function aggregateDistributionInventoryRows(array $distributionItems, array $carryover = []): array
+    {
+        $productModel = model('ProductModel');
+        $productCostModel = model('ProductCostModel');
+        $aggregated = [];
+
+        foreach ($distributionItems as $item) {
+            $productId = intval($item['product_id'] ?? 0);
+            if ($productId <= 0) {
+                continue;
+            }
+
+            if (!isset($aggregated[$productId])) {
+                $aggregated[$productId] = [
+                    'product_id' => $productId,
+                    'distribution_qty' => 0,
+                    'carryover_qty' => intval($carryover[$productId] ?? 0),
+                ];
+            }
+
+            $distributionQty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+            $product = $productModel->find($productId);
+            $costData = $productCostModel->getCostByProductId($productId);
+            $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($distributionQty, $qtyMode, $product, $costData);
+
+            $aggregated[$productId]['distribution_qty'] += intval($metrics['pieces']);
+        }
+
+        foreach ($carryover as $productId => $carryoverQty) {
+            $productId = intval($productId);
+            $carryoverQty = intval($carryoverQty);
+
+            if ($carryoverQty <= 0 || isset($aggregated[$productId])) {
+                continue;
+            }
+
+            $aggregated[$productId] = [
+                'product_id' => $productId,
+                'distribution_qty' => 0,
+                'carryover_qty' => $carryoverQty,
+            ];
+        }
+
+        ksort($aggregated);
+
+        return array_values($aggregated);
+    }
+
+    private function mergeInventoryNotes(array $notes): ?string
+    {
+        $filteredNotes = array_values(array_unique(array_filter(array_map(static function ($note) {
+            $value = trim((string) $note);
+            return $value !== '' ? $value : null;
+        }, $notes))));
+
+        if (empty($filteredNotes)) {
+            return null;
+        }
+
+        return implode(' | ', $filteredNotes);
     }
 }

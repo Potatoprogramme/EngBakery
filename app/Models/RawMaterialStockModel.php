@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Libraries\DistributionQuantityCalculator;
 use CodeIgniter\Model;
 
 class RawMaterialStockModel extends Model
@@ -209,18 +210,12 @@ class RawMaterialStockModel extends Model
         $productRecipeModel  = model('ProductRecipeModel');
         $productCostModel    = model('ProductCostModel');
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
+        $productModel        = model('ProductModel');
 
-        $costData = $productCostModel->getCostByProductId($productId);
-        $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-
-        if ($piecesPerYield <= 0) {
-            // Default to 1 for all product types (1 distribution qty = 1 yield)
-            // This matches the logic in DistributionController::distributionQtyToPieces()
-            $piecesPerYield = 1;
-            log_message('info', "restoreForProduction: pieces_per_yield is 0 for product {$productId}, defaulting to 1");
-        }
-
-        $yieldsNeeded = $pieces / $piecesPerYield;
+        $product      = $productModel->find($productId);
+        $costData     = $productCostModel->getCostByProductId($productId);
+        $pieceMetrics = DistributionQuantityCalculator::calculatePieceMetrics($pieces, $product, $costData);
+        $yieldsNeeded = (float) $pieceMetrics['yield_units'];
         $recipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
         $combinedRecipes = $combinedRecipeModel->getCombinedRecipesByProductId($productId);
 
@@ -489,20 +484,11 @@ class RawMaterialStockModel extends Model
         $productCostModel    = model('ProductCostModel');
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
 
-        // Get pieces_per_yield from product_costs
-        // For drinks/groceries: default to 1 (1 order = 1 serving)
-        $costData = $productCostModel->getCostByProductId($productId);
-        $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-
-        if ($piecesPerYield <= 0) {
-            // Default to 1 for all product types (1 distribution qty = 1 yield)
-            // This matches the logic in DistributionController::distributionQtyToPieces()
-            $piecesPerYield = 1;
-            log_message('info', "deductForProduction: pieces_per_yield is 0 for product {$productId}, defaulting to 1");
-        }
-
-        // Calculate how many yields are needed
-        $yieldsNeeded = $pieces / $piecesPerYield;
+        $productModel        = model('ProductModel');
+        $product             = $productModel->find($productId);
+        $costData            = $productCostModel->getCostByProductId($productId);
+        $pieceMetrics        = DistributionQuantityCalculator::calculatePieceMetrics($pieces, $product, $costData);
+        $yieldsNeeded        = (float) $pieceMetrics['yield_units'];
 
         // Get the direct recipe (raw materials)
         $recipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
@@ -649,7 +635,7 @@ class RawMaterialStockModel extends Model
                 ? 'Preview calculated'
                 : (empty($errors) ? 'Raw materials deducted successfully' : implode('; ', $errors)),
             'pieces'           => $pieces,
-            'pieces_per_yield' => $piecesPerYield,
+            'pieces_per_yield' => $pieceMetrics['batch_pieces'] ?? 1,
             'yields_needed'    => round($yieldsNeeded, 2),
             'deductions'       => $deductions,
             'has_insufficient' => $hasInsufficient,
