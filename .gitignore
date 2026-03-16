@@ -130,3 +130,4 @@ _modules/*
 
 
 *.flag
+*.lock
