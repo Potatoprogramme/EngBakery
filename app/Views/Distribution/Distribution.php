@@ -690,6 +690,10 @@
                 return numericOnly;
             }
 
+            function isPersistedDistributionGroupKey(groupKey) {
+                return /^group-\d+$/i.test(String(groupKey || '').trim());
+            }
+
             const modalScrollLockSelectors = [
                 '#calendarDayModal',
                 '#addItemsModal',
@@ -1172,9 +1176,11 @@
                     const enrichedItem = Object.assign({}, item);
                     const dateValue = ((enrichedItem && enrichedItem.distribution_date) || fallbackDate || '').toString().trim();
                     const productId = enrichedItem ? enrichedItem.product_id : null;
+                    const explicitGroupKey = ((enrichedItem && enrichedItem.distribution_group_key) || '').toString().trim();
+                    const hasPersistedGroupKey = isPersistedDistributionGroupKey(explicitGroupKey);
                     const localMeta = getLocalDistributionGroupMeta(dateValue, productId);
 
-                    if (localMeta) {
+                    if (localMeta && !hasPersistedGroupKey) {
                         if (!enrichedItem.distribution_group_key) {
                             enrichedItem.distribution_group_key = localMeta.group_key;
                         }
@@ -1887,6 +1893,7 @@
                                         distribution_id: group.id,
                                         distribution_group_key: 'group-' + String(group.id),
                                         distribution_group_name: group.title,
+                                        distribution_group_note: group.distributed_to_note || '',
                                         group_title: group.title,
                                         group_forecasted_sales: group.forecasted_sales,
                                         group_direct_cost: group.direct_cost,
@@ -2131,6 +2138,33 @@
                                 error: xhr.responseJSON,
                                 groupId: groupId,
                                 normalizedGroupId: normalizedGroupId,
+                            });
+                            reject(xhr);
+                        }
+                    });
+                });
+            }
+
+            function updateDistributionGroupRequest(groupId, payload) {
+                return new Promise(function(resolve, reject) {
+                    const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
+
+                    $.ajax({
+                        url: baseUrl + 'Distribution/UpdateGroup/' + normalizedGroupId,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(payload || {}),
+                        success: function(response) {
+                            resolve(response || {});
+                        },
+                        error: function(xhr) {
+                            console.error('  ERROR - Failed to update group:', {
+                                status: xhr.status,
+                                error: xhr.responseJSON,
+                                groupId: groupId,
+                                normalizedGroupId: normalizedGroupId,
+                                payload: payload || {},
                             });
                             reject(xhr);
                         }
@@ -3313,6 +3347,48 @@
                 }
 
                 const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items : [];
+
+                const groupIdFromResolvedKey = normalizeDistributionGroupIdForApi(resolved.groupKey);
+                const groupIdFromMatchedGroup = normalizeDistributionGroupIdForApi(
+                    resolved.matchedGroup && (
+                        resolved.matchedGroup._apiId ??
+                        resolved.matchedGroup.id ??
+                        resolved.matchedGroup.group_key
+                    )
+                );
+                const resolvedGroupId = groupIdFromMatchedGroup || groupIdFromResolvedKey;
+
+                if (resolvedGroupId) {
+                    try {
+                        const deleteGroupResponse = await deleteDistributionGroupRequest(resolvedGroupId);
+                        if (deleteGroupResponse && deleteGroupResponse.success === false) {
+                            showToast('danger', 'Failed to delete distribution group.', 3200);
+                            return;
+                        }
+
+                        groupItems.forEach(function(item) {
+                            if (item && item.product_id != null) {
+                                removeLocalDistributionGroupMeta(resolved.date, item.product_id);
+                            }
+                        });
+
+                        clearSelectedGroupFilter(resolved.date);
+                        $('#calendarDayModal').addClass('hidden');
+                        if (($('#selectedDate').val() || '').toString() === resolved.date) {
+                            loadDistributionByDate();
+                        }
+                        loadMonthDistributions();
+                        loadAllDistributions();
+
+                        showToast('success', 'Distribution group deleted successfully.', 3200);
+                        return;
+                    } catch (error) {
+                        console.error('Failed to delete distribution group using group endpoint.', error);
+                        showToast('danger', 'Failed to delete distribution group.', 3200);
+                        return;
+                    }
+                }
+
                 if (groupItems.length === 0) {
                     showToast('warning', 'Group has no items to delete.', 3000);
                     return;
@@ -3798,14 +3874,39 @@
                         const savedGroupName = distributionGroupName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
+                        const normalizedTargetGroupId = normalizeDistributionGroupIdForApi(targetGroupKey);
+
+                        if (!normalizedTargetGroupId) {
+                            showToast('danger', 'Unable to resolve distribution group for update.', 3600);
+                            return;
+                        }
 
                         logDistributionFlow('log', 'Update group flow started.', {
                             target_date: targetDate,
                             target_group_key: targetGroupKey,
+                            target_group_id: normalizedTargetGroupId,
                             original_group_name: (context.original_name || '').toString(),
                             original_note_length: ((context.original_note || '').toString()).length,
                             saved_group_name: savedGroupName,
                             updated_note_length: distributionGroupNote.length,
+                        });
+
+                        const updateGroupPayload = {
+                            title: savedGroupName,
+                            distributed_to_note: distributionGroupNote || null,
+                        };
+
+                        logDistributionFlow('log', 'Update group metadata request started.', {
+                            endpoint: 'Distribution/UpdateGroup/:id',
+                            group_id: normalizedTargetGroupId,
+                            payload: updateGroupPayload,
+                        });
+
+                        await updateDistributionGroupRequest(normalizedTargetGroupId, updateGroupPayload);
+
+                        logDistributionFlow('log', 'Update group metadata request completed.', {
+                            endpoint: 'Distribution/UpdateGroup/:id',
+                            group_id: normalizedTargetGroupId,
                         });
 
                         const normalizedItems = itemsToAddList.map(function(item) {
@@ -3969,11 +4070,11 @@
 
                         if (finalProductIds.length > 0) {
                             setLocalDistributionGroupMetaForItems(targetDate, finalProductIds, {
-                                group_key: targetGroupKey,
+                                group_key: 'group-' + normalizedTargetGroupId,
                                 group_name: savedGroupName,
                                 group_note: distributionGroupNote,
                             });
-                            setSelectedGroupFilter(targetDate, targetGroupKey);
+                            setSelectedGroupFilter(targetDate, 'group-' + normalizedTargetGroupId);
                         } else {
                             clearSelectedGroupFilter(targetDate);
                         }

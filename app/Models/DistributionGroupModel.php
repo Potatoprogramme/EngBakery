@@ -55,7 +55,8 @@ class DistributionGroupModel extends Model
                        ->orderBy('created_at', 'ASC')
                        ->findAll();
 
-        return $this->attachItems($groups);
+        $groupsWithItems = $this->attachItems($groups);
+        return $this->filterGroupsWithItems($groupsWithItems);
     }
 
     /**
@@ -69,7 +70,8 @@ class DistributionGroupModel extends Model
                        ->orderBy('distribution_date', 'ASC')
                        ->findAll();
 
-        return $this->attachItems($groups);
+        $groupsWithItems = $this->attachItems($groups);
+        return $this->filterGroupsWithItems($groupsWithItems);
     }
 
     /**
@@ -169,5 +171,15 @@ class DistributionGroupModel extends Model
         unset($group);
 
         return $groups;
+    }
+
+    /**
+     * Remove empty groups from API payloads to prevent phantom calendar/list entries.
+     */
+    private function filterGroupsWithItems(array $groups): array
+    {
+        return array_values(array_filter($groups, static function (array $group): bool {
+            return !empty($group['items']) && is_array($group['items']);
+        }));
     }
 }
