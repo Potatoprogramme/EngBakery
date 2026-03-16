@@ -44,7 +44,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 mb-4 lg:mb-6">
 
                 <!-- Left Side: Baking List (hidden on mobile, shown on lg+) -->
-                <div class="hidden lg:block lg:col-span-5 xl:col-span-4">
+                <div class="hidden lg:flex lg:flex-col lg:min-h-0 lg:col-span-5 xl:col-span-4">
                     <!-- Date Navigation for Selected Date -->
                     <div class="bg-white rounded-lg shadow-md p-4 mb-4">
                         <div class="flex items-center justify-between mb-3">
@@ -149,7 +149,7 @@
                     <?php endif; ?>
 
                     <!-- Distribution Groups Panel -->
-                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col h-full">
+                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
                         <div class="flex items-center justify-between mb-3 flex-shrink-0">
                             <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                                 <i class="fas fa-layer-group text-primary mr-1"></i>Distribution Groups
@@ -161,7 +161,7 @@
                         </div>
 
                         <!-- List Items - Scrollable -->
-                        <div id="distributionListContainer" class="space-y-2 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+                        <div id="distributionListContainer" class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
                             <!-- Dynamically populated via JS -->
                         </div>
 
@@ -177,8 +177,8 @@
                 </div>
 
                 <!-- Right Side: Calendar -->
-                <div class="lg:col-span-7 xl:col-span-8">
-                    <div class="bg-white rounded-lg shadow-md p-2 sm:p-4">
+                <div class="lg:col-span-7 xl:col-span-8 lg:flex lg:min-h-0">
+                    <div class="bg-white rounded-lg shadow-md p-2 sm:p-4 w-full lg:h-full lg:flex lg:flex-col">
                         <!-- Calendar Header -->
                         <div class="flex items-center justify-between mb-3 sm:mb-4">
                             <button type="button" id="btnPrevMonth"
@@ -690,7 +690,43 @@
                 return numericOnly;
             }
 
+            const modalScrollLockSelectors = [
+                '#calendarDayModal',
+                '#addItemsModal',
+                '#editQtyModal',
+                '#insufficientMaterialModal',
+            ];
+
+            function syncModalBodyScrollLock() {
+                const hasOpenModal = modalScrollLockSelectors.some(function(selector) {
+                    const modal = $(selector);
+                    return modal.length > 0 && !modal.hasClass('hidden');
+                });
+
+                $('body').css('overflow', hasOpenModal ? 'hidden' : '');
+            }
+
+            function initializeModalBodyScrollLock() {
+                modalScrollLockSelectors.forEach(function(selector) {
+                    const modalElement = document.querySelector(selector);
+                    if (!modalElement) return;
+
+                    const observer = new MutationObserver(function() {
+                        syncModalBodyScrollLock();
+                    });
+
+                    observer.observe(modalElement, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                });
+
+                syncModalBodyScrollLock();
+            }
+
             baseUrl = '<?= base_url() ?>';
+
+            initializeModalBodyScrollLock();
 
             getProducts();
             loadProductCostData();
@@ -2295,7 +2331,7 @@
                         const hiddenGroupsCount = Math.max(0, groupedData.length - visibleGroups.length);
 
                         groupsPreview = `
-                            <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1">
+                            <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1 overflow-hidden">
                                 ${visibleGroups.map(function(group) {
                                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                                     const groupKey = escapeHtml((group.group_key || '').toString());
@@ -2316,7 +2352,7 @@
                     }
 
                     const dayHtml = `
-                        <div class="calendar-day h-16 sm:h-20 md:h-24 p-0.5 sm:p-1 md:p-2 rounded-md sm:rounded-lg cursor-pointer hover:shadow-md transition-all ${bgClass} ${todayClass} ${selectedClass} border border-gray-100"
+                        <div class="calendar-day h-16 sm:h-20 md:h-24 p-0.5 sm:p-1 md:p-2 rounded-md sm:rounded-lg cursor-pointer hover:shadow-md transition-all ${bgClass} ${todayClass} ${selectedClass} border border-gray-100 overflow-hidden"
                              data-date="${dateStr}">
                             <div class="text-[10px] sm:text-xs md:text-sm font-semibold ${isToday ? 'text-white' : 'text-gray-700'}">${day}</div>
                             ${groupsPreview}
@@ -2963,9 +2999,29 @@
 
             // ===== RENDERING FUNCTIONS =====
 
+            function updateDistributionListScrollLimit() {
+                const container = $('#distributionListContainer');
+                if (!container.length) return;
+
+                container.css('max-height', '');
+
+                const groupEntries = container.children('.distribution-group-entry');
+                if (groupEntries.length < 3) return;
+
+                let maxHeight = 0;
+                groupEntries.slice(0, 3).each(function() {
+                    maxHeight += ($(this).outerHeight(true) || 0);
+                });
+
+                if (maxHeight > 0) {
+                    container.css('max-height', Math.ceil(maxHeight) + 'px');
+                }
+            }
+
             function renderDistributionList(items, groupedData = null, fallbackDate = '') {
                 const container = $('#distributionListContainer');
                 container.empty();
+                container.css('max-height', '');
 
                 if (items.length === 0) {
                     container.addClass('hidden');
@@ -3014,6 +3070,8 @@
 
                     container.append(row);
                 });
+
+                updateDistributionListScrollLimit();
             }
 
             function renderMobileCards(items, groupedData = null, fallbackDate = '') {
@@ -3063,6 +3121,10 @@
                     container.append(card);
                 });
             }
+
+            $(window).on('resize', function() {
+                updateDistributionListScrollLimit();
+            });
 
             // ===== DATE NAVIGATION =====
 
