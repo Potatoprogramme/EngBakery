@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\ShiftSchedule;
+
 class SalesController extends BaseController
 {
     public function index()
@@ -237,8 +239,9 @@ class SalesController extends BaseController
     public function checkExistingRemittance()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
-        $shiftStart = $this->request->getGet('shift_start') ?? '07:00:00';
-        $shiftEnd = $this->request->getGet('shift_end') ?? '16:00:00';
+        $defaultShift = ShiftSchedule::getShiftWindowsForDate($date)[0] ?? ['start' => '06:00:00', 'end' => '14:59:59'];
+        $shiftStart = $this->request->getGet('shift_start') ?? $defaultShift['start'];
+        $shiftEnd = $this->request->getGet('shift_end') ?? $defaultShift['end'];
         $outletName = $this->request->getGet('outlet_name') ?? '';
 
         // Ensure time format includes seconds
@@ -247,6 +250,14 @@ class SalesController extends BaseController
         }
         if (strlen($shiftEnd) === 5) {
             $shiftEnd .= ':00';
+        }
+
+        if (!ShiftSchedule::isValidShiftWindow($date, $shiftStart, $shiftEnd)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'exists' => false,
+                'message' => 'Invalid shift window for the selected date.'
+            ]);
         }
 
         $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(
@@ -306,7 +317,15 @@ class SalesController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'occupied_slots' => $occupiedSlots
+            'occupied_slots' => $occupiedSlots,
+            'required_slots' => array_map(static function (array $window): array {
+                return [
+                    'key' => $window['key'],
+                    'label' => $window['label'],
+                    'start' => substr($window['start'], 0, 5),
+                    'end' => substr($window['end'], 0, 5),
+                ];
+            }, ShiftSchedule::getShiftWindowsForDate($date))
         ]);
     }
 
@@ -370,6 +389,13 @@ class SalesController extends BaseController
         $shiftStart = $data['shift_start'] ?? '00:00:00';
         $shiftEnd = $data['shift_end'] ?? '00:00:00';
         $outletName = $data['outlet_name'] ?? '';
+
+        if (!ShiftSchedule::isValidShiftWindow($dateOnly, $shiftStart, $shiftEnd)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Invalid shift window. Use the configured shift schedule for the selected date.'
+            ]);
+        }
 
         // Check for existing remittance with same date, shift, and outlet
         $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(

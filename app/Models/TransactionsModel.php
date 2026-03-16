@@ -107,6 +107,21 @@ class TransactionsModel extends Model
             ->getResultArray();
     }
 
+    /**
+     * Get aggregated sales data for all items on a given date/time window.
+     */
+    public function getSalesDataByDateAndTimeRange(string $date, string $startTime, string $endTime): array
+    {
+        return $this->builder()
+            ->select('item_id, SUM(total_sales) as total_sales, SUM(quantity_sold) as quantity_sold')
+            ->where('date_created', $date)
+            ->where('time_created >=', $startTime)
+            ->where('time_created <=', $endTime)
+            ->groupBy('item_id')
+            ->get()
+            ->getResultArray();
+    }
+
     /** 
      * GetSales Properly
      */

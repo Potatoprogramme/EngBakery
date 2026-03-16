@@ -466,6 +466,7 @@
         var remittanceExists = false;
         var existingRemittanceData = null;
         var occupiedSlots = []; // Stores existing remittance time ranges
+        var requiredSlots = []; // Required schedule slots for selected date
         var shiftConfig = [];   // Available shift definitions from server
 
         /**
@@ -624,7 +625,9 @@
                 success: function(response) {
                     if (response.success) {
                         occupiedSlots = response.occupied_slots || [];
+                        requiredSlots = response.required_slots || [];
                         console.log('Occupied slots:', occupiedSlots);
+                        console.log('Required slots:', requiredSlots);
                         
                         // Mark occupied shift buttons
                         markOccupiedShiftButtons();

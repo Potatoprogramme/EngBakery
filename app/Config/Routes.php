@@ -96,6 +96,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('PreviewBatchDeduction', 'InventoryController::previewBatchDeduction');
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
     $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
+    $routes->post('SendReport', 'InventoryController::sendInventoryReport'); // Owner: force-test scheduled inventory email
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
@@ -104,6 +105,7 @@ $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('GetProducts', 'OrdersController::getProducts');
     $routes->post('ProcessPayment', 'OrdersController::processPayment');
     $routes->get('GetOrderHistory', 'OrdersController::getOrderHistory');
+    $routes->get('GetOrderHistorySummary', 'OrdersController::getOrderHistorySummary');
     $routes->get('GetOrderDetails/(:num)', 'OrdersController::getOrderDetails/$1');
     $routes->get('GetTodaysSales', 'OrdersController::getTodaysSales');
     $routes->get('GetTodaysStockSummary', 'OrdersController::getTodaysStockSummary');
@@ -177,15 +179,28 @@ $routes->group('Utility', function (RouteCollection $routes) {
 });
 
 $routes->group('Distribution', function (RouteCollection $routes) {
+    // Page
     $routes->get('/', 'DistributionController::index');
-    $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
+
+    // ── Groups ──────────────────────────────────────────────────────────────
+    $routes->get('GetDistributionByDate',      'DistributionController::getDistributionByDate');
     $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
-    $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
+    $routes->get('GetGroup/(:num)',             'DistributionController::getGroup/$1');
+    $routes->post('AddGroup',                  'DistributionController::addGroup');
+    $routes->post('UpdateGroup/(:num)',         'DistributionController::updateGroup/$1');
+    $routes->post('DeleteGroup/(:num)',         'DistributionController::deleteGroup/$1');
+
+    // ── Items (lines inside a group) ─────────────────────────────────────
+    $routes->post('AddItem',               'DistributionController::addItem');
+    $routes->post('UpdateItem/(:num)',      'DistributionController::updateItem/$1');
+    $routes->post('DeleteItem/(:num)',      'DistributionController::deleteItem/$1');
+
+    // ── Utility / read-only checks ───────────────────────────────────────
+    $routes->get('CheckInventoryByDate',   'DistributionController::checkInventoryByDate');
     $routes->get('CheckDistributionToday', 'DistributionController::checkDistributionToday');
+
+    // ── Products lookup (unchanged) ──────────────────────────────────────
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
-    $routes->post('AddDistribution', 'DistributionController::addDistribution');
-    $routes->post('DeleteDistribution/(:num)', 'DistributionController::deleteDistribution/$1');
-    $routes->post('UpdateDistribution/(:num)', 'DistributionController::updateDistribution/$1');
 });
 
 // Notification System Routes

@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\DistributionQuantityCalculator;
+
 class InventoryController extends BaseController
 {
     public function inventory()
@@ -42,6 +44,8 @@ class InventoryController extends BaseController
                 'message' => 'No inventory found for today.',
             ]);
         }
+
+        $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
 
@@ -117,7 +121,7 @@ class InventoryController extends BaseController
             // fetch ALL products for inventory tracking
             $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
 
-            // Get yesterday's remaining stock (carryover)
+            // Get remaining stock from the latest earlier inventory date (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
             // insert all products into daily stock items model
@@ -153,8 +157,9 @@ class InventoryController extends BaseController
 
     /**
      * Add today's inventory using distribution data.
-     * Only products from the distributions table for today will be added,
-     * with product_qnty as the beginning stock.
+     * Strict flow: this may only run AFTER today's distribution is completed.
+     * Only products from today's distribution records are added to inventory,
+    * with carryover from the latest earlier inventory merged into beginning stock.
      */
     public function addInventoryFromDistribution()
     {
@@ -175,53 +180,30 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        $distributionItems = $this->distributionGroupModel->getGroupsByDate($today);
 
-        // No distribution records — fall back to adding all products
+        // Strict rule: inventory-from-distribution must only run when distribution exists.
         if (!$distributionItems || count($distributionItems) === 0) {
-            $insertData = [
-                'inventory_date' => $today,
-                'time_start' => $data['time_start'],
-                'time_end' => $data['time_end'],
-            ];
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No distribution records found for today. Complete distribution first before creating inventory from distribution.'
+            ]);
+        }
 
-            if ($this->dailyStockModel->addTodaysInventory($insertData)) {
-                $lastInsertId = $this->dailyStockModel->getInsertID();
-                $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
-
-                // Get yesterday's remaining stock (carryover)
-                $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
-
-                if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds, $carryover)) {
-                    $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
-                    $message = 'Today\'s inventory added successfully (no distribution data found, added all products).';
-                    if ($carryoverCount > 0) {
-                        $message .= " Carried over remaining stock for {$carryoverCount} product(s).";
-                    }
-
-                    // Immediate notification: inventory created (fallback)
-                    $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
-
-                    return $this->response->setStatusCode(201)->setJSON([
-                        'success' => true,
-                        'message' => $message,
-                        'fallback_mode' => true,
-                        'carryover_count' => $carryoverCount
-                    ]);
-                } else {
-                    $this->dailyStockModel->delete($lastInsertId);
-                    return $this->response->setStatusCode(500)->setJSON([
-                        'success' => false,
-                        'message' => 'Failed to add daily stock items.',
-                        'error' => $this->dailyStockItemsModel->errors(),
-                    ]);
-                }
-            } else {
-                return $this->response->setStatusCode(500)->setJSON([
-                    'success' => false,
-                    'message' => 'Failed to create today\'s inventory.'
-                ]);
+        // Flatten grouped distribution data into flat items array
+        $flatItems = [];
+        foreach ($distributionItems as $group) {
+            $groupItems = is_array($group['items'] ?? null) ? $group['items'] : [];
+            foreach ($groupItems as $item) {
+                $flatItems[] = $item;
             }
+        }
+
+        if (empty($flatItems)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No items found in today\'s distribution. Complete distribution with items first.'
+            ]);
         }
 
         // Raw materials are already deducted at distribution time
@@ -234,10 +216,10 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // Get yesterday's remaining stock (carryover)
+            // Get remaining stock from the latest earlier inventory date (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
-            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $distributionItems, $carryover)) {
+            if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $flatItems, $carryover)) {
                 $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
                 $message = 'Today\'s inventory created from distribution data successfully.';
                 if ($carryoverCount > 0) {
@@ -245,7 +227,7 @@ class InventoryController extends BaseController
                 }
 
                 // Immediate notification: inventory created from distribution
-                $this->notify('notifyInventoryCreated', $today, count($distributionItems), $carryoverCount);
+                $this->notify('notifyInventoryCreated', $today, count($flatItems), $carryoverCount);
 
                 return $this->response->setStatusCode(201)->setJSON([
                     'success' => true,
@@ -286,15 +268,17 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        $distributionGroups = $this->distributionGroupModel->getGroupsByDate($today);
+        $distributionItems = $this->flattenDistributionGroups($distributionGroups);
         if (!$distributionItems || count($distributionItems) === 0) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'No distribution records found for today.'
+                'message' => 'No distribution records found for today. Complete distribution first, then load it into inventory.'
             ]);
         }
 
         $dailyStockId = $dailyStock['daily_stock_id'];
+        $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($dailyStockId));
         $distPieces = $this->calculateDistributionPieces($distributionItems);
 
         // Detect if distribution is already loaded by comparing data
@@ -305,22 +289,31 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
         $updated = 0;
         $added = 0;
 
         foreach ($distPieces as $productId => $pieces) {
+            $carryoverQty = intval($carryover[$productId] ?? 0);
             $existingItem = $this->dailyStockItemsModel
                 ->where('daily_stock_id', $dailyStockId)
                 ->where('product_id', $productId)
                 ->first();
 
             if ($existingItem) {
-                $newBeginning = intval($existingItem['beginning_stock']) + $pieces;
+                $currentBeginning = intval($existingItem['beginning_stock'] ?? 0);
+                $currentDistributionQty = intval($existingItem['distribution_qty'] ?? 0);
                 $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
+                $currentEnding = intval($existingItem['ending_stock'] ?? 0);
+                $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
+                $manualQty = max(0, $currentBeginning - $currentDistributionQty - $carryoverQty);
+                $newBeginning = $carryoverQty + $manualQty + $pieces;
+                $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
                 $this->dailyStockItemsModel->update($existingItem['item_id'], [
                     'beginning_stock' => $newBeginning,
-                    'ending_stock' => $newBeginning - $pullOut,
-                    'distribution_qty' => $pieces, // track distribution pieces
+                    'ending_stock' => $newEnding,
+                    'distribution_qty' => $pieces,
+                    'is_enabled' => ($newBeginning > 0) ? 1 : 0,
                 ]);
                 $updated++;
                 log_message('info', 'LOAD FROM DISTRIBUTION: Updated Product {product} - added {pieces} pieces, new beginning: {new}', [
@@ -332,10 +325,11 @@ class InventoryController extends BaseController
                 $this->dailyStockItemsModel->insert([
                     'daily_stock_id' => $dailyStockId,
                     'product_id' => $productId,
-                    'beginning_stock' => $pieces,
+                    'beginning_stock' => $carryoverQty + $pieces,
                     'pull_out_quantity' => 0,
-                    'ending_stock' => $pieces,
-                    'distribution_qty' => $pieces, // track distribution pieces
+                    'ending_stock' => $carryoverQty + $pieces,
+                    'distribution_qty' => $pieces,
+                    'is_enabled' => ($carryoverQty + $pieces > 0) ? 1 : 0,
                 ]);
                 $added++;
                 log_message('info', 'LOAD FROM DISTRIBUTION: Added Product {product} - {pieces} pieces', [
@@ -364,7 +358,8 @@ class InventoryController extends BaseController
         $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
         $dailyStockId = $dailyStock ? intval($dailyStock['daily_stock_id']) : 0;
 
-        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        $distributionGroups = $this->distributionGroupModel->getGroupsByDate($today);
+        $distributionItems = $this->flattenDistributionGroups($distributionGroups);
         if (!$distributionItems || count($distributionItems) === 0) {
             return $this->response->setJSON([
                 'success' => true,
@@ -373,31 +368,51 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $productCostModel = model('ProductCostModel');
-        $enriched = [];
+        $aggregatedByProduct = [];
 
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
-            $distributionQty = intval($item['product_qnty'] ?? 0);
-            $qtyMode = $item['qty_mode'] ?? 'batch';
-
-            // Calculate pieces (same logic as calculateDistributionPieces)
-            if ($qtyMode === 'pieces') {
-                $pieces = $distributionQty;
-            } else {
-                $product = $this->productModel->find($productId);
-                $category = $product['category'] ?? '';
-                if (in_array($category, ['drinks', 'grocery'])) {
-                    $pieces = $distributionQty;
-                } else {
-                    $costData = $productCostModel->getCostByProductId($productId);
-                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-                    $pieces = $distributionQty * ($piecesPerYield > 0 ? $piecesPerYield : 1);
-                }
+            if ($productId <= 0) {
+                continue;
             }
 
-            // Check loaded status from inventory
+            $distributionQty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+            $product = $this->productModel->find($productId);
+            $costData = model('ProductCostModel')->getCostByProductId($productId);
+            $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($distributionQty, $qtyMode, $product, $costData);
+            $pieces = (int) $metrics['pieces'];
+
+            if (!isset($aggregatedByProduct[$productId])) {
+                $aggregatedByProduct[$productId] = [
+                    'distribution_id' => $item['distribution_id'],
+                    'product_id' => $productId,
+                    'product_name' => $item['product_name'] ?? ($product['product_name'] ?? 'N/A'),
+                    'category' => $item['category'] ?? ($product['category'] ?? ''),
+                    'product_qnty' => 0,
+                    'qty_mode' => $qtyMode,
+                    'calculated_pieces' => 0,
+                ];
+            }
+
+            $aggregatedByProduct[$productId]['product_qnty'] += $distributionQty;
+            $aggregatedByProduct[$productId]['calculated_pieces'] += $pieces;
+
+            // Prefer the most specific mode when mixed records exist.
+            if ($aggregatedByProduct[$productId]['qty_mode'] !== 'pieces' && $qtyMode === 'pieces') {
+                $aggregatedByProduct[$productId]['qty_mode'] = 'pieces';
+            }
+
+            if ($aggregatedByProduct[$productId]['qty_mode'] === 'batch' && $qtyMode === 'box') {
+                $aggregatedByProduct[$productId]['qty_mode'] = 'box';
+            }
+        }
+
+        $enriched = [];
+        foreach ($aggregatedByProduct as $productId => $row) {
             $loadedQty = 0;
+
+            // Check loaded status from inventory
             if ($dailyStockId > 0) {
                 $inventoryItem = $this->dailyStockItemsModel
                     ->where('daily_stock_id', $dailyStockId)
@@ -409,17 +424,26 @@ class InventoryController extends BaseController
             }
 
             $enriched[] = [
-                'distribution_id' => $item['distribution_id'],
+                'distribution_id' => $row['distribution_id'],
                 'product_id' => $productId,
-                'product_name' => $item['product_name'] ?? 'N/A',
-                'category' => $item['category'] ?? '',
-                'product_qnty' => $distributionQty,
-                'qty_mode' => $qtyMode,
-                'calculated_pieces' => $pieces,
+                'product_name' => $row['product_name'],
+                'category' => $row['category'],
+                'product_qnty' => intval($row['product_qnty']),
+                'qty_mode' => $row['qty_mode'],
+                'calculated_pieces' => intval($row['calculated_pieces']),
                 'loaded_qty' => $loadedQty,
                 'loaded' => $loadedQty > 0,
             ];
         }
+
+        usort($enriched, static function (array $a, array $b): int {
+            $catCompare = strcmp((string) ($a['category'] ?? ''), (string) ($b['category'] ?? ''));
+            if ($catCompare !== 0) {
+                return $catCompare;
+            }
+
+            return strcmp((string) ($a['product_name'] ?? ''), (string) ($b['product_name'] ?? ''));
+        });
 
         return $this->response->setJSON([
             'success' => true,
@@ -465,6 +489,9 @@ class InventoryController extends BaseController
         }
 
         $dailyStockId = intval($dailyStock['daily_stock_id']);
+        $this->dailyStockItemsModel->consolidateDuplicateProductRows($dailyStockId);
+        $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
+        $carryoverQty = intval($carryover[$productId] ?? 0);
 
         $existingItem = $this->dailyStockItemsModel
             ->where('daily_stock_id', $dailyStockId)
@@ -472,9 +499,15 @@ class InventoryController extends BaseController
             ->first();
 
         if ($existingItem) {
-            $newBeginning = intval($existingItem['beginning_stock']) + $quantity;
+            $currentBeginning = intval($existingItem['beginning_stock'] ?? 0);
+            $currentDistQty = intval($existingItem['distribution_qty'] ?? 0);
             $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
-            $newDistQty = intval($existingItem['distribution_qty'] ?? 0) + $quantity;
+            $currentEnding = intval($existingItem['ending_stock'] ?? 0);
+            $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
+            $manualQty = max(0, $currentBeginning - $currentDistQty - $carryoverQty);
+            $newDistQty = $currentDistQty + $quantity;
+            $newBeginning = $carryoverQty + $manualQty + $newDistQty;
+            $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
             $existingNotes = trim($existingItem['notes'] ?? '');
             $updatedNotes = $existingNotes;
             if (!empty($note)) {
@@ -483,8 +516,9 @@ class InventoryController extends BaseController
 
             $this->dailyStockItemsModel->update($existingItem['item_id'], [
                 'beginning_stock' => $newBeginning,
-                'ending_stock' => $newBeginning - $pullOut,
+                'ending_stock' => $newEnding,
                 'distribution_qty' => $newDistQty,
+                'is_enabled' => ($newBeginning > 0) ? 1 : 0,
                 'notes' => $updatedNotes,
             ]);
 
@@ -498,10 +532,11 @@ class InventoryController extends BaseController
             $this->dailyStockItemsModel->insert([
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
-                'beginning_stock' => $quantity,
+                'beginning_stock' => $carryoverQty + $quantity,
                 'pull_out_quantity' => 0,
-                'ending_stock' => $quantity,
+                'ending_stock' => $carryoverQty + $quantity,
                 'distribution_qty' => $quantity,
+                'is_enabled' => ($carryoverQty + $quantity > 0) ? 1 : 0,
                 'notes' => $note,
             ]);
 
@@ -514,7 +549,7 @@ class InventoryController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Distribution item loaded successfully (' . $quantity . ' pcs).',
+            'message' => 'Distribution item loaded successfully (+'.$quantity.' pcs).',
         ]);
     }
 
@@ -523,27 +558,16 @@ class InventoryController extends BaseController
      */
     private function calculateDistributionPieces(array $distributionItems): array
     {
-        $productCostModel = model('ProductCostModel');
         $result = [];
 
         foreach ($distributionItems as $item) {
             $productId = intval($item['product_id']);
             $distributionQty = intval($item['product_qnty'] ?? 0);
-            $qtyMode = $item['qty_mode'] ?? 'batch';
-
-            if ($qtyMode === 'pieces') {
-                $pieces = $distributionQty;
-            } else {
-                $product = $this->productModel->find($productId);
-                $category = $product['category'] ?? '';
-                if (in_array($category, ['drinks', 'grocery'])) {
-                    $pieces = $distributionQty;
-                } else {
-                    $costData = $productCostModel->getCostByProductId($productId);
-                    $piecesPerYield = intval($costData['pieces_per_yield'] ?? 0);
-                    $pieces = $distributionQty * ($piecesPerYield > 0 ? $piecesPerYield : 1);
-                }
-            }
+            $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+            $product = $this->productModel->find($productId);
+            $costData = model('ProductCostModel')->getCostByProductId($productId);
+            $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($distributionQty, $qtyMode, $product, $costData);
+            $pieces = (int) $metrics['pieces'];
 
             // Accumulate in case of multiple distribution entries for same product
             $result[$productId] = ($result[$productId] ?? 0) + $pieces;
@@ -563,8 +587,6 @@ class InventoryController extends BaseController
             return false;
         }
 
-        $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
-
         foreach ($distPieces as $productId => $pieces) {
             $existingItem = $this->dailyStockItemsModel
                 ->where('daily_stock_id', $dailyStockId)
@@ -576,11 +598,8 @@ class InventoryController extends BaseController
                 return false;
             }
 
-            $carryoverQty = intval($carryover[$productId] ?? 0);
-            $currentBeginning = intval($existingItem['beginning_stock']);
-
-            // If beginning_stock hasn't reached carryover + distribution, not loaded
-            if ($currentBeginning < ($carryoverQty + $pieces)) {
+            $currentDistributionQty = intval($existingItem['distribution_qty'] ?? 0);
+            if ($currentDistributionQty !== intval($pieces)) {
                 return false;
             }
         }
@@ -1145,7 +1164,8 @@ class InventoryController extends BaseController
         $today = date('Y-m-d');
 
         // Fetch distribution records for today
-        $distributionItems = $this->distributionModel->getDistributionByDate($today);
+        $distributionGroups = $this->distributionGroupModel->getGroupsByDate($today);
+        $distributionItems = $this->flattenDistributionGroups($distributionGroups);
 
         if (!$distributionItems || count($distributionItems) === 0) {
             return $this->response->setJSON([
@@ -1154,13 +1174,36 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $result = $this->rawMaterialStockModel->deductForInventoryBatch($distributionItems, true);
+        $previewItems = [];
+        foreach ($distributionItems as $item) {
+            $productId = intval($item['product_id'] ?? 0);
+            if ($productId <= 0) {
+                continue;
+            }
+
+            $product = $this->productModel->find($productId);
+            $costData = model('ProductCostModel')->getCostByProductId($productId);
+            $metrics = DistributionQuantityCalculator::calculateDistributionMetrics(
+                intval($item['product_qnty'] ?? 0),
+                $item['qty_mode'] ?? 'batch',
+                $product,
+                $costData
+            );
+
+            $previewItems[] = [
+                'product_id' => $productId,
+                'product_name' => $item['product_name'] ?? ($product['product_name'] ?? "Product #{$productId}"),
+                'quantity' => (int) $metrics['pieces'],
+            ];
+        }
+
+        $result = $this->rawMaterialStockModel->deductForInventoryBatch($previewItems, true);
 
         return $this->response->setJSON($result);
     }
 
     /**
-     * Get yesterday's (or most recent previous day's) remaining stock.
+     * Get yesterday's remaining stock only.
      * Returns product-level carryover data for display before creating inventory.
      * GET /Inventory/GetYesterdayRemaining
      */
@@ -1198,6 +1241,21 @@ class InventoryController extends BaseController
             'message' => count($enrichedData) . ' product(s) have remaining stock from previous day.'
         ]);
     }
+
+    private function flattenDistributionGroups(array $groups): array
+    {
+        $items = [];
+
+        foreach ($groups as $group) {
+            $groupItems = is_array($group['items'] ?? null) ? $group['items'] : [];
+            foreach ($groupItems as $item) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
+    }
+
     public function ToggleStockItem($itemId)
     {
         $data = $this->request->getJSON(true);
@@ -1220,5 +1278,77 @@ class InventoryController extends BaseController
             'success' => false,
             'message' => 'Failed to update item status.',
         ]);
+    }
+
+    /**
+     * Manually trigger the scheduled inventory report for a given slot.
+     * Owner-only. Used for verifying the email before the scheduled window fires.
+     *
+     * POST /Inventory/SendReport
+     * Body (JSON): { "slot": "am"|"pm", "force": true }
+     */
+    public function sendInventoryReport()
+    {
+        $session = $this->getSessionData();
+
+        // Only owners may trigger this
+        if (($session['employee_type'] ?? '') !== 'owner') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message'  => 'Unauthorized. Only owners can trigger inventory reports.',
+            ]);
+        }
+
+        $json  = $this->request->getJSON(true);
+        $slot  = in_array($json['slot'] ?? '', ['am', 'pm']) ? $json['slot'] : 'am';
+        $force = !empty($json['force']);
+
+        $today    = date('Y-m-d');
+        $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
+
+        if (!$force && file_exists($flagFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Report for the '{$slot}' slot was already sent today. Pass \"force\": true to resend.",
+                'flag'    => $flagFile,
+            ]);
+        }
+
+        // Delete flag so the sender is not blocked
+        if ($force && file_exists($flagFile)) {
+            @unlink($flagFile);
+        }
+
+        try {
+            // Use reflection to call private method for the force-test path
+            $scheduler = new \ReflectionClass(\App\Libraries\AutoReportScheduler::class);
+            $method    = $scheduler->getMethod('sendInventoryReport');
+            $method->setAccessible(true);
+            $sent      = $method->invoke(null, $slot, $today);
+
+            if ($sent) {
+                // Re-plant flag so the scheduler won't double-send
+                file_put_contents($flagFile, date('Y-m-d H:i:s') . ' (manual)');
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => "Inventory report for slot '{$slot}' sent successfully.",
+                    'slot'    => $slot,
+                    'date'    => $today,
+                ]);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Report was not sent. Check writable/logs for details.',
+            ]);
+
+        } catch (\Throwable $e) {
+            log_message('error', 'Manual inventory report trigger failed: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Exception: ' . $e->getMessage(),
+            ]);
+        }
     }
 }

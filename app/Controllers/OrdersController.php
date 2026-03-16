@@ -279,6 +279,24 @@ class OrdersController extends BaseController
         ]);
     }
 
+    /**
+     * Get order history summary based on filters.
+     * GET /Order/GetOrderHistorySummary?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&order_type=...
+     */
+    public function getOrderHistorySummary()
+    {
+        $dateFrom = $this->request->getGet('date_from');
+        $dateTo = $this->request->getGet('date_to');
+        $orderType = $this->request->getGet('order_type');
+
+        $summary = $this->orderModel->getOrderHistorySummary($dateFrom, $dateTo, $orderType);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $summary,
+        ]);
+    }
+
     public function voidOrder($orderId = null)
     {
         if (!$orderId) {
@@ -371,13 +389,16 @@ class OrdersController extends BaseController
      */
     public function getTodaysStockSummary()
     {
-        // Get today's inventory
-        $dailyStock = $this->dailyStockModel->getTodaysInventory();
+        // Optional date parameter for filtered history views; defaults to today
+        $date = $this->request->getGet('date') ?: date('Y-m-d');
+
+        // Get inventory for the requested date
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $date)->first();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'No inventory for today.',
+                'message' => 'No inventory for selected date.',
                 'data' => []
             ]);
         }
@@ -386,8 +407,7 @@ class OrdersController extends BaseController
         $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStock['daily_stock_id']);
 
         // Get sales data from transactions table
-        $today = date('Y-m-d');
-        $salesData = $this->transactionsModel->getSalesDataByDate($today);
+        $salesData = $this->transactionsModel->getSalesDataByDate($date);
         $salesMap = [];
         foreach ($salesData as $sale) {
             $salesMap[$sale['item_id']] = $sale;

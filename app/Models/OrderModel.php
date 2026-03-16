@@ -101,6 +101,61 @@ class OrderModel extends Model
             ->getRowArray();
     }
 
+    /**
+     * Get summary metrics for order history filters.
+     * Excludes voided orders.
+     *
+     * @param string|null $dateFrom   Y-m-d
+     * @param string|null $dateTo     Y-m-d
+     * @param string|null $orderType  walk-in|foodpanda|distributed
+     */
+    public function getOrderHistorySummary(?string $dateFrom = null, ?string $dateTo = null, ?string $orderType = null): array
+    {
+        $db = \Config\Database::connect();
+
+        $where = ['o.voided_at IS NULL'];
+        $params = [];
+
+        if (!empty($dateFrom)) {
+            $where[] = 'o.date_created >= ?';
+            $params[] = $dateFrom;
+        }
+
+        if (!empty($dateTo)) {
+            $where[] = 'o.date_created <= ?';
+            $params[] = $dateTo;
+        }
+
+        if (!empty($orderType)) {
+            $where[] = 'o.order_type = ?';
+            $params[] = $orderType;
+        }
+
+        $whereClause = implode(' AND ', $where);
+
+        $sql = "
+            SELECT
+                COUNT(o.order_id) AS total_orders,
+                COALESCE(SUM(o.total_payment_due), 0) AS total_revenue,
+                COALESCE(SUM(oi.items_per_order), 0) AS total_items_sold
+            FROM orders o
+            LEFT JOIN (
+                SELECT order_id, SUM(amount) AS items_per_order
+                FROM order_items
+                GROUP BY order_id
+            ) oi ON oi.order_id = o.order_id
+            WHERE {$whereClause}
+        ";
+
+        $row = $db->query($sql, $params)->getRowArray() ?? [];
+
+        return [
+            'total_orders' => intval($row['total_orders'] ?? 0),
+            'total_revenue' => floatval($row['total_revenue'] ?? 0),
+            'total_items_sold' => intval($row['total_items_sold'] ?? 0),
+        ];
+    }
+
     public function getTotalSalesByPaymentMethod($paymentMethod)
     {
         $today = date('Y-m-d');
