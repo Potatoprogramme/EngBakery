@@ -93,6 +93,7 @@
                                 <input type="hidden" id="shiftStart" value="">
                                 <input type="hidden" id="shiftEnd" value="">
                                 <input type="hidden" id="selectedShiftKey" value="">
+                                <input type="hidden" id="selectedShiftLabel" value="">
                             </div>
                         </div>
                     </div>
@@ -519,6 +520,7 @@
                         class="shift-btn px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border-2 transition-all duration-200
                                border-gray-300 text-gray-600 bg-white hover:border-primary hover:text-primary"
                         data-key="${shift.key}"
+                        data-label="${shift.label}"
                         data-start="${shift.start}"
                         data-end="${shift.end}">
                         ${shift.label}
@@ -548,10 +550,12 @@
             const shiftStart = $btn.data('start');
             const shiftEnd   = $btn.data('end');
             const shiftKey   = $btn.data('key');
+            const shiftLabel = $btn.data('label') || shiftKey;
 
             $('#shiftStart').val(shiftStart);
             $('#shiftEnd').val(shiftEnd);
             $('#selectedShiftKey').val(shiftKey);
+            $('#selectedShiftLabel').val(shiftLabel);
 
             console.log('Selected shift:', shiftKey, shiftStart, '-', shiftEnd);
 
@@ -923,14 +927,9 @@
                         if (shiftStart && shiftEnd) {
                             const cashSalesTotal = totalSales - totalOnlineRevenue - Number(pandaRevenue);
                             const expectedCash = Math.max(0, cashSalesTotal);
-                            const selectedLabel = $('#selectedShiftKey').val() || '--';
-                            const labelMap = {
-                                'shift_a': 'Shift A – 3 PM',
-                                'shift_b': 'Shift B – 8 PM',
-                                'sunday': 'Sunday – 5 PM'
-                            };
+                            const selectedLabel = $('#selectedShiftLabel').val() || $('#selectedShiftKey').val() || '--';
 
-                            $('#shiftSummaryLabel').text(labelMap[selectedLabel] || selectedLabel);
+                            $('#shiftSummaryLabel').text(selectedLabel);
                             $('#shiftSummaryTimeRange').text(formatTimeLabel(shiftStart) + ' – ' + formatTimeLabel(shiftEnd));
                             $('#shiftExpectedCash').text(formatCurrency(expectedCash));
                             $('#shiftExpectedOnline').text(formatCurrency(totalOnlineRevenue + Number(pandaRevenue)));
