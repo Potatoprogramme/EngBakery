@@ -742,10 +742,11 @@
                             currentDayGroupedData,
                             currentDaySummary
                         );
+                        const daySummary = getDayScopedSummary(currentDaySummary);
 
                         updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
-                        updateForecastedSales(displayState.items, displayState.summary);
-                        renderOwnerDayMetrics(displayState.summary);
+                        updateForecastedSales(currentDayDistributionItems, daySummary);
+                        renderOwnerDayMetrics(daySummary);
                         renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                         renderAllDistributionsList();
@@ -1212,7 +1213,9 @@
                         qtyMode
                     );
 
-                    groupedMap[groupKey].forecasted_sales += parseNumericValue(item.forecasted_sales) || fallbackForecast;
+                    groupedMap[groupKey].forecasted_sales += hasPersistedNumericValue(item, 'forecasted_sales') ?
+                        parseNumericValue(item.forecasted_sales) :
+                        fallbackForecast;
                     groupedMap[groupKey].direct_cost += parseNumericValue(item.direct_cost);
 
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(function(material) {
@@ -1252,15 +1255,9 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                const forecastTotal = group ?
-                    (parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems)) :
-                    calculateForecastedSalesTotal(groupItems);
+                const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
-                const directCostTotal = group ?
-                    parseNumericValue(group.direct_cost) :
-                    groupItems.reduce(function(sum, item) {
-                        return sum + parseNumericValue(item.direct_cost);
-                    }, 0);
+                const directCostTotal = resolveGroupDirectCost(group, groupItems);
 
                 return {
                     total_items: groupItems.length,
@@ -1272,6 +1269,49 @@
                     raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
                         group.raw_material_usage_total : [],
                 };
+            }
+
+            function hasPersistedNumericValue(source, fieldName) {
+                if (!source || typeof source !== 'object') {
+                    return false;
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(source, fieldName)) {
+                    return false;
+                }
+
+                const rawValue = source[fieldName];
+                return rawValue !== null && rawValue !== '';
+            }
+
+            function resolveGroupForecastedSales(group, items) {
+                if (hasPersistedNumericValue(group, 'forecasted_sales')) {
+                    return parseNumericValue(group.forecasted_sales);
+                }
+
+                return calculateForecastedSalesTotal(items);
+            }
+
+            function resolveGroupDirectCost(group, items) {
+                if (hasPersistedNumericValue(group, 'direct_cost')) {
+                    return parseNumericValue(group.direct_cost);
+                }
+
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                    return sum + parseNumericValue(item.direct_cost);
+                }, 0);
+            }
+
+            function getDayScopedSummary(summary = null) {
+                if (summary && typeof summary === 'object' && Object.keys(summary).length > 0) {
+                    return summary;
+                }
+
+                if (currentDaySummary && typeof currentDaySummary === 'object') {
+                    return currentDaySummary;
+                }
+
+                return {};
             }
 
             function setSelectedGroupFilter(dateStr, groupKey) {
@@ -1541,8 +1581,8 @@
 
                     const emptyDisplayState = getDisplayStateForSelectedGroup(targetDate, [], [], emptySummary);
                     updateSummaryCounts(emptyDisplayState.items, emptyDisplayState.summary, targetDate);
-                    updateForecastedSales(emptyDisplayState.items, emptyDisplayState.summary);
-                    renderOwnerDayMetrics(emptyDisplayState.summary);
+                    updateForecastedSales([], emptySummary);
+                    renderOwnerDayMetrics(emptySummary);
                     renderOwnerAnalytics(emptyDisplayState.groups, emptyDisplayState.summary);
                     return;
                 }
@@ -1593,10 +1633,11 @@
                     currentDayGroupedData,
                     currentDaySummary
                 );
+                const daySummary = getDayScopedSummary(ownerSummary);
 
                 updateSummaryCounts(displayState.items, displayState.summary, targetDate);
-                updateForecastedSales(displayState.items, displayState.summary);
-                renderOwnerDayMetrics(displayState.summary);
+                updateForecastedSales(ownerDecoratedItems, daySummary);
+                renderOwnerDayMetrics(daySummary);
                 renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data('selected-date') === targetDate) {
@@ -1673,10 +1714,12 @@
 
                     const itemsHtml = groupItems.map(function(item) {
                         const quantity = parseNumericValue(item.product_qnty);
-                        const itemForecast = parseNumericValue(item.forecasted_sales) || (quantity * getForecastUnitPrice(
-                            getProductAnalyticsData(item.product_id),
-                            item.qty_mode || 'batch'
-                        ));
+                        const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
+                            parseNumericValue(item.forecasted_sales) :
+                            (quantity * getForecastUnitPrice(
+                                getProductAnalyticsData(item.product_id),
+                                item.qty_mode || 'batch'
+                            ));
                         const itemDirect = parseNumericValue(item.direct_cost);
 
                         return `
@@ -1882,10 +1925,11 @@
                             renderMobileCards(items, groupedData, date);
 
                             const displayState = getDisplayStateForSelectedGroup(date, items, groupedData, summary);
+                            const daySummary = getDayScopedSummary(summary);
 
                             updateSummaryCounts(displayState.items, displayState.summary, date);
-                            updateForecastedSales(displayState.items, displayState.summary);
-                            renderOwnerDayMetrics(displayState.summary);
+                            updateForecastedSales(items, daySummary);
+                            renderOwnerDayMetrics(daySummary);
                             renderOwnerAnalytics(displayState.groups, displayState.summary);
                             updateMainDistributionNotePanels(displayState.items, responseNote);
 
@@ -2441,10 +2485,12 @@
 
                 const itemsHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
-                    const itemForecast = parseNumericValue(item.forecasted_sales) || (quantity * getForecastUnitPrice(
-                        getProductAnalyticsData(item.product_id),
-                        item.qty_mode || 'batch'
-                    ));
+                    const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
+                        parseNumericValue(item.forecasted_sales) :
+                        (quantity * getForecastUnitPrice(
+                            getProductAnalyticsData(item.product_id),
+                            item.qty_mode || 'batch'
+                        ));
                     const itemDirect = parseNumericValue(item.direct_cost);
 
                     return `
@@ -2630,10 +2676,11 @@
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
+                const daySummary = getDayScopedSummary(currentDaySummary);
 
                 updateSummaryCounts(groupItems, groupSummary, normalizedDate);
-                updateForecastedSales(groupItems, groupSummary);
-                renderOwnerDayMetrics(groupSummary);
+                updateForecastedSales(currentDayDistributionItems, daySummary);
+                renderOwnerDayMetrics(daySummary);
                 renderOwnerAnalytics([matchedGroup], groupSummary);
 
                 showCalendarDayModal(normalizedDate, groupItems, {
@@ -3055,7 +3102,7 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+                    const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
                     const row = `
                         <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3108,7 +3155,7 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+                    const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
                     const card = `
                         <button type="button" class="distribution-group-entry w-full text-left bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-group-key="${groupKey}" data-date="${selectedDate}">
