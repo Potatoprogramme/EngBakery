@@ -572,10 +572,7 @@ class RawMaterialStockModel extends Model
         // ── Now check stock & build deductions with accurate cumulative totals ──
         $deductions = [];
         $errors = [];
-
-        if (!$preview) {
-            $this->db->transStart();
-        }
+        $deductionPlan = [];
 
         try {
             foreach ($materialNeeds as $materialId => $need) {
@@ -601,20 +598,48 @@ class RawMaterialStockModel extends Model
                     ]);
                 }
 
-                // Perform actual deduction (once per material, using total)
-                if (!$preview) {
-                    if (!$this->deductStock($materialId, $totalDeductForMaterial)) {
-                        $firstEntry = $need['entries'][0];
-                        $errors[] = "Failed to deduct " . ($firstEntry['material_name'] ?? "material #{$materialId}");
-                    }
-                }
+                $deductionPlan[] = [
+                    'material_id' => $materialId,
+                    'amount' => $totalDeductForMaterial,
+                    'insufficient' => $isInsufficient,
+                    'material_name' => $need['entries'][0]['material_name'] ?? ("material #{$materialId}"),
+                ];
+            }
+
+            $hasInsufficient = !empty(array_filter($deductionPlan, fn($d) => $d['insufficient']));
+
+            // Hard stop: no deduction should occur if any material is insufficient.
+            if (!$preview && $hasInsufficient) {
+                $short = array_values(array_unique(array_map(
+                    fn($d) => $d['material_name'],
+                    array_filter($deductionPlan, fn($d) => $d['insufficient'])
+                )));
+
+                return [
+                    'success' => false,
+                    'preview' => false,
+                    'message' => 'Insufficient raw materials: ' . implode(', ', $short),
+                    'pieces' => $pieces,
+                    'pieces_per_yield' => $pieceMetrics['batch_pieces'] ?? 1,
+                    'yields_needed' => round($yieldsNeeded, 2),
+                    'deductions' => $deductions,
+                    'has_insufficient' => true,
+                ];
             }
 
             if (!$preview) {
+                $this->db->transStart();
+
+                foreach ($deductionPlan as $plan) {
+                    if (!$this->deductStock(intval($plan['material_id']), floatval($plan['amount']))) {
+                        $errors[] = 'Failed to deduct ' . ($plan['material_name'] ?? ("material #{$plan['material_id']}"));
+                    }
+                }
+
                 $this->db->transComplete();
 
                 if ($this->db->transStatus() === false) {
-                    return ['success' => false, 'message' => 'Transaction failed', 'deductions' => $deductions];
+                    return ['success' => false, 'message' => 'Transaction failed', 'deductions' => $deductions, 'has_insufficient' => false];
                 }
             }
 

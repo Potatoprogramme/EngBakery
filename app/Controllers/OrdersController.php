@@ -90,6 +90,18 @@ class OrdersController extends BaseController
             ]);
         }
 
+        // Hard-stop validation before creating order or deducting stock
+        $stockValidation = $this->validateOrderStock($data['items'], $dailyStock);
+        if (!$stockValidation['success']) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $stockValidation['message'],
+                'insufficient_products' => $stockValidation['insufficient_products'] ?? [],
+                'insufficient_ingredients' => $stockValidation['insufficient_ingredients'] ?? [],
+                'insufficient_materials' => $stockValidation['insufficient_materials'] ?? [],
+            ]);
+        }
+
         $this->db->transStart();
 
         try {
@@ -132,8 +144,25 @@ class OrdersController extends BaseController
                 // Drinks & groceries: deduct raw materials directly via recipe
                 if (in_array($category, ['drinks', 'grocery'])) {
                     $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $quantity);
-                    if (!$deductResult['success']) {
-                        log_message('warning', "Raw material deduction failed for product #{$productId}: " . ($deductResult['message'] ?? ''));
+                    if (
+                        !$deductResult['success'] ||
+                        !empty($deductResult['has_insufficient'])
+                    ) {
+                        $shortNames = [];
+                        foreach (($deductResult['deductions'] ?? []) as $d) {
+                            if (!empty($d['insufficient']) && !empty($d['material_name'])) {
+                                $shortNames[] = $d['material_name'];
+                            }
+                        }
+
+                        $shortNames = array_values(array_unique($shortNames));
+                        $suffix = !empty($shortNames)
+                            ? ' (' . implode(', ', $shortNames) . ')'
+                            : '';
+
+                        throw new \Exception(
+                            'Order cannot be completed: insufficient ingredients' . $suffix
+                        );
                     }
 
                     // Still record in daily inventory for sales tracking if inventory exists
@@ -469,5 +498,206 @@ class OrdersController extends BaseController
         }
 
         return $this->response->setJSON(['success' => true]);
+    }
+
+    /**
+     * Validate stock for a full cart without committing any deduction.
+     * POST /Order/ValidateCartStock
+     */
+    public function validateCartStock()
+    {
+        $data = $this->request->getJSON(true);
+        $items = $data['items'] ?? [];
+
+        if (empty($items) || !is_array($items)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No items in order.'
+            ]);
+        }
+
+        $needsInventory = false;
+        foreach ($items as $item) {
+            $product = $this->productModel->find(intval($item['product_id'] ?? 0));
+            if ($product && !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
+                $needsInventory = true;
+                break;
+            }
+        }
+
+        $dailyStock = $this->dailyStockModel->getTodaysInventory();
+        if (!$dailyStock && $needsInventory) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No inventory created for today. Please create inventory first.'
+            ]);
+        }
+
+        $validation = $this->validateOrderStock($items, $dailyStock);
+        return $this->response->setJSON($validation);
+    }
+
+    /**
+     * Validate full-cart stock rules:
+     * - Bakery/dough: quantity must not exceed daily inventory ending stock
+     * - Drinks/grocery: aggregate required raw materials across all items
+     */
+    private function validateOrderStock(array $items, ?array $dailyStock): array
+    {
+        $normalizedItems = [];
+
+        foreach ($items as $item) {
+            $productId = intval($item['product_id'] ?? 0);
+            $quantity = intval($item['quantity'] ?? 0);
+
+            if ($productId <= 0 || $quantity <= 0) {
+                continue;
+            }
+
+            if (!isset($normalizedItems[$productId])) {
+                $normalizedItems[$productId] = [
+                    'product_id' => $productId,
+                    'quantity' => 0,
+                ];
+            }
+
+            $normalizedItems[$productId]['quantity'] += $quantity;
+        }
+
+        if (empty($normalizedItems)) {
+            return [
+                'success' => false,
+                'message' => 'No valid order items found.'
+            ];
+        }
+
+        $bakeryShortages = [];
+        $productNeeds = [];
+        $materialMeta = [];
+
+        foreach ($normalizedItems as $normalized) {
+            $productId = $normalized['product_id'];
+            $quantity = $normalized['quantity'];
+
+            $product = $this->productModel->find($productId);
+            if (!$product) {
+                return [
+                    'success' => false,
+                    'message' => 'Order cannot be completed: one or more products are invalid.'
+                ];
+            }
+
+            $productName = $product['product_name'] ?? ('Product #' . $productId);
+            $category = $product['category'] ?? '';
+
+            if (in_array($category, ['drinks', 'grocery'])) {
+                $preview = $this->rawMaterialStockModel->deductForProduction($productId, $quantity, true);
+
+                if (!$preview['success']) {
+                    return [
+                        'success' => false,
+                        'message' => 'Order cannot be completed: unable to validate ingredients for ' . $productName . '. ' . ($preview['message'] ?? '')
+                    ];
+                }
+
+                $perProductNeeds = [];
+                foreach (($preview['deductions'] ?? []) as $deduction) {
+                    $materialId = intval($deduction['material_id'] ?? 0);
+                    $deductAmount = floatval($deduction['deduct_amount'] ?? 0);
+
+                    if ($materialId <= 0 || $deductAmount <= 0) {
+                        continue;
+                    }
+
+                    if (!isset($perProductNeeds[$materialId])) {
+                        $perProductNeeds[$materialId] = 0.0;
+                    }
+                    $perProductNeeds[$materialId] += $deductAmount;
+
+                    if (!isset($materialMeta[$materialId])) {
+                        $materialMeta[$materialId] = [
+                            'name' => $deduction['material_name'] ?? ('Material #' . $materialId),
+                            'unit' => $deduction['unit'] ?? '',
+                            'available' => floatval($deduction['before'] ?? 0),
+                        ];
+                    }
+                }
+
+                $productNeeds[] = [
+                    'product_name' => $productName,
+                    'materials' => $perProductNeeds,
+                ];
+
+                continue;
+            }
+
+            if (!$dailyStock) {
+                $bakeryShortages[] = $productName . ' (need ' . $quantity . ', have 0)';
+                continue;
+            }
+
+            $stockItem = $this->dailyStockItemsModel->getStockItemByProduct(
+                intval($dailyStock['daily_stock_id']),
+                $productId
+            );
+
+            $available = intval($stockItem['ending_stock'] ?? 0);
+            if ($available < $quantity) {
+                $bakeryShortages[] = $productName . ' (need ' . $quantity . ', have ' . $available . ')';
+            }
+        }
+
+        if (!empty($bakeryShortages)) {
+            return [
+                'success' => false,
+                'message' => 'Order cannot be completed: insufficient bakery stock.',
+                'insufficient_products' => $bakeryShortages,
+                'insufficient_materials' => $bakeryShortages,
+            ];
+        }
+
+        $materialUsed = [];
+        $insufficientProducts = [];
+        $insufficientMaterials = [];
+        $insufficientIngredients = [];
+
+        foreach ($productNeeds as $productNeed) {
+            $productName = $productNeed['product_name'];
+            $shortDetails = [];
+
+            foreach ($productNeed['materials'] as $materialId => $requiredAmount) {
+                $alreadyUsed = floatval($materialUsed[$materialId] ?? 0);
+                $available = floatval($materialMeta[$materialId]['available'] ?? 0);
+                $projectedUsage = $alreadyUsed + $requiredAmount;
+
+                if ($projectedUsage > $available) {
+                    $name = $materialMeta[$materialId]['name'] ?? ('Material #' . $materialId);
+                    $unit = trim((string) ($materialMeta[$materialId]['unit'] ?? ''));
+                    $insufficientIngredients[$materialId] = $name;
+                    $shortDetails[] = $name . ' (need ' . round($projectedUsage, 2) . ($unit !== '' ? ' ' . $unit : '') . ', have ' . round($available, 2) . ')';
+                }
+
+                $materialUsed[$materialId] = $projectedUsage;
+            }
+
+            if (!empty($shortDetails)) {
+                $insufficientProducts[] = $productName;
+                $insufficientMaterials[] = $productName . ': ' . implode(', ', $shortDetails);
+            }
+        }
+
+        if (!empty($insufficientMaterials)) {
+            $ingredientNames = array_values(array_unique(array_values($insufficientIngredients)));
+
+            return [
+                'success' => false,
+                'message' => 'Order cannot be completed: insufficient ingredients (' . implode(', ', $ingredientNames) . ')',
+                'insufficient_products' => array_values(array_unique($insufficientProducts)),
+                'insufficient_ingredients' => $ingredientNames,
+                'insufficient_materials' => $insufficientMaterials,
+            ];
+        }
+
+        return ['success' => true];
     }
 }

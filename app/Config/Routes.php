@@ -103,6 +103,7 @@ $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('/', 'OrdersController::order');
     $routes->get('OrderHistory', 'OrdersController::orderHistory');
     $routes->get('GetProducts', 'OrdersController::getProducts');
+    $routes->post('ValidateCartStock', 'OrdersController::validateCartStock');
     $routes->post('ProcessPayment', 'OrdersController::processPayment');
     $routes->get('GetOrderHistory', 'OrdersController::getOrderHistory');
     $routes->get('GetOrderHistorySummary', 'OrdersController::getOrderHistorySummary');
