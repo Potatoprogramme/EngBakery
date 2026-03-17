@@ -416,173 +416,53 @@
                 </div>
             </div>
 
-            <!-- Weekly Sales Trend -->
+            <!-- Sales Report Trend -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 mb-4 sm:mb-6">
-                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                    <i class="fas fa-chart-line text-primary mr-2"></i>
-                    Weekly Sales Trend
-                </h3>
-                <?php if (count($weeklyTrend) > 0): ?>
-                    <?php
-                    // Calculate min and max for Y-axis
-                    $salesValues = array_column($weeklyTrend, 'daily_total');
-                    $minSales = min($salesValues);
-                    $maxSales = max($salesValues);
-
-                    // Round to nice numbers for Y-axis labels
-                    function roundToNice($value, $roundUp = true)
-                    {
-                        if ($value <= 0)
-                            return 0;
-                        $magnitude = pow(10, floor(log10($value)));
-                        $normalized = $value / $magnitude;
-
-                        if ($roundUp) {
-                            if ($normalized <= 1)
-                                $nice = 1;
-                            elseif ($normalized <= 2)
-                                $nice = 2;
-                            elseif ($normalized <= 5)
-                                $nice = 5;
-                            else
-                                $nice = 10;
-                        } else {
-                            if ($normalized < 2)
-                                $nice = 1;
-                            elseif ($normalized < 5)
-                                $nice = 2;
-                            else
-                                $nice = 5;
-                        }
-
-                        return $nice * $magnitude;
-                    }
-
-                    // Calculate nice Y-axis bounds
-                    $yMin = floor($minSales / 100) * 100; // Round down to nearest 100
-                    $yMax = ceil($maxSales / 100) * 100;  // Round up to nearest 100
-                
-                    // Ensure minimum range
-                    if ($yMax - $yMin < 500) {
-                        $yMax = $yMin + 500;
-                    }
-
-                    // If all values are 0
-                    if ($yMax == 0) {
-                        $yMax = 500;
-                        $yMin = 0;
-                    }
-
-                    // Calculate step size (aim for 5 labels)
-                    $range = $yMax - $yMin;
-                    $step = ceil($range / 5 / 100) * 100; // Round to nearest 100
-                    if ($step < 100)
-                        $step = 100;
-
-                    // Generate Y-axis labels
-                    $yLabels = [];
-                    for ($i = $yMax; $i >= $yMin; $i -= $step) {
-                        $yLabels[] = $i;
-                    }
-                    if (end($yLabels) != $yMin) {
-                        $yLabels[] = $yMin;
-                    }
-
-                    $chartHeight = 160; // pixels
-                    ?>
-
-                    <div class="flex">
-                        <!-- Y-Axis Labels -->
-                        <div class="flex flex-col justify-between pr-2 sm:pr-3 text-right"
-                            style="height: <?= $chartHeight ?>px;">
-                            <?php foreach ($yLabels as $label): ?>
-                                <span class="text-xs text-gray-500 leading-none">₱<?= number_format($label) ?></span>
-                            <?php endforeach; ?>
+                <div class="flex flex-col items-start gap-3 mb-3 sm:mb-4">
+                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 flex items-center" id="salesTrendTitle">
+                        <i class="fas fa-chart-line text-primary mr-2"></i>
+                        Sales Report Trend
+                    </h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+                        <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden w-full sm:w-auto">
+                            <button type="button" data-type="line"
+                                class="sales-chart-type-toggle flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium text-white bg-primary">
+                                <i class="fas fa-chart-line mr-1"></i>Line
+                            </button>
+                            <button type="button" data-type="bar"
+                                class="sales-chart-type-toggle flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border-l border-gray-200">
+                                <i class="fas fa-chart-bar mr-1"></i>Bar
+                            </button>
                         </div>
 
-                        <!-- Chart Area -->
-                        <div class="flex-1 relative">
-                            <!-- Grid Lines -->
-                            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                                <?php foreach ($yLabels as $index => $label): ?>
-                                    <div class="border-t border-gray-100 <?= $index === 0 ? 'border-gray-200' : '' ?>"></div>
-                                <?php endforeach; ?>
-                            </div>
-
-                            <!-- Bars Container -->
-                            <div class="relative flex items-end justify-between gap-1 sm:gap-2"
-                                style="height: <?= $chartHeight ?>px;">
-                                <?php foreach ($weeklyTrend as $day): ?>
-                                    <?php
-                                    $value = floatval($day['daily_total']);
-                                    // Calculate height percentage based on Y-axis range
-                                    $heightPercent = $yMax > $yMin ? (($value - $yMin) / ($yMax - $yMin)) * 100 : 0;
-                                    $heightPercent = max($heightPercent, 2); // Minimum visible height
-                                    ?>
-                                    <div class="flex-1 flex flex-col items-center h-full justify-end group">
-                                        <!-- Tooltip -->
-                                        <div
-                                            class="hidden group-hover:block absolute -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-10 whitespace-nowrap">
-                                            ₱<?= number_format($value, 2) ?>
-                                        </div>
-                                        <!-- Bar -->
-                                        <div class="w-full bg-primary rounded-t-md transition-all duration-300 hover:bg-secondary cursor-pointer relative"
-                                            style="height: <?= $heightPercent ?>%;">
-                                            <!-- Value on top of bar (visible on hover) -->
-                                            <span
-                                                class="absolute -top-5 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
-                                                ₱<?= number_format($value, 0) ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
+                        <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden w-full sm:w-auto">
+                            <button type="button" data-mode="daily"
+                                class="sales-trend-toggle flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium text-white bg-primary">
+                                Daily
+                            </button>
+                            <button type="button" data-mode="weekly"
+                                class="sales-trend-toggle flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border-l border-gray-200">
+                                Weekly
+                            </button>
+                            <button type="button" data-mode="monthly"
+                                class="sales-trend-toggle flex-1 sm:flex-none px-3 py-2 text-xs sm:text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border-l border-gray-200">
+                                Monthly
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- X-Axis Labels -->
-                    <div class="flex mt-2">
-                        <div class="w-12 sm:w-16"></div> <!-- Spacer for Y-axis -->
-                        <div class="flex-1 flex justify-between gap-1 sm:gap-2">
-                            <?php foreach ($weeklyTrend as $day): ?>
-                                <div class="flex-1 text-center">
-                                    <p class="text-xs font-medium text-gray-600">
-                                        <?= date('D', strtotime($day['date_created'])) ?>
-                                    </p>
-                                    <p class="text-xs text-gray-400 hidden sm:block">
-                                        <?= date('M j', strtotime($day['date_created'])) ?>
-                                    </p>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
+                <p id="salesTrendSubtitle" class="text-xs sm:text-sm text-gray-500 mb-3">Daily sales for the last 14 days.</p>
 
-                    <!-- Summary -->
-                    <div
-                        class="flex flex-wrap justify-between items-center mt-3 sm:mt-4 pt-3 border-t border-gray-100 gap-2">
-                        <div class="flex items-center gap-3 sm:gap-4">
-                            <span class="text-xs sm:text-sm text-gray-500">
-                                <i class="fas fa-arrow-down text-red-500 mr-1"></i>Low: <span
-                                    class="font-semibold text-gray-700">₱<?= number_format($minSales, 2) ?></span>
-                            </span>
-                            <span class="text-xs sm:text-sm text-gray-500">
-                                <i class="fas fa-arrow-up text-green-500 mr-1"></i>High: <span
-                                    class="font-semibold text-gray-700">₱<?= number_format($maxSales, 2) ?></span>
-                            </span>
-                        </div>
-                        <span class="text-xs sm:text-sm font-semibold text-primary">
-                            <i class="fas fa-calculator mr-1"></i>Total: ₱<?= number_format(array_sum($salesValues), 2) ?>
-                        </span>
-                    </div>
-                <?php else: ?>
-                    <div class="text-center py-6 sm:py-8">
-                        <div
-                            class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fas fa-chart-bar text-gray-400 text-xl sm:text-2xl"></i>
-                        </div>
-                        <p class="text-xs sm:text-sm text-gray-500">No sales data available</p>
-                    </div>
-                <?php endif; ?>
+                <div class="relative h-56 sm:h-64 rounded-lg border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-2 sm:p-3">
+                    <canvas id="salesTrendCanvas" class="w-full h-full"></canvas>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-center mt-3 pt-3 border-t border-gray-100 gap-2 text-xs sm:text-sm">
+                    <span class="text-gray-500"><i class="fas fa-arrow-down text-red-500 mr-1"></i>Low: <span id="salesTrendLow" class="font-semibold text-gray-700">₱0.00</span></span>
+                    <span class="text-gray-500"><i class="fas fa-arrow-up text-green-500 mr-1"></i>High: <span id="salesTrendHigh" class="font-semibold text-gray-700">₱0.00</span></span>
+                    <span class="text-primary font-semibold"><i class="fas fa-calculator mr-1"></i>Total: <span id="salesTrendTotal">₱0.00</span></span>
+                </div>
             </div>
 
             <!-- System Overview -->
@@ -681,6 +561,187 @@
     </div>
 
     <script>
+        const salesTrendData = <?= json_encode($salesTrend ?? ['daily' => [], 'weekly' => [], 'monthly' => []], JSON_UNESCAPED_UNICODE) ?>;
+        let currentTrendMode = 'daily';
+        let currentChartType = 'line';
+
+        function formatPeso(value) {
+            return '₱' + (Number(value) || 0).toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function drawSalesTrend(mode) {
+            const points = Array.isArray(salesTrendData[mode]) ? salesTrendData[mode] : [];
+            const canvas = document.getElementById('salesTrendCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const ratio = window.devicePixelRatio || 1;
+            const cssWidth = canvas.clientWidth || 700;
+            const cssHeight = canvas.clientHeight || 260;
+            canvas.width = Math.floor(cssWidth * ratio);
+            canvas.height = Math.floor(cssHeight * ratio);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+            ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+            if (!points.length) {
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No sales data available', cssWidth / 2, cssHeight / 2);
+                document.getElementById('salesTrendLow').textContent = formatPeso(0);
+                document.getElementById('salesTrendHigh').textContent = formatPeso(0);
+                document.getElementById('salesTrendTotal').textContent = formatPeso(0);
+                return;
+            }
+
+            const labels = points.map((p) => p.label || '');
+            const values = points.map((p) => Number(p.value) || 0);
+            const minVal = Math.min(...values);
+            const maxVal = Math.max(...values);
+            const totalVal = values.reduce((sum, val) => sum + val, 0);
+
+            document.getElementById('salesTrendLow').textContent = formatPeso(minVal);
+            document.getElementById('salesTrendHigh').textContent = formatPeso(maxVal);
+            document.getElementById('salesTrendTotal').textContent = formatPeso(totalVal);
+
+            const subtitles = {
+                daily: 'Daily sales for the last 14 days.',
+                weekly: 'Weekly sales for the last 8 weeks.',
+                monthly: 'Monthly sales for the last 12 months.'
+            };
+            const subtitleEl = document.getElementById('salesTrendSubtitle');
+            if (subtitleEl) subtitleEl.textContent = subtitles[mode] || subtitles.daily;
+
+            const pad = { top: 18, right: 18, bottom: 40, left: 46 };
+            const chartW = cssWidth - pad.left - pad.right;
+            const chartH = cssHeight - pad.top - pad.bottom;
+            const safeMin = 0;
+            let safeMax = maxVal;
+            if (safeMax <= 0) safeMax = 100;
+            if (safeMax < minVal + 1) safeMax = minVal + 1;
+
+            const scaleY = (val) => pad.top + chartH - ((val - safeMin) / (safeMax - safeMin)) * chartH;
+            const stepX = labels.length > 1 ? chartW / (labels.length - 1) : 0;
+
+            // Grid + y labels
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.fillStyle = '#6b7280';
+            ctx.lineWidth = 1;
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const v = safeMin + ((safeMax - safeMin) * i) / 4;
+                const y = scaleY(v);
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(pad.left + chartW, y);
+                ctx.stroke();
+                ctx.fillText('₱' + Math.round(v).toLocaleString('en-PH'), pad.left - 6, y + 4);
+            }
+
+            // X labels
+            ctx.textAlign = 'center';
+            labels.forEach((label, idx) => {
+                const x = pad.left + stepX * idx;
+                const shortLabel = label.length > 10 ? label.slice(0, 10) + '…' : label;
+                ctx.fillText(shortLabel, x, cssHeight - 12);
+            });
+
+            if (currentChartType === 'bar') {
+                const slotW = labels.length > 0 ? chartW / labels.length : chartW;
+                const barW = Math.max(8, Math.min(38, slotW * 0.62));
+
+                values.forEach((val, idx) => {
+                    const centerX = pad.left + (slotW * idx) + slotW / 2;
+                    const topY = scaleY(val);
+                    const barH = Math.max(0, (pad.top + chartH) - topY);
+                    const leftX = centerX - (barW / 2);
+
+                    ctx.fillStyle = '#16a34a';
+                    ctx.fillRect(leftX, topY, barW, barH);
+                });
+            } else {
+                // Line
+                ctx.beginPath();
+                values.forEach((val, idx) => {
+                    const x = pad.left + stepX * idx;
+                    const y = scaleY(val);
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.strokeStyle = '#16a34a';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Points
+                ctx.fillStyle = '#16a34a';
+                values.forEach((val, idx) => {
+                    const x = pad.left + stepX * idx;
+                    const y = scaleY(val);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+        }
+
+        function setTrendMode(mode) {
+            currentTrendMode = mode;
+            document.querySelectorAll('.sales-trend-toggle').forEach((btn) => {
+                const active = btn.getAttribute('data-mode') === mode;
+                btn.classList.toggle('bg-primary', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('bg-white', !active);
+                btn.classList.toggle('text-gray-600', !active);
+            });
+            drawSalesTrend(mode);
+        }
+
+        function setChartType(type) {
+            currentChartType = (type === 'bar') ? 'bar' : 'line';
+
+            document.querySelectorAll('.sales-chart-type-toggle').forEach((btn) => {
+                const active = btn.getAttribute('data-type') === currentChartType;
+                btn.classList.toggle('bg-primary', active);
+                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('bg-white', !active);
+                btn.classList.toggle('text-gray-600', !active);
+            });
+
+            const titleEl = document.getElementById('salesTrendTitle');
+            if (titleEl) {
+                const iconClass = currentChartType === 'bar' ? 'fa-chart-bar' : 'fa-chart-line';
+                titleEl.innerHTML = `<i class="fas ${iconClass} text-primary mr-2"></i>Sales Report Trend`;
+            }
+
+            drawSalesTrend(currentTrendMode);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.sales-trend-toggle').forEach((btn) => {
+                btn.addEventListener('click', function () {
+                    setTrendMode(this.getAttribute('data-mode') || 'daily');
+                });
+            });
+
+            document.querySelectorAll('.sales-chart-type-toggle').forEach((btn) => {
+                btn.addEventListener('click', function () {
+                    setChartType(this.getAttribute('data-type') || 'line');
+                });
+            });
+
+            window.addEventListener('resize', function () {
+                drawSalesTrend(currentTrendMode);
+            });
+
+            setTrendMode('daily');
+            setChartType('line');
+        });
+
         // Auto-refresh dashboard every 5 minutes
         setTimeout(function () {
             location.reload();

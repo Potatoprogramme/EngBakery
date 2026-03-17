@@ -1,3 +1,4 @@
+<?php $isOwnerView = (($employee_type ?? '') === 'owner'); ?>
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
@@ -10,6 +11,12 @@
                             class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-history mr-2"></i> History
                         </a>
+                        <?php if ($isOwnerView): ?>
+                        <button id="btnSendInventoryReport" type="button"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
+                        </button>
+                        <?php endif; ?>
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
@@ -529,6 +536,35 @@
             </div>
         </div>
     </div>
+
+    <?php if ($isOwnerView): ?>
+    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="sendReportConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and emailed.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmSendInventoryReport"
+                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Send Report
+                </button>
+                <button type="button" id="sendReportConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <script>
         // Track if inventory exists for today
         let inventoryExistsToday = false;
@@ -1523,6 +1559,76 @@
             $(document).on('click', '.btn-today-dist-open-group', function () {
                 const selectedIndex = parseInt($(this).data('groupIndex'), 10);
                 renderTodayDistributionGroupItemsPane(selectedIndex, true);
+            });
+
+            function openSendReportConfirmModal() {
+                $('#sendReportConfirmModal').removeClass('hidden');
+            }
+
+            function closeSendReportConfirmModal() {
+                $('#sendReportConfirmModal').addClass('hidden');
+                const confirmBtn = $('#btnConfirmSendInventoryReport');
+                confirmBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .text('Send Report');
+            }
+
+            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on('click', function () {
+                closeSendReportConfirmModal();
+            });
+
+            $('#btnSendInventoryReport').on('click', function () {
+                const btn = $(this);
+                if (btn.prop('disabled')) {
+                    return;
+                }
+
+                openSendReportConfirmModal();
+            });
+
+            $('#btnConfirmSendInventoryReport').on('click', function () {
+                const btn = $('#btnSendInventoryReport');
+                const confirmBtn = $(this);
+
+                if (btn.prop('disabled') || confirmBtn.prop('disabled')) {
+                    return;
+                }
+
+                const originalHtml = btn.html();
+                btn.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
+
+                confirmBtn.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
+
+                $.ajax({
+                    url: baseUrl + '/Inventory/SendReport',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({}),
+                    success: function (response) {
+                        if (response && response.success) {
+                            showToast('success', response.message || 'Inventory report sent successfully.', 2500);
+                        } else {
+                            showToast('error', (response && response.message) || 'Failed to send inventory report.', 3000);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        const message = xhr && xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : ('Error sending report: ' + error);
+                        showToast('danger', message, 3000);
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false)
+                            .removeClass('opacity-70 cursor-not-allowed')
+                            .html(originalHtml);
+                        closeSendReportConfirmModal();
+                    }
+                });
             });
 
             // Open Add Inventory Modal (Desktop & Mobile)
