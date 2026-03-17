@@ -10,8 +10,12 @@ let productsData = [];
 let currentProductPrice = 0;
 let currentProductId = null;
 let currentProductCategory = "bakery";
+let currentProductStock = 0;
 let currentEditIndex = -1;
 let currentEditPrice = 0;
+let currentEditCategory = "bakery";
+let currentEditProductId = null;
+let currentEditMaxQty = Infinity;
 let currentStep = 1;
 let checkoutTotalAmount = 0;
 let miniCartOpen = false;
@@ -223,6 +227,30 @@ function showProductError(message) {
   document.getElementById("grocery-grid").innerHTML = errorHtml;
 }
 
+function getProductById(productId) {
+  return productsData.find((p) => String(p.product_id) === String(productId));
+}
+
+function getBakeryMaxQuantity(productId, excludeIndex = -1) {
+  const product = getProductById(productId);
+  const stock = parseInt(product?.available_stock) || 0;
+
+  const inCartQty = CartManager.getCart().reduce((sum, item, index) => {
+    if (excludeIndex === index) {
+      return sum;
+    }
+    if (
+      String(item.product_id) === String(productId) &&
+      (item.category || "") === "bakery"
+    ) {
+      return sum + (parseInt(item.quantity) || 0);
+    }
+    return sum;
+  }, 0);
+
+  return Math.max(0, stock - inCartQty);
+}
+
 function attachProductCardHandlers() {
   document.querySelectorAll(".product-card").forEach((card) => {
     card.addEventListener("click", function () {
@@ -234,6 +262,7 @@ function attachProductCardHandlers() {
       currentProductId = productId;
       currentProductPrice = price;
       currentProductCategory = category;
+      currentProductStock = parseInt(this.getAttribute("data-product-stock")) || 0;
       document.getElementById("productModalTitle").textContent = productName;
       document.getElementById("productPrice").textContent =
         "P" + price.toFixed(2);
@@ -242,6 +271,16 @@ function attachProductCardHandlers() {
         "P" + price.toFixed(2);
 
       document.getElementById("productModal").classList.remove("hidden");
+
+      if (category === "bakery") {
+        const maxQty = getBakeryMaxQuantity(productId);
+        const addBtn = document.querySelector(
+          '#productOrderForm button[type="submit"]',
+        );
+        if (addBtn) {
+          addBtn.disabled = maxQty <= 0;
+        }
+      }
     });
   });
 }
@@ -270,12 +309,35 @@ function initProductModal() {
   const btnCloseProductModal = document.getElementById("btnCloseProductModal");
   const btnCancelProduct = document.getElementById("btnCancelProduct");
   const productOrderForm = document.getElementById("productOrderForm");
+  const btnAddProduct = productOrderForm.querySelector('button[type="submit"]');
 
   /**
    * Update the total price display based on quantity
    */
   function updateProductTotal() {
     let quantity = parseInt(productQuantity.value) || 0;
+
+    if (currentProductCategory === "bakery") {
+      const maxQty = getBakeryMaxQuantity(currentProductId);
+      if (maxQty <= 0) {
+        quantity = 1;
+        productQuantity.value = 1;
+        if (btnAddProduct) {
+          btnAddProduct.disabled = true;
+        }
+      } else {
+        if (quantity > maxQty) {
+          quantity = maxQty;
+          productQuantity.value = maxQty;
+        }
+        if (btnAddProduct) {
+          btnAddProduct.disabled = false;
+        }
+      }
+    } else if (btnAddProduct) {
+      btnAddProduct.disabled = false;
+    }
+
     if (quantity < 1) {
       quantity = 1;
       productQuantity.value = 1;
@@ -301,6 +363,19 @@ function initProductModal() {
     e.preventDefault();
     e.stopPropagation();
     let quantity = parseInt(productQuantity.value) || 1;
+
+    if (currentProductCategory === "bakery") {
+      const maxQty = getBakeryMaxQuantity(currentProductId);
+      if (maxQty <= 0) {
+        Toast.warning("No remaining bakery stock available for this item.");
+        return;
+      }
+      if (quantity >= maxQty) {
+        Toast.warning("Quantity cannot exceed remaining bakery stock.");
+        return;
+      }
+    }
+
     productQuantity.value = quantity + 1;
     updateProductTotal();
   });
@@ -318,6 +393,20 @@ function initProductModal() {
     const productName =
       document.getElementById("productModalTitle").textContent;
     const quantity = parseInt(productQuantity.value);
+
+    if (currentProductCategory === "bakery") {
+      const maxQty = getBakeryMaxQuantity(currentProductId);
+      if (maxQty <= 0) {
+        Toast.error("Order cannot be completed: this bakery item is out of stock.");
+        return;
+      }
+      if (quantity > maxQty) {
+        productQuantity.value = maxQty;
+        updateProductTotal();
+        Toast.warning("Quantity cannot exceed remaining bakery stock.");
+        return;
+      }
+    }
 
     // For drinks & grocery — check raw material stock BEFORE adding to cart
     if (["drinks", "grocery"].includes(currentProductCategory)) {
@@ -492,6 +581,17 @@ function initEditOrderModal() {
 
   function updateEditOrderTotal() {
     let quantity = parseInt(editOrderQuantity.value) || 0;
+
+    if (currentEditCategory === "bakery") {
+      if (currentEditMaxQty <= 0) {
+        quantity = 1;
+        editOrderQuantity.value = 1;
+      } else if (quantity > currentEditMaxQty) {
+        quantity = currentEditMaxQty;
+        editOrderQuantity.value = currentEditMaxQty;
+      }
+    }
+
     if (quantity < 1) {
       quantity = 1;
       editOrderQuantity.value = 1;
@@ -513,6 +613,18 @@ function initEditOrderModal() {
 
   btnEditQtyIncrease.addEventListener("click", function () {
     let quantity = parseInt(editOrderQuantity.value) || 1;
+
+    if (currentEditCategory === "bakery") {
+      if (currentEditMaxQty <= 0) {
+        Toast.warning("No remaining bakery stock available for this item.");
+        return;
+      }
+      if (quantity >= currentEditMaxQty) {
+        Toast.warning("Quantity cannot exceed remaining bakery stock.");
+        return;
+      }
+    }
+
     editOrderQuantity.value = quantity + 1;
     updateEditOrderTotal();
   });
@@ -530,6 +642,20 @@ function initEditOrderModal() {
     const newQuantity = parseInt(editOrderQuantity.value);
     const orderCart = CartManager.getCart();
 
+    if (currentEditCategory === "bakery") {
+      currentEditMaxQty = getBakeryMaxQuantity(currentEditProductId, currentEditIndex);
+      if (currentEditMaxQty <= 0) {
+        Toast.error("Order cannot be completed: this bakery item is out of stock.");
+        return;
+      }
+      if (newQuantity > currentEditMaxQty) {
+        editOrderQuantity.value = currentEditMaxQty;
+        updateEditOrderTotal();
+        Toast.warning("Quantity cannot exceed remaining bakery stock.");
+        return;
+      }
+    }
+
     if (currentEditIndex >= 0 && currentEditIndex < orderCart.length) {
       CartManager.updateByIndex(currentEditIndex, newQuantity);
       renderOrdersList();
@@ -546,6 +672,12 @@ function openEditOrderModal(index) {
   const item = orderCart[index];
   currentEditIndex = index;
   currentEditPrice = item.price;
+  currentEditCategory = item.category || "bakery";
+  currentEditProductId = item.product_id;
+  currentEditMaxQty =
+    currentEditCategory === "bakery"
+      ? getBakeryMaxQuantity(currentEditProductId, index)
+      : Infinity;
 
   document.getElementById("editOrderModalTitle").textContent =
     "Edit: " + item.name;
@@ -956,6 +1088,33 @@ async function completeCheckout() {
 
   try {
     const orderCart = CartManager.getCart();
+
+    // Frontend pre-check mirrors backend rules and shows detailed insufficiency modal.
+    const precheckPayload = {
+      items: orderCart.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      })),
+    };
+
+    const precheckResponse = await fetch(BASE_URL + "Order/ValidateCartStock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(precheckPayload),
+    });
+    const precheckResult = await precheckResponse.json();
+
+    if (!precheckResult.success) {
+      if (
+        precheckResult.insufficient_materials &&
+        precheckResult.insufficient_materials.length
+      ) {
+        showInsufficientStockModal(precheckResult.insufficient_materials);
+      }
+      Toast.error(precheckResult.message || "Order cannot be completed.");
+      return;
+    }
+
     const orderData = {
       total_payment_due: checkoutTotalAmount,
       amount_received: tendered,
@@ -1001,6 +1160,9 @@ async function completeCheckout() {
 
       Toast.success("Order saved successfully!");
     } else {
+      if (result.insufficient_materials && result.insufficient_materials.length) {
+        showInsufficientStockModal(result.insufficient_materials);
+      }
       Toast.error(result.message || "Failed to process order");
     }
   } catch (error) {
@@ -1178,6 +1340,13 @@ function renderMiniCart() {
       let cart = CartManager.getCart();
 
       if (action === "increase") {
+        if ((cart[index].category || "") === "bakery") {
+          const maxQty = getBakeryMaxQuantity(cart[index].product_id, index);
+          if (cart[index].quantity >= maxQty) {
+            Toast.warning("Quantity cannot exceed remaining bakery stock.");
+            return;
+          }
+        }
         cart[index].quantity++;
         cart[index].total = cart[index].price * cart[index].quantity;
         CartManager.saveCart(cart);
