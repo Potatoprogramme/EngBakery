@@ -122,7 +122,7 @@
                     </div>
 
                     <?php if ($isOwnerView): ?>
-                        <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="grid grid-cols-1 gap-2 mb-4">
                             <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -131,17 +131,6 @@
                                     </div>
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                                         <i class="fas fa-calculator text-emerald-600 text-sm"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-violet-100 p-3">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-xs text-gray-500">Utilities (Day)</p>
-                                        <p id="ownerUtilityCostTotalDesktop" class="text-sm font-bold text-violet-600">₱0.00</p>
-                                    </div>
-                                    <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-                                        <i class="fas fa-bolt text-violet-600 text-sm"></i>
                                     </div>
                                 </div>
                             </div>
@@ -302,14 +291,10 @@
                 </div>
 
                 <?php if ($isOwnerView): ?>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="grid grid-cols-1 gap-2 mb-3">
                         <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
                             <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
-                        </div>
-                        <div class="bg-white rounded-lg p-3 border border-violet-100 shadow-sm">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Utilities</p>
-                            <p id="ownerUtilityCostTotalMobile" class="text-sm font-bold text-violet-600">₱0.00</p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -646,7 +631,6 @@
         let productCostMap = {}; // Product pricing/cost details keyed by product_id
         let productDetailCache = {}; // Full product detail cache (ingredients + combined recipes)
         let productDetailPromiseCache = {}; // In-flight product detail requests
-        let utilityExpensesByDate = {}; // Utility totals keyed by billed date
         let ownerRawUsageHydrationToken = 0; // Prevent stale async owner analytics updates
         let modalGroupDetailHydrationToken = 0; // Prevent stale modal group detail ingredient hydration
         let calendarData = {}; // Store distribution data keyed by date
@@ -734,7 +718,6 @@
 
             getProducts();
             loadProductCostData();
-            loadUtilityExpenses();
             loadDistributionByDate();
             renderCalendar();
             loadMonthDistributions();
@@ -810,50 +793,7 @@
                 });
             }
 
-            function loadUtilityExpenses() {
-                $.ajax({
-                    url: baseUrl + 'Utility/GetUtilityExpenses',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        utilityExpensesByDate = {};
-
-                        if (response && response.success && Array.isArray(response.data)) {
-                            response.data.forEach(function(expense) {
-                                const billedDate = (expense.billed_at || '').toString().slice(0, 10);
-                                if (!billedDate) return;
-
-                                utilityExpensesByDate[billedDate] = (utilityExpensesByDate[billedDate] || 0) +
-                                    parseNumericValue(expense.expense);
-                            });
-                        }
-
-                        const selectedDate = ($('#selectedDate').val() || '').toString();
-                        if (selectedDate && currentDaySummary) {
-                            currentDaySummary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
-
-                            const displayState = getDisplayStateForSelectedGroup(
-                                selectedDate,
-                                currentDayDistributionItems,
-                                currentDayGroupedData,
-                                currentDaySummary
-                            );
-                            displayState.summary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
-
-                            renderOwnerDayMetrics(displayState.summary);
-                        }
-                    },
-                    error: function() {
-                        utilityExpensesByDate = {};
-                    }
-                });
-            }
-
-            function getUtilityExpenseForDate(dateValue) {
-                const dateKey = (dateValue || '').toString().slice(0, 10);
-                if (!dateKey) return 0;
-                return parseNumericValue(utilityExpensesByDate[dateKey]);
-            }
+            
 
             function getProductAnalyticsData(productId) {
                 const key = String(productId || '').trim();
@@ -1329,7 +1269,6 @@
                     total_pieces: totalPieces,
                     forecasted_sales_total: forecastTotal,
                     direct_cost_total: directCostTotal,
-                    utilities_expense_total: getUtilityExpenseForDate(dateStr),
                     raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
                         group.raw_material_usage_total : [],
                 };
@@ -1671,12 +1610,9 @@
                 if (!isOwnerView) return;
 
                 const directCost = parseNumericValue(summary.direct_cost_total);
-                const utilitiesCost = parseNumericValue(summary.utilities_expense_total);
 
                 $('#ownerDirectCostTotalDesktop').text(formatPesoAmount(directCost));
-                $('#ownerUtilityCostTotalDesktop').text(formatPesoAmount(utilitiesCost));
                 $('#ownerDirectCostTotalMobile').text(formatPesoAmount(directCost));
-                $('#ownerUtilityCostTotalMobile').text(formatPesoAmount(utilitiesCost));
             }
 
             function renderOwnerAnalytics(groups, summary) {
@@ -1914,7 +1850,6 @@
                                     total_pieces: items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0),
                                     forecasted_sales_total: calculateForecastedSalesTotal(items),
                                     direct_cost_total: items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0),
-                                    utilities_expense_total: getUtilityExpenseForDate(date),
                                     raw_material_usage_total: []
                                 },
                                 response.daily_summary || {}
@@ -1926,7 +1861,6 @@
                             summary.total_pieces = items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.direct_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0);
-                            summary.utilities_expense_total = getUtilityExpenseForDate(date);
 
                             if (!Array.isArray(summary.raw_material_usage_total)) {
                                 summary.raw_material_usage_total = [];
