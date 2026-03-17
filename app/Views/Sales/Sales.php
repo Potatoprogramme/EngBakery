@@ -307,7 +307,7 @@
                                     <i class="fas fa-mobile-alt text-blue-600 text-base"></i>
                                     <span class="text-sm font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001"
+                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001" readonly
                                     class="w-full sm:w-40 lg:w-48 text-right border border-blue-300 rounded-lg px-2 py-1.5 text-base font-bold text-blue-600 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -315,7 +315,7 @@
                                     <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" class="w-4 h-4 flex-shrink-0" alt="FoodPanda">
                                     <span class="text-sm font-medium text-gray-700">Food Panda:</span>
                                 </div>
-                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001"
+                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001" readonly
                                     class="w-full sm:w-40 lg:w-48 text-right border rounded-lg px-2 py-1.5 text-base font-bold focus:ring-2" style="border-color: #D70F64; color: #D70F64; background-color: rgba(215, 15, 100, 0.05);" onfocus="this.style.boxShadow='0 0 0 2px rgba(215,15,100,0.3)'" onblur="this.style.boxShadow='none'">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
