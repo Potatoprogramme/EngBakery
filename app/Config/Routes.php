@@ -96,7 +96,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('PreviewBatchDeduction', 'InventoryController::previewBatchDeduction');
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
     $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
-    $routes->post('SendReport', 'InventoryController::sendInventoryReport'); // Owner: force-test scheduled inventory email
+    $routes->post('SendReport', 'InventoryController::sendInventoryReport'); // Owner: send manual auto-generated inventory email
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
