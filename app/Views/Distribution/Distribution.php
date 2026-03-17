@@ -1767,12 +1767,20 @@
 
                 dates.forEach(function(dateStr) {
                     const dayItems = allDistributionData[dateStr] || [];
-                    const batchQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                    const piecesQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                    const dayForecast = calculateForecastedSalesTotal(dayItems);
+                    const actualItems = dayItems.filter(function(item) {
+                        return !(item && item.__empty_group_placeholder);
+                    });
+                    const batchQty = actualItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+                    const piecesQty = actualItems.reduce(function(sum, item) {
+                        const productData = getProductAnalyticsData(item.product_id);
+                        return sum + getDistributionPieces(item, productData);
+                    }, 0);
+                    const dayForecast = calculateForecastedSalesTotal(actualItems);
                     const groupCount = getDistinctGroupCount(dayItems, dateStr);
-                    const previewNames = dayItems.slice(0, 2).map(item => item.product_name).join(', ');
-                    const extraItems = dayItems.length > 2 ? ' +' + (dayItems.length - 2) + ' more' : '';
+                    const previewNames = actualItems.slice(0, 2).map(item => item.product_name).join(', ');
+                    const extraItems = actualItems.length > 2 ? ' +' + (actualItems.length - 2) + ' more' : '';
                     const note = extractDistributionNote(dayItems);
                     const noteHtml = note ?
                         `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${note}</p>` :
@@ -1787,7 +1795,7 @@
                                     ${noteHtml}
                                 </div>
                                 <div class="text-right flex-shrink-0">
-                                    <p class="text-xs font-semibold text-gray-700">${dayItems.length} ${dayItems.length === 1 ? 'item' : 'items'}</p>
+                                    <p class="text-xs font-semibold text-gray-700">${actualItems.length} ${actualItems.length === 1 ? 'item' : 'items'}</p>
                                     <p class="text-[11px] text-gray-500">${groupCount} ${groupCount === 1 ? 'group' : 'groups'}</p>
                                     <p class="text-[11px] text-gray-500">${formatQuantityValue(batchQty)} batches · ${formatQuantityValue(piecesQty)} pieces</p>
                                     <p class="text-[11px] font-semibold text-primary mt-1"><i class="fas fa-coins mr-1"></i>${formatPesoAmount(dayForecast)}</p>
@@ -1941,7 +1949,9 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.data) {
-                            calendarData = groupDistributionsByDate(applyLocalDistributionGroupMeta(response.data));
+                            const flattenedItems = flattenGroupedDataIfNeeded(response.data, '');
+                            const decoratedItems = decorateDistributionItems(flattenedItems);
+                            calendarData = groupDistributionsByDate(applyLocalDistributionGroupMeta(decoratedItems));
                         } else {
                             calendarData = {};
                         }
@@ -1967,7 +1977,34 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.data) {
-                            allDistributionData = groupDistributionsByDate(applyLocalDistributionGroupMeta(response.data));
+                            const apiGroups = Array.isArray(response.data) ? response.data : [];
+                            const flattenedItems = flattenGroupedDataIfNeeded(apiGroups, '');
+                            const placeholderItems = [];
+
+                            apiGroups.forEach(function(group) {
+                                const groupItems = Array.isArray(group.items) ? group.items : [];
+                                if (groupItems.length > 0) return;
+
+                                placeholderItems.push({
+                                    distribution_date: (group.distribution_date || '').toString(),
+                                    distribution_id: group.id,
+                                    distribution_group_key: 'group-' + String(group.id),
+                                    distribution_group_name: group.title || 'Default Group',
+                                    distribution_group_note: group.distributed_to_note || '',
+                                    distributed_to_note: group.distributed_to_note || '',
+                                    product_id: null,
+                                    product_name: '',
+                                    product_qnty: 0,
+                                    qty_mode: 'batch',
+                                    forecasted_sales: 0,
+                                    direct_cost: 0,
+                                    __empty_group_placeholder: true,
+                                });
+                            });
+
+                            const decoratedItems = decorateDistributionItems(flattenedItems);
+                            const normalizedItems = applyLocalDistributionGroupMeta(decoratedItems.concat(placeholderItems));
+                            allDistributionData = groupDistributionsByDate(normalizedItems);
                         } else {
                             allDistributionData = {};
                         }

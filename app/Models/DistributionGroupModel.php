@@ -55,8 +55,7 @@ class DistributionGroupModel extends Model
                        ->orderBy('created_at', 'ASC')
                        ->findAll();
 
-        $groupsWithItems = $this->attachItems($groups);
-        return $this->filterGroupsWithItems($groupsWithItems);
+        return $this->attachItems($groups);
     }
 
     /**
@@ -70,8 +69,7 @@ class DistributionGroupModel extends Model
                        ->orderBy('distribution_date', 'ASC')
                        ->findAll();
 
-        $groupsWithItems = $this->attachItems($groups);
-        return $this->filterGroupsWithItems($groupsWithItems);
+        return $this->attachItems($groups);
     }
 
     /**
