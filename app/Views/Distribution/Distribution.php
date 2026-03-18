@@ -2375,12 +2375,12 @@
                             groupedData = normalizeGroupedData(dayData, null, dateStr);
                         }
 
-                        const maxVisibleGroups = window.matchMedia('(max-width: 639px)').matches ? 2 : 3;
+                        const maxVisibleGroups = 2;
                         const visibleGroups = groupedData.slice(0, maxVisibleGroups);
-                        const hiddenGroupsCount = Math.max(0, groupedData.length - visibleGroups.length);
+                        const hiddenGroupsCount = Math.max(0, groupedData.length - maxVisibleGroups);
 
                         groupsPreview = `
-                            <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1 overflow-hidden">
+                            <div class="mt-0.5 flex flex-col gap-0.5 overflow-hidden">
                                 ${visibleGroups.map(function(group) {
                                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                                     const groupKey = escapeHtml((group.group_key || '').toString());
@@ -2395,7 +2395,7 @@
                                         </button>
                                     `;
                                 }).join('')}
-                                ${hiddenGroupsCount > 0 ? `<div class="text-[8px] sm:text-[9px] font-medium ${isToday ? 'text-white/80' : 'text-gray-500'}">+${hiddenGroupsCount} more</div>` : ''}
+                                ${hiddenGroupsCount > 0 ? `<div class="w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium ${isToday ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}">+${hiddenGroupsCount}</div>` : ''}
                             </div>
                         `;
                     }
