@@ -62,6 +62,8 @@ class InventoryController extends BaseController
             $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
+        $this->mapDrinksInventoryFields($daily_stock_items);
+
         if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -1115,6 +1117,8 @@ class InventoryController extends BaseController
             $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
+        $this->mapDrinksInventoryFields($stockItems);
+
         return $this->response->setJSON([
             'success' => true,
             'data' => [
@@ -1278,6 +1282,23 @@ class InventoryController extends BaseController
             'success' => false,
             'message' => 'Failed to update item status.',
         ]);
+    }
+
+    /**
+     * Add drinks-only response aliases used by the drinks table.
+     */
+    private function mapDrinksInventoryFields(array &$items): void
+    {
+        foreach ($items as &$item) {
+            if (($item['category'] ?? '') !== 'drinks') {
+                continue;
+            }
+
+            $item['item'] = (string) ($item['product_name'] ?? '');
+            $item['srp'] = floatval($item['selling_price'] ?? 0);
+            $item['quantity_sold'] = intval($item['quantity_sold'] ?? 0);
+            $item['sales'] = floatval($item['total_sales'] ?? 0);
+        }
     }
 
     /**
