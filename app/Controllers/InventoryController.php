@@ -772,17 +772,10 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+        if (!$json) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Invalid input data'
-            ]);
-        }
-
-        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Values cannot be negative'
             ]);
         }
 
@@ -800,8 +793,59 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
 
-        $newBeginning = intval($json->beginning_stock);
-        $newPullOut = intval($json->pull_out_quantity);
+        $product = $this->productModel->find(intval($item['product_id'] ?? 0));
+        $category = strtolower(trim((string) ($product['category'] ?? '')));
+        $isAdjustmentMode = !empty($json->adjustment_mode) && in_array($category, ['bakery', 'grocery'], true);
+
+        if ($isAdjustmentMode) {
+            $beginningAdjustment = intval($json->beginning_adjustment ?? 0);
+            $pullOutAdjustment = intval($json->pull_out_adjustment ?? 0);
+            $endingAdjustment = intval($json->ending_adjustment ?? 0);
+
+            if ($pullOutAdjustment < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Pulled Out adjustment only allows adding values'
+                ]);
+            }
+
+            $newBeginning = $oldBeginning + $beginningAdjustment;
+            $newPullOut = $oldPullOut + $pullOutAdjustment;
+            $newEndingStock = $oldEnding + $endingAdjustment;
+
+            if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Adjustment results cannot go below zero'
+                ]);
+            }
+        } else {
+            if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Invalid input data'
+                ]);
+            }
+
+            if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Values cannot be negative'
+                ]);
+            }
+
+            $newBeginning = intval($json->beginning_stock);
+            $newPullOut = intval($json->pull_out_quantity);
+
+            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+            if ($quantitySold < 0)
+                $quantitySold = 0;
+
+            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+            if ($newEndingStock < 0)
+                $newEndingStock = 0;
+        }
+
         $notes = isset($json->notes) ? trim($json->notes) : null;
 
         // Validate notes requirement when beginning stock deviates from expected
@@ -818,14 +862,6 @@ class InventoryController extends BaseController
                 'notes_required' => true
             ]);
         }
-
-        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-        if ($quantitySold < 0)
-            $quantitySold = 0;
-
-        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-        if ($newEndingStock < 0)
-            $newEndingStock = 0;
 
         $beginningDelta = $newBeginning - $oldBeginning;
         $pullOutDelta = $newPullOut - $oldPullOut;
