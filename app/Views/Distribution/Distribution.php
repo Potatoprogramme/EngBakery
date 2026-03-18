@@ -122,7 +122,7 @@
                     </div>
 
                     <?php if ($isOwnerView): ?>
-                        <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="grid grid-cols-1 gap-2 mb-4">
                             <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -131,17 +131,6 @@
                                     </div>
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                                         <i class="fas fa-calculator text-emerald-600 text-sm"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-violet-100 p-3">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-xs text-gray-500">Utilities (Day)</p>
-                                        <p id="ownerUtilityCostTotalDesktop" class="text-sm font-bold text-violet-600">₱0.00</p>
-                                    </div>
-                                    <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-                                        <i class="fas fa-bolt text-violet-600 text-sm"></i>
                                     </div>
                                 </div>
                             </div>
@@ -302,14 +291,10 @@
                 </div>
 
                 <?php if ($isOwnerView): ?>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="grid grid-cols-1 gap-2 mb-3">
                         <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
                             <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
-                        </div>
-                        <div class="bg-white rounded-lg p-3 border border-violet-100 shadow-sm">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Utilities</p>
-                            <p id="ownerUtilityCostTotalMobile" class="text-sm font-bold text-violet-600">₱0.00</p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -646,7 +631,6 @@
         let productCostMap = {}; // Product pricing/cost details keyed by product_id
         let productDetailCache = {}; // Full product detail cache (ingredients + combined recipes)
         let productDetailPromiseCache = {}; // In-flight product detail requests
-        let utilityExpensesByDate = {}; // Utility totals keyed by billed date
         let ownerRawUsageHydrationToken = 0; // Prevent stale async owner analytics updates
         let modalGroupDetailHydrationToken = 0; // Prevent stale modal group detail ingredient hydration
         let calendarData = {}; // Store distribution data keyed by date
@@ -690,6 +674,10 @@
                 return numericOnly;
             }
 
+            function isPersistedDistributionGroupKey(groupKey) {
+                return /^group-\d+$/i.test(String(groupKey || '').trim());
+            }
+
             const modalScrollLockSelectors = [
                 '#calendarDayModal',
                 '#addItemsModal',
@@ -730,7 +718,6 @@
 
             getProducts();
             loadProductCostData();
-            loadUtilityExpenses();
             loadDistributionByDate();
             renderCalendar();
             loadMonthDistributions();
@@ -755,10 +742,11 @@
                             currentDayGroupedData,
                             currentDaySummary
                         );
+                        const daySummary = getDayScopedSummary(currentDaySummary);
 
                         updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
-                        updateForecastedSales(displayState.items, displayState.summary);
-                        renderOwnerDayMetrics(displayState.summary);
+                        updateForecastedSales(currentDayDistributionItems, daySummary);
+                        renderOwnerDayMetrics(daySummary);
                         renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                         renderAllDistributionsList();
@@ -806,50 +794,7 @@
                 });
             }
 
-            function loadUtilityExpenses() {
-                $.ajax({
-                    url: baseUrl + 'Utility/GetUtilityExpenses',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        utilityExpensesByDate = {};
-
-                        if (response && response.success && Array.isArray(response.data)) {
-                            response.data.forEach(function(expense) {
-                                const billedDate = (expense.billed_at || '').toString().slice(0, 10);
-                                if (!billedDate) return;
-
-                                utilityExpensesByDate[billedDate] = (utilityExpensesByDate[billedDate] || 0) +
-                                    parseNumericValue(expense.expense);
-                            });
-                        }
-
-                        const selectedDate = ($('#selectedDate').val() || '').toString();
-                        if (selectedDate && currentDaySummary) {
-                            currentDaySummary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
-
-                            const displayState = getDisplayStateForSelectedGroup(
-                                selectedDate,
-                                currentDayDistributionItems,
-                                currentDayGroupedData,
-                                currentDaySummary
-                            );
-                            displayState.summary.utilities_expense_total = getUtilityExpenseForDate(selectedDate);
-
-                            renderOwnerDayMetrics(displayState.summary);
-                        }
-                    },
-                    error: function() {
-                        utilityExpensesByDate = {};
-                    }
-                });
-            }
-
-            function getUtilityExpenseForDate(dateValue) {
-                const dateKey = (dateValue || '').toString().slice(0, 10);
-                if (!dateKey) return 0;
-                return parseNumericValue(utilityExpensesByDate[dateKey]);
-            }
+            
 
             function getProductAnalyticsData(productId) {
                 const key = String(productId || '').trim();
@@ -1172,9 +1117,11 @@
                     const enrichedItem = Object.assign({}, item);
                     const dateValue = ((enrichedItem && enrichedItem.distribution_date) || fallbackDate || '').toString().trim();
                     const productId = enrichedItem ? enrichedItem.product_id : null;
+                    const explicitGroupKey = ((enrichedItem && enrichedItem.distribution_group_key) || '').toString().trim();
+                    const hasPersistedGroupKey = isPersistedDistributionGroupKey(explicitGroupKey);
                     const localMeta = getLocalDistributionGroupMeta(dateValue, productId);
 
-                    if (localMeta) {
+                    if (localMeta && !hasPersistedGroupKey) {
                         if (!enrichedItem.distribution_group_key) {
                             enrichedItem.distribution_group_key = localMeta.group_key;
                         }
@@ -1266,7 +1213,9 @@
                         qtyMode
                     );
 
-                    groupedMap[groupKey].forecasted_sales += parseNumericValue(item.forecasted_sales) || fallbackForecast;
+                    groupedMap[groupKey].forecasted_sales += hasPersistedNumericValue(item, 'forecasted_sales') ?
+                        parseNumericValue(item.forecasted_sales) :
+                        fallbackForecast;
                     groupedMap[groupKey].direct_cost += parseNumericValue(item.direct_cost);
 
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(function(material) {
@@ -1306,15 +1255,9 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                const forecastTotal = group ?
-                    (parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems)) :
-                    calculateForecastedSalesTotal(groupItems);
+                const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
-                const directCostTotal = group ?
-                    parseNumericValue(group.direct_cost) :
-                    groupItems.reduce(function(sum, item) {
-                        return sum + parseNumericValue(item.direct_cost);
-                    }, 0);
+                const directCostTotal = resolveGroupDirectCost(group, groupItems);
 
                 return {
                     total_items: groupItems.length,
@@ -1323,10 +1266,52 @@
                     total_pieces: totalPieces,
                     forecasted_sales_total: forecastTotal,
                     direct_cost_total: directCostTotal,
-                    utilities_expense_total: getUtilityExpenseForDate(dateStr),
                     raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
                         group.raw_material_usage_total : [],
                 };
+            }
+
+            function hasPersistedNumericValue(source, fieldName) {
+                if (!source || typeof source !== 'object') {
+                    return false;
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(source, fieldName)) {
+                    return false;
+                }
+
+                const rawValue = source[fieldName];
+                return rawValue !== null && rawValue !== '';
+            }
+
+            function resolveGroupForecastedSales(group, items) {
+                if (hasPersistedNumericValue(group, 'forecasted_sales')) {
+                    return parseNumericValue(group.forecasted_sales);
+                }
+
+                return calculateForecastedSalesTotal(items);
+            }
+
+            function resolveGroupDirectCost(group, items) {
+                if (hasPersistedNumericValue(group, 'direct_cost')) {
+                    return parseNumericValue(group.direct_cost);
+                }
+
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                    return sum + parseNumericValue(item.direct_cost);
+                }, 0);
+            }
+
+            function getDayScopedSummary(summary = null) {
+                if (summary && typeof summary === 'object' && Object.keys(summary).length > 0) {
+                    return summary;
+                }
+
+                if (currentDaySummary && typeof currentDaySummary === 'object') {
+                    return currentDaySummary;
+                }
+
+                return {};
             }
 
             function setSelectedGroupFilter(dateStr, groupKey) {
@@ -1596,8 +1581,8 @@
 
                     const emptyDisplayState = getDisplayStateForSelectedGroup(targetDate, [], [], emptySummary);
                     updateSummaryCounts(emptyDisplayState.items, emptyDisplayState.summary, targetDate);
-                    updateForecastedSales(emptyDisplayState.items, emptyDisplayState.summary);
-                    renderOwnerDayMetrics(emptyDisplayState.summary);
+                    updateForecastedSales([], emptySummary);
+                    renderOwnerDayMetrics(emptySummary);
                     renderOwnerAnalytics(emptyDisplayState.groups, emptyDisplayState.summary);
                     return;
                 }
@@ -1648,10 +1633,11 @@
                     currentDayGroupedData,
                     currentDaySummary
                 );
+                const daySummary = getDayScopedSummary(ownerSummary);
 
                 updateSummaryCounts(displayState.items, displayState.summary, targetDate);
-                updateForecastedSales(displayState.items, displayState.summary);
-                renderOwnerDayMetrics(displayState.summary);
+                updateForecastedSales(ownerDecoratedItems, daySummary);
+                renderOwnerDayMetrics(daySummary);
                 renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data('selected-date') === targetDate) {
@@ -1665,12 +1651,9 @@
                 if (!isOwnerView) return;
 
                 const directCost = parseNumericValue(summary.direct_cost_total);
-                const utilitiesCost = parseNumericValue(summary.utilities_expense_total);
 
                 $('#ownerDirectCostTotalDesktop').text(formatPesoAmount(directCost));
-                $('#ownerUtilityCostTotalDesktop').text(formatPesoAmount(utilitiesCost));
                 $('#ownerDirectCostTotalMobile').text(formatPesoAmount(directCost));
-                $('#ownerUtilityCostTotalMobile').text(formatPesoAmount(utilitiesCost));
             }
 
             function renderOwnerAnalytics(groups, summary) {
@@ -1731,10 +1714,12 @@
 
                     const itemsHtml = groupItems.map(function(item) {
                         const quantity = parseNumericValue(item.product_qnty);
-                        const itemForecast = parseNumericValue(item.forecasted_sales) || (quantity * getForecastUnitPrice(
-                            getProductAnalyticsData(item.product_id),
-                            item.qty_mode || 'batch'
-                        ));
+                        const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
+                            parseNumericValue(item.forecasted_sales) :
+                            (quantity * getForecastUnitPrice(
+                                getProductAnalyticsData(item.product_id),
+                                item.qty_mode || 'batch'
+                            ));
                         const itemDirect = parseNumericValue(item.direct_cost);
 
                         return `
@@ -1825,12 +1810,20 @@
 
                 dates.forEach(function(dateStr) {
                     const dayItems = allDistributionData[dateStr] || [];
-                    const batchQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                    const piecesQty = dayItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                    const dayForecast = calculateForecastedSalesTotal(dayItems);
+                    const actualItems = dayItems.filter(function(item) {
+                        return !(item && item.__empty_group_placeholder);
+                    });
+                    const batchQty = actualItems.reduce(function(sum, item) {
+                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
+                    }, 0);
+                    const piecesQty = actualItems.reduce(function(sum, item) {
+                        const productData = getProductAnalyticsData(item.product_id);
+                        return sum + getDistributionPieces(item, productData);
+                    }, 0);
+                    const dayForecast = calculateForecastedSalesTotal(actualItems);
                     const groupCount = getDistinctGroupCount(dayItems, dateStr);
-                    const previewNames = dayItems.slice(0, 2).map(item => item.product_name).join(', ');
-                    const extraItems = dayItems.length > 2 ? ' +' + (dayItems.length - 2) + ' more' : '';
+                    const previewNames = actualItems.slice(0, 2).map(item => item.product_name).join(', ');
+                    const extraItems = actualItems.length > 2 ? ' +' + (actualItems.length - 2) + ' more' : '';
                     const note = extractDistributionNote(dayItems);
                     const noteHtml = note ?
                         `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${note}</p>` :
@@ -1845,7 +1838,7 @@
                                     ${noteHtml}
                                 </div>
                                 <div class="text-right flex-shrink-0">
-                                    <p class="text-xs font-semibold text-gray-700">${dayItems.length} ${dayItems.length === 1 ? 'item' : 'items'}</p>
+                                    <p class="text-xs font-semibold text-gray-700">${actualItems.length} ${actualItems.length === 1 ? 'item' : 'items'}</p>
                                     <p class="text-[11px] text-gray-500">${groupCount} ${groupCount === 1 ? 'group' : 'groups'}</p>
                                     <p class="text-[11px] text-gray-500">${formatQuantityValue(batchQty)} batches · ${formatQuantityValue(piecesQty)} pieces</p>
                                     <p class="text-[11px] font-semibold text-primary mt-1"><i class="fas fa-coins mr-1"></i>${formatPesoAmount(dayForecast)}</p>
@@ -1887,6 +1880,7 @@
                                         distribution_id: group.id,
                                         distribution_group_key: 'group-' + String(group.id),
                                         distribution_group_name: group.title,
+                                        distribution_group_note: group.distributed_to_note || '',
                                         group_title: group.title,
                                         group_forecasted_sales: group.forecasted_sales,
                                         group_direct_cost: group.direct_cost,
@@ -1907,7 +1901,6 @@
                                     total_pieces: items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0),
                                     forecasted_sales_total: calculateForecastedSalesTotal(items),
                                     direct_cost_total: items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0),
-                                    utilities_expense_total: getUtilityExpenseForDate(date),
                                     raw_material_usage_total: []
                                 },
                                 response.daily_summary || {}
@@ -1919,7 +1912,6 @@
                             summary.total_pieces = items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.direct_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0);
-                            summary.utilities_expense_total = getUtilityExpenseForDate(date);
 
                             if (!Array.isArray(summary.raw_material_usage_total)) {
                                 summary.raw_material_usage_total = [];
@@ -1933,10 +1925,11 @@
                             renderMobileCards(items, groupedData, date);
 
                             const displayState = getDisplayStateForSelectedGroup(date, items, groupedData, summary);
+                            const daySummary = getDayScopedSummary(summary);
 
                             updateSummaryCounts(displayState.items, displayState.summary, date);
-                            updateForecastedSales(displayState.items, displayState.summary);
-                            renderOwnerDayMetrics(displayState.summary);
+                            updateForecastedSales(items, daySummary);
+                            renderOwnerDayMetrics(daySummary);
                             renderOwnerAnalytics(displayState.groups, displayState.summary);
                             updateMainDistributionNotePanels(displayState.items, responseNote);
 
@@ -2000,7 +1993,9 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.data) {
-                            calendarData = groupDistributionsByDate(applyLocalDistributionGroupMeta(response.data));
+                            const flattenedItems = flattenGroupedDataIfNeeded(response.data, '');
+                            const decoratedItems = decorateDistributionItems(flattenedItems);
+                            calendarData = groupDistributionsByDate(applyLocalDistributionGroupMeta(decoratedItems));
                         } else {
                             calendarData = {};
                         }
@@ -2026,7 +2021,34 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.data) {
-                            allDistributionData = groupDistributionsByDate(applyLocalDistributionGroupMeta(response.data));
+                            const apiGroups = Array.isArray(response.data) ? response.data : [];
+                            const flattenedItems = flattenGroupedDataIfNeeded(apiGroups, '');
+                            const placeholderItems = [];
+
+                            apiGroups.forEach(function(group) {
+                                const groupItems = Array.isArray(group.items) ? group.items : [];
+                                if (groupItems.length > 0) return;
+
+                                placeholderItems.push({
+                                    distribution_date: (group.distribution_date || '').toString(),
+                                    distribution_id: group.id,
+                                    distribution_group_key: 'group-' + String(group.id),
+                                    distribution_group_name: group.title || 'Default Group',
+                                    distribution_group_note: group.distributed_to_note || '',
+                                    distributed_to_note: group.distributed_to_note || '',
+                                    product_id: null,
+                                    product_name: '',
+                                    product_qnty: 0,
+                                    qty_mode: 'batch',
+                                    forecasted_sales: 0,
+                                    direct_cost: 0,
+                                    __empty_group_placeholder: true,
+                                });
+                            });
+
+                            const decoratedItems = decorateDistributionItems(flattenedItems);
+                            const normalizedItems = applyLocalDistributionGroupMeta(decoratedItems.concat(placeholderItems));
+                            allDistributionData = groupDistributionsByDate(normalizedItems);
                         } else {
                             allDistributionData = {};
                         }
@@ -2131,6 +2153,33 @@
                                 error: xhr.responseJSON,
                                 groupId: groupId,
                                 normalizedGroupId: normalizedGroupId,
+                            });
+                            reject(xhr);
+                        }
+                    });
+                });
+            }
+
+            function updateDistributionGroupRequest(groupId, payload) {
+                return new Promise(function(resolve, reject) {
+                    const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
+
+                    $.ajax({
+                        url: baseUrl + 'Distribution/UpdateGroup/' + normalizedGroupId,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(payload || {}),
+                        success: function(response) {
+                            resolve(response || {});
+                        },
+                        error: function(xhr) {
+                            console.error('  ERROR - Failed to update group:', {
+                                status: xhr.status,
+                                error: xhr.responseJSON,
+                                groupId: groupId,
+                                normalizedGroupId: normalizedGroupId,
+                                payload: payload || {},
                             });
                             reject(xhr);
                         }
@@ -2326,12 +2375,12 @@
                             groupedData = normalizeGroupedData(dayData, null, dateStr);
                         }
 
-                        const maxVisibleGroups = window.matchMedia('(max-width: 639px)').matches ? 2 : 3;
+                        const maxVisibleGroups = 2;
                         const visibleGroups = groupedData.slice(0, maxVisibleGroups);
-                        const hiddenGroupsCount = Math.max(0, groupedData.length - visibleGroups.length);
+                        const hiddenGroupsCount = Math.max(0, groupedData.length - maxVisibleGroups);
 
                         groupsPreview = `
-                            <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1 overflow-hidden">
+                            <div class="mt-0.5 flex flex-col gap-0.5 overflow-hidden">
                                 ${visibleGroups.map(function(group) {
                                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                                     const groupKey = escapeHtml((group.group_key || '').toString());
@@ -2346,7 +2395,7 @@
                                         </button>
                                     `;
                                 }).join('')}
-                                ${hiddenGroupsCount > 0 ? `<div class="text-[8px] sm:text-[9px] font-medium ${isToday ? 'text-white/80' : 'text-gray-500'}">+${hiddenGroupsCount} more</div>` : ''}
+                                ${hiddenGroupsCount > 0 ? `<div class="w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] md:text-[10px] font-medium ${isToday ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}">+${hiddenGroupsCount}</div>` : ''}
                             </div>
                         `;
                     }
@@ -2436,10 +2485,12 @@
 
                 const itemsHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
-                    const itemForecast = parseNumericValue(item.forecasted_sales) || (quantity * getForecastUnitPrice(
-                        getProductAnalyticsData(item.product_id),
-                        item.qty_mode || 'batch'
-                    ));
+                    const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
+                        parseNumericValue(item.forecasted_sales) :
+                        (quantity * getForecastUnitPrice(
+                            getProductAnalyticsData(item.product_id),
+                            item.qty_mode || 'batch'
+                        ));
                     const itemDirect = parseNumericValue(item.direct_cost);
 
                     return `
@@ -2625,10 +2676,11 @@
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
+                const daySummary = getDayScopedSummary(currentDaySummary);
 
                 updateSummaryCounts(groupItems, groupSummary, normalizedDate);
-                updateForecastedSales(groupItems, groupSummary);
-                renderOwnerDayMetrics(groupSummary);
+                updateForecastedSales(currentDayDistributionItems, daySummary);
+                renderOwnerDayMetrics(daySummary);
                 renderOwnerAnalytics([matchedGroup], groupSummary);
 
                 showCalendarDayModal(normalizedDate, groupItems, {
@@ -3050,7 +3102,7 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+                    const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
                     const row = `
                         <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3103,7 +3155,7 @@
                         return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const forecastTotal = parseNumericValue(group.forecasted_sales) || calculateForecastedSalesTotal(groupItems);
+                    const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
                     const card = `
                         <button type="button" class="distribution-group-entry w-full text-left bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3313,6 +3365,48 @@
                 }
 
                 const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items : [];
+
+                const groupIdFromResolvedKey = normalizeDistributionGroupIdForApi(resolved.groupKey);
+                const groupIdFromMatchedGroup = normalizeDistributionGroupIdForApi(
+                    resolved.matchedGroup && (
+                        resolved.matchedGroup._apiId ??
+                        resolved.matchedGroup.id ??
+                        resolved.matchedGroup.group_key
+                    )
+                );
+                const resolvedGroupId = groupIdFromMatchedGroup || groupIdFromResolvedKey;
+
+                if (resolvedGroupId) {
+                    try {
+                        const deleteGroupResponse = await deleteDistributionGroupRequest(resolvedGroupId);
+                        if (deleteGroupResponse && deleteGroupResponse.success === false) {
+                            showToast('danger', 'Failed to delete distribution group.', 3200);
+                            return;
+                        }
+
+                        groupItems.forEach(function(item) {
+                            if (item && item.product_id != null) {
+                                removeLocalDistributionGroupMeta(resolved.date, item.product_id);
+                            }
+                        });
+
+                        clearSelectedGroupFilter(resolved.date);
+                        $('#calendarDayModal').addClass('hidden');
+                        if (($('#selectedDate').val() || '').toString() === resolved.date) {
+                            loadDistributionByDate();
+                        }
+                        loadMonthDistributions();
+                        loadAllDistributions();
+
+                        showToast('success', 'Distribution group deleted successfully.', 3200);
+                        return;
+                    } catch (error) {
+                        console.error('Failed to delete distribution group using group endpoint.', error);
+                        showToast('danger', 'Failed to delete distribution group.', 3200);
+                        return;
+                    }
+                }
+
                 if (groupItems.length === 0) {
                     showToast('warning', 'Group has no items to delete.', 3000);
                     return;
@@ -3798,14 +3892,39 @@
                         const savedGroupName = distributionGroupName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
+                        const normalizedTargetGroupId = normalizeDistributionGroupIdForApi(targetGroupKey);
+
+                        if (!normalizedTargetGroupId) {
+                            showToast('danger', 'Unable to resolve distribution group for update.', 3600);
+                            return;
+                        }
 
                         logDistributionFlow('log', 'Update group flow started.', {
                             target_date: targetDate,
                             target_group_key: targetGroupKey,
+                            target_group_id: normalizedTargetGroupId,
                             original_group_name: (context.original_name || '').toString(),
                             original_note_length: ((context.original_note || '').toString()).length,
                             saved_group_name: savedGroupName,
                             updated_note_length: distributionGroupNote.length,
+                        });
+
+                        const updateGroupPayload = {
+                            title: savedGroupName,
+                            distributed_to_note: distributionGroupNote || null,
+                        };
+
+                        logDistributionFlow('log', 'Update group metadata request started.', {
+                            endpoint: 'Distribution/UpdateGroup/:id',
+                            group_id: normalizedTargetGroupId,
+                            payload: updateGroupPayload,
+                        });
+
+                        await updateDistributionGroupRequest(normalizedTargetGroupId, updateGroupPayload);
+
+                        logDistributionFlow('log', 'Update group metadata request completed.', {
+                            endpoint: 'Distribution/UpdateGroup/:id',
+                            group_id: normalizedTargetGroupId,
                         });
 
                         const normalizedItems = itemsToAddList.map(function(item) {
@@ -3969,11 +4088,11 @@
 
                         if (finalProductIds.length > 0) {
                             setLocalDistributionGroupMetaForItems(targetDate, finalProductIds, {
-                                group_key: targetGroupKey,
+                                group_key: 'group-' + normalizedTargetGroupId,
                                 group_name: savedGroupName,
                                 group_note: distributionGroupNote,
                             });
-                            setSelectedGroupFilter(targetDate, targetGroupKey);
+                            setSelectedGroupFilter(targetDate, 'group-' + normalizedTargetGroupId);
                         } else {
                             clearSelectedGroupFilter(targetDate);
                         }

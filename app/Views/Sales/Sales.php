@@ -93,6 +93,7 @@
                                 <input type="hidden" id="shiftStart" value="">
                                 <input type="hidden" id="shiftEnd" value="">
                                 <input type="hidden" id="selectedShiftKey" value="">
+                                <input type="hidden" id="selectedShiftLabel" value="">
                             </div>
                         </div>
                     </div>
@@ -306,7 +307,7 @@
                                     <i class="fas fa-mobile-alt text-blue-600 text-base"></i>
                                     <span class="text-sm font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001"
+                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001" readonly
                                     class="w-full sm:w-40 lg:w-48 text-right border border-blue-300 rounded-lg px-2 py-1.5 text-base font-bold text-blue-600 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -314,7 +315,7 @@
                                     <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" class="w-4 h-4 flex-shrink-0" alt="FoodPanda">
                                     <span class="text-sm font-medium text-gray-700">Food Panda:</span>
                                 </div>
-                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001"
+                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001" readonly
                                     class="w-full sm:w-40 lg:w-48 text-right border rounded-lg px-2 py-1.5 text-base font-bold focus:ring-2" style="border-color: #D70F64; color: #D70F64; background-color: rgba(215, 15, 100, 0.05);" onfocus="this.style.boxShadow='0 0 0 2px rgba(215,15,100,0.3)'" onblur="this.style.boxShadow='none'">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -519,6 +520,7 @@
                         class="shift-btn px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border-2 transition-all duration-200
                                border-gray-300 text-gray-600 bg-white hover:border-primary hover:text-primary"
                         data-key="${shift.key}"
+                        data-label="${shift.label}"
                         data-start="${shift.start}"
                         data-end="${shift.end}">
                         ${shift.label}
@@ -548,10 +550,12 @@
             const shiftStart = $btn.data('start');
             const shiftEnd   = $btn.data('end');
             const shiftKey   = $btn.data('key');
+            const shiftLabel = $btn.data('label') || shiftKey;
 
             $('#shiftStart').val(shiftStart);
             $('#shiftEnd').val(shiftEnd);
             $('#selectedShiftKey').val(shiftKey);
+            $('#selectedShiftLabel').val(shiftLabel);
 
             console.log('Selected shift:', shiftKey, shiftStart, '-', shiftEnd);
 
@@ -923,14 +927,9 @@
                         if (shiftStart && shiftEnd) {
                             const cashSalesTotal = totalSales - totalOnlineRevenue - Number(pandaRevenue);
                             const expectedCash = Math.max(0, cashSalesTotal);
-                            const selectedLabel = $('#selectedShiftKey').val() || '--';
-                            const labelMap = {
-                                'shift_a': 'Shift A – 3 PM',
-                                'shift_b': 'Shift B – 8 PM',
-                                'sunday': 'Sunday – 5 PM'
-                            };
+                            const selectedLabel = $('#selectedShiftLabel').val() || $('#selectedShiftKey').val() || '--';
 
-                            $('#shiftSummaryLabel').text(labelMap[selectedLabel] || selectedLabel);
+                            $('#shiftSummaryLabel').text(selectedLabel);
                             $('#shiftSummaryTimeRange').text(formatTimeLabel(shiftStart) + ' – ' + formatTimeLabel(shiftEnd));
                             $('#shiftExpectedCash').text(formatCurrency(expectedCash));
                             $('#shiftExpectedOnline').text(formatCurrency(totalOnlineRevenue + Number(pandaRevenue)));

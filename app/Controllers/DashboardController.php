@@ -119,16 +119,10 @@ class DashboardController extends BaseController
             LIMIT 5
         ", [$today])->getResultArray();
 
-        // Weekly sales trend (last 7 days)
-        $weeklyTrend = $this->db->query("
-            SELECT date_created, 
-                   SUM(total_payment_due) as daily_total,
-                   COUNT(*) as order_count
-            FROM orders
-            WHERE date_created >= DATE_SUB(?, INTERVAL 6 DAY)
-            GROUP BY date_created
-            ORDER BY date_created ASC
-        ", [$today])->getResultArray();
+            // Sales trends for dashboard line graph section
+            $dailyTrend = $this->getDailySalesTrend(14);
+            $weeklyTrend = $this->getWeeklySalesTrend(8);
+            $monthlyTrend = $this->getMonthlySalesTrend(12);
 
         return [
             'todaysSales' => floatval($todaysSales['total_sales'] ?? 0),
@@ -150,9 +144,116 @@ class DashboardController extends BaseController
             'productsByCategory' => $productsByCategory,
             'recentOrders' => $recentOrders,
             'bestSellers' => $bestSellers,
-            'weeklyTrend' => $weeklyTrend,
+                'salesTrend' => [
+                    'daily' => $dailyTrend,
+                    'weekly' => $weeklyTrend,
+                    'monthly' => $monthlyTrend,
+                ],
             'currentDate' => date('F j, Y'),
             'currentTime' => date('g:i A'),
         ];
+    }
+
+    private function getDailySalesTrend(int $days = 14): array
+    {
+        $days = max(1, $days);
+        $end = new \DateTimeImmutable(date('Y-m-d'));
+        $start = $end->sub(new \DateInterval('P' . ($days - 1) . 'D'));
+
+        $rows = $this->db->query(
+            "SELECT date_created AS day, SUM(total_payment_due) AS total
+             FROM orders
+             WHERE date_created BETWEEN ? AND ?
+               AND voided_at IS NULL
+             GROUP BY date_created",
+            [$start->format('Y-m-d'), $end->format('Y-m-d')]
+        )->getResultArray();
+
+        $totalsByDate = [];
+        foreach ($rows as $row) {
+            $totalsByDate[$row['day']] = floatval($row['total'] ?? 0);
+        }
+
+        $trend = [];
+        for ($i = 0; $i < $days; $i++) {
+            $date = $start->add(new \DateInterval('P' . $i . 'D'));
+            $key = $date->format('Y-m-d');
+            $trend[] = [
+                'label' => $date->format('M j'),
+                'value' => floatval($totalsByDate[$key] ?? 0),
+            ];
+        }
+
+        return $trend;
+    }
+
+    private function getWeeklySalesTrend(int $weeks = 8): array
+    {
+        $weeks = max(1, $weeks);
+        $today = new \DateTimeImmutable(date('Y-m-d'));
+        $currentWeekStart = $today->modify('monday this week');
+        $startWeek = $currentWeekStart->sub(new \DateInterval('P' . ($weeks - 1) . 'W'));
+
+        $rows = $this->db->query(
+            "SELECT DATE_SUB(date_created, INTERVAL WEEKDAY(date_created) DAY) AS week_start,
+                    SUM(total_payment_due) AS total
+             FROM orders
+             WHERE date_created BETWEEN ? AND ?
+               AND voided_at IS NULL
+             GROUP BY week_start",
+            [$startWeek->format('Y-m-d'), $today->format('Y-m-d')]
+        )->getResultArray();
+
+        $totalsByWeek = [];
+        foreach ($rows as $row) {
+            $totalsByWeek[$row['week_start']] = floatval($row['total'] ?? 0);
+        }
+
+        $trend = [];
+        for ($i = 0; $i < $weeks; $i++) {
+            $weekStart = $startWeek->add(new \DateInterval('P' . $i . 'W'));
+            $key = $weekStart->format('Y-m-d');
+            $trend[] = [
+                'label' => 'Wk of ' . $weekStart->format('M j'),
+                'value' => floatval($totalsByWeek[$key] ?? 0),
+            ];
+        }
+
+        return $trend;
+    }
+
+    private function getMonthlySalesTrend(int $months = 12): array
+    {
+        $months = max(1, $months);
+        $monthStart = new \DateTimeImmutable(date('Y-m-01'));
+        $startMonth = $monthStart->sub(new \DateInterval('P' . ($months - 1) . 'M'));
+        $endDate = (new \DateTimeImmutable(date('Y-m-d')))->format('Y-m-d');
+
+        $rows = $this->db->query(
+            "SELECT DATE_FORMAT(date_created, '%Y-%m-01') AS month_start,
+                    SUM(total_payment_due) AS total
+             FROM orders
+             WHERE date_created BETWEEN ? AND ?
+               AND voided_at IS NULL
+             GROUP BY month_start",
+            [$startMonth->format('Y-m-d'), $endDate]
+        )->getResultArray();
+
+        $totalsByMonth = [];
+        foreach ($rows as $row) {
+            $totalsByMonth[$row['month_start']] = floatval($row['total'] ?? 0);
+        }
+
+        $trend = [];
+        for ($i = 0; $i < $months; $i++) {
+            $month = $startMonth->add(new \DateInterval('P' . $i . 'M'));
+            $key = $month->format('Y-m-01');
+            $trend[] = [
+                'label' => $month->format('M Y'),
+                'value' => floatval($totalsByMonth[$key] ?? 0),
+            ];
+        }
+
+        return $trend;
     }
 }

@@ -331,39 +331,13 @@ class SalesController extends BaseController
 
     /**
      * Return the shift configuration for the requested date.
-     * On Sundays there is a single shift; on Mon-Sat there are two (Shift A & B).
      * Called via AJAX so the front-end can render the correct shift buttons.
      */
     public function getShiftConfig()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
         $dayOfWeek = date('l', strtotime($date)); // 'Sunday', 'Monday', etc.
-
-        if ($dayOfWeek === 'Sunday') {
-            $shifts = [
-                [
-                    'key'   => 'sunday',
-                    'label' => 'Sunday Shift',
-                    'start' => '06:00:00',
-                    'end'   => '17:00:00',
-                ]
-            ];
-        } else {
-            $shifts = [
-                [
-                    'key'   => 'shift_a',
-                    'label' => 'Shift A (6 AM – 3 PM)',
-                    'start' => '06:00:00',
-                    'end'   => '15:00:00',
-                ],
-                [
-                    'key'   => 'shift_b',
-                    'label' => 'Shift B (3 PM – 8 PM)',
-                    'start' => '15:00:01',
-                    'end'   => '20:00:00',
-                ],
-            ];
-        }
+        $shifts = ShiftSchedule::getShiftWindowsForDate($date);
 
         return $this->response->setJSON([
             'success'    => true,

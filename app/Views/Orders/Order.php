@@ -153,7 +153,7 @@
                             class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="productQuantity" name="quantity" min="1" value="1" step="0.00001"
+                        <input type="number" id="productQuantity" name="quantity" min="1" value="1" step="1"
                             class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary"
                             required>
                         <button type="button" id="btnQtyIncrease"
@@ -231,7 +231,7 @@
                             class="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-gray-300 bg-gray-100 text-gray-700 text-lg font-semibold hover:bg-gray-200">
                             -
                         </button>
-                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1" step="0.00001"
+                        <input type="number" id="editOrderQuantity" name="quantity" min="1" value="1" step="1"
                             class="w-full px-4 py-2 border border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary"
                             required>
                         <button type="button" id="btnEditQtyIncrease"

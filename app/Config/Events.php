@@ -2,7 +2,6 @@
 
 namespace Config;
 
-use App\Libraries\AutoReportScheduler;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
 use CodeIgniter\HotReloader\HotReloader;
@@ -54,12 +53,5 @@ Events::on('pre_system', static function (): void {
         }
     }
 
-    // Opportunistic auto-reports (runs on web traffic; idempotent per slot/day)
-    if (ENVIRONMENT !== 'testing') {
-        try {
-            AutoReportScheduler::runDueJobs();
-        } catch (\Throwable $e) {
-            log_message('error', 'AutoReportScheduler failed: ' . $e->getMessage());
-        }
-    }
+    // Inventory reports are now manual-only (triggered from Inventory UI button).
 });

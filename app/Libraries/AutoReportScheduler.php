@@ -64,6 +64,9 @@ class AutoReportScheduler
      */
     public static function runDueJobs(): void
     {
+        // Disabled by product decision: inventory reports are manual-only.
+        return;
+
         $nowH  = (int) date('G');   // 0–23, no leading zero
         $today = date('Y-m-d');
 
@@ -119,6 +122,15 @@ class AutoReportScheduler
                 fclose($lock);
             }
         }
+    }
+
+    /**
+     * Public manual trigger used by Inventory/SendReport.
+     */
+    public static function sendManualReport(?string $date = null): bool
+    {
+        $targetDate = $date ?: date('Y-m-d');
+        return self::sendInventoryReport('manual', $targetDate);
     }
 
     // =========================================================================
@@ -191,9 +203,14 @@ class AutoReportScheduler
         }
 
         $ownerEmails = array_column($owners, 'email');
-        $slotLabel   = $slot === 'am' ? 'Afternoon (3:00 PM)' : 'Evening (8:00 PM)';
-        $subject     = '📦 Inventory Status Report — ' . $slotLabel
-                     . ' — ' . date('F d, Y', strtotime($date));
+        $slotLabelMap = [
+            'am' => 'Afternoon (3:00 PM)',
+            'pm' => 'Evening (8:00 PM)',
+        ];
+        $slotLabel = $slotLabelMap[$slot] ?? null;
+        $subject = $slotLabel
+            ? ('📦 Inventory Status Report — ' . $slotLabel . ' — ' . date('F d, Y', strtotime($date)))
+            : ('📦 Inventory Status Report — ' . date('F d, Y', strtotime($date)));
 
         $emailBody = self::buildEmailBody($criticalItems, $warningItems, $normalItems, $slot, $date);
 
@@ -238,9 +255,19 @@ class AutoReportScheduler
         $reportDate   = date('F d, Y', strtotime($date));
         $reportTime   = date('h:i A');
         $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
-        $slotTitle    = $slot === 'am' ? 'Afternoon Inventory Report'    : 'Evening Inventory Report';
-        $slotSubtitle = $slot === 'am' ? '3:00 PM Scheduled Snapshot'    : '8:00 PM Scheduled Snapshot';
-        $headerColor  = $slot === 'am' ? '#17a2b8'                       : '#6f42c1';
+        if ($slot === 'am') {
+            $slotTitle = 'Afternoon Inventory Report';
+            $slotSubtitle = '3:00 PM Scheduled Snapshot';
+            $headerColor = '#17a2b8';
+        } elseif ($slot === 'pm') {
+            $slotTitle = 'Evening Inventory Report';
+            $slotSubtitle = '8:00 PM Scheduled Snapshot';
+            $headerColor = '#6f42c1';
+        } else {
+            $slotTitle = 'Inventory Report';
+            $slotSubtitle = 'Manually Generated Snapshot';
+            $headerColor = '#0f766e';
+        }
 
         $totalCritical = count($criticalItems);
         $totalWarning  = count($warningItems);

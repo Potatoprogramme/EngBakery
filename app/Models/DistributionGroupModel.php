@@ -170,4 +170,14 @@ class DistributionGroupModel extends Model
 
         return $groups;
     }
+
+    /**
+     * Remove empty groups from API payloads to prevent phantom calendar/list entries.
+     */
+    private function filterGroupsWithItems(array $groups): array
+    {
+        return array_values(array_filter($groups, static function (array $group): bool {
+            return !empty($group['items']) && is_array($group['items']);
+        }));
+    }
 }
