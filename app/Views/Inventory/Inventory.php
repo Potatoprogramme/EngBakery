@@ -2447,7 +2447,6 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
                     rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
                     rows += '</tr>';
@@ -2920,10 +2919,12 @@
             card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
             card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
             card += '    </button>';
-            if (isEnabled) {
+            if (isEnabled && category !== 'drinks') {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
                 card += '      <i class="fas fa-edit mr-1"></i>Edit';
                 card += '    </button>';
+            }
+            if (isEnabled) {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
                 card += '      <i class="fas fa-trash mr-1"></i>Delete';
                 card += '    </button>';
