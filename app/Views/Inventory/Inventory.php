@@ -156,6 +156,7 @@
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
                                         <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="drinksTableBody">
@@ -169,6 +170,7 @@
                                         </td>
                                         <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalSales">₱0.00
                                         </td>
+                                        <td></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -2433,19 +2435,25 @@
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
                     const formattedSales = '₱' + sales.toFixed(2);
+                    const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
                     totalSales += sales;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + '</td>';
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                    rows += '</td>';
                     rows += '</tr>';
                 });
             } else {
-                rows = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+                rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
             }
 
             $('#drinksTableBody').html(rows);
@@ -2882,9 +2890,9 @@
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
             else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled && category !== 'drinks' ? ' opacity-50' : '') + '" data-id="' + item.item_id + '">';
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') + '" data-id="' + item.item_id + '">';
             card += '  <div class="flex items-center justify-between mb-2">';
-            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled && category !== 'drinks' ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
+            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
 
@@ -2908,21 +2916,19 @@
                 card += '  </div>';
             }
 
-            if (category !== 'drinks') {
-                card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-                card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
-                card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
+            card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
+            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
+            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
+            card += '    </button>';
+            if (isEnabled) {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
+                card += '      <i class="fas fa-edit mr-1"></i>Edit';
                 card += '    </button>';
-                if (isEnabled) {
-                    card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
-                    card += '      <i class="fas fa-edit mr-1"></i>Edit';
-                    card += '    </button>';
-                    card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
-                    card += '      <i class="fas fa-trash mr-1"></i>Delete';
-                    card += '    </button>';
-                }
-                card += '  </div>';
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
+                card += '      <i class="fas fa-trash mr-1"></i>Delete';
+                card += '    </button>';
             }
+            card += '  </div>';
             card += '</div>';
 
             return card;
