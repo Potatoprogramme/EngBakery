@@ -208,6 +208,8 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $flatItems = $this->appendMissingDrinksAndGroceryProducts($flatItems);
+
         // Raw materials are already deducted at distribution time
         $insertData = [
             'inventory_date' => $today,
@@ -1258,6 +1260,43 @@ class InventoryController extends BaseController
         }
 
         return $items;
+    }
+
+    /**
+     * Ensure drinks and grocery products are present in inventory creation flow
+     * even when distribution items contain only other categories.
+     */
+    private function appendMissingDrinksAndGroceryProducts(array $distributionItems): array
+    {
+        $existingProductIds = [];
+        foreach ($distributionItems as $item) {
+            $productId = intval($item['product_id'] ?? 0);
+            if ($productId > 0) {
+                $existingProductIds[$productId] = true;
+            }
+        }
+
+        $extraProducts = $this->productModel
+            ->whereIn('category', ['drinks', 'grocery'])
+            ->where('is_disabled', 0)
+            ->where('deleted_at', null)
+            ->findAll();
+
+        foreach ($extraProducts as $product) {
+            $productId = intval($product['product_id'] ?? 0);
+            if ($productId <= 0 || isset($existingProductIds[$productId])) {
+                continue;
+            }
+
+            $distributionItems[] = [
+                'product_id' => $productId,
+                'product_qnty' => 0,
+                'qty_mode' => 'pieces',
+            ];
+            $existingProductIds[$productId] = true;
+        }
+
+        return $distributionItems;
     }
 
     public function ToggleStockItem($itemId)
