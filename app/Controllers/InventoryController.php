@@ -62,8 +62,6 @@ class InventoryController extends BaseController
             $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
-        $this->mapDrinksInventoryFields($daily_stock_items);
-
         if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -207,8 +205,6 @@ class InventoryController extends BaseController
                 'message' => 'No items found in today\'s distribution. Complete distribution with items first.'
             ]);
         }
-
-        $flatItems = $this->appendMissingDrinksAndGroceryProducts($flatItems);
 
         // Raw materials are already deducted at distribution time
         $insertData = [
@@ -509,7 +505,7 @@ class InventoryController extends BaseController
             $currentEnding = intval($existingItem['ending_stock'] ?? 0);
             $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
             $manualQty = max(0, $currentBeginning - $currentDistQty - $carryoverQty);
-            $newDistQty = $currentDistQty + $quantity;
+            $newDistQty = $quantity;
             $newBeginning = $carryoverQty + $manualQty + $newDistQty;
             $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
             $existingNotes = trim($existingItem['notes'] ?? '');
@@ -553,7 +549,7 @@ class InventoryController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Distribution item loaded successfully (+'.$quantity.' pcs).',
+            'message' => 'Distribution item loaded successfully (' . $quantity . ' pcs).',
         ]);
     }
 
@@ -772,10 +768,17 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        if (!$json) {
+        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Invalid input data'
+            ]);
+        }
+
+        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Values cannot be negative'
             ]);
         }
 
@@ -793,88 +796,8 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
 
-        $product = $this->productModel->find(intval($item['product_id'] ?? 0));
-        $category = strtolower(trim((string) ($product['category'] ?? '')));
-        $isAdjustmentMode = !empty($json->adjustment_mode) && in_array($category, ['bakery', 'grocery'], true);
-
-        if ($isAdjustmentMode) {
-            $hasAbsoluteInputs = isset($json->beginning_stock) || isset($json->pull_out_quantity) || isset($json->ending_stock);
-
-            if ($hasAbsoluteInputs) {
-                if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity) || !isset($json->ending_stock)) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Beginning, Pull Out, and Ending values are required'
-                    ]);
-                }
-
-                $newBeginning = intval($json->beginning_stock);
-                $newPullOut = intval($json->pull_out_quantity);
-                $newEndingStock = intval($json->ending_stock);
-
-                if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Values cannot be negative'
-                    ]);
-                }
-
-                if ($newPullOut < $oldPullOut) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Pull Out can only increase from the current value'
-                    ]);
-                }
-            } else {
-                $beginningAdjustment = intval($json->beginning_adjustment ?? 0);
-                $pullOutAdjustment = intval($json->pull_out_adjustment ?? 0);
-                $endingAdjustment = intval($json->ending_adjustment ?? 0);
-
-                if ($pullOutAdjustment < 0) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Pulled Out adjustment only allows adding values'
-                    ]);
-                }
-
-                $newBeginning = $oldBeginning + $beginningAdjustment;
-                $newPullOut = $oldPullOut + $pullOutAdjustment;
-                $newEndingStock = $oldEnding + $endingAdjustment + $beginningAdjustment - $pullOutAdjustment;
-
-                if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Adjustment results cannot go below zero'
-                    ]);
-                }
-            }
-        } else {
-            if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Invalid input data'
-                ]);
-            }
-
-            if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Values cannot be negative'
-                ]);
-            }
-
-            $newBeginning = intval($json->beginning_stock);
-            $newPullOut = intval($json->pull_out_quantity);
-
-            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-            if ($quantitySold < 0)
-                $quantitySold = 0;
-
-            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-            if ($newEndingStock < 0)
-                $newEndingStock = 0;
-        }
-
+        $newBeginning = intval($json->beginning_stock);
+        $newPullOut = intval($json->pull_out_quantity);
         $notes = isset($json->notes) ? trim($json->notes) : null;
 
         // Validate notes requirement when beginning stock deviates from expected
@@ -891,6 +814,14 @@ class InventoryController extends BaseController
                 'notes_required' => true
             ]);
         }
+
+        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+        if ($quantitySold < 0)
+            $quantitySold = 0;
+
+        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+        if ($newEndingStock < 0)
+            $newEndingStock = 0;
 
         $beginningDelta = $newBeginning - $oldBeginning;
         $pullOutDelta = $newPullOut - $oldPullOut;
@@ -1184,8 +1115,6 @@ class InventoryController extends BaseController
             $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
 
-        $this->mapDrinksInventoryFields($stockItems);
-
         return $this->response->setJSON([
             'success' => true,
             'data' => [
@@ -1327,43 +1256,6 @@ class InventoryController extends BaseController
         return $items;
     }
 
-    /**
-     * Ensure drinks and grocery products are present in inventory creation flow
-     * even when distribution items contain only other categories.
-     */
-    private function appendMissingDrinksAndGroceryProducts(array $distributionItems): array
-    {
-        $existingProductIds = [];
-        foreach ($distributionItems as $item) {
-            $productId = intval($item['product_id'] ?? 0);
-            if ($productId > 0) {
-                $existingProductIds[$productId] = true;
-            }
-        }
-
-        $extraProducts = $this->productModel
-            ->whereIn('category', ['drinks', 'grocery'])
-            ->where('is_disabled', 0)
-            ->where('deleted_at', null)
-            ->findAll();
-
-        foreach ($extraProducts as $product) {
-            $productId = intval($product['product_id'] ?? 0);
-            if ($productId <= 0 || isset($existingProductIds[$productId])) {
-                continue;
-            }
-
-            $distributionItems[] = [
-                'product_id' => $productId,
-                'product_qnty' => 0,
-                'qty_mode' => 'pieces',
-            ];
-            $existingProductIds[$productId] = true;
-        }
-
-        return $distributionItems;
-    }
-
     public function ToggleStockItem($itemId)
     {
         $data = $this->request->getJSON(true);
@@ -1389,27 +1281,11 @@ class InventoryController extends BaseController
     }
 
     /**
-     * Add drinks-only response aliases used by the drinks table.
-     */
-    private function mapDrinksInventoryFields(array &$items): void
-    {
-        foreach ($items as &$item) {
-            if (($item['category'] ?? '') !== 'drinks') {
-                continue;
-            }
-
-            $item['item'] = (string) ($item['product_name'] ?? '');
-            $item['srp'] = floatval($item['selling_price'] ?? 0);
-            $item['quantity_sold'] = intval($item['quantity_sold'] ?? 0);
-            $item['sales'] = floatval($item['total_sales'] ?? 0);
-        }
-    }
-
-    /**
-     * Manually send the auto-generated inventory report.
-     * Owner-only.
+     * Manually trigger the scheduled inventory report for a given slot.
+     * Owner-only. Used for verifying the email before the scheduled window fires.
      *
      * POST /Inventory/SendReport
+     * Body (JSON): { "slot": "am"|"pm", "force": true }
      */
     public function sendInventoryReport()
     {
@@ -1423,31 +1299,95 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $json  = $this->request->getJSON(true);
+        $slot  = in_array($json['slot'] ?? '', ['am', 'pm']) ? $json['slot'] : 'am';
+        $force = !empty($json['force']);
+
+        $today    = date('Y-m-d');
+        $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
+
+        if (!$force && file_exists($flagFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Report for the '{$slot}' slot was already sent today. Pass \"force\": true to resend.",
+                'flag'    => $flagFile,
+            ]);
+        }
+
+        // Delete flag so the sender is not blocked
+        if ($force && file_exists($flagFile)) {
+            @unlink($flagFile);
+        }
+
         try {
-            $today = date('Y-m-d');
-            $requestData = $this->request->getJSON(true) ?: [];
-            $shift = $requestData['shift'] ?? null;
-            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today, is_string($shift) ? $shift : null);
+            // Use reflection to call private method for the force-test path
+            $scheduler = new \ReflectionClass(\App\Libraries\AutoReportScheduler::class);
+            $method    = $scheduler->getMethod('sendInventoryReport');
+            $method->setAccessible(true);
+            $sent      = $method->invoke(null, $slot, $today);
 
             if ($sent) {
+                // Re-plant flag so the scheduler won't double-send
+                file_put_contents($flagFile, date('Y-m-d H:i:s') . ' (manual)');
+
                 return $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Inventory report sent successfully.',
+                    'message' => "Inventory report for slot '{$slot}' sent successfully.",
+                    'slot'    => $slot,
                     'date'    => $today,
                 ]);
             }
 
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Report not sent. Inventory data was unavailable for today, or email delivery failed.',
+                'message' => 'Report was not sent. Check writable/logs for details.',
             ]);
 
         } catch (\Throwable $e) {
             log_message('error', 'Manual inventory report trigger failed: ' . $e->getMessage());
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Get product recipe with raw materials and quantities
+     * GET /Inventory/GetProductRecipe/{productId}
+     * 
+     * Returns all raw materials needed to produce one unit (piece) of the product
+     * with their quantities and units.
+     */
+    public function GetProductRecipe($productId = null)
+    {
+        $productId = intval($productId);
+
+        if ($productId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Invalid product ID.'
+            ]);
+        }
+
+        $product = $this->productModel->find($productId);
+        if (!$product) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Product not found.'
+            ]);
+        }
+
+        $recipeModel = model('ProductRecipeModel');
+        $recipe = $recipeModel->getRecipeWithMaterialDetails($productId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'product_id' => $productId,
+            'product_name' => $product['product_name'] ?? '',
+            'category' => $product['category'] ?? '',
+            'recipe' => $recipe,
+            'recipe_count' => count($recipe)
+        ]);
     }
 }

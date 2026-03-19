@@ -118,7 +118,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -133,6 +134,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="bakeryTotalQty">0
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
@@ -165,6 +167,7 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -182,6 +185,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="drinksTotalSales">₱0.00
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                             </tr>
                                         </tfoot>
@@ -217,7 +221,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -232,6 +237,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="groceryTotalQty">0
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
@@ -828,6 +834,107 @@
             </form>
         </div>
     </div>
+
+    <!-- Item Details Modal -->
+    <div id="itemDetailsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/40" id="itemDetailsModalBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10">
+            <div class="sticky top-0 bg-gradient-to-r from-primary to-secondary p-6 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white" id="itemDetailsProductName">Product Details</h3>
+                <button type="button" id="itemDetailsModalClose" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <!-- Product Notes -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-sticky-note text-blue-600 mr-2"></i> Notes
+                    </h4>
+                    <p id="itemDetailsNotes" class="text-sm text-gray-600 whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Shift Production Summary -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-dolly text-blue-600 mr-2"></i> Shift Production Summary
+                    </h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white rounded p-3 border border-blue-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Pull-Out (PO)</p>
+                            <p id="itemDetailsPO" class="text-lg font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-blue-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Qty Sold</p>
+                            <p id="itemDetailsQtySold" class="text-lg font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-green-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Total Units</p>
+                            <p id="itemDetailsTotalUnits" class="text-lg font-bold text-green-600">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Information -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-shopping-cart text-green-600 mr-2"></i> Sales Performance
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-gray-600">SRP per Unit:</p>
+                            <p id="itemDetailsSRP" class="text-sm font-semibold text-gray-800">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between bg-white rounded p-3 border border-green-100">
+                            <p class="text-sm font-medium text-gray-700">Total Sales Revenue:</p>
+                            <p id="itemDetailsTotalSales" class="text-lg font-bold text-green-600">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw Materials Used Section -->
+                <div class="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-flask text-orange-600 mr-2"></i> Raw Materials Used
+                    </h4>
+                    <p class="text-xs text-gray-500 mb-3 italic">Based on <strong>Total Units (PO + Qty Sold)</strong></p>
+                    <div id="itemDetailsMaterialsList" class="space-y-2">
+                        <p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading materials...</p>
+                    </div>
+                </div>
+
+                <!-- Cost Analysis & Shift Performance -->
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-chart-bar text-purple-600 mr-2"></i> Shift Performance Analysis
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-white rounded p-3 border border-purple-100">
+                            <p class="text-sm font-medium text-gray-700">Total Raw Materials Cost:</p>
+                            <p id="itemDetailsTotalMaterialsCost" class="text-lg font-bold text-red-600">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between bg-white rounded p-3 border-2 border-purple-200">
+                            <p class="text-sm font-semibold text-gray-800">Profit/Loss:</p>
+                            <p id="itemDetailsProfit" class="text-lg font-bold text-purple-600">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs text-gray-500">Profit Margin:</p>
+                            <p id="itemDetailsProfitMargin" class="text-sm font-semibold text-gray-800">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border-t border-gray-200 p-4 flex gap-2 sticky bottom-0">
+                <button type="button" id="itemDetailsModalCancel"
+                    class="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <style>
     @media (max-width: 640px) {
 
@@ -1860,6 +1967,44 @@
             });
         });
 
+        // Open Item Details Modal from row click
+        $(document).on('click', '.inventory-item-row', function(e) {
+            if ($(e.target).closest('button').length > 0) {
+                return; // Don't open if clicking on a button
+            }
+            openItemDetailsModal(
+                $(this).data('item-id'),
+                $(this).data('product-id'),
+                $(this).data('product-name'),
+                $(this).data('qty-sold'),
+                $(this).data('po') || 0,
+                $(this).data('price') || 0,
+                $(this).data('total-sales'),
+                $(this).data('notes')
+            );
+        });
+
+        // Materials Used Button Click
+        $(document).on('click', '.btn-materials-used', function(e) {
+            e.stopPropagation();
+            const itemId = $(this).data('item-id');
+            const productId = $(this).data('product-id');
+            const row = $(this).closest('tr');
+            const productName = row.data('product-name');
+            const qtySold = parseInt(row.data('qty-sold')) || 0;
+            const po = parseInt(row.data('po')) || 0;
+            const price = parseFloat(row.data('price')) || 0;
+            const totalSales = parseFloat(row.data('total-sales')) || 0;
+            const notes = row.data('notes');
+
+            openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes);
+        });
+
+        // Close Item Details Modal
+        $('#itemDetailsModalClose, #itemDetailsModalCancel, #itemDetailsModalBackdrop').on('click', function() {
+            $('#itemDetailsModal').addClass('hidden');
+        });
+
         // Apply Filter
         $('#apply-filters').on('click', function() {
             const dateFrom = $('#filter-date-from').val();
@@ -2568,13 +2713,14 @@
                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                 const qtySold = parseInt(item.quantity_sold) || 0;
                 const ending_stock = parseInt(item.ending_stock) || 0;
+                const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
+                const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
                 const isEnabled = parseInt(item.is_enabled) === 1;
-                const notes = item.notes || '';
 
                 totalQty += qtySold;
 
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
+                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                    '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
                         isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
                     '</td>';
@@ -2583,9 +2729,10 @@
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
-                    .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
-                    '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
                 rows += '<td class="px-6 py-3 whitespace-nowrap">';
                 rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -2603,7 +2750,7 @@
             });
         } else {
             rows =
-                '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
+                '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
         }
 
         $('#bakeryTableBody').html(rows);
@@ -2627,14 +2774,17 @@
                 totalQty += qtySold;
                 totalSales += sales;
 
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
+                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                    '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-price="' + srp + '" data-product-name="' + (item.item || item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + sales.toFixed(2) + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
                     'N/A') + (!isEnabled ?
                     ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
                 rows += '<td class="px-6 py-3 whitespace-nowrap">';
                 rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -2647,7 +2797,7 @@
                 rows += '</tr>';
             });
         } else {
-            rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+            rows = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
         }
 
         $('#drinksTableBody').html(rows);
@@ -2666,13 +2816,15 @@
                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                 const qtySold = parseInt(item.quantity_sold) || 0;
                 const ending_stock = parseInt(item.ending_stock) || 0;
+                const price = parseFloat(item.selling_price || 0);
+                const totalSales = (qtySold * price).toFixed(2);
+                const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
                 const isEnabled = parseInt(item.is_enabled) === 1;
-                const notes = item.notes || '';
 
                 totalQty += qtySold;
 
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
+                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                    '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(item.selling_price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
                         isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
                     '</td>';
@@ -2681,9 +2833,10 @@
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
-                    .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
-                    '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
                 rows += '<td class="px-6 py-3 whitespace-nowrap">';
                 rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -2701,11 +2854,197 @@
             });
         } else {
             rows =
-                '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+                '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
         }
 
         $('#groceryTableBody').html(rows);
         $('#groceryTotalQty').text(totalQty);
+    }
+
+    /**
+     * Open the Item Details Modal and load data
+     */
+    function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes) {
+        const baseUrl = '<?= base_url() ?>';
+        
+        // Normalize values
+        qtySold = parseInt(qtySold) || 0;
+        po = parseInt(po) || 0;
+        price = parseFloat(price) || 0;
+        totalSales = parseFloat(totalSales) || 0;
+        
+        // Calculate totals
+        const totalUnits = qtySold + po;
+        const srp = price;
+        const salesRevenue = qtySold * srp;
+        
+        // Set header and basic info
+        $('#itemDetailsProductName').text(productName || 'Product Details');
+        $('#itemDetailsPO').text(po);
+        $('#itemDetailsQtySold').text(qtySold);
+        $('#itemDetailsTotalUnits').text(totalUnits);
+        $('#itemDetailsSRP').text('₱' + srp.toFixed(2));
+        $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
+        
+        // Set notes or placeholder
+        if (notes && notes.trim()) {
+            $('#itemDetailsNotes').text(notes);
+        } else {
+            $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
+        }
+        
+        // Show loading state for materials
+        $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading materials...</p>');
+        
+        // Store values for use in material calculations
+        window.currentItemData = {
+            itemId: itemId,
+            productId: productId,
+            qtySold: qtySold,
+            po: po,
+            totalUnits: totalUnits,
+            price: price,
+            salesRevenue: salesRevenue
+        };
+        
+        // Open modal
+        $('#itemDetailsModal').removeClass('hidden');
+        
+        // Fetch and calculate materials if total units > 0 and product has recipe
+        if (totalUnits > 0 && productId) {
+            fetchProductRecipe(productId, totalUnits);
+        } else {
+            $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No materials data available</p>');
+            updateProfitAnalysis(0);
+        }
+    }
+
+    /**
+     * Fetch product recipe from backend
+     */
+    function fetchProductRecipe(productId, totalUnits) {
+        const baseUrl = '<?= base_url() ?>';
+        
+        $.ajax({
+            url: baseUrl + 'Inventory/GetProductRecipe/' + productId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.recipe && response.recipe.length > 0) {
+                    displayMaterialsUsed(response.recipe, totalUnits);
+                } else {
+                    $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No raw materials configured for this product</p>');
+                    updateProfitAnalysis(0);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#itemDetailsMaterialsList').html('<p class="text-sm text-red-500 text-center py-4">Error loading materials</p>');
+                console.error('Error fetching recipe:', error);
+                updateProfitAnalysis(0);
+            }
+        });
+    }
+
+    /**
+     * Display materials used with calculated quantities and costs
+     */
+    function displayMaterialsUsed(recipe, totalUnits) {
+        let html = '';
+        let totalMaterialsCost = 0;
+        
+        if (!recipe || recipe.length === 0) {
+            $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No raw materials configured</p>');
+            updateProfitAnalysis(0);
+            return;
+        }
+        
+        recipe.forEach(function(material) {
+            const quantityNeeded = parseFloat(material.quantity_needed) || 0;
+            const unit = material.unit || '';
+            const materialName = material.material_name || 'Unknown Material';
+            const costPerUnit = parseFloat(material.cost_per_unit) || 0;
+            
+            // Calculate total quantity and cost (quantity per piece × total units)
+            const totalQuantity = quantityNeeded * totalUnits;
+            const materialCost = (totalQuantity * costPerUnit).toFixed(2);
+            totalMaterialsCost += parseFloat(materialCost);
+            
+            html += '<div class="bg-gray-50 rounded-lg p-3 border border-gray-200">';
+            html += '<div class="space-y-2">';
+            html += '<div class="flex items-start justify-between">';
+            html += '<div class="flex-1">';
+            html += '<p class="text-sm font-medium text-gray-800">' + escapeHtml(materialName) + '</p>';
+            html += '<p class="text-xs text-gray-500 mt-1">₱' + costPerUnit.toFixed(2) + ' per ' + escapeHtml(unit) + '</p>';
+            html += '</div>';
+            html += '<div class="text-right">';
+            html += '<p class="text-sm font-bold text-gray-800">' + totalQuantity.toFixed(2) + ' ' + escapeHtml(unit) + '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="border-t border-gray-300 pt-2 flex items-center justify-between">';
+            html += '<p class="text-xs text-gray-600">Material Cost:</p>';
+            html += '<p class="text-sm font-semibold text-orange-600">₱' + parseFloat(materialCost).toFixed(2) + '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        html += '<div class="mt-4 pt-4 border-t-2 border-orange-300">';
+        html += '<div class="flex items-center justify-between bg-orange-50 rounded-lg p-3">';
+        html += '<p class="text-sm font-semibold text-gray-800">Total Materials Cost:</p>';
+        html += '<p class="text-lg font-bold text-orange-600">₱' + totalMaterialsCost.toFixed(2) + '</p>';
+        html += '</div>';
+        html += '</div>';
+        
+        $('#itemDetailsMaterialsList').html(html);
+        updateProfitAnalysis(totalMaterialsCost);
+    }
+
+    /**
+     * Update profit/loss analysis section
+     */
+    function updateProfitAnalysis(totalMaterialsCost) {
+        if (!window.currentItemData) return;
+        
+        const data = window.currentItemData;
+        const salesRevenue = data.salesRevenue;
+        const materialsCost = parseFloat(totalMaterialsCost) || 0;
+        const profit = salesRevenue - materialsCost;
+        const profitMargin = salesRevenue > 0 ? ((profit / salesRevenue) * 100).toFixed(2) : 0;
+        
+        // Update costs section
+        $('#itemDetailsTotalMaterialsCost').text('₱' + materialsCost.toFixed(2));
+        
+        // Update profit section with color coding
+        const profitDisplay = $('#itemDetailsProfit');
+        profitDisplay.text('₱' + profit.toFixed(2));
+        
+        if (profit > 0) {
+            profitDisplay.removeClass('text-red-600 text-gray-600').addClass('text-green-600');
+        } else if (profit < 0) {
+            profitDisplay.removeClass('text-green-600 text-gray-600').addClass('text-red-600');
+        } else {
+            profitDisplay.removeClass('text-green-600 text-red-600').addClass('text-gray-600');
+        }
+        
+        // Update margin
+        $('#itemDetailsProfitMargin').text(profitMargin + '%');
+        const marginDisplay = $('#itemDetailsProfitMargin');
+        if (profit > 0) {
+            marginDisplay.removeClass('text-red-600 text-gray-600').addClass('text-green-600');
+        } else if (profit < 0) {
+            marginDisplay.removeClass('text-green-600 text-gray-600').addClass('text-red-600');
+        } else {
+            marginDisplay.removeClass('text-green-600 text-red-600').addClass('text-gray-600');
+        }
+    }
+
+    /**
+     * Escape HTML special characters
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function updateGrandTotals(items) {
