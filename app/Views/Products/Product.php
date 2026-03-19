@@ -2311,7 +2311,7 @@
 
                             displayProducts.forEach(function(product) {
                                 // Desktop table rows
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
+                                rows += '<tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';

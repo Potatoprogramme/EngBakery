@@ -5,6 +5,8 @@
  */
 $(document).ready(function () {
     const baseUrl = window.BASE_URL || '/';
+    const userRole = (window.USER_ROLE || '').toLowerCase();
+    const isStaffView = userRole === 'staff';
     let dataTable = null;
     let allEntries = [];
     let filteredEntries = [];
@@ -12,10 +14,75 @@ $(document).ready(function () {
     const itemsPerPage = 10;
     let deleteEntryId = null;
     let currentViewEntryId = null;
+    const compactRemainingBreakpoint = 1290;
+    const compactActionsBreakpoint = 1290;
+    let isCompactRemaining = window.innerWidth < compactRemainingBreakpoint;
+    let actionMenuCloseTimer = null;
+    const actionMenuCloseDelay = 260;
+
+    function ensureActionModeStyles() {
+        if (document.getElementById('stockInitialActionModeStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'stockInitialActionModeStyles';
+        style.textContent = `
+            #stockInitialTable .actions-inline { display: flex; }
+            #stockInitialTable .actions-compact { display: none; }
+            #stockInitialTable.compact-actions-mode .actions-inline { display: none !important; }
+            #stockInitialTable.compact-actions-mode .actions-compact { display: inline-block !important; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function shouldUseCompactActions() {
+        if (isStaffView) return false;
+
+        const tableEl = document.getElementById('stockInitialTable');
+        if (!tableEl) return window.innerWidth < compactActionsBreakpoint;
+
+        const containerEl = tableEl.closest('.overflow-x-auto') || tableEl.parentElement;
+        const hasOverflow = !!containerEl && tableEl.scrollWidth > (containerEl.clientWidth + 2);
+
+        return window.innerWidth < compactActionsBreakpoint || hasOverflow;
+    }
+
+    function updateActionsModeByContainer() {
+        const tableEl = document.getElementById('stockInitialTable');
+        if (!tableEl || isStaffView) return;
+
+        const useCompact = shouldUseCompactActions();
+        tableEl.classList.toggle('compact-actions-mode', useCompact);
+
+        if (!useCompact) {
+            clearActionMenuCloseTimer();
+            closeAllActionMenus();
+        }
+    }
+
+    function clearActionMenuCloseTimer() {
+        if (actionMenuCloseTimer) {
+            clearTimeout(actionMenuCloseTimer);
+            actionMenuCloseTimer = null;
+        }
+    }
+
+    function closeAllActionMenus() {
+        $('.action-menu-dropdown').addClass('hidden');
+        $('.action-menu-toggle').attr('aria-expanded', 'false');
+    }
+
+    function scheduleActionMenuClose(wrapper) {
+        clearActionMenuCloseTimer();
+        actionMenuCloseTimer = setTimeout(function () {
+            wrapper.find('.action-menu-dropdown').addClass('hidden');
+            wrapper.find('.action-menu-toggle').attr('aria-expanded', 'false');
+        }, actionMenuCloseDelay);
+    }
 
     // ──────────────────────────────
     //  Load data on page ready
     // ──────────────────────────────
+    ensureActionModeStyles();
     loadEntries();
     loadFilterCategories();
 
@@ -82,6 +149,22 @@ $(document).ready(function () {
         if (!$(e.target).closest('#material_search, #material_dropdown').length) {
             hideMaterialDropdown();
         }
+
+        if (!$(e.target).closest('.action-menu-wrapper').length) {
+            clearActionMenuCloseTimer();
+            closeAllActionMenus();
+        }
+    });
+
+    $(window).on('resize', function () {
+        const compactNow = window.innerWidth < compactRemainingBreakpoint;
+        if (compactNow !== isCompactRemaining) {
+            isCompactRemaining = compactNow;
+            renderDesktopTable(filteredEntries);
+            return;
+        }
+
+        updateActionsModeByContainer();
     });
 
     function showMaterialDropdown(searchTerm) {
@@ -310,6 +393,53 @@ $(document).ready(function () {
         $('#deleteConfirmModal').removeClass('hidden');
     });
 
+    // ──────────────────────────────
+    //  Desktop Actions Menu (3-dot)
+    // ──────────────────────────────
+    $(document).on('click', '.action-menu-toggle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        clearActionMenuCloseTimer();
+
+        const toggleBtn = $(this);
+        const wrapper = toggleBtn.closest('.action-menu-wrapper');
+        const menu = toggleBtn.siblings('.action-menu-dropdown');
+        const willOpen = menu.hasClass('hidden');
+
+        closeAllActionMenus();
+
+        if (willOpen) {
+            $('.action-menu-wrapper').not(wrapper).find('.action-menu-dropdown').addClass('hidden');
+            $('.action-menu-wrapper').not(wrapper).find('.action-menu-toggle').attr('aria-expanded', 'false');
+            menu.removeClass('hidden');
+            toggleBtn.attr('aria-expanded', 'true');
+        }
+    });
+
+    $(document).on('mouseenter', '.action-menu-wrapper', function () {
+        clearActionMenuCloseTimer();
+        const wrapper = $(this);
+        $('.action-menu-wrapper').not(wrapper).find('.action-menu-dropdown').addClass('hidden');
+        $('.action-menu-wrapper').not(wrapper).find('.action-menu-toggle').attr('aria-expanded', 'false');
+        wrapper.find('.action-menu-dropdown').removeClass('hidden');
+        wrapper.find('.action-menu-toggle').attr('aria-expanded', 'true');
+    });
+
+    $(document).on('mouseleave', '.action-menu-wrapper', function () {
+        const wrapper = $(this);
+        scheduleActionMenuClose(wrapper);
+    });
+
+    $(document).on('mouseenter', '.action-menu-toggle, .action-menu-dropdown', function () {
+        clearActionMenuCloseTimer();
+    });
+
+    $(document).on('click', '.action-menu-item', function (e) {
+        e.stopPropagation();
+        clearActionMenuCloseTimer();
+        closeAllActionMenus();
+    });
+
     $('#btnCancelDelete').on('click', function () {
         deleteEntryId = null;
         $('#deleteConfirmModal').addClass('hidden');
@@ -370,7 +500,56 @@ $(document).ready(function () {
     //  HELPER FUNCTIONS
     // ═══════════════════════════════
 
+    function showEntriesLoadingState() {
+        if (dataTable) {
+            dataTable.destroy();
+            dataTable = null;
+        }
+
+        const columnCount = isStaffView ? 6 : 11;
+        $('#stockInitialTableBody').html(
+            '<tr><td colspan="' + columnCount + '" class="px-3 md:px-4 lg:px-6 py-10 text-center text-gray-500">' +
+            '<div class="inline-flex items-center gap-2">' +
+            '<i class="fas fa-spinner fa-spin"></i>' +
+            '<span>Loading stock entries...</span>' +
+            '</div>' +
+            '</td></tr>'
+        );
+
+        $('#stockInitialCardsContainer').html(
+            '<div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">' +
+            '<i class="fas fa-spinner fa-spin text-2xl mb-3"></i>' +
+            '<p>Loading stock entries...</p>' +
+            '</div>'
+        );
+        $('#mobilePagination').html('');
+    }
+
+    function showEntriesLoadErrorState(message) {
+        const errorMessage = message || 'Unable to load stock entries. Please try again.';
+        const columnCount = isStaffView ? 6 : 11;
+
+        $('#stockInitialTableBody').html(
+            '<tr><td colspan="' + columnCount + '" class="px-3 md:px-4 lg:px-6 py-10 text-center text-red-500">' +
+            '<div class="inline-flex items-center gap-2">' +
+            '<i class="fas fa-exclamation-circle"></i>' +
+            '<span>' + errorMessage + '</span>' +
+            '</div>' +
+            '</td></tr>'
+        );
+
+        $('#stockInitialCardsContainer').html(
+            '<div class="p-8 bg-white rounded-lg shadow-md text-center text-red-500">' +
+            '<i class="fas fa-exclamation-circle text-2xl mb-3"></i>' +
+            '<p>' + errorMessage + '</p>' +
+            '</div>'
+        );
+        $('#mobilePagination').html('');
+    }
+
     function loadEntries() {
+        showEntriesLoadingState();
+
         $.ajax({
             url: baseUrl + 'MaterialStock/GetAll',
             type: 'GET',
@@ -381,7 +560,12 @@ $(document).ready(function () {
                     filteredEntries = [...allEntries];
                     renderDesktopTable(allEntries);
                     renderMobileCards();
+                } else {
+                    showEntriesLoadErrorState(res.message || 'Unable to load stock entries.');
                 }
+            },
+            error: function () {
+                showEntriesLoadErrorState();
             }
         });
     }
@@ -395,9 +579,10 @@ $(document).ready(function () {
 
         const tbody = $('#stockInitialTableBody');
         tbody.empty();
+        const columnCount = isStaffView ? 6 : 11;
 
         if (data.length === 0) {
-            tbody.html('<tr><td colspan="11" class="px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
+            tbody.html('<tr><td colspan="' + columnCount + '" class="px-3 md:px-4 lg:px-6 py-8 text-center text-gray-400">No stock entries found.</td></tr>');
             return;
         }
 
@@ -422,38 +607,93 @@ $(document).ready(function () {
             else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainText = 'text-amber-600 font-semibold'; }
             else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; }
 
+            const remainingLayoutClass = isCompactRemaining
+                ? 'flex flex-col gap-1.5'
+                : 'flex items-center gap-2.5';
+            const remainingBarClass = isCompactRemaining
+                ? 'w-full max-w-[7rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden'
+                : 'flex-1 max-w-[4.5rem] h-1.5 rounded-full ' + barTrack + ' overflow-hidden';
+
             const dateStr = entry.updated_at ? new Date(entry.updated_at).toLocaleDateString('en-PH', {
                 year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
 
-            const row = `
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="px-6 py-3 font-medium text-gray-900">${entry.material_name}</td>
-                    <td class="px-6 py-3">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                            ${entry.category_name || '—'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-3 text-gray-700 tabular-nums text-sm">${formatNumber(initial)}</td>
-                    <td class="px-6 py-3 tabular-nums text-sm"><span class="text-orange-600">${formatNumber(used)}</span></td>
-                    <td class="px-6 py-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="${remainText} tabular-nums text-sm min-w-[2.5rem]">${formatNumber(remaining)}</span>
-                            <div class="flex-1 max-w-[4.5rem] h-1.5 rounded-full ${barTrack} overflow-hidden">
-                                <div class="h-full rounded-full ${barColor} transition-all" style="width:${barWidth}%"></div>
+            let row = '';
+
+            if (isStaffView) {
+                row = `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-3 md:px-4 lg:px-6 py-3 font-medium text-gray-900">${entry.material_name}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                ${entry.category_name || '—'}
+                            </span>
+                        </td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-gray-700 tabular-nums text-sm">${formatNumber(initial)}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 tabular-nums text-sm"><span class="text-orange-600">${formatNumber(used)}</span></td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3">
+                            <div class="${remainingLayoutClass}">
+                                <span class="${remainText} tabular-nums text-sm min-w-[2.5rem]">${formatNumber(remaining)}</span>
+                                <div class="${remainingBarClass}">
+                                    <div class="h-full rounded-full ${barColor} transition-all" style="width:${barWidth}%"></div>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-3 text-gray-700">${entry.unit}</td>
-                    <td class="px-6 py-3 text-green-700 tabular-nums text-sm">₱${formatNumber(initialCost)}</td>
-                    <td class="px-6 py-3 text-orange-700 tabular-nums text-sm">₱${formatNumber(usedCost)}</td>
-                    <td class="px-6 py-3 text-blue-700 tabular-nums text-sm">₱${formatNumber(remainingCost)}</td>
-                    <td class="px-6 py-3 text-xs text-gray-400">${dateStr}</td>
-                    <td class="px-6 py-3">
-                        <button class="text-gray-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-gray-800 me-2 btn-view-entry" data-id="${entry.stock_id}" title="View"><i class="fas fa-eye"></i></button><button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 me-2 btn-edit-entry" data-id="${entry.stock_id}" title="Edit"><i class="fas fa-edit"></i></button><button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete-entry" data-id="${entry.stock_id}" title="Delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
+                        </td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-gray-700">${entry.unit}</td>
+                    </tr>
+                `;
+            } else {
+                row = `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-3 md:px-4 lg:px-6 py-3 font-medium text-gray-900">${entry.material_name}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                ${entry.category_name || '—'}
+                            </span>
+                        </td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-gray-700 tabular-nums text-sm">${formatNumber(initial)}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 tabular-nums text-sm"><span class="text-orange-600">${formatNumber(used)}</span></td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3">
+                            <div class="${remainingLayoutClass}">
+                                <span class="${remainText} tabular-nums text-sm min-w-[2.5rem]">${formatNumber(remaining)}</span>
+                                <div class="${remainingBarClass}">
+                                    <div class="h-full rounded-full ${barColor} transition-all" style="width:${barWidth}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-gray-700">${entry.unit}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-green-700 tabular-nums text-sm">₱${formatNumber(initialCost)}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-orange-700 tabular-nums text-sm">₱${formatNumber(usedCost)}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-blue-700 tabular-nums text-sm">₱${formatNumber(remainingCost)}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3 text-xs text-gray-400">${dateStr}</td>
+                        <td class="px-3 md:px-4 lg:px-6 py-3">
+                            <div class="actions-inline items-center gap-2">
+                                <button class="text-gray-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-gray-800 btn-view-entry" data-id="${entry.stock_id}" title="View"><i class="fas fa-eye"></i></button>
+                                <button class="text-blue-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit-entry" data-id="${entry.stock_id}" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete-entry" data-id="${entry.stock_id}" title="Delete"><i class="fas fa-trash"></i></button>
+                            </div>
+
+                            <div class="actions-compact relative action-menu-wrapper">
+                                <button type="button" class="action-menu-toggle h-9 w-9 inline-flex items-center justify-center rounded border border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800" aria-haspopup="true" aria-expanded="false" title="Actions">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="action-menu-dropdown hidden absolute right-0 top-full w-36 rounded-md border border-gray-200 bg-white shadow-lg z-30">
+                                    <button type="button" class="action-menu-item btn-view-entry w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="${entry.stock_id}">
+                                        <i class="fas fa-eye mr-2"></i>View
+                                    </button>
+                                    <button type="button" class="action-menu-item btn-edit-entry w-full px-3 py-2 text-left text-sm text-blue-700 hover:bg-blue-50" data-id="${entry.stock_id}">
+                                        <i class="fas fa-edit mr-2"></i>Edit
+                                    </button>
+                                    <button type="button" class="action-menu-item btn-delete-entry w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50" data-id="${entry.stock_id}">
+                                        <i class="fas fa-trash mr-2"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
             tbody.append(row);
         });
 
@@ -471,6 +711,8 @@ $(document).ready(function () {
                 }
             });
         }
+
+        requestAnimationFrame(updateActionsModeByContainer);
     }
 
     function renderMobileCards() {
@@ -506,47 +748,78 @@ $(document).ready(function () {
             else if (pct <= 25) { barColor = 'bg-amber-400'; barTrack = 'bg-amber-100'; remainTC = 'text-amber-600'; }
             else if (pct <= 50) { barColor = 'bg-yellow-400'; barTrack = 'bg-yellow-100'; remainTC = 'text-yellow-700'; }
 
-            cards += `
-                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex-1">
+            if (isStaffView) {
+                cards += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                        <div class="p-4">
+                            <div class="mb-3">
                                 <h3 class="font-semibold text-gray-900 text-base">${entry.material_name}</h3>
                                 <p class="text-sm text-gray-500">${entry.category_name || 'Uncategorized'}</p>
                             </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mb-2">
-                            <div class="bg-blue-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Initial</p>
-                                <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
-                                <p class="text-xs text-green-700 mt-1">₱${formatNumber(initialCost)}</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-blue-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Initial Qty</p>
+                                    <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)}</p>
+                                </div>
+                                <div class="bg-orange-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Used</p>
+                                    <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)}</p>
+                                </div>
+                                <div class="bg-emerald-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
+                                    <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)}</p>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                                    <p class="text-xs text-gray-500 mb-0.5">Unit</p>
+                                    <p class="font-semibold text-gray-700 text-sm">${entry.unit}</p>
+                                </div>
                             </div>
-                            <div class="bg-orange-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Used</p>
-                                <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
-                                <p class="text-xs text-orange-700 mt-1">₱${formatNumber(usedCost)}</p>
-                            </div>
-                            <div class="bg-emerald-50 rounded-lg p-2">
-                                <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
-                                <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
-                                <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
-                                <p class="text-xs text-blue-700 mt-1">₱${formatNumber(remainingCost)}</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 pt-2 border-t border-gray-100">
-                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 btn-view-entry" data-id="${entry.stock_id}">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit-entry" data-id="${entry.stock_id}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 btn-delete-entry" data-id="${entry.stock_id}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                cards += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 text-base">${entry.material_name}</h3>
+                                    <p class="text-sm text-gray-500">${entry.category_name || 'Uncategorized'}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mb-2">
+                                <div class="bg-blue-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Initial</p>
+                                    <p class="font-semibold text-blue-700 text-sm">${formatNumber(initial)} ${entry.unit}</p>
+                                    <p class="text-xs text-green-700 mt-1">₱${formatNumber(initialCost)}</p>
+                                </div>
+                                <div class="bg-orange-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Used</p>
+                                    <p class="font-semibold text-orange-600 text-sm">${formatNumber(used)} ${entry.unit}</p>
+                                    <p class="text-xs text-orange-700 mt-1">₱${formatNumber(usedCost)}</p>
+                                </div>
+                                <div class="bg-emerald-50 rounded-lg p-2">
+                                    <p class="text-xs text-gray-500 mb-0.5">Remaining</p>
+                                    <p class="font-semibold ${remainTC} text-sm">${formatNumber(remaining)} ${entry.unit}</p>
+                                    <div class="mt-1 h-1.5 rounded-full ${barTrack} overflow-hidden"><div class="h-full rounded-full ${barColor}" style="width:${barW}%"></div></div>
+                                    <p class="text-xs text-blue-700 mt-1">₱${formatNumber(remainingCost)}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 pt-2 border-t border-gray-100">
+                                <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 btn-view-entry" data-id="${entry.stock_id}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 btn-edit-entry" data-id="${entry.stock_id}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 btn-delete-entry" data-id="${entry.stock_id}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         });
 
         container.html(cards);
