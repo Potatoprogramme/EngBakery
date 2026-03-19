@@ -4,8 +4,12 @@ namespace App\Controllers;
 
 class RawMaterialsController extends BaseController
 {
-    public function rawMaterial(): string
+    public function rawMaterial()
     {
+        if ($response = $this->denyStaffWebAccess()) {
+            return $response;
+        }
+
         $data = $this->getSessionData();
 
         return view('Template/Header', $data) .
@@ -15,11 +19,37 @@ class RawMaterialsController extends BaseController
             view('Template/Footer', $data);
     }
 
+    private function denyStaffWebAccess()
+    {
+        if ($this->isStaff()) {
+            return redirect()->to(base_url('MaterialStock'))
+                ->with('error_message', 'Access denied. Material Costing is not available for staff.');
+        }
+
+        return null;
+    }
+
+    private function denyStaffApiAccess()
+    {
+        if ($this->isStaff()) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Access denied. Material Costing is not available for staff.'
+            ]);
+        }
+
+        return null;
+    }
+
     /**
      * Get all categories (AJAX)
      */
     public function getCategories()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $categories = $this->materialCategoryModel->findAll();
 
         return $this->response->setJSON([
@@ -33,6 +63,10 @@ class RawMaterialsController extends BaseController
      */
     public function getAll()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $materials = $this->rawMaterialsModel->getAllWithDetails();
 
         return $this->response->setJSON([
@@ -46,6 +80,10 @@ class RawMaterialsController extends BaseController
      */
     public function addRawMaterial()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $data = $this->request->getJSON(true);
 
         // Validate required fields (allow numeric zero values)
@@ -104,6 +142,10 @@ class RawMaterialsController extends BaseController
      */
     public function checkMaterialName()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $data = $this->request->getJSON(true);
 
         if (empty($data['material_name'])) {
@@ -125,6 +167,10 @@ class RawMaterialsController extends BaseController
      */
     public function getMaterial($id = null)
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         if (empty($id)) {
             return $this->response->setJSON([
                 'success' => false,
@@ -152,6 +198,10 @@ class RawMaterialsController extends BaseController
      */
     public function updateRawMaterial()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $data = $this->request->getJSON(true);
         
         // Validate required fields
@@ -209,6 +259,10 @@ class RawMaterialsController extends BaseController
      */
     public function restockMaterial()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $data = $this->request->getJSON(true);
 
         if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
@@ -264,6 +318,10 @@ class RawMaterialsController extends BaseController
      */
     public function updateQuantityInline()
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         $data = $this->request->getJSON(true);
 
         if (!isset($data['material_id']) || !isset($data['quantity'])) {
@@ -332,6 +390,10 @@ class RawMaterialsController extends BaseController
      */
     public function delete($id = null)
     {
+        if ($response = $this->denyStaffApiAccess()) {
+            return $response;
+        }
+
         if (empty($id)) {
             return $this->response->setJSON([
                 'success' => false,
