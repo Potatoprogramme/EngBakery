@@ -1396,7 +1396,9 @@ class InventoryController extends BaseController
 
         try {
             $today = date('Y-m-d');
-            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today);
+            $requestData = $this->request->getJSON(true) ?: [];
+            $shift = $requestData['shift'] ?? null;
+            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today, is_string($shift) ? $shift : null);
 
             if ($sent) {
                 return $this->response->setJSON([
@@ -1408,7 +1410,7 @@ class InventoryController extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Report not sent. No low product stock alerts were found for today, or email delivery failed.',
+                'message' => 'Report not sent. Inventory data was unavailable for today, or email delivery failed.',
             ]);
 
         } catch (\Throwable $e) {

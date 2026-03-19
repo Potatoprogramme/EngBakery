@@ -162,7 +162,7 @@ class DailyStockItemsModel extends Model
     public function fetchAllStockItems($dailyStockId)
     {
         $stockItems = $this->where('daily_stock_id', $dailyStockId)
-            ->select('daily_stock_items.*, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece')
+            ->select('daily_stock_items.*, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece, product_costs.direct_cost, product_costs.overhead_cost_amount, product_costs.pieces_per_yield')
             ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
             ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
             ->where('products.deleted_at IS NULL')

@@ -609,6 +609,15 @@
                 <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
                     emailed.</p>
             </div>
+            <div class="mb-4">
+                <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                <select id="sendReportShiftSelect"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
+                    <option value="morning">Morning shift</option>
+                    <option value="afternoon">Afternoon shift</option>
+                </select>
+                <p class="mt-1 text-xs text-gray-500">If morning was missed, sending afternoon will include morning and afternoon.</p>
+            </div>
             <div class="flex gap-3">
                 <button type="button" id="btnConfirmSendInventoryReport"
                     class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -1659,6 +1668,9 @@
         });
 
         function openSendReportConfirmModal() {
+            const currentHour = new Date().getHours();
+            const suggestedShift = currentHour >= 12 ? 'afternoon' : 'morning';
+            $('#sendReportShiftSelect').val(suggestedShift);
             $('#sendReportConfirmModal').removeClass('hidden');
         }
 
@@ -1707,7 +1719,9 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({}),
+                data: JSON.stringify({
+                    shift: $('#sendReportShiftSelect').val()
+                }),
                 success: function(response) {
                     if (response && response.success) {
                         showToast('success', response.message ||

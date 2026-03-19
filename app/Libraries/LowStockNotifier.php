@@ -4,20 +4,20 @@ namespace App\Libraries;
 
 use App\Models\DailyStockModel;
 use App\Models\DailyStockItemsModel;
+use App\Models\RawMaterialStockModel;
 use App\Models\UsersModel;
 
 class LowStockNotifier
 {
+    private const RAW_CRITICAL_PERCENT = 25.0;
+    private const RAW_WARNING_PERCENT = 40.0;
+
     /**
-     * Product inventory thresholds based on ending stock count.
-     *
-     * @param int  $criticalStock  Product ending stock considered critical (default 2)
-     * @param int  $warningStock   Product ending stock considered warning (default 5)
-     * @param bool  $forceSend        Force send regardless of flag
+     * Send combined low-stock notifier for products and raw materials.
      */
     public static function checkAndNotify(int $criticalStock = 2, int $warningStock = 5, bool $forceSend = false): void
     {
-        log_message('info', 'Product stock check initiated at ' . date('Y-m-d H:i:s'));
+        log_message('info', 'Combined stock check initiated at ' . date('Y-m-d H:i:s'));
 
         /* ===== OLD RAW MATERIALS ALERT LOGIC (ARCHIVED) =====
         $stockModel = new RawMaterialStockModel();
@@ -44,10 +44,6 @@ class LowStockNotifier
         $flagFile = WRITEPATH . 'lowstock_email_sent_' . $today . '.flag';
 
         $items = self::getTodayProductInventoryItems($today);
-        if (empty($items)) {
-            log_message('info', 'No daily product inventory found. No notification needed.');
-            return;
-        }
 
         // Low stock is determined by ending stock only, while Beg/PO/End are included in the email table.
         $criticalItems = [];
@@ -63,21 +59,28 @@ class LowStockNotifier
             }
         }
 
-        $lowStockItems = array_merge($criticalItems, $warningItems);
-        if (empty($lowStockItems)) {
-            log_message('info', 'No low product stock items found. No notification needed.');
+        $rawModel = new RawMaterialStockModel();
+        $rawLowItems = $rawModel->getLowStockMaterials(self::RAW_CRITICAL_PERCENT, self::RAW_WARNING_PERCENT);
+        $rawCriticalItems = array_values(array_filter($rawLowItems, static fn($item) => ($item['stock_status'] ?? '') === 'critical'));
+        $rawWarningItems = array_values(array_filter($rawLowItems, static fn($item) => ($item['stock_status'] ?? '') === 'warning'));
+
+        $lowProductItems = array_merge($criticalItems, $warningItems);
+        $lowRawItems = array_merge($rawCriticalItems, $rawWarningItems);
+
+        if (empty($lowProductItems) && empty($lowRawItems)) {
+            log_message('info', 'No low product/raw-material stock items found. No notification needed.');
             return;
         }
 
-        $hasCritical = !empty($criticalItems);
+        $hasCritical = !empty($criticalItems) || !empty($rawCriticalItems);
 
         if (!$forceSend && !$hasCritical && file_exists($flagFile)) {
-            log_message('info', 'Product low stock notification already sent today (warning items only). Skipping.');
+            log_message('info', 'Combined stock notification already sent today (warning items only). Skipping.');
             return; // Already sent today for warning-only items
         }
 
         if ($hasCritical) {
-            log_message('warning', 'CRITICAL: Found ' . count($criticalItems) . ' critical product stock item(s). Sending immediate alert.');
+            log_message('warning', 'CRITICAL: Found low critical stock items. Sending immediate alert.');
         }
 
         // Get all owner emails
@@ -87,18 +90,18 @@ class LowStockNotifier
                              ->findAll();
 
         if (empty($owners)) {
-            log_message('warning', 'Product low stock alert: No owner accounts found to notify.');
+            log_message('warning', 'Combined low stock alert: No owner accounts found to notify.');
             return;
         }
 
         $ownerEmails = array_column($owners, 'email');
-        log_message('info', 'Sending product low stock alert to ' . count($ownerEmails) . ' owner(s): ' . implode(', ', $ownerEmails));
+        log_message('info', 'Sending combined low stock alert to ' . count($ownerEmails) . ' owner(s): ' . implode(', ', $ownerEmails));
 
         // Build the email
-        $emailBody = self::buildEmailBody($criticalItems, $warningItems, $today);
+        $emailBody = self::buildEmailBody($criticalItems, $warningItems, $rawCriticalItems, $rawWarningItems, $today);
         
         $subjectPrefix = $hasCritical ? '🚨 LOW' : '⚠';
-        $emailSubject = $subjectPrefix . ' Product Stock Alert — ' . count($lowStockItems) . ' product(s) running low';
+        $emailSubject = $subjectPrefix . ' Stock Alert — ' . count($lowProductItems) . ' product(s), ' . count($lowRawItems) . ' raw material(s) running low';
 
         // Send
         try {
@@ -114,12 +117,12 @@ class LowStockNotifier
                 if (!$hasCritical) {
                     file_put_contents($flagFile, date('Y-m-d H:i:s'));
                 }
-                log_message('info', 'Product low stock alert email sent successfully to: ' . implode(', ', $ownerEmails));
+                log_message('info', 'Combined low stock alert email sent successfully to: ' . implode(', ', $ownerEmails));
             } else {
-                log_message('error', 'Failed to send product low stock email: ' . $emailService->printDebugger(['headers']));
+                log_message('error', 'Failed to send combined low stock email: ' . $emailService->printDebugger(['headers']));
             }
         } catch (\Exception $e) {
-            log_message('error', 'Exception sending product low stock email: ' . $e->getMessage());
+            log_message('error', 'Exception sending combined low stock email: ' . $e->getMessage());
         }
     }
 
@@ -149,7 +152,7 @@ class LowStockNotifier
     /**
      * Build the HTML email body
      */
-    public static function buildEmailBody(array $criticalItems, array $warningItems, string $inventoryDate): string
+    public static function buildEmailBody(array $criticalItems, array $warningItems, array $rawCriticalItems, array $rawWarningItems, string $inventoryDate): string
     {
         $reportDate = date('F d, Y', strtotime($inventoryDate));
         $reportTime = date('h:i A');
@@ -198,6 +201,50 @@ class LowStockNotifier
         $totalWarning  = count($warningItems);
         $totalItems    = $totalCritical + $totalWarning;
 
+        $rawAllItems = array_merge($rawCriticalItems, $rawWarningItems);
+        usort($rawAllItems, static function ($a, $b) {
+            $statusWeight = ['critical' => 0, 'warning' => 1];
+            $aWeight = $statusWeight[$a['stock_status'] ?? 'warning'] ?? 9;
+            $bWeight = $statusWeight[$b['stock_status'] ?? 'warning'] ?? 9;
+            if ($aWeight !== $bWeight) {
+                return $aWeight <=> $bWeight;
+            }
+
+            $aName = strtolower((string) ($a['material_name'] ?? ''));
+            $bName = strtolower((string) ($b['material_name'] ?? ''));
+            return $aName <=> $bName;
+        });
+
+        $rawRows = '';
+        foreach ($rawAllItems as $item) {
+            $name = htmlspecialchars((string) ($item['material_name'] ?? 'Unknown'));
+            $category = htmlspecialchars((string) ($item['category_name'] ?? ''));
+            $initial = round(floatval($item['initial_qty'] ?? 0), 2);
+            $used = round(floatval($item['qty_used'] ?? 0), 2);
+            $remaining = round(floatval($item['current_quantity'] ?? 0), 2);
+            $unit = htmlspecialchars((string) ($item['unit'] ?? ''));
+            $status = ($item['stock_status'] ?? '') === 'critical' ? 'CRITICAL' : 'WARNING';
+            $statusStyle = $status === 'CRITICAL'
+                ? "background:#fff5f5;color:#dc3545;border:1px solid #dc3545;"
+                : "background:#fff8e8;color:#b45309;border:1px solid #f59e0b;";
+
+            $rawRows .= "
+                <tr>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;'>{$name}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#4b5563;'>{$category}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;text-align:center;'>{$initial}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;text-align:center;'>{$used}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;text-align:center;font-weight:700;color:#b91c1c;'>{$remaining} {$unit}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center;'>
+                        <span style='padding:3px 8px;border-radius:999px;font-weight:700;{$statusStyle}'>{$status}</span>
+                    </td>
+                </tr>";
+        }
+
+        $rawCriticalCount = count($rawCriticalItems);
+        $rawWarningCount = count($rawWarningItems);
+        $rawTotal = $rawCriticalCount + $rawWarningCount;
+
         return "
         <html>
         <head>
@@ -214,8 +261,8 @@ class LowStockNotifier
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1 style='margin: 0; font-size: 24px;'>Low Product Stock Alert</h1>
-                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery — Inventory BEG / PO / END Report</p>
+                    <h1 style='margin: 0; font-size: 24px;'>Low Stock Alert</h1>
+                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery — Products and Raw Materials Report</p>
                 </div>
                 <div class='content'>
                     <!-- Report Details -->
@@ -234,14 +281,14 @@ class LowStockNotifier
                         </tr>
                         <tr>
                             <td style='padding: 6px 0; font-size: 13px; color: #555;'><strong>Total Alerts:</strong></td>
-                            <td style='padding: 6px 0; font-size: 13px; color: #333;'>{$totalItems} product(s)</td>
+                            <td style='padding: 6px 0; font-size: 13px; color: #333;'>{$totalItems} product(s), {$rawTotal} raw material(s)</td>
                         </tr>
                     </table>
 
                     <hr style='border: none; border-top: 1px solid #ddd; margin: 15px 0;'>
 
                     <p style='font-size: 14px;'>Dear Owner,</p>
-                    <p style='font-size: 14px;'>This is to inform you that the following products have low stock based on <strong>Ending Stock</strong>. The table includes <strong>Beginning, Pull Out, and Ending</strong> values for quick review.</p>
+                    <p style='font-size: 14px;'>This is to inform you that both product inventory and raw material stock have low-level alerts.</p>
 
                     <!-- Summary Cards -->
                     <table style='margin: 20px 0;'>
@@ -273,6 +320,25 @@ class LowStockNotifier
                             </thead>
                             <tbody>
                                 {$rows}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style='font-size:16px;color:#333;margin:25px 0 12px;'>Low Raw Materials</h3>
+                    <div style='overflow-x:auto;'>
+                        <table style='width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;'>
+                            <thead>
+                                <tr style='background:#f3f4f6;'>
+                                    <th style='padding:10px;text-align:left;font-size:12px;border-bottom:1px solid #d1d5db;'>Material</th>
+                                    <th style='padding:10px;text-align:left;font-size:12px;border-bottom:1px solid #d1d5db;'>Category</th>
+                                    <th style='padding:10px;text-align:center;font-size:12px;border-bottom:1px solid #d1d5db;'>Initial</th>
+                                    <th style='padding:10px;text-align:center;font-size:12px;border-bottom:1px solid #d1d5db;'>Used</th>
+                                    <th style='padding:10px;text-align:center;font-size:12px;border-bottom:1px solid #d1d5db;'>Remaining</th>
+                                    <th style='padding:10px;text-align:center;font-size:12px;border-bottom:1px solid #d1d5db;'>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {$rawRows}
                             </tbody>
                         </table>
                     </div>
