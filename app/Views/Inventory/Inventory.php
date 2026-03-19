@@ -13,10 +13,10 @@
                             <i class="fas fa-history mr-2"></i> History
                         </a>
                         <?php if ($isOwnerView): ?>
-                        <button id="btnSendInventoryReport" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                        </button>
+                            <button id="btnSendInventoryReport" type="button"
+                                class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                                <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
+                            </button>
                         <?php endif; ?>
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
@@ -603,128 +603,128 @@
     </div>
 
     <?php if ($isOwnerView): ?>
-    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-            <button type="button" id="sendReportConfirmModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
-            </button>
-            <div class="text-center">
-                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
-                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
-                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
-                    emailed.</p>
-            </div>
-            <div class="mb-4">
-                <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-                <select id="sendReportShiftSelect"
-                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
-                    <option value="morning">Morning shift</option>
-                    <option value="afternoon">Afternoon shift</option>
-                </select>
-                <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
-            </div>
-            <div class="flex gap-3">
-                <button type="button" id="btnConfirmSendInventoryReport"
-                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                    Send Report
+        <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+            <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+                <button type="button" id="sendReportConfirmModalClose"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                    <i class="fas fa-xmark"></i>
                 </button>
-                <button type="button" id="sendReportConfirmModalCancel"
-                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Cancel
-                </button>
+                <div class="text-center">
+                    <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                    <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                    <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
+                        emailed.</p>
+                </div>
+                <div class="mb-4">
+                    <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                    <select id="sendReportShiftSelect"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
+                        <option value="morning">Morning shift</option>
+                        <option value="afternoon">Afternoon shift</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" id="btnConfirmSendInventoryReport"
+                        class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                        Send Report
+                    </button>
+                    <button type="button" id="sendReportConfirmModalCancel"
+                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <script>
-    // Track if inventory exists for today
-    let inventoryExistsToday = false;
+        // Track if inventory exists for today
+        let inventoryExistsToday = false;
 
-    $(document).ready(function() {
+        $(document).ready(function () {
 
-        // Delete Modal Script
-        $('#btnDeleteTodaysInventory').on('click', function() {
-            if (!inventoryExistsToday) {
-                showToast('warning', 'No inventory exists for today to delete.', 2000);
-                return;
-            }
-            $('#deleteConfirmModal').removeClass('hidden');
-        });
+            // Delete Modal Script
+            $('#btnDeleteTodaysInventory').on('click', function () {
+                if (!inventoryExistsToday) {
+                    showToast('warning', 'No inventory exists for today to delete.', 2000);
+                    return;
+                }
+                $('#deleteConfirmModal').removeClass('hidden');
+            });
 
-        // Close Delete Confirmation Modal
-        $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function() {
-            $('#deleteConfirmModal').addClass('hidden');
-        });
+            // Close Delete Confirmation Modal
+            $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
+                $('#deleteConfirmModal').addClass('hidden');
+            });
 
-        // Confirm Delete
-        $('#btnConfirmDelete').on('click', function() {
-            $('#deleteConfirmModal').addClass('hidden');
-            deleteTodaysInventory(); // This calls your function
-        });
+            // Confirm Delete
+            $('#btnConfirmDelete').on('click', function () {
+                $('#deleteConfirmModal').addClass('hidden');
+                deleteTodaysInventory(); // This calls your function
+            });
 
-        // Distributions button click — open distribution list modal
-        $('#btnDistributions').on('click', function() {
-            if (!inventoryExistsToday) {
-                showToast('warning', 'Create inventory first before loading distribution data.', 2000);
-                return;
-            }
-            openDistributionModal();
-        });
+            // Distributions button click — open distribution list modal
+            $('#btnDistributions').on('click', function () {
+                if (!inventoryExistsToday) {
+                    showToast('warning', 'Create inventory first before loading distribution data.', 2000);
+                    return;
+                }
+                openDistributionModal();
+            });
 
-        // Close Distribution List Modal
-        $('#distributionListModalClose, #distributionListModalDone').on('click', function() {
-            $('#distributionListModal').addClass('hidden');
-        });
+            // Close Distribution List Modal
+            $('#distributionListModalClose, #distributionListModalDone').on('click', function () {
+                $('#distributionListModal').addClass('hidden');
+            });
 
-        // Load All Remaining button
-        $('#btnLoadAllRemaining').on('click', function() {
-            loadAllRemainingDistribution();
-        });
+            // Load All Remaining button
+            $('#btnLoadAllRemaining').on('click', function () {
+                loadAllRemainingDistribution();
+            });
 
-        // Close Load Single Item Modal
-        $('#loadSingleItemClose, #loadSingleItemCancel').on('click', function() {
-            $('#loadSingleItemModal').addClass('hidden');
-            $('#loadSingleItemForm')[0].reset();
-            resetLoadItemModalState();
-        });
+            // Close Load Single Item Modal
+            $('#loadSingleItemClose, #loadSingleItemCancel').on('click', function () {
+                $('#loadSingleItemModal').addClass('hidden');
+                $('#loadSingleItemForm')[0].reset();
+                resetLoadItemModalState();
+            });
 
-        // +/- buttons for load quantity
-        $('#btnDecreaseLoadQty').on('click', function() {
-            const current = parseInt($('#loadItemQuantity').val()) || 0;
-            $('#loadItemQuantity').val(Math.max(1, current - 1));
-            updateLoadQuantityDisplay();
-        });
+            // +/- buttons for load quantity
+            $('#btnDecreaseLoadQty').on('click', function () {
+                const current = parseInt($('#loadItemQuantity').val()) || 0;
+                $('#loadItemQuantity').val(Math.max(1, current - 1));
+                updateLoadQuantityDisplay();
+            });
 
-        $('#btnIncreaseLoadQty').on('click', function() {
-            const current = parseInt($('#loadItemQuantity').val()) || 0;
-            $('#loadItemQuantity').val(current + 1);
-            updateLoadQuantityDisplay();
-        });
+            $('#btnIncreaseLoadQty').on('click', function () {
+                const current = parseInt($('#loadItemQuantity').val()) || 0;
+                $('#loadItemQuantity').val(current + 1);
+                updateLoadQuantityDisplay();
+            });
 
-        $('#loadItemQuantity').on('input change', function() {
-            updateLoadQuantityDisplay();
-        });
+            $('#loadItemQuantity').on('input change', function () {
+                updateLoadQuantityDisplay();
+            });
 
-        // Update note border on input
-        $('#loadItemNote').on('input', function() {
-            if ($('#loadItemNote').is('[required]') && !$(this).val().trim()) {
-                $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            } else {
-                $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            }
-        });
+            // Update note border on input
+            $('#loadItemNote').on('input', function () {
+                if ($('#loadItemNote').is('[required]') && !$(this).val().trim()) {
+                    $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
+            });
 
-        // Submit Load Single Item
-        $('#loadSingleItemForm').on('submit', function(e) {
-            e.preventDefault();
-            submitLoadSingleItem();
-        });
+            // Submit Load Single Item
+            $('#loadSingleItemForm').on('submit', function (e) {
+                e.preventDefault();
+                submitLoadSingleItem();
+            });
 
-    }); // end $(document).ready()
+        }); // end $(document).ready()
     </script>
 
     <!-- Distribution Items List Modal -->
@@ -829,687 +829,687 @@
         </div>
     </div>
     <style>
-    @media (max-width: 640px) {
+        @media (max-width: 640px) {
 
-        .datatable-top,
-        .datatable-bottom {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            gap: 0.3rem !important;
-            padding: 0.3rem 0;
-        }
+            .datatable-top,
+            .datatable-bottom {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0.3rem !important;
+                padding: 0.3rem 0;
+            }
 
-        .datatable-dropdown,
-        .datatable-search,
-        .datatable-info,
-        .datatable-pagination {
-            float: none !important;
-            width: 100% !important;
-            text-align: center !important;
-            display: flex !important;
-            justify-content: center !important;
-            margin: 0 !important;
-        }
+            .datatable-dropdown,
+            .datatable-search,
+            .datatable-info,
+            .datatable-pagination {
+                float: none !important;
+                width: 100% !important;
+                text-align: center !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin: 0 !important;
+            }
 
-        .datatable-search {
-            margin-top: 0.5rem !important;
-        }
+            .datatable-search {
+                margin-top: 0.5rem !important;
+            }
 
-        .datatable-pagination ul {
-            justify-content: center !important;
+            .datatable-pagination ul {
+                justify-content: center !important;
+            }
         }
-    }
     </style>
 
     <script>
-    // Track which source to use for inventory: 'all' or 'distribution'
-    let inventorySource = 'all';
-    const inventoryBaseUrl = '<?= base_url() ?>';
-    let todayDistProductMap = {};
-    let todayDistProductDetailCache = {};
-    let todayDistProductDetailPromiseCache = {};
-    let todayDistHydrationToken = 0;
-    let todayDistributionGroupedData = [];
+        // Track which source to use for inventory: 'all' or 'distribution'
+        let inventorySource = 'all';
+        const inventoryBaseUrl = '<?= base_url() ?>';
+        let todayDistProductMap = {};
+        let todayDistProductDetailCache = {};
+        let todayDistProductDetailPromiseCache = {};
+        let todayDistHydrationToken = 0;
+        let todayDistributionGroupedData = [];
 
-    function getTodayDateForApi() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+        function getTodayDateForApi() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-    function parseInventoryNumericValue(value) {
-        if (value === null || value === undefined || value === '') return 0;
-        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+        function parseInventoryNumericValue(value) {
+            if (value === null || value === undefined || value === '') return 0;
+            if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
 
-        const cleaned = String(value).replace(/[^0-9.-]/g, '');
-        const parsed = parseFloat(cleaned);
-        return Number.isFinite(parsed) ? parsed : 0;
-    }
+            const cleaned = String(value).replace(/[^0-9.-]/g, '');
+            const parsed = parseFloat(cleaned);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
 
-    function formatInventoryPeso(amount) {
-        const numeric = parseInventoryNumericValue(amount);
-        return '₱' + numeric.toLocaleString('en-PH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
+        function formatInventoryPeso(amount) {
+            const numeric = parseInventoryNumericValue(amount);
+            return '₱' + numeric.toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
 
-    function formatInventoryNumber(value, maxFractionDigits = 0) {
-        const numeric = parseInventoryNumericValue(value);
-        return numeric.toLocaleString('en-PH', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: maxFractionDigits
-        });
-    }
+        function formatInventoryNumber(value, maxFractionDigits = 0) {
+            const numeric = parseInventoryNumericValue(value);
+            return numeric.toLocaleString('en-PH', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: maxFractionDigits
+            });
+        }
 
-    function escapeInventoryHtml(value) {
-        const text = value == null ? '' : String(value);
-        return text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
+        function escapeInventoryHtml(value) {
+            const text = value == null ? '' : String(value);
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
-    function getTodayDistProductData(productId) {
-        const key = String(productId || '').trim();
-        if (!key) return null;
-        return todayDistProductMap[key] || todayDistProductDetailCache[key] || null;
-    }
+        function getTodayDistProductData(productId) {
+            const key = String(productId || '').trim();
+            if (!key) return null;
+            return todayDistProductMap[key] || todayDistProductDetailCache[key] || null;
+        }
 
-    function getTodayDistPiecesPerYield(product) {
-        const pieces = parseInventoryNumericValue(product && product.pieces_per_yield);
-        return pieces > 0 ? pieces : 1;
-    }
+        function getTodayDistPiecesPerYield(product) {
+            const pieces = parseInventoryNumericValue(product && product.pieces_per_yield);
+            return pieces > 0 ? pieces : 1;
+        }
 
-    function getTodayDistTraysPerYield(product) {
-        const trays = parseInventoryNumericValue(product && product.trays_per_yield);
-        return trays > 0 ? trays : 0;
-    }
+        function getTodayDistTraysPerYield(product) {
+            const trays = parseInventoryNumericValue(product && product.trays_per_yield);
+            return trays > 0 ? trays : 0;
+        }
 
-    function getTodayDistBatchPiecesPerYield(product) {
-        const traysPerYield = getTodayDistTraysPerYield(product);
-        const piecesPerYield = getTodayDistPiecesPerYield(product);
+        function getTodayDistBatchPiecesPerYield(product) {
+            const traysPerYield = getTodayDistTraysPerYield(product);
+            const piecesPerYield = getTodayDistPiecesPerYield(product);
 
-        return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-    }
+            return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
+        }
 
-    function getTodayDistBoxPieces(product) {
-        return getTodayDistPiecesPerYield(product);
-    }
+        function getTodayDistBoxPieces(product) {
+            return getTodayDistPiecesPerYield(product);
+        }
 
-    function getTodayDistPieces(item, product) {
-        const qty = parseInventoryNumericValue(item && item.product_qnty);
-        const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
-        const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
+        function getTodayDistPieces(item, product) {
+            const qty = parseInventoryNumericValue(item && item.product_qnty);
+            const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+            const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
 
-        if (qtyMode === 'pieces') {
+            if (qtyMode === 'pieces') {
+                return qty;
+            }
+
+            if (category === 'drinks' || category === 'grocery') {
+                return qty;
+            }
+
+            if (qtyMode === 'box') {
+                return qty * getTodayDistBoxPieces(product || {});
+            }
+
+            return qty * getTodayDistBatchPiecesPerYield(product || {});
+        }
+
+        function getTodayDistYieldUnits(item, product) {
+            const qty = parseInventoryNumericValue(item && item.product_qnty);
+            const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+            const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
+            const traysPerYield = getTodayDistTraysPerYield(product || {});
+            const batchPiecesPerYield = getTodayDistBatchPiecesPerYield(product || {});
+
+            if (qtyMode === 'pieces') {
+                return batchPiecesPerYield > 0 ? (qty / batchPiecesPerYield) : qty;
+            }
+
+            if (category === 'drinks' || category === 'grocery') {
+                return qty;
+            }
+
+            if (qtyMode === 'box') {
+                if (traysPerYield > 0) {
+                    return qty / traysPerYield;
+                }
+
+                const pieces = getTodayDistPieces(item, product || {});
+                return batchPiecesPerYield > 0 ? (pieces / batchPiecesPerYield) : qty;
+            }
+
             return qty;
         }
 
-        if (category === 'drinks' || category === 'grocery') {
-            return qty;
+        function calculateTodayDistItemDirectCost(item, product) {
+            const productData = product || {};
+            const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
+            if (directCostPerYield <= 0) return 0;
+
+            const yieldsNeeded = getTodayDistYieldUnits(item, productData);
+
+            return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
         }
 
-        if (qtyMode === 'box') {
-            return qty * getTodayDistBoxPieces(product || {});
-        }
-
-        return qty * getTodayDistBatchPiecesPerYield(product || {});
-    }
-
-    function getTodayDistYieldUnits(item, product) {
-        const qty = parseInventoryNumericValue(item && item.product_qnty);
-        const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
-        const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
-        const traysPerYield = getTodayDistTraysPerYield(product || {});
-        const batchPiecesPerYield = getTodayDistBatchPiecesPerYield(product || {});
-
-        if (qtyMode === 'pieces') {
-            return batchPiecesPerYield > 0 ? (qty / batchPiecesPerYield) : qty;
-        }
-
-        if (category === 'drinks' || category === 'grocery') {
-            return qty;
-        }
-
-        if (qtyMode === 'box') {
-            if (traysPerYield > 0) {
-                return qty / traysPerYield;
+        function getTodayDistMaterialAggregateKey(materialId, materialName, unit) {
+            if (materialId != null && materialId !== '') {
+                return `id-${materialId}-${(unit || '').toString().trim().toLowerCase()}`;
             }
 
-            const pieces = getTodayDistPieces(item, product || {});
-            return batchPiecesPerYield > 0 ? (pieces / batchPiecesPerYield) : qty;
+            return `name-${(materialName || 'unknown').toString().trim().toLowerCase()}-${(unit || '').toString().trim().toLowerCase()}`;
         }
 
-        return qty;
-    }
+        function mergeTodayDistMaterialUsageEntry(materialMap, usageEntry) {
+            if (!materialMap || !usageEntry) return;
 
-    function calculateTodayDistItemDirectCost(item, product) {
-        const productData = product || {};
-        const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
-        if (directCostPerYield <= 0) return 0;
+            const mapKey = getTodayDistMaterialAggregateKey(
+                usageEntry.material_id,
+                usageEntry.material_name,
+                usageEntry.unit
+            );
 
-        const yieldsNeeded = getTodayDistYieldUnits(item, productData);
-
-        return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
-    }
-
-    function getTodayDistMaterialAggregateKey(materialId, materialName, unit) {
-        if (materialId != null && materialId !== '') {
-            return `id-${materialId}-${(unit || '').toString().trim().toLowerCase()}`;
-        }
-
-        return `name-${(materialName || 'unknown').toString().trim().toLowerCase()}-${(unit || '').toString().trim().toLowerCase()}`;
-    }
-
-    function mergeTodayDistMaterialUsageEntry(materialMap, usageEntry) {
-        if (!materialMap || !usageEntry) return;
-
-        const mapKey = getTodayDistMaterialAggregateKey(
-            usageEntry.material_id,
-            usageEntry.material_name,
-            usageEntry.unit
-        );
-
-        if (!materialMap[mapKey]) {
-            materialMap[mapKey] = {
-                material_id: usageEntry.material_id,
-                material_name: usageEntry.material_name || 'Unknown Material',
-                unit: usageEntry.unit || '',
-                amount: 0,
-                line_cost: 0,
-            };
-        }
-
-        materialMap[mapKey].amount += parseInventoryNumericValue(usageEntry.amount);
-        materialMap[mapKey].line_cost += parseInventoryNumericValue(usageEntry.line_cost);
-    }
-
-    function todayDistMaterialMapToArray(materialMap) {
-        return Object.values(materialMap || {}).sort(function(a, b) {
-            return String(a.material_name || '').localeCompare(String(b.material_name || ''));
-        });
-    }
-
-    function fetchTodayDistProducts(forceReload = false) {
-        return new Promise(function(resolve) {
-            if (!forceReload && Object.keys(todayDistProductMap).length > 0) {
-                resolve(todayDistProductMap);
-                return;
-            }
-
-            $.ajax({
-                url: inventoryBaseUrl + 'Products/GetAll',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.success && Array.isArray(response.data)) {
-                        const nextMap = {};
-                        response.data.forEach(function(product) {
-                            const key = String(product.product_id || '').trim();
-                            if (!key) return;
-                            nextMap[key] = Object.assign({}, product);
-                        });
-                        todayDistProductMap = nextMap;
-                    }
-                },
-                complete: function() {
-                    resolve(todayDistProductMap);
-                }
-            });
-        });
-    }
-
-    function fetchTodayDistProductDetail(productId) {
-        const key = String(productId || '').trim();
-        if (!key) {
-            return Promise.resolve(null);
-        }
-
-        if (todayDistProductDetailCache[key]) {
-            return Promise.resolve(todayDistProductDetailCache[key]);
-        }
-
-        if (todayDistProductDetailPromiseCache[key]) {
-            return todayDistProductDetailPromiseCache[key];
-        }
-
-        todayDistProductDetailPromiseCache[key] = new Promise(function(resolve) {
-            $.ajax({
-                url: inventoryBaseUrl + 'Products/GetProduct/' + key,
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.success && response.data) {
-                        const productData = response.data;
-                        todayDistProductDetailCache[key] = productData;
-                        todayDistProductMap[key] = Object.assign({}, todayDistProductMap[key] || {},
-                            productData);
-                        resolve(productData);
-                        return;
-                    }
-
-                    resolve(null);
-                },
-                error: function() {
-                    resolve(null);
-                },
-                complete: function() {
-                    delete todayDistProductDetailPromiseCache[key];
-                }
-            });
-        });
-
-        return todayDistProductDetailPromiseCache[key];
-    }
-
-    function fetchTodayDistributionByDate(dateValue) {
-        return new Promise(function(resolve) {
-            $.ajax({
-                url: inventoryBaseUrl + 'Distribution/GetDistributionByDate',
-                method: 'GET',
-                dataType: 'json',
-                data: {
-                    date: dateValue
-                },
-                success: function(response) {
-                    resolve(response || {
-                        success: false,
-                        data: []
-                    });
-                },
-                error: function() {
-                    resolve({
-                        success: false,
-                        data: []
-                    });
-                }
-            });
-        });
-    }
-
-    function getTodayDistributionGroupNote(groupMeta, items = []) {
-        const directCandidates = [
-            groupMeta && groupMeta.distributed_to_note,
-            groupMeta && groupMeta.distribution_group_note,
-            groupMeta && groupMeta.overall_note,
-            groupMeta && groupMeta.note,
-            groupMeta && groupMeta.place_distributed_to,
-            groupMeta && groupMeta.place_distributed,
-        ];
-
-        for (const candidate of directCandidates) {
-            const note = (candidate || '').toString().trim();
-            if (note) return note;
-        }
-
-        const itemNoteFields = [
-            'distribution_group_note',
-            'distributed_to_note',
-            'overall_note',
-            'note',
-            'item_note',
-            'place_distributed_to',
-            'place_distributed',
-        ];
-
-        for (const item of (Array.isArray(items) ? items : [])) {
-            for (const key of itemNoteFields) {
-                const note = (item && item[key] != null) ? String(item[key]).trim() : '';
-                if (note) return note;
-            }
-        }
-
-        return '';
-    }
-
-    function normalizeTodayDistributionGroups(apiData) {
-        const source = Array.isArray(apiData) ? apiData : [];
-        const normalizedGroups = [];
-        const fallbackGroupMap = {};
-
-        source.forEach(function(entry, entryIndex) {
-            if (!entry || typeof entry !== 'object') {
-                return;
-            }
-
-            const groupItems = Array.isArray(entry.items) ? entry.items : null;
-
-            if (groupItems) {
-                const explicitGroupKey = (entry.distribution_group_key || entry.group_key || '').toString()
-                    .trim();
-                const defaultGroupKey = explicitGroupKey || ((entry.id != null && entry.id !== '') ?
-                    ('group-' + String(entry.id).trim()) :
-                    ('group-' + (entryIndex + 1)));
-
-                const groupName = (entry.title || entry.distribution_group_name || entry.group_name || (
-                    'Group ' + (entryIndex + 1))).toString().trim() || ('Group ' + (entryIndex + 1));
-                const groupNote = getTodayDistributionGroupNote(entry, groupItems);
-
-                const normalizedItems = groupItems
-                    .filter(function(groupItem) {
-                        return groupItem && typeof groupItem === 'object';
-                    })
-                    .map(function(groupItem) {
-                        return Object.assign({}, groupItem, {
-                            distribution_date: groupItem.distribution_date || entry
-                                .distribution_date || null,
-                            distribution_group_key: (groupItem.distribution_group_key ||
-                                defaultGroupKey).toString(),
-                            distribution_group_name: (groupItem.distribution_group_name ||
-                                groupName).toString(),
-                            distribution_group_note: (groupItem.distribution_group_note ||
-                                groupNote).toString(),
-                        });
-                    });
-
-                if (normalizedItems.length === 0) {
-                    return;
-                }
-
-                normalizedGroups.push({
-                    group_key: defaultGroupKey,
-                    group_name: groupName,
-                    group_note: groupNote,
-                    distribution_date: entry.distribution_date || null,
-                    items: normalizedItems,
-                });
-
-                return;
-            }
-
-            if (!(entry.product_id || entry.product_qnty !== undefined)) {
-                return;
-            }
-
-            const fallbackGroupKey = ((entry.distribution_group_key || '').toString().trim()) || 'legacy-group';
-            const fallbackGroupName = ((entry.distribution_group_name || entry.group_name || 'Default Group')
-                .toString().trim()) || 'Default Group';
-            const fallbackGroupNote = getTodayDistributionGroupNote(entry, [entry]);
-
-            if (!fallbackGroupMap[fallbackGroupKey]) {
-                fallbackGroupMap[fallbackGroupKey] = {
-                    group_key: fallbackGroupKey,
-                    group_name: fallbackGroupName,
-                    group_note: fallbackGroupNote,
-                    distribution_date: entry.distribution_date || null,
-                    items: [],
+            if (!materialMap[mapKey]) {
+                materialMap[mapKey] = {
+                    material_id: usageEntry.material_id,
+                    material_name: usageEntry.material_name || 'Unknown Material',
+                    unit: usageEntry.unit || '',
+                    amount: 0,
+                    line_cost: 0,
                 };
             }
 
-            fallbackGroupMap[fallbackGroupKey].items.push(Object.assign({}, entry, {
-                distribution_group_key: fallbackGroupKey,
-                distribution_group_name: fallbackGroupName,
-                distribution_group_note: fallbackGroupNote,
-            }));
-        });
+            materialMap[mapKey].amount += parseInventoryNumericValue(usageEntry.amount);
+            materialMap[mapKey].line_cost += parseInventoryNumericValue(usageEntry.line_cost);
+        }
 
-        Object.values(fallbackGroupMap).forEach(function(group) {
-            if (Array.isArray(group.items) && group.items.length > 0) {
-                normalizedGroups.push(group);
-            }
-        });
-
-        return normalizedGroups;
-    }
-
-    function flattenTodayDistributionGroupItems(groups) {
-        return (Array.isArray(groups) ? groups : []).reduce(function(accumulator, group) {
-            const items = Array.isArray(group && group.items) ? group.items : [];
-            return accumulator.concat(items);
-        }, []);
-    }
-
-    async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap,
-        visitedProducts = new Set(), productHint = null) {
-        const key = String(productId || '').trim();
-        if (!key || yieldsNeeded <= 0 || visitedProducts.has(key)) return;
-
-        const productData = productHint || await fetchTodayDistProductDetail(key);
-        if (!productData) return;
-
-        const nextVisited = new Set(visitedProducts);
-        nextVisited.add(key);
-
-        const ingredients = Array.isArray(productData.ingredients) ? productData.ingredients : [];
-        ingredients.forEach(function(ingredient) {
-            const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient
-                .quantity_needed);
-            if (quantityPerYield <= 0) return;
-
-            const amount = quantityPerYield * yieldsNeeded;
-            const lineCost = amount * parseInventoryNumericValue(ingredient.cost_per_unit);
-
-            mergeTodayDistMaterialUsageEntry(materialMap, {
-                material_id: ingredient.material_id,
-                material_name: ingredient.material_name || ('Material #' + (ingredient
-                    .material_id ?? 'N/A')),
-                unit: ingredient.unit || '',
-                amount: amount,
-                line_cost: lineCost,
+        function todayDistMaterialMapToArray(materialMap) {
+            return Object.values(materialMap || {}).sort(function (a, b) {
+                return String(a.material_name || '').localeCompare(String(b.material_name || ''));
             });
-        });
-
-        const combinedRecipes = Array.isArray(productData.combined_recipes) ? productData.combined_recipes : [];
-
-        for (const combinedRecipe of combinedRecipes) {
-            const sourceProductId = parseInventoryNumericValue(combinedRecipe.source_product_id || combinedRecipe
-                .id);
-            if (!sourceProductId) continue;
-
-            const gramsPerPiece = parseInventoryNumericValue(combinedRecipe.grams_per_piece ?? combinedRecipe
-                .gramsPerPiece);
-            if (gramsPerPiece <= 0 || piecesNeeded <= 0) continue;
-
-            const sourceProduct = await fetchTodayDistProductDetail(sourceProductId);
-            if (!sourceProduct) continue;
-
-            const sourceYieldGrams = parseInventoryNumericValue(sourceProduct.yield_grams || combinedRecipe
-                .source_yield_grams);
-            if (sourceYieldGrams <= 0) continue;
-
-            const totalGramsNeeded = gramsPerPiece * piecesNeeded;
-            const sourceYieldsNeeded = totalGramsNeeded / sourceYieldGrams;
-            const sourcePiecesPerYield = getTodayDistPiecesPerYield(sourceProduct);
-            const sourcePiecesNeeded = sourceYieldsNeeded * sourcePiecesPerYield;
-
-            await accumulateTodayDistRawMaterialUsage(
-                sourceProductId,
-                sourceYieldsNeeded,
-                sourcePiecesNeeded,
-                materialMap,
-                nextVisited,
-                sourceProduct
-            );
-        }
-    }
-
-    async function computeTodayDistRawMaterialUsageForItem(item, productHint = null, piecesHint = null) {
-        let productData = productHint || getTodayDistProductData(item && item.product_id);
-
-        if (!productData || !Array.isArray(productData.ingredients)) {
-            productData = await fetchTodayDistProductDetail(item && item.product_id);
         }
 
-        if (!productData) return [];
+        function fetchTodayDistProducts(forceReload = false) {
+            return new Promise(function (resolve) {
+                if (!forceReload && Object.keys(todayDistProductMap).length > 0) {
+                    resolve(todayDistProductMap);
+                    return;
+                }
 
-        const pieces = parseInventoryNumericValue(piecesHint) > 0 ?
-            parseInventoryNumericValue(piecesHint) :
-            getTodayDistPieces(item, productData);
-
-        if (pieces <= 0) return [];
-
-        const piecesPerYield = getTodayDistPiecesPerYield(productData);
-        const yieldsNeeded = piecesPerYield > 0 ? (pieces / piecesPerYield) : 0;
-        if (yieldsNeeded <= 0) return [];
-
-        const materialMap = {};
-        await accumulateTodayDistRawMaterialUsage(item.product_id, yieldsNeeded, pieces, materialMap, new Set(),
-            productData);
-        return todayDistMaterialMapToArray(materialMap);
-    }
-
-    function setTodayDistributionRefreshLoadingState(isLoading) {
-        if (isLoading) {
-            $('#btnRefreshTodayDistribution')
-                .prop('disabled', true)
-                .addClass('opacity-60 cursor-not-allowed');
-        } else {
-            $('#btnRefreshTodayDistribution')
-                .prop('disabled', false)
-                .removeClass('opacity-60 cursor-not-allowed');
-        }
-    }
-
-    function setTodayDistributionPanelPane(pane = 'groups') {
-        const isItemsPane = pane === 'items';
-        $('#todayDistributionSlideTrack').css('transform', isItemsPane ? 'translateX(-50%)' : 'translateX(0)');
-    }
-
-    function renderTodayDistributionPanelLoading() {
-        setTodayDistributionRefreshLoadingState(true);
-        $('#todayDistributionLoading').removeClass('hidden');
-        $('#todayDistributionEmpty').addClass('hidden');
-        $('#todayDistributionContent').addClass('hidden');
-        setTodayDistributionPanelPane('groups');
-    }
-
-    function renderTodayDistributionPanelEmpty(message = 'No distribution records for today.') {
-        setTodayDistributionRefreshLoadingState(false);
-        todayDistributionGroupedData = [];
-
-        $('#todayDistSummaryItems').text('0');
-        $('#todayDistSummaryGroups').text('0');
-        $('#todayDistSummaryBatches').text('0');
-        $('#todayDistSummaryPieces').text('0');
-        $('#todayDistSummaryDirectCost').text(formatInventoryPeso(0));
-        $('#todayDistributionGroupList').html('<p class="text-xs text-gray-400">No distribution groups for today.</p>');
-        $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
-        $('#todayDistSelectedGroupName').text('Selected Group');
-        $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
-        $('#todayDistSelectedGroupNote').addClass('hidden').text('');
-
-        $('#todayDistributionEmptyText').text(message);
-        $('#todayDistributionLoading').addClass('hidden');
-        $('#todayDistributionContent').addClass('hidden');
-        $('#todayDistributionEmpty').removeClass('hidden');
-        setTodayDistributionPanelPane('groups');
-    }
-
-    function formatTodayDistQuantityLabel(item) {
-        const qtyMode = ((item.qty_mode || 'batch') + '').toLowerCase();
-        const quantity = parseInventoryNumericValue(item.product_qnty);
-        const pieces = parseInventoryNumericValue(item.pieces_calculated);
-
-        if (qtyMode === 'pieces') {
-            return formatInventoryNumber(pieces, 0) + ' pcs';
+                $.ajax({
+                    url: inventoryBaseUrl + 'Products/GetAll',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.success && Array.isArray(response.data)) {
+                            const nextMap = {};
+                            response.data.forEach(function (product) {
+                                const key = String(product.product_id || '').trim();
+                                if (!key) return;
+                                nextMap[key] = Object.assign({}, product);
+                            });
+                            todayDistProductMap = nextMap;
+                        }
+                    },
+                    complete: function () {
+                        resolve(todayDistProductMap);
+                    }
+                });
+            });
         }
 
-        if (qtyMode === 'batch') {
-            const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
-            return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' +
-                formatInventoryNumber(pieces, 0) + ' pcs';
-        }
+        function fetchTodayDistProductDetail(productId) {
+            const key = String(productId || '').trim();
+            if (!key) {
+                return Promise.resolve(null);
+            }
 
-        if (qtyMode === 'box') {
-            const isSingleBox = Math.abs(quantity - 1) < 0.000001;
-            return formatInventoryNumber(quantity, 0) + ' box' + (isSingleBox ? '' : 'es') + ' • ' +
-                formatInventoryNumber(pieces, 0) + ' pcs';
-        }
+            if (todayDistProductDetailCache[key]) {
+                return Promise.resolve(todayDistProductDetailCache[key]);
+            }
 
-        return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(
-            pieces, 0) + ' pcs';
-    }
+            if (todayDistProductDetailPromiseCache[key]) {
+                return todayDistProductDetailPromiseCache[key];
+            }
 
-    function hydrateTodayDistributionGroups(groups) {
-        const normalizedGroups = Array.isArray(groups) ? groups : [];
+            todayDistProductDetailPromiseCache[key] = new Promise(function (resolve) {
+                $.ajax({
+                    url: inventoryBaseUrl + 'Products/GetProduct/' + key,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.success && response.data) {
+                            const productData = response.data;
+                            todayDistProductDetailCache[key] = productData;
+                            todayDistProductMap[key] = Object.assign({}, todayDistProductMap[key] || {},
+                                productData);
+                            resolve(productData);
+                            return;
+                        }
 
-        return normalizedGroups.map(function(group, groupIndex) {
-            const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function(
-                item) {
-                const productData = Object.assign({}, getTodayDistProductData(item && item
-                    .product_id) || {}, item || {});
-                const piecesCalculated = getTodayDistPieces(item, productData);
-                const directCostCalculated = calculateTodayDistItemDirectCost(item, productData);
-
-                return Object.assign({}, item, {
-                    pieces_calculated: piecesCalculated,
-                    direct_cost_calculated: directCostCalculated,
+                        resolve(null);
+                    },
+                    error: function () {
+                        resolve(null);
+                    },
+                    complete: function () {
+                        delete todayDistProductDetailPromiseCache[key];
+                    }
                 });
             });
 
-            const totalItems = normalizedItems.length;
-            const totalBatches = normalizedItems.reduce(function(sum, item) {
-                const mode = ((item.qty_mode || 'batch') + '').toLowerCase();
-                if (mode === 'pieces') return sum;
-                return sum + parseInventoryNumericValue(item.product_qnty);
-            }, 0);
-            const totalPieces = normalizedItems.reduce(function(sum, item) {
-                return sum + parseInventoryNumericValue(item.pieces_calculated);
-            }, 0);
-            const totalDirectCost = normalizedItems.reduce(function(sum, item) {
-                return sum + parseInventoryNumericValue(item.direct_cost_calculated);
-            }, 0);
+            return todayDistProductDetailPromiseCache[key];
+        }
 
-            return {
-                group_key: ((group && group.group_key) || (group && group.distribution_group_key) || ('group-' +
-                    (groupIndex + 1))).toString(),
-                group_name: ((group && group.group_name) || (group && group.distribution_group_name) || (
-                    'Group ' + (groupIndex + 1))).toString().trim() || ('Group ' + (groupIndex + 1)),
-                group_note: getTodayDistributionGroupNote(group, normalizedItems),
-                distribution_date: (group && group.distribution_date) || null,
-                total_items: totalItems,
-                total_batches: totalBatches,
-                total_pieces: totalPieces,
-                total_direct_cost: totalDirectCost,
-                items: normalizedItems,
-            };
-        });
-    }
+        function fetchTodayDistributionByDate(dateValue) {
+            return new Promise(function (resolve) {
+                $.ajax({
+                    url: inventoryBaseUrl + 'Distribution/GetDistributionByDate',
+                    method: 'GET',
+                    dataType: 'json',
+                    data: {
+                        date: dateValue
+                    },
+                    success: function (response) {
+                        resolve(response || {
+                            success: false,
+                            data: []
+                        });
+                    },
+                    error: function () {
+                        resolve({
+                            success: false,
+                            data: []
+                        });
+                    }
+                });
+            });
+        }
 
-    function renderTodayDistributionGroupItemsPane(groupIndex, shouldOpenPane = true) {
-        const normalizedIndex = parseInt(groupIndex, 10);
-        if (!Number.isFinite(normalizedIndex) || normalizedIndex < 0 || normalizedIndex >= todayDistributionGroupedData
-            .length) {
-            $('#todayDistributionGroupItems').html(
-                '<p class="text-xs text-gray-400">No items found for this group.</p>');
-            if (shouldOpenPane) {
-                setTodayDistributionPanelPane('items');
+        function getTodayDistributionGroupNote(groupMeta, items = []) {
+            const directCandidates = [
+                groupMeta && groupMeta.distributed_to_note,
+                groupMeta && groupMeta.distribution_group_note,
+                groupMeta && groupMeta.overall_note,
+                groupMeta && groupMeta.note,
+                groupMeta && groupMeta.place_distributed_to,
+                groupMeta && groupMeta.place_distributed,
+            ];
+
+            for (const candidate of directCandidates) {
+                const note = (candidate || '').toString().trim();
+                if (note) return note;
             }
-            return;
+
+            const itemNoteFields = [
+                'distribution_group_note',
+                'distributed_to_note',
+                'overall_note',
+                'note',
+                'item_note',
+                'place_distributed_to',
+                'place_distributed',
+            ];
+
+            for (const item of (Array.isArray(items) ? items : [])) {
+                for (const key of itemNoteFields) {
+                    const note = (item && item[key] != null) ? String(item[key]).trim() : '';
+                    if (note) return note;
+                }
+            }
+
+            return '';
         }
 
-        const selectedGroup = todayDistributionGroupedData[normalizedIndex];
-        const groupName = (selectedGroup.group_name || ('Group ' + (normalizedIndex + 1))).toString();
-        const groupNote = (selectedGroup.group_note || '').toString().trim();
-        const groupBatches = formatInventoryNumber(selectedGroup.total_batches, 0);
-        const groupPieces = formatInventoryNumber(selectedGroup.total_pieces, 0);
-        const groupDirectCost = formatInventoryPeso(selectedGroup.total_direct_cost);
+        function normalizeTodayDistributionGroups(apiData) {
+            const source = Array.isArray(apiData) ? apiData : [];
+            const normalizedGroups = [];
+            const fallbackGroupMap = {};
 
-        $('#todayDistSelectedGroupName').text(groupName);
-        $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs • ' + groupDirectCost);
+            source.forEach(function (entry, entryIndex) {
+                if (!entry || typeof entry !== 'object') {
+                    return;
+                }
 
-        if (groupNote) {
-            $('#todayDistSelectedGroupNote')
-                .html('<i class="fas fa-sticky-note mr-1 text-amber-500"></i>' + escapeInventoryHtml(groupNote))
-                .removeClass('hidden');
-        } else {
+                const groupItems = Array.isArray(entry.items) ? entry.items : null;
+
+                if (groupItems) {
+                    const explicitGroupKey = (entry.distribution_group_key || entry.group_key || '').toString()
+                        .trim();
+                    const defaultGroupKey = explicitGroupKey || ((entry.id != null && entry.id !== '') ?
+                        ('group-' + String(entry.id).trim()) :
+                        ('group-' + (entryIndex + 1)));
+
+                    const groupName = (entry.title || entry.distribution_group_name || entry.group_name || (
+                        'Group ' + (entryIndex + 1))).toString().trim() || ('Group ' + (entryIndex + 1));
+                    const groupNote = getTodayDistributionGroupNote(entry, groupItems);
+
+                    const normalizedItems = groupItems
+                        .filter(function (groupItem) {
+                            return groupItem && typeof groupItem === 'object';
+                        })
+                        .map(function (groupItem) {
+                            return Object.assign({}, groupItem, {
+                                distribution_date: groupItem.distribution_date || entry
+                                    .distribution_date || null,
+                                distribution_group_key: (groupItem.distribution_group_key ||
+                                    defaultGroupKey).toString(),
+                                distribution_group_name: (groupItem.distribution_group_name ||
+                                    groupName).toString(),
+                                distribution_group_note: (groupItem.distribution_group_note ||
+                                    groupNote).toString(),
+                            });
+                        });
+
+                    if (normalizedItems.length === 0) {
+                        return;
+                    }
+
+                    normalizedGroups.push({
+                        group_key: defaultGroupKey,
+                        group_name: groupName,
+                        group_note: groupNote,
+                        distribution_date: entry.distribution_date || null,
+                        items: normalizedItems,
+                    });
+
+                    return;
+                }
+
+                if (!(entry.product_id || entry.product_qnty !== undefined)) {
+                    return;
+                }
+
+                const fallbackGroupKey = ((entry.distribution_group_key || '').toString().trim()) || 'legacy-group';
+                const fallbackGroupName = ((entry.distribution_group_name || entry.group_name || 'Default Group')
+                    .toString().trim()) || 'Default Group';
+                const fallbackGroupNote = getTodayDistributionGroupNote(entry, [entry]);
+
+                if (!fallbackGroupMap[fallbackGroupKey]) {
+                    fallbackGroupMap[fallbackGroupKey] = {
+                        group_key: fallbackGroupKey,
+                        group_name: fallbackGroupName,
+                        group_note: fallbackGroupNote,
+                        distribution_date: entry.distribution_date || null,
+                        items: [],
+                    };
+                }
+
+                fallbackGroupMap[fallbackGroupKey].items.push(Object.assign({}, entry, {
+                    distribution_group_key: fallbackGroupKey,
+                    distribution_group_name: fallbackGroupName,
+                    distribution_group_note: fallbackGroupNote,
+                }));
+            });
+
+            Object.values(fallbackGroupMap).forEach(function (group) {
+                if (Array.isArray(group.items) && group.items.length > 0) {
+                    normalizedGroups.push(group);
+                }
+            });
+
+            return normalizedGroups;
+        }
+
+        function flattenTodayDistributionGroupItems(groups) {
+            return (Array.isArray(groups) ? groups : []).reduce(function (accumulator, group) {
+                const items = Array.isArray(group && group.items) ? group.items : [];
+                return accumulator.concat(items);
+            }, []);
+        }
+
+        async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap,
+            visitedProducts = new Set(), productHint = null) {
+            const key = String(productId || '').trim();
+            if (!key || yieldsNeeded <= 0 || visitedProducts.has(key)) return;
+
+            const productData = productHint || await fetchTodayDistProductDetail(key);
+            if (!productData) return;
+
+            const nextVisited = new Set(visitedProducts);
+            nextVisited.add(key);
+
+            const ingredients = Array.isArray(productData.ingredients) ? productData.ingredients : [];
+            ingredients.forEach(function (ingredient) {
+                const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient
+                    .quantity_needed);
+                if (quantityPerYield <= 0) return;
+
+                const amount = quantityPerYield * yieldsNeeded;
+                const lineCost = amount * parseInventoryNumericValue(ingredient.cost_per_unit);
+
+                mergeTodayDistMaterialUsageEntry(materialMap, {
+                    material_id: ingredient.material_id,
+                    material_name: ingredient.material_name || ('Material #' + (ingredient
+                        .material_id ?? 'N/A')),
+                    unit: ingredient.unit || '',
+                    amount: amount,
+                    line_cost: lineCost,
+                });
+            });
+
+            const combinedRecipes = Array.isArray(productData.combined_recipes) ? productData.combined_recipes : [];
+
+            for (const combinedRecipe of combinedRecipes) {
+                const sourceProductId = parseInventoryNumericValue(combinedRecipe.source_product_id || combinedRecipe
+                    .id);
+                if (!sourceProductId) continue;
+
+                const gramsPerPiece = parseInventoryNumericValue(combinedRecipe.grams_per_piece ?? combinedRecipe
+                    .gramsPerPiece);
+                if (gramsPerPiece <= 0 || piecesNeeded <= 0) continue;
+
+                const sourceProduct = await fetchTodayDistProductDetail(sourceProductId);
+                if (!sourceProduct) continue;
+
+                const sourceYieldGrams = parseInventoryNumericValue(sourceProduct.yield_grams || combinedRecipe
+                    .source_yield_grams);
+                if (sourceYieldGrams <= 0) continue;
+
+                const totalGramsNeeded = gramsPerPiece * piecesNeeded;
+                const sourceYieldsNeeded = totalGramsNeeded / sourceYieldGrams;
+                const sourcePiecesPerYield = getTodayDistPiecesPerYield(sourceProduct);
+                const sourcePiecesNeeded = sourceYieldsNeeded * sourcePiecesPerYield;
+
+                await accumulateTodayDistRawMaterialUsage(
+                    sourceProductId,
+                    sourceYieldsNeeded,
+                    sourcePiecesNeeded,
+                    materialMap,
+                    nextVisited,
+                    sourceProduct
+                );
+            }
+        }
+
+        async function computeTodayDistRawMaterialUsageForItem(item, productHint = null, piecesHint = null) {
+            let productData = productHint || getTodayDistProductData(item && item.product_id);
+
+            if (!productData || !Array.isArray(productData.ingredients)) {
+                productData = await fetchTodayDistProductDetail(item && item.product_id);
+            }
+
+            if (!productData) return [];
+
+            const pieces = parseInventoryNumericValue(piecesHint) > 0 ?
+                parseInventoryNumericValue(piecesHint) :
+                getTodayDistPieces(item, productData);
+
+            if (pieces <= 0) return [];
+
+            const piecesPerYield = getTodayDistPiecesPerYield(productData);
+            const yieldsNeeded = piecesPerYield > 0 ? (pieces / piecesPerYield) : 0;
+            if (yieldsNeeded <= 0) return [];
+
+            const materialMap = {};
+            await accumulateTodayDistRawMaterialUsage(item.product_id, yieldsNeeded, pieces, materialMap, new Set(),
+                productData);
+            return todayDistMaterialMapToArray(materialMap);
+        }
+
+        function setTodayDistributionRefreshLoadingState(isLoading) {
+            if (isLoading) {
+                $('#btnRefreshTodayDistribution')
+                    .prop('disabled', true)
+                    .addClass('opacity-60 cursor-not-allowed');
+            } else {
+                $('#btnRefreshTodayDistribution')
+                    .prop('disabled', false)
+                    .removeClass('opacity-60 cursor-not-allowed');
+            }
+        }
+
+        function setTodayDistributionPanelPane(pane = 'groups') {
+            const isItemsPane = pane === 'items';
+            $('#todayDistributionSlideTrack').css('transform', isItemsPane ? 'translateX(-50%)' : 'translateX(0)');
+        }
+
+        function renderTodayDistributionPanelLoading() {
+            setTodayDistributionRefreshLoadingState(true);
+            $('#todayDistributionLoading').removeClass('hidden');
+            $('#todayDistributionEmpty').addClass('hidden');
+            $('#todayDistributionContent').addClass('hidden');
+            setTodayDistributionPanelPane('groups');
+        }
+
+        function renderTodayDistributionPanelEmpty(message = 'No distribution records for today.') {
+            setTodayDistributionRefreshLoadingState(false);
+            todayDistributionGroupedData = [];
+
+            $('#todayDistSummaryItems').text('0');
+            $('#todayDistSummaryGroups').text('0');
+            $('#todayDistSummaryBatches').text('0');
+            $('#todayDistSummaryPieces').text('0');
+            $('#todayDistSummaryDirectCost').text(formatInventoryPeso(0));
+            $('#todayDistributionGroupList').html('<p class="text-xs text-gray-400">No distribution groups for today.</p>');
+            $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
+            $('#todayDistSelectedGroupName').text('Selected Group');
+            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
             $('#todayDistSelectedGroupNote').addClass('hidden').text('');
+
+            $('#todayDistributionEmptyText').text(message);
+            $('#todayDistributionLoading').addClass('hidden');
+            $('#todayDistributionContent').addClass('hidden');
+            $('#todayDistributionEmpty').removeClass('hidden');
+            setTodayDistributionPanelPane('groups');
         }
 
-        const itemRows = (Array.isArray(selectedGroup.items) ? selectedGroup.items : []).map(function(item) {
-            const productName = escapeInventoryHtml(item.product_name || 'Unknown Product');
-            const category = (item.category || '').toString().trim();
-            const safeCategory = category ? (' • ' + escapeInventoryHtml(category)) : '';
-            const quantityLabel = formatTodayDistQuantityLabel(item);
-            const directCost = parseInventoryNumericValue(item.direct_cost_calculated);
+        function formatTodayDistQuantityLabel(item) {
+            const qtyMode = ((item.qty_mode || 'batch') + '').toLowerCase();
+            const quantity = parseInventoryNumericValue(item.product_qnty);
+            const pieces = parseInventoryNumericValue(item.pieces_calculated);
 
-            return `
+            if (qtyMode === 'pieces') {
+                return formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            if (qtyMode === 'batch') {
+                const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
+                return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' +
+                    formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            if (qtyMode === 'box') {
+                const isSingleBox = Math.abs(quantity - 1) < 0.000001;
+                return formatInventoryNumber(quantity, 0) + ' box' + (isSingleBox ? '' : 'es') + ' • ' +
+                    formatInventoryNumber(pieces, 0) + ' pcs';
+            }
+
+            return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(
+                pieces, 0) + ' pcs';
+        }
+
+        function hydrateTodayDistributionGroups(groups) {
+            const normalizedGroups = Array.isArray(groups) ? groups : [];
+
+            return normalizedGroups.map(function (group, groupIndex) {
+                const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function (
+                    item) {
+                    const productData = Object.assign({}, getTodayDistProductData(item && item
+                        .product_id) || {}, item || {});
+                    const piecesCalculated = getTodayDistPieces(item, productData);
+                    const directCostCalculated = calculateTodayDistItemDirectCost(item, productData);
+
+                    return Object.assign({}, item, {
+                        pieces_calculated: piecesCalculated,
+                        direct_cost_calculated: directCostCalculated,
+                    });
+                });
+
+                const totalItems = normalizedItems.length;
+                const totalBatches = normalizedItems.reduce(function (sum, item) {
+                    const mode = ((item.qty_mode || 'batch') + '').toLowerCase();
+                    if (mode === 'pieces') return sum;
+                    return sum + parseInventoryNumericValue(item.product_qnty);
+                }, 0);
+                const totalPieces = normalizedItems.reduce(function (sum, item) {
+                    return sum + parseInventoryNumericValue(item.pieces_calculated);
+                }, 0);
+                const totalDirectCost = normalizedItems.reduce(function (sum, item) {
+                    return sum + parseInventoryNumericValue(item.direct_cost_calculated);
+                }, 0);
+
+                return {
+                    group_key: ((group && group.group_key) || (group && group.distribution_group_key) || ('group-' +
+                        (groupIndex + 1))).toString(),
+                    group_name: ((group && group.group_name) || (group && group.distribution_group_name) || (
+                        'Group ' + (groupIndex + 1))).toString().trim() || ('Group ' + (groupIndex + 1)),
+                    group_note: getTodayDistributionGroupNote(group, normalizedItems),
+                    distribution_date: (group && group.distribution_date) || null,
+                    total_items: totalItems,
+                    total_batches: totalBatches,
+                    total_pieces: totalPieces,
+                    total_direct_cost: totalDirectCost,
+                    items: normalizedItems,
+                };
+            });
+        }
+
+        function renderTodayDistributionGroupItemsPane(groupIndex, shouldOpenPane = true) {
+            const normalizedIndex = parseInt(groupIndex, 10);
+            if (!Number.isFinite(normalizedIndex) || normalizedIndex < 0 || normalizedIndex >= todayDistributionGroupedData
+                .length) {
+                $('#todayDistributionGroupItems').html(
+                    '<p class="text-xs text-gray-400">No items found for this group.</p>');
+                if (shouldOpenPane) {
+                    setTodayDistributionPanelPane('items');
+                }
+                return;
+            }
+
+            const selectedGroup = todayDistributionGroupedData[normalizedIndex];
+            const groupName = (selectedGroup.group_name || ('Group ' + (normalizedIndex + 1))).toString();
+            const groupNote = (selectedGroup.group_note || '').toString().trim();
+            const groupBatches = formatInventoryNumber(selectedGroup.total_batches, 0);
+            const groupPieces = formatInventoryNumber(selectedGroup.total_pieces, 0);
+            const groupDirectCost = formatInventoryPeso(selectedGroup.total_direct_cost);
+
+            $('#todayDistSelectedGroupName').text(groupName);
+            $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs • ' + groupDirectCost);
+
+            if (groupNote) {
+                $('#todayDistSelectedGroupNote')
+                    .html('<i class="fas fa-sticky-note mr-1 text-amber-500"></i>' + escapeInventoryHtml(groupNote))
+                    .removeClass('hidden');
+            } else {
+                $('#todayDistSelectedGroupNote').addClass('hidden').text('');
+            }
+
+            const itemRows = (Array.isArray(selectedGroup.items) ? selectedGroup.items : []).map(function (item) {
+                const productName = escapeInventoryHtml(item.product_name || 'Unknown Product');
+                const category = (item.category || '').toString().trim();
+                const safeCategory = category ? (' • ' + escapeInventoryHtml(category)) : '';
+                const quantityLabel = formatTodayDistQuantityLabel(item);
+                const directCost = parseInventoryNumericValue(item.direct_cost_calculated);
+
+                return `
                     <div class="p-2.5 bg-gray-50 rounded-lg border border-gray-200">
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
@@ -1523,65 +1523,65 @@
                         </div>
                     </div>
                 `;
-        }).join('');
+            }).join('');
 
-        $('#todayDistributionGroupItems').html(itemRows ||
-            '<p class="text-xs text-gray-400">No distributed items in this group.</p>');
+            $('#todayDistributionGroupItems').html(itemRows ||
+                '<p class="text-xs text-gray-400">No distributed items in this group.</p>');
 
-        if (shouldOpenPane) {
-            setTodayDistributionPanelPane('items');
-        }
-    }
-
-    function renderTodayDistributionPanelData(groups) {
-        const normalizedGroups = hydrateTodayDistributionGroups(groups);
-        todayDistributionGroupedData = normalizedGroups;
-
-        const allItems = flattenTodayDistributionGroupItems(normalizedGroups);
-        const totalItems = allItems.length;
-        const totalGroups = normalizedGroups.length;
-        const totalBatches = normalizedGroups.reduce(function(sum, group) {
-            return sum + parseInventoryNumericValue(group.total_batches);
-        }, 0);
-        const totalPieces = normalizedGroups.reduce(function(sum, group) {
-            return sum + parseInventoryNumericValue(group.total_pieces);
-        }, 0);
-        const totalDirectCost = normalizedGroups.reduce(function(sum, group) {
-            return sum + parseInventoryNumericValue(group.total_direct_cost);
-        }, 0);
-
-        $('#todayDistSummaryItems').text(formatInventoryNumber(totalItems, 0));
-        $('#todayDistSummaryGroups').text(formatInventoryNumber(totalGroups, 0));
-        $('#todayDistSummaryBatches').text(formatInventoryNumber(totalBatches, 0));
-        $('#todayDistSummaryPieces').text(formatInventoryNumber(totalPieces, 0));
-        $('#todayDistSummaryDirectCost').text(formatInventoryPeso(totalDirectCost));
-
-        if (normalizedGroups.length === 0) {
-            $('#todayDistributionGroupList').html(
-                '<p class="text-xs text-gray-400">No distribution groups for today.</p>');
-            $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
-            $('#todayDistSelectedGroupName').text('Selected Group');
-            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
-            $('#todayDistSelectedGroupNote').addClass('hidden').text('');
-
-            setTodayDistributionRefreshLoadingState(false);
-            $('#todayDistributionLoading').addClass('hidden');
-            $('#todayDistributionEmpty').addClass('hidden');
-            $('#todayDistributionContent').removeClass('hidden');
-            setTodayDistributionPanelPane('groups');
-            return;
+            if (shouldOpenPane) {
+                setTodayDistributionPanelPane('items');
+            }
         }
 
-        const groupsHtml = normalizedGroups.map(function(group, index) {
-            const groupName = escapeInventoryHtml(group.group_name || ('Group ' + (index + 1)));
-            const groupNote = (group.group_note || '').toString().trim();
-            const safeNote = escapeInventoryHtml(groupNote);
-            const batches = formatInventoryNumber(group.total_batches, 0);
-            const pieces = formatInventoryNumber(group.total_pieces, 0);
-            const directCost = formatInventoryPeso(group.total_direct_cost);
-            const itemsCount = parseInt(group.total_items, 10) || 0;
+        function renderTodayDistributionPanelData(groups) {
+            const normalizedGroups = hydrateTodayDistributionGroups(groups);
+            todayDistributionGroupedData = normalizedGroups;
 
-            return `
+            const allItems = flattenTodayDistributionGroupItems(normalizedGroups);
+            const totalItems = allItems.length;
+            const totalGroups = normalizedGroups.length;
+            const totalBatches = normalizedGroups.reduce(function (sum, group) {
+                return sum + parseInventoryNumericValue(group.total_batches);
+            }, 0);
+            const totalPieces = normalizedGroups.reduce(function (sum, group) {
+                return sum + parseInventoryNumericValue(group.total_pieces);
+            }, 0);
+            const totalDirectCost = normalizedGroups.reduce(function (sum, group) {
+                return sum + parseInventoryNumericValue(group.total_direct_cost);
+            }, 0);
+
+            $('#todayDistSummaryItems').text(formatInventoryNumber(totalItems, 0));
+            $('#todayDistSummaryGroups').text(formatInventoryNumber(totalGroups, 0));
+            $('#todayDistSummaryBatches').text(formatInventoryNumber(totalBatches, 0));
+            $('#todayDistSummaryPieces').text(formatInventoryNumber(totalPieces, 0));
+            $('#todayDistSummaryDirectCost').text(formatInventoryPeso(totalDirectCost));
+
+            if (normalizedGroups.length === 0) {
+                $('#todayDistributionGroupList').html(
+                    '<p class="text-xs text-gray-400">No distribution groups for today.</p>');
+                $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
+                $('#todayDistSelectedGroupName').text('Selected Group');
+                $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
+                $('#todayDistSelectedGroupNote').addClass('hidden').text('');
+
+                setTodayDistributionRefreshLoadingState(false);
+                $('#todayDistributionLoading').addClass('hidden');
+                $('#todayDistributionEmpty').addClass('hidden');
+                $('#todayDistributionContent').removeClass('hidden');
+                setTodayDistributionPanelPane('groups');
+                return;
+            }
+
+            const groupsHtml = normalizedGroups.map(function (group, index) {
+                const groupName = escapeInventoryHtml(group.group_name || ('Group ' + (index + 1)));
+                const groupNote = (group.group_note || '').toString().trim();
+                const safeNote = escapeInventoryHtml(groupNote);
+                const batches = formatInventoryNumber(group.total_batches, 0);
+                const pieces = formatInventoryNumber(group.total_pieces, 0);
+                const directCost = formatInventoryPeso(group.total_direct_cost);
+                const itemsCount = parseInt(group.total_items, 10) || 0;
+
+                return `
                     <button type="button" class="btn-today-dist-open-group w-full text-left p-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors" data-group-index="${index}">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -1599,421 +1599,437 @@
                         </div>
                     </button>
                 `;
-        }).join('');
+            }).join('');
 
-        $('#todayDistributionGroupList').html(groupsHtml);
-        renderTodayDistributionGroupItemsPane(0, false);
+            $('#todayDistributionGroupList').html(groupsHtml);
+            renderTodayDistributionGroupItemsPane(0, false);
 
-        setTodayDistributionRefreshLoadingState(false);
-        $('#todayDistributionLoading').addClass('hidden');
-        $('#todayDistributionEmpty').addClass('hidden');
-        $('#todayDistributionContent').removeClass('hidden');
-        setTodayDistributionPanelPane('groups');
-    }
-
-    async function loadTodaysDistributionOverview(forceProductReload = false) {
-        const requestToken = ++todayDistHydrationToken;
-        renderTodayDistributionPanelLoading();
-
-        try {
-            await fetchTodayDistProducts(forceProductReload);
-
-            const todayDate = getTodayDateForApi();
-            const response = await fetchTodayDistributionByDate(todayDate);
-
-            if (requestToken !== todayDistHydrationToken) return;
-
-            const dayGroups = normalizeTodayDistributionGroups(
-                (response && response.success && Array.isArray(response.data)) ? response.data : []
-            );
-            const dayItems = flattenTodayDistributionGroupItems(dayGroups);
-            $('#distCount').text(dayItems.length || 0);
-
-            if (!dayItems.length) {
-                renderTodayDistributionPanelEmpty('No distribution records for today.');
-                return;
-            }
-            if (requestToken !== todayDistHydrationToken) return;
-            renderTodayDistributionPanelData(dayGroups);
-        } catch (error) {
-            if (requestToken !== todayDistHydrationToken) return;
-            renderTodayDistributionPanelEmpty('Unable to load today\'s distribution right now.');
-        }
-    }
-
-    $(document).ready(function() {
-        const baseUrl = '<?= base_url() ?>';
-
-        // Display today's date
-        const today = new Date();
-        const dateString = today.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        // Check first for today's inventory
-        $(document).ready(function() {
-            checkIfDistributionExists();
-            checkIfInventoryExists();
-            loadTodaysDistributionOverview();
-        });
-
-        $('#todayDate').text(dateString);
-
-        $('#btnRefreshTodayDistribution').on('click', function() {
-            loadTodaysDistributionOverview(true);
-        });
-
-        $('#btnTodayDistBackToGroups').on('click', function() {
+            setTodayDistributionRefreshLoadingState(false);
+            $('#todayDistributionLoading').addClass('hidden');
+            $('#todayDistributionEmpty').addClass('hidden');
+            $('#todayDistributionContent').removeClass('hidden');
             setTodayDistributionPanelPane('groups');
-        });
-
-        $(document).on('click', '.btn-today-dist-open-group', function() {
-            const selectedIndex = parseInt($(this).data('groupIndex'), 10);
-            renderTodayDistributionGroupItemsPane(selectedIndex, true);
-        });
-
-        function openSendReportConfirmModal() {
-            const currentHour = new Date().getHours();
-            const suggestedShift = currentHour >= 12 ? 'afternoon' : 'morning';
-            $('#sendReportShiftSelect').val(suggestedShift);
-            $('#sendReportConfirmModal').removeClass('hidden');
         }
 
-        function closeSendReportConfirmModal() {
-            $('#sendReportConfirmModal').addClass('hidden');
-            const confirmBtn = $('#btnConfirmSendInventoryReport');
-            confirmBtn.prop('disabled', false)
-                .removeClass('opacity-70 cursor-not-allowed')
-                .text('Send Report');
+        async function loadTodaysDistributionOverview(forceProductReload = false) {
+            const requestToken = ++todayDistHydrationToken;
+            renderTodayDistributionPanelLoading();
+
+            try {
+                await fetchTodayDistProducts(forceProductReload);
+
+                const todayDate = getTodayDateForApi();
+                const response = await fetchTodayDistributionByDate(todayDate);
+
+                if (requestToken !== todayDistHydrationToken) return;
+
+                const dayGroups = normalizeTodayDistributionGroups(
+                    (response && response.success && Array.isArray(response.data)) ? response.data : []
+                );
+                const dayItems = flattenTodayDistributionGroupItems(dayGroups);
+                $('#distCount').text(dayItems.length || 0);
+
+                if (!dayItems.length) {
+                    renderTodayDistributionPanelEmpty('No distribution records for today.');
+                    return;
+                }
+                if (requestToken !== todayDistHydrationToken) return;
+                renderTodayDistributionPanelData(dayGroups);
+            } catch (error) {
+                if (requestToken !== todayDistHydrationToken) return;
+                renderTodayDistributionPanelEmpty('Unable to load today\'s distribution right now.');
+            }
         }
 
-        $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on(
-            'click',
-            function() {
-                closeSendReportConfirmModal();
+        $(document).ready(function () {
+            const baseUrl = '<?= base_url() ?>';
+
+            // Display today's date
+            const today = new Date();
+            const dateString = today.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
 
-        $('#btnSendInventoryReport').on('click', function() {
-            const btn = $(this);
-            if (btn.prop('disabled')) {
-                return;
+            // Check first for today's inventory
+            $(document).ready(function () {
+                checkIfDistributionExists();
+                checkIfInventoryExists();
+                loadTodaysDistributionOverview();
+            });
+
+            $('#todayDate').text(dateString);
+
+            $('#btnRefreshTodayDistribution').on('click', function () {
+                loadTodaysDistributionOverview(true);
+            });
+
+            $('#btnTodayDistBackToGroups').on('click', function () {
+                setTodayDistributionPanelPane('groups');
+            });
+
+            $(document).on('click', '.btn-today-dist-open-group', function () {
+                const selectedIndex = parseInt($(this).data('groupIndex'), 10);
+                renderTodayDistributionGroupItemsPane(selectedIndex, true);
+            });
+
+            function openSendReportConfirmModal() {
+                const currentHour = new Date().getHours();
+                const suggestedShift = currentHour >= 12 ? 'afternoon' : 'morning';
+                $('#sendReportShiftSelect').val(suggestedShift);
+                $('#sendReportConfirmModal').removeClass('hidden');
             }
 
-            openSendReportConfirmModal();
-        });
-
-        $('#btnConfirmSendInventoryReport').on('click', function() {
-            const btn = $('#btnSendInventoryReport');
-            const confirmBtn = $(this);
-
-            if (btn.prop('disabled') || confirmBtn.prop('disabled')) {
-                return;
+            function closeSendReportConfirmModal() {
+                $('#sendReportConfirmModal').addClass('hidden');
+                const confirmBtn = $('#btnConfirmSendInventoryReport');
+                confirmBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .text('Send Report');
             }
 
-            const originalHtml = btn.html();
-            btn.prop('disabled', true)
-                .addClass('opacity-70 cursor-not-allowed')
-                .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
-
-            confirmBtn.prop('disabled', true)
-                .addClass('opacity-70 cursor-not-allowed')
-                .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
-
-            $.ajax({
-                url: baseUrl + '/Inventory/SendReport',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    shift: $('#sendReportShiftSelect').val()
-                }),
-                success: function(response) {
-                    if (response && response.success) {
-                        showToast('success', response.message ||
-                            'Inventory report sent successfully.', 2500);
-                    } else {
-                        showToast('error', (response && response.message) ||
-                            'Failed to send inventory report.', 3000);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
-                        xhr.responseJSON.message :
-                        ('Error sending report: ' + error);
-                    showToast('danger', message, 3000);
-                },
-                complete: function() {
-                    btn.prop('disabled', false)
-                        .removeClass('opacity-70 cursor-not-allowed')
-                        .html(originalHtml);
+            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on(
+                'click',
+                function () {
                     closeSendReportConfirmModal();
+                });
+
+            $('#btnSendInventoryReport').on('click', function () {
+                const btn = $(this);
+                if (btn.prop('disabled')) {
+                    return;
                 }
+
+                openSendReportConfirmModal();
             });
-        });
 
-        // Open Add Inventory Modal (Desktop & Mobile)
-        $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
-            // Show badge immediately from current known source, then re-check in background
-            updateInventoryModeBadge(inventorySource);
-            checkIfDistributionExists(); // refreshes inventorySource + badge in background
-            fetchYesterdayRemaining(); // Load carryover preview
-            $('#timeInputModal').removeClass('hidden');
-            $('#time_start').val('08:00'); // 8:00 AM (morning)
-            $('#time_end').val('17:00'); // 5:00 PM (afternoon)
-        });
+            $('#btnConfirmSendInventoryReport').on('click', function () {
+                const btn = $('#btnSendInventoryReport');
+                const confirmBtn = $(this);
 
-        // Close Inventory Modal
-        $('#btnCloseModal, #btnCancelAdd').on('click', function() {
-            closeModal();
-        });
-
-        // Close Time Input Modal
-        $('#timeInputModalClose, #timeInputModalCancel').on('click', function() {
-            $('#timeInputModal').addClass('hidden');
-            $('#timeInputForm')[0].reset();
-            inventorySource = 'all'; // Reset source on cancel
-        });
-
-        // Submit Time Input Form
-        $('#timeInputForm').on('submit', function(e) {
-            e.preventDefault();
-            const timeStart = $('#time_start').val();
-            const timeEnd = $('#time_end').val();
-
-            // Validate time range
-            if (timeStart >= timeEnd) {
-                showToast('warning', 'End time must be after start time');
-                return;
-            }
-
-            $('#timeInputModal').addClass('hidden');
-
-            // Route to the correct endpoint based on whether distribution exists today
-            if (inventorySource === 'distribution') {
-                addTodaysInventoryFromDistribution(timeStart, timeEnd);
-            } else {
-                addTodaysInventory(timeStart, timeEnd);
-            }
-
-            $('#timeInputForm')[0].reset();
-        });
-
-        function closeModal() {
-            $('#addMaterialModal').addClass('hidden');
-            $('#addMaterialForm')[0].reset();
-        }
-
-        // Submit Add Inventory Form via AJAX
-        $('#addMaterialForm').on('submit', function(e) {
-            e.preventDefault();
-
-            const formData = {
-                // Add your inventory form fields here
-            };
-
-            $.ajax({
-                url: baseUrl + 'Inventory/Add',
-                type: 'POST',
-                data: JSON.stringify(formData),
-                contentType: 'application/json',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        alert('Inventory added successfully!');
-                        closeModal();
-                        loadInventory();
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert('Error adding inventory: ' + error);
+                if (btn.prop('disabled') || confirmBtn.prop('disabled')) {
+                    return;
                 }
-            });
-        });
 
-        // Delete Inventory Item
-        $(document).on('click', '.btn-delete', function() {
-            const id = $(this).data('id');
-            Confirm.delete('Are you sure you want to delete this inventory item?', () => {
+                const originalHtml = btn.html();
+                btn.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
+
+                confirmBtn.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
+
                 $.ajax({
-                    url: baseUrl + 'Inventory/Delete/' + id,
+                    url: baseUrl + '/Inventory/SendReport',
                     type: 'POST',
                     dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            showToast('success',
-                                'Inventory item deleted successfully!', 2000);
-                            fetchAllStockitems();
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        shift: $('#sendReportShiftSelect').val()
+                    }),
+                    success: function (response) {
+                        if (response && response.success) {
+                            showToast('success', response.message ||
+                                'Inventory report sent successfully.', 2500);
                         } else {
-                            showToast('error', response.message, 3000);
+                            showToast('error', (response && response.message) ||
+                                'Failed to send inventory report.', 3000);
                         }
                     },
-                    error: function(xhr, status, error) {
-                        showToast('danger', xhr.responseJSON.message ||
-                            'An error occured while deleting inventory', 3000);
+                    error: function (xhr, status, error) {
+                        const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
+                            xhr.responseJSON.message :
+                            ('Error sending report: ' + error);
+                        showToast('danger', message, 3000);
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false)
+                            .removeClass('opacity-70 cursor-not-allowed')
+                            .html(originalHtml);
+                        closeSendReportConfirmModal();
                     }
                 });
             });
-        });
 
-        // Apply Filter
-        $('#apply-filters').on('click', function() {
-            const dateFrom = $('#filter-date-from').val();
-            const dateTo = $('#filter-date-to').val();
+            // Open Add Inventory Modal (Desktop & Mobile)
+            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
+                // Show badge immediately from current known source, then re-check in background
+                updateInventoryModeBadge(inventorySource);
+                checkIfDistributionExists(); // refreshes inventorySource + badge in background
+                fetchYesterdayRemaining(); // Load carryover preview
+                $('#timeInputModal').removeClass('hidden');
+                $('#time_start').val('08:00'); // 8:00 AM (morning)
+                $('#time_end').val('17:00'); // 5:00 PM (afternoon)
+            });
 
-            $('table tbody tr').each(function() {
-                const rowDate = $(this).data('date');
-                let show = true;
+            // Close Inventory Modal
+            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
+                closeModal();
+            });
 
-                if (dateFrom && rowDate) {
-                    show = show && (rowDate >= dateFrom);
+            // Close Time Input Modal
+            $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
+                $('#timeInputModal').addClass('hidden');
+                $('#timeInputForm')[0].reset();
+                inventorySource = 'all'; // Reset source on cancel
+            });
+
+            // Submit Time Input Form
+            $('#timeInputForm').on('submit', function (e) {
+                e.preventDefault();
+                const timeStart = $('#time_start').val();
+                const timeEnd = $('#time_end').val();
+
+                // Validate time range
+                if (timeStart >= timeEnd) {
+                    showToast('warning', 'End time must be after start time');
+                    return;
                 }
-                if (dateTo && rowDate) {
-                    show = show && (rowDate <= dateTo);
-                }
 
-                if (show) {
-                    $(this).show();
+                $('#timeInputModal').addClass('hidden');
+
+                // Route to the correct endpoint based on whether distribution exists today
+                if (inventorySource === 'distribution') {
+                    addTodaysInventoryFromDistribution(timeStart, timeEnd);
                 } else {
-                    $(this).hide();
+                    addTodaysInventory(timeStart, timeEnd);
                 }
+
+                $('#timeInputForm')[0].reset();
+            });
+
+            function closeModal() {
+                $('#addMaterialModal').addClass('hidden');
+                $('#addMaterialForm')[0].reset();
+            }
+
+            // Submit Add Inventory Form via AJAX
+            $('#addMaterialForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const formData = {
+                    // Add your inventory form fields here
+                };
+
+                $.ajax({
+                    url: baseUrl + 'Inventory/Add',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Inventory added successfully!');
+                            closeModal();
+                            loadInventory();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error adding inventory: ' + error);
+                    }
+                });
+            });
+
+            // Delete Inventory Item
+            $(document).on('click', '.btn-delete', function () {
+                const id = $(this).data('id');
+                Confirm.delete('Are you sure you want to delete this inventory item?', () => {
+                    $.ajax({
+                        url: baseUrl + 'Inventory/Delete/' + id,
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                showToast('success',
+                                    'Inventory item deleted successfully!', 2000);
+                                fetchAllStockitems();
+                            } else {
+                                showToast('error', response.message, 3000);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            showToast('danger', xhr.responseJSON.message ||
+                                'An error occured while deleting inventory', 3000);
+                        }
+                    });
+                });
+            });
+
+            // Apply Filter
+            $('#apply-filters').on('click', function () {
+                const dateFrom = $('#filter-date-from').val();
+                const dateTo = $('#filter-date-to').val();
+
+                $('table tbody tr').each(function () {
+                    const rowDate = $(this).data('date');
+                    let show = true;
+
+                    if (dateFrom && rowDate) {
+                        show = show && (rowDate >= dateFrom);
+                    }
+                    if (dateTo && rowDate) {
+                        show = show && (rowDate <= dateTo);
+                    }
+
+                    if (show) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Reset Filter
+            $('#reset-filters').on('click', function () {
+                $('#filter-date-from').val('');
+                $('#filter-date-to').val('');
+                $('table tbody tr').show();
             });
         });
 
-        // Reset Filter
-        $('#reset-filters').on('click', function() {
-            $('#filter-date-from').val('');
-            $('#filter-date-to').val('');
-            $('table tbody tr').show();
-        });
-    });
+        function fetchYesterdayRemaining() {
+            const baseUrl = '<?= base_url() ?>';
+            $('#carryoverPreview').addClass('hidden');
+            $('#noCarryoverPreview').addClass('hidden');
+            $('#carryoverList').empty();
 
-    function fetchYesterdayRemaining() {
-        const baseUrl = '<?= base_url() ?>';
-        $('#carryoverPreview').addClass('hidden');
-        $('#noCarryoverPreview').addClass('hidden');
-        $('#carryoverList').empty();
-
-        $.ajax({
-            url: baseUrl + 'Inventory/GetYesterdayRemaining',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.data && response.data.length > 0) {
-                    let html = '';
-                    response.data.forEach(function(item) {
-                        html +=
-                            '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
-                        html += '<span class="text-gray-700">' + item.product_name +
-                            ' <span class="text-gray-400">(' + item.category + ')</span></span>';
-                        html += '<span class="font-semibold text-amber-700">' + item
-                            .remaining_stock + ' pcs</span>';
-                        html += '</div>';
-                    });
-                    $('#carryoverList').html(html);
-                    $('#carryoverPreview').removeClass('hidden');
-                } else {
+            $.ajax({
+                url: baseUrl + 'Inventory/GetYesterdayRemaining',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        let html = '';
+                        response.data.forEach(function (item) {
+                            html +=
+                                '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
+                            html += '<span class="text-gray-700">' + item.product_name +
+                                ' <span class="text-gray-400">(' + item.category + ')</span></span>';
+                            html += '<span class="font-semibold text-amber-700">' + item
+                                .remaining_stock + ' pcs</span>';
+                            html += '</div>';
+                        });
+                        $('#carryoverList').html(html);
+                        $('#carryoverPreview').removeClass('hidden');
+                    } else {
+                        $('#noCarryoverPreview').removeClass('hidden');
+                    }
+                },
+                error: function () {
                     $('#noCarryoverPreview').removeClass('hidden');
                 }
-            },
-            error: function() {
-                $('#noCarryoverPreview').removeClass('hidden');
-            }
-        });
-    }
+            });
+        }
 
-    function checkDistributionAndToggleButton() {
-        const baseUrl = '<?= base_url() ?>';
-        // Check if distribution exists for today and show Distributions button with count
-        $.ajax({
-            url: baseUrl + 'Distribution/CheckDistributionToday',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.data && response.data.length > 0) {
-                    // Distribution exists — show button with count
-                    $('#distCount').text(response.data.length);
-                    $('#btnDistributions').removeClass('hidden').addClass('sm:inline-flex');
-                } else {
-                    // No distribution — hide button
+        function checkDistributionAndToggleButton() {
+            const baseUrl = '<?= base_url() ?>';
+            // Check if distribution exists for today and show Distributions button with count
+            $.ajax({
+                url: baseUrl + 'Distribution/CheckDistributionToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        // Distribution exists — show button with count
+                        $('#distCount').text(response.data.length);
+                        $('#btnDistributions').removeClass('hidden').addClass('sm:inline-flex');
+                    } else {
+                        // No distribution — hide button
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    }
+                },
+                error: function () {
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                 }
-            },
-            error: function() {
-                $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
-            }
-        });
-    }
-
-    function checkIfDistributionExists() {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Distribution/CheckDistributionToday',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.data && response.data.length > 0) {
-                    inventorySource = 'distribution';
-                } else {
-                    inventorySource = 'all';
-                }
-                updateInventoryModeBadge(inventorySource);
-            },
-            error: function() {
-                // On error, default to 'all' to be safe
-                inventorySource = 'all';
-                updateInventoryModeBadge(inventorySource);
-            }
-        });
-    }
-
-    function updateInventoryModeBadge(source) {
-        if (source === 'distribution') {
-            $('#inventoryModeBadge').removeClass('hidden');
-            $('#noDistributionModeBadge').addClass('hidden');
-        } else {
-            $('#inventoryModeBadge').addClass('hidden');
-            $('#noDistributionModeBadge').removeClass('hidden');
+            });
         }
-    }
 
-    function checkIfInventoryExists() {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/CheckInventoryToday',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                // Destroy existing DataTable first
-                if (response.success) {
-                    inventoryExistsToday = true;
-                    // showToast('info', response.message, 2000);
-                    updateDateTime(response.data);
-                    fetchAllStockitems();
-                    if ($('#btnSendInventoryReport').length) {
-                        $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
+        function checkIfDistributionExists() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Distribution/CheckDistributionToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        inventorySource = 'distribution';
+                    } else {
+                        inventorySource = 'all';
                     }
-                    // Show delete buttons and add product button when inventory exists
-                    $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                    $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                    $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
-                    // Only show Load from Distribution if distribution exists for today
-                    checkDistributionAndToggleButton();
-                    // Hide add inventory buttons
-                    $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                } else {
+                    updateInventoryModeBadge(inventorySource);
+                },
+                error: function () {
+                    // On error, default to 'all' to be safe
+                    inventorySource = 'all';
+                    updateInventoryModeBadge(inventorySource);
+                }
+            });
+        }
+
+        function updateInventoryModeBadge(source) {
+            if (source === 'distribution') {
+                $('#inventoryModeBadge').removeClass('hidden');
+                $('#noDistributionModeBadge').addClass('hidden');
+            } else {
+                $('#inventoryModeBadge').addClass('hidden');
+                $('#noDistributionModeBadge').removeClass('hidden');
+            }
+        }
+
+        function checkIfInventoryExists() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/CheckInventoryToday',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    // Destroy existing DataTable first
+                    if (response.success) {
+                        inventoryExistsToday = true;
+                        // showToast('info', response.message, 2000);
+                        updateDateTime(response.data);
+                        fetchAllStockitems();
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
+                        }
+                        // Show delete buttons and add product button when inventory exists
+                        $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        // Only show Load from Distribution if distribution exists for today
+                        checkDistributionAndToggleButton();
+                        // Hide add inventory buttons
+                        $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                    } else {
+                        inventoryExistsToday = false;
+                        showToast('warning', response.message, 2000);
+                        loadInventory([]);
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                        }
+                        // Show add inventory buttons when no inventory
+                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        // Hide delete and add product buttons
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    }
+                },
+                error: function (xhr, status, error) {
                     inventoryExistsToday = false;
-                    showToast('warning', response.message, 2000);
-                    loadInventory([]);
+                    console.log('Error checking inventory: ' + error);
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                     }
-                    // Show add inventory buttons when no inventory
+                    // Show add inventory buttons on error (safe default)
                     $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                     // Hide delete and add product buttons
@@ -2022,267 +2038,265 @@
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
                 }
-            },
-            error: function(xhr, status, error) {
-                inventoryExistsToday = false;
-                console.log('Error checking inventory: ' + error);
-                if ($('#btnSendInventoryReport').length) {
-                    $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
-                }
-                // Show add inventory buttons on error (safe default)
-                $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                // Hide delete and add product buttons
-                $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
-            }
-        });
-    }
-
-    function updateDateTime(data) {
-        // Update date display
-        if (data.inventory_date) {
-            const date = new Date(data.inventory_date);
-            const dateString = date.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
             });
-            $('#todayDate').text(dateString);
         }
 
-        // Update time range display
-        if (data.time_start && data.time_end) {
-            // Format time to 12-hour format with AM/PM
-            const formatTime = (time) => {
-                const [hours, minutes] = time.split(':');
-                const hour = parseInt(hours);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const displayHour = hour % 12 || 12;
-                return `${displayHour}:${minutes} ${ampm}`;
-            };
+        function updateDateTime(data) {
+            // Update date display
+            if (data.inventory_date) {
+                const date = new Date(data.inventory_date);
+                const dateString = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                $('#todayDate').text(dateString);
+            }
 
-            const timeStart = formatTime(data.time_start);
-            const timeEnd = formatTime(data.time_end);
-            $('#timeRange').text(`${timeStart} - ${timeEnd}`);
+            // Update time range display
+            if (data.time_start && data.time_end) {
+                // Format time to 12-hour format with AM/PM
+                const formatTime = (time) => {
+                    const [hours, minutes] = time.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour % 12 || 12;
+                    return `${displayHour}:${minutes} ${ampm}`;
+                };
+
+                const timeStart = formatTime(data.time_start);
+                const timeEnd = formatTime(data.time_end);
+                $('#timeRange').text(`${timeStart} - ${timeEnd}`);
+            }
         }
-    }
 
-    // ============================================================
-    // Distribution Modal Functions
-    // ============================================================
+        // ============================================================
+        // Distribution Modal Functions
+        // ============================================================
 
-    /**
-     * Open the distribution list modal and fetch items with status.
-     */
-    function openDistributionModal() {
-        const baseUrl = '<?= base_url() ?>';
-        $('#distributionListModal').removeClass('hidden');
-        $('#distributionListContent').html(
-            '<div class="text-center text-gray-400 py-8">' +
-            '<i class="fas fa-spinner fa-spin text-2xl mb-2"></i>' +
-            '<p class="text-sm">Loading distribution items...</p>' +
-            '</div>'
-        );
+        /**
+         * Open the distribution list modal and fetch items with status.
+         */
+        function openDistributionModal() {
+            const baseUrl = '<?= base_url() ?>';
+            $('#distributionListModal').removeClass('hidden');
+            $('#distributionListContent').html(
+                '<div class="text-center text-gray-400 py-8">' +
+                '<i class="fas fa-spinner fa-spin text-2xl mb-2"></i>' +
+                '<p class="text-sm">Loading distribution items...</p>' +
+                '</div>'
+            );
 
-        $.ajax({
-            url: baseUrl + 'Inventory/GetDistributionItemsWithStatus',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.data && response.data.length > 0) {
-                    renderDistributionList(response.data);
-                } else {
+            $.ajax({
+                url: baseUrl + 'Inventory/GetDistributionItemsWithStatus',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success && response.data && response.data.length > 0) {
+                        renderDistributionList(response.data);
+                    } else {
+                        $('#distributionListContent').html(
+                            '<div class="text-center text-gray-400 py-8">' +
+                            '<i class="fas fa-box-open text-3xl mb-2"></i>' +
+                            '<p class="text-sm">No distribution items for today.</p>' +
+                            '</div>'
+                        );
+                    }
+                },
+                error: function () {
                     $('#distributionListContent').html(
-                        '<div class="text-center text-gray-400 py-8">' +
-                        '<i class="fas fa-box-open text-3xl mb-2"></i>' +
-                        '<p class="text-sm">No distribution items for today.</p>' +
+                        '<div class="text-center text-red-400 py-8">' +
+                        '<i class="fas fa-exclamation-circle text-3xl mb-2"></i>' +
+                        '<p class="text-sm">Failed to load distribution items.</p>' +
                         '</div>'
                     );
                 }
-            },
-            error: function() {
-                $('#distributionListContent').html(
-                    '<div class="text-center text-red-400 py-8">' +
-                    '<i class="fas fa-exclamation-circle text-3xl mb-2"></i>' +
-                    '<p class="text-sm">Failed to load distribution items.</p>' +
-                    '</div>'
-                );
-            }
-        });
-    }
+            });
+        }
 
-    /**
-     * Render the list of distribution items in the modal.
-     */
-    function renderDistributionList(items) {
-        let html = '';
-        let hasUnloaded = false;
+        /**
+         * Render the list of distribution items in the modal.
+         */
+        function renderDistributionList(items) {
+            let html = '';
+            let hasUnloaded = false;
 
-        items.forEach(function(item) {
-            const categoryColors = {
-                bakery: {
-                    bg: 'bg-amber-100',
-                    text: 'text-amber-700',
-                    icon: 'fa-bread-slice'
-                },
-                drinks: {
-                    bg: 'bg-blue-100',
-                    text: 'text-blue-700',
-                    icon: 'fa-mug-hot'
-                },
-                grocery: {
-                    bg: 'bg-emerald-100',
-                    text: 'text-emerald-700',
-                    icon: 'fa-shopping-basket'
-                },
-            };
-            const cat = categoryColors[item.category] || {
-                bg: 'bg-gray-100',
-                text: 'text-gray-600',
-                icon: 'fa-box'
-            };
+            items.forEach(function (item) {
+                const categoryColors = {
+                    bakery: {
+                        bg: 'bg-amber-100',
+                        text: 'text-amber-700',
+                        icon: 'fa-bread-slice'
+                    },
+                    drinks: {
+                        bg: 'bg-blue-100',
+                        text: 'text-blue-700',
+                        icon: 'fa-mug-hot'
+                    },
+                    grocery: {
+                        bg: 'bg-emerald-100',
+                        text: 'text-emerald-700',
+                        icon: 'fa-shopping-basket'
+                    },
+                };
+                const cat = categoryColors[item.category] || {
+                    bg: 'bg-gray-100',
+                    text: 'text-gray-600',
+                    icon: 'fa-box'
+                };
 
-            const qtyLabel = item.qty_mode === 'batch' ?
-                item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
-                .calculated_pieces + ' pcs' :
-                item.qty_mode === 'box' ?
-                item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
-                .calculated_pieces + ' pcs' :
-                item.calculated_pieces + ' pcs';
+                const qtyLabel = item.qty_mode === 'batch' ?
+                    item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
+                        .calculated_pieces + ' pcs' :
+                    item.qty_mode === 'box' ?
+                        item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
+                            .calculated_pieces + ' pcs' :
+                        item.calculated_pieces + ' pcs';
 
-            const isLoaded = item.loaded && item.loaded_qty > 0;
-            if (!isLoaded) hasUnloaded = true;
+                const isLoaded = item.loaded && item.loaded_qty > 0;
+                if (!isLoaded) hasUnloaded = true;
 
-            html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' :
-                'bg-white') + '">';
-            html += '  <div class="flex items-start justify-between gap-2">';
-            html += '    <div class="flex-1 min-w-0">';
-            html += '      <div class="flex items-center gap-2 mb-1">';
-            html += '        <span class="text-sm font-medium text-gray-800 truncate">' + item.product_name +
-                '</span>';
-            html +=
-                '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ' +
-                cat.bg + ' ' + cat.text + '">';
-            html += '          <i class="fas ' + cat.icon + ' mr-1"></i>' + item.category;
-            html += '        </span>';
-            html += '      </div>';
-            html += '      <div class="flex items-center gap-3 text-xs text-gray-500">';
-            html += '        <span><i class="fas fa-cubes mr-1"></i>' + qtyLabel + '</span>';
-            html += '      </div>';
-
-            if (isLoaded) {
-                html += '      <div class="mt-1.5">';
+                html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' :
+                    'bg-white') + '">';
+                html += '  <div class="flex items-start justify-between gap-2">';
+                html += '    <div class="flex-1 min-w-0">';
+                html += '      <div class="flex items-center gap-2 mb-1">';
+                html += '        <span class="text-sm font-medium text-gray-800 truncate">' + item.product_name +
+                    '</span>';
                 html +=
-                    '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
-                html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + item.loaded_qty + ' pcs';
+                    '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ' +
+                    cat.bg + ' ' + cat.text + '">';
+                html += '          <i class="fas ' + cat.icon + ' mr-1"></i>' + item.category;
                 html += '        </span>';
                 html += '      </div>';
-            }
+                html += '      <div class="flex items-center gap-3 text-xs text-gray-500">';
+                html += '        <span><i class="fas fa-cubes mr-1"></i>' + qtyLabel + '</span>';
+                html += '      </div>';
 
-            html += '    </div>';
-            html += '    <div class="flex-shrink-0">';
+                if (isLoaded) {
+                    html += '      <div class="mt-1.5">';
+                    html +=
+                        '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
+                    html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + item.loaded_qty + ' pcs';
+                    html += '        </span>';
+                    html += '      </div>';
+                }
 
-            if (isLoaded) {
-                html +=
-                    '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors"';
+                html += '    </div>';
+                html += '    <div class="flex-shrink-0">';
+
+                if (isLoaded) {
+                    html +=
+                        '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors"';
+                } else {
+                    html +=
+                        '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-secondary transition-colors"';
+                }
+                html += '        data-product-id="' + item.product_id + '"';
+                html += '        data-product-name="' + (item.product_name || '').replace(/"/g, '&quot;') + '"';
+                html += '        data-expected-pieces="' + item.calculated_pieces + '"';
+                html += '        data-qty-mode="' + item.qty_mode + '"';
+                html += '        data-product-qnty="' + item.product_qnty + '"';
+                html += '        data-loaded="' + (isLoaded ? '1' : '0') + '">';
+                html += '        <i class="fas fa-download mr-1"></i>' + (isLoaded ? 'Load More' : 'Load');
+                html += '      </button>';
+
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+            });
+
+            $('#distributionListContent').html(html);
+
+            // Toggle "Load All Remaining" button visibility
+            if (hasUnloaded) {
+                $('#btnLoadAllRemaining').removeClass('hidden');
             } else {
-                html +=
-                    '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-secondary transition-colors"';
+                $('#btnLoadAllRemaining').addClass('hidden');
             }
-            html += '        data-product-id="' + item.product_id + '"';
-            html += '        data-product-name="' + (item.product_name || '').replace(/"/g, '&quot;') + '"';
-            html += '        data-expected-pieces="' + item.calculated_pieces + '"';
-            html += '        data-qty-mode="' + item.qty_mode + '"';
-            html += '        data-product-qnty="' + item.product_qnty + '"';
-            html += '        data-loaded="' + (isLoaded ? '1' : '0') + '">';
-            html += '        <i class="fas fa-download mr-1"></i>' + (isLoaded ? 'Load More' : 'Load');
-            html += '      </button>';
+        }
 
-            html += '    </div>';
-            html += '  </div>';
-            html += '</div>';
+        /**
+         * Open the load single item sub-modal from a distribution list item.
+         */
+        $(document).on('click', '.btn-load-dist-item', function () {
+            const productId = $(this).data('product-id');
+            const productName = $(this).data('product-name');
+            const expectedPieces = parseInt($(this).data('expected-pieces')) || 0;
+            const qtyMode = $(this).data('qty-mode');
+            const productQnty = $(this).data('product-qnty');
+            const alreadyLoaded = $(this).data('loaded') === 1 || $(this).data('loaded') === '1';
+
+            // Populate modal
+            $('#loadItemProductId').val(productId);
+            $('#loadItemExpectedPieces').val(expectedPieces);
+            $('#loadItemProductName').text(productName);
+            $('#loadItemQuantity').val(expectedPieces);
+
+            // Info bar
+            let infoText = 'Distribution: <strong>' + expectedPieces + '</strong> pcs';
+            if (qtyMode === 'batch') {
+                infoText = productQnty + ' batch' + (productQnty > 1 ? 'es' : '') + ' → <strong>' + expectedPieces +
+                    '</strong> pcs';
+            }
+            if (alreadyLoaded) {
+                infoText += ' <span class="text-green-600">(previously loaded)</span>';
+            }
+            $('#loadItemDistInfoText').html(infoText);
+
+            // Reset state
+            resetLoadItemModalState();
+            updateLoadQuantityDisplay();
+
+            $('#loadSingleItemModal').removeClass('hidden');
         });
 
-        $('#distributionListContent').html(html);
+        /**
+         * Update deviation warning and note requirement based on qty vs expected.
+         */
+        function updateLoadQuantityDisplay() {
+            const expected = parseInt($('#loadItemExpectedPieces').val()) || 0;
+            const current = parseInt($('#loadItemQuantity').val()) || 0;
 
-        // Toggle "Load All Remaining" button visibility
-        if (hasUnloaded) {
-            $('#btnLoadAllRemaining').removeClass('hidden');
-        } else {
-            $('#btnLoadAllRemaining').addClass('hidden');
-        }
-    }
+            if (expected > 0 && current !== expected) {
+                const delta = current - expected;
+                let warningText = '';
+                if (delta > 0) {
+                    warningText = 'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required';
+                } else {
+                    warningText = 'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
+                }
+                $('#loadItemDeviationText').html(warningText);
+                $('#loadItemDeviationWarning').removeClass('hidden');
 
-    /**
-     * Open the load single item sub-modal from a distribution list item.
-     */
-    $(document).on('click', '.btn-load-dist-item', function() {
-        const productId = $(this).data('product-id');
-        const productName = $(this).data('product-name');
-        const expectedPieces = parseInt($(this).data('expected-pieces')) || 0;
-        const qtyMode = $(this).data('qty-mode');
-        const productQnty = $(this).data('product-qnty');
-        const alreadyLoaded = $(this).data('loaded') === 1 || $(this).data('loaded') === '1';
-
-        // Populate modal
-        $('#loadItemProductId').val(productId);
-        $('#loadItemExpectedPieces').val(expectedPieces);
-        $('#loadItemProductName').text(productName);
-        $('#loadItemQuantity').val(expectedPieces);
-
-        // Info bar
-        let infoText = 'Distribution: <strong>' + expectedPieces + '</strong> pcs';
-        if (qtyMode === 'batch') {
-            infoText = productQnty + ' batch' + (productQnty > 1 ? 'es' : '') + ' → <strong>' + expectedPieces +
-                '</strong> pcs';
-        }
-        if (alreadyLoaded) {
-            infoText += ' <span class="text-green-600">(previously loaded)</span>';
-        }
-        $('#loadItemDistInfoText').html(infoText);
-
-        // Reset state
-        resetLoadItemModalState();
-        updateLoadQuantityDisplay();
-
-        $('#loadSingleItemModal').removeClass('hidden');
-    });
-
-    /**
-     * Update deviation warning and note requirement based on qty vs expected.
-     */
-    function updateLoadQuantityDisplay() {
-        const expected = parseInt($('#loadItemExpectedPieces').val()) || 0;
-        const current = parseInt($('#loadItemQuantity').val()) || 0;
-
-        if (expected > 0 && current !== expected) {
-            const delta = current - expected;
-            let warningText = '';
-            if (delta > 0) {
-                warningText = 'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required';
+                // Make note required
+                $('#loadItemNote').attr('required', true);
+                $('#loadItemNote').attr('placeholder', 'Explain why quantity differs from distribution');
+                $('#loadItemNoteLabel').html('Note <span class="text-red-500">*</span>');
+                $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400')
+                    .addClass('text-red-500');
+                if (!$('#loadItemNote').val()) {
+                    $('#loadItemNote').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
             } else {
-                warningText = 'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
-            }
-            $('#loadItemDeviationText').html(warningText);
-            $('#loadItemDeviationWarning').removeClass('hidden');
-
-            // Make note required
-            $('#loadItemNote').attr('required', true);
-            $('#loadItemNote').attr('placeholder', 'Explain why quantity differs from distribution');
-            $('#loadItemNoteLabel').html('Note <span class="text-red-500">*</span>');
-            $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400')
-                .addClass('text-red-500');
-            if (!$('#loadItemNote').val()) {
-                $('#loadItemNote').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            } else {
+                // Matches expected or no expected baseline
+                $('#loadItemDeviationWarning').addClass('hidden');
+                $('#loadItemNote').removeAttr('required');
+                $('#loadItemNote').attr('placeholder', 'Add note (optional)');
+                $('#loadItemNoteLabel').text('Note');
+                $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                    'text-gray-400');
                 $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
-        } else {
-            // Matches expected or no expected baseline
+        }
+
+        /**
+         * Reset the load item modal to default state.
+         */
+        function resetLoadItemModalState() {
             $('#loadItemDeviationWarning').addClass('hidden');
             $('#loadItemNote').removeAttr('required');
             $('#loadItemNote').attr('placeholder', 'Add note (optional)');
@@ -2291,1305 +2305,1291 @@
                 'text-gray-400');
             $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         }
-    }
 
-    /**
-     * Reset the load item modal to default state.
-     */
-    function resetLoadItemModalState() {
-        $('#loadItemDeviationWarning').addClass('hidden');
-        $('#loadItemNote').removeAttr('required');
-        $('#loadItemNote').attr('placeholder', 'Add note (optional)');
-        $('#loadItemNoteLabel').text('Note');
-        $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-            'text-gray-400');
-        $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-    }
+        /**
+         * Submit the single distribution item load.
+         */
+        function submitLoadSingleItem() {
+            const baseUrl = '<?= base_url() ?>';
+            const productId = parseInt($('#loadItemProductId').val());
+            const quantity = parseInt($('#loadItemQuantity').val());
+            const expectedPieces = parseInt($('#loadItemExpectedPieces').val());
+            const note = $('#loadItemNote').val().trim();
 
-    /**
-     * Submit the single distribution item load.
-     */
-    function submitLoadSingleItem() {
-        const baseUrl = '<?= base_url() ?>';
-        const productId = parseInt($('#loadItemProductId').val());
-        const quantity = parseInt($('#loadItemQuantity').val());
-        const expectedPieces = parseInt($('#loadItemExpectedPieces').val());
-        const note = $('#loadItemNote').val().trim();
-
-        if (!productId || quantity <= 0) {
-            showToast('warning', 'Please enter a valid quantity.', 2000);
-            return;
-        }
-
-        // Client-side note validation
-        if (expectedPieces > 0 && quantity !== expectedPieces && !note) {
-            showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces +
-                ' pcs).', 3000);
-            $('#loadItemNote').focus();
-            return;
-        }
-
-        // Disable submit button
-        const $submitBtn = $('#loadSingleItemForm button[type="submit"]');
-        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1.5"></i> Loading...');
-
-        $.ajax({
-            url: baseUrl + 'Inventory/LoadDistributionItem',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                product_id: productId,
-                quantity: quantity,
-                expected_pieces: expectedPieces,
-                note: note
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 3000);
-                    // Close the load modal and refresh the distribution list
-                    $('#loadSingleItemModal').addClass('hidden');
-                    $('#loadSingleItemForm')[0].reset();
-                    resetLoadItemModalState();
-                    // Refresh the distribution list modal
-                    openDistributionModal();
-                    // Refresh the inventory table
-                    fetchAllStockitems();
-                } else {
-                    showToast('error', response.message || 'Failed to load item.', 3000);
-                }
-            },
-            error: function(xhr) {
-                let msg = 'Failed to load distribution item.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                }
-                showToast('error', msg, 3000);
-            },
-            complete: function() {
-                $submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1.5"></i> Confirm Load');
+            if (!productId || quantity <= 0) {
+                showToast('warning', 'Please enter a valid quantity.', 2000);
+                return;
             }
-        });
-    }
 
-    /**
-     * Load all remaining (unloaded) distribution items at their expected quantities.
-     */
-    function loadAllRemainingDistribution() {
-        const baseUrl = '<?= base_url() ?>';
-
-        // Disable the button
-        const $btn = $('#btnLoadAllRemaining');
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Loading...');
-
-        $.ajax({
-            url: baseUrl + 'Inventory/LoadFromDistribution',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 3000);
-                    // Refresh the distribution list modal
-                    openDistributionModal();
-                    // Refresh the inventory table
-                    fetchAllStockitems();
-                } else {
-                    showToast('error', response.message, 3000);
-                }
-            },
-            error: function(xhr) {
-                let msg = 'Failed to load distribution data.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                }
-                showToast('error', msg, 3000);
-            },
-            complete: function() {
-                $btn.prop('disabled', false).html(
-                    '<i class="fas fa-download mr-1"></i> Load All Remaining');
+            // Client-side note validation
+            if (expectedPieces > 0 && quantity !== expectedPieces && !note) {
+                showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces +
+                    ' pcs).', 3000);
+                $('#loadItemNote').focus();
+                return;
             }
-        });
-    }
 
-    function addTodaysInventoryFromDistribution(time_start, time_end) {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/AddInventoryFromDistribution',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                time_start: time_start,
-                time_end: time_end
-            }),
-            success: function(response) {
-                if (response.success) {
-                    let msg = response.message;
-                    if (response.carryover_count > 0) {
-                        msg += ' (' + response.carryover_count + ' item(s) carried over from yesterday.)';
+            // Disable submit button
+            const $submitBtn = $('#loadSingleItemForm button[type="submit"]');
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1.5"></i> Loading...');
+
+            $.ajax({
+                url: baseUrl + 'Inventory/LoadDistributionItem',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    quantity: quantity,
+                    expected_pieces: expectedPieces,
+                    note: note
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        // Close the load modal and refresh the distribution list
+                        $('#loadSingleItemModal').addClass('hidden');
+                        $('#loadSingleItemForm')[0].reset();
+                        resetLoadItemModalState();
+                        // Refresh the distribution list modal
+                        openDistributionModal();
+                        // Refresh the inventory table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message || 'Failed to load item.', 3000);
                     }
-                    showToast('success', msg, 3000);
-                    checkIfInventoryExists();
-                    fetchAllStockitems();
-                } else {
-                    showToast('error', response.message, 3000);
+                },
+                error: function (xhr) {
+                    let msg = 'Failed to load distribution item.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('error', msg, 3000);
+                },
+                complete: function () {
+                    $submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1.5"></i> Confirm Load');
                 }
-            },
-            error: function(xhr) {
-                const errorMessage = (xhr.responseJSON && xhr.responseJSON.message) ?
-                    xhr.responseJSON.message :
-                    'An error occurred while creating inventory from distribution.';
-                showToast('danger', errorMessage, 4000);
-            }
-        });
-    }
+            });
+        }
 
-    // If no inventory, show button for creating inventory
-    function addTodaysInventory(time_start, time_end) {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/AddTodaysInventory',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                time_start: time_start,
-                time_end: time_end
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 2000);
-                    checkIfInventoryExists();
-                    fetchAllStockitems();
-                    console.log(response.message);
-                } else {
-                    showToast('error', response.message, 2000);
+        /**
+         * Load all remaining (unloaded) distribution items at their expected quantities.
+         */
+        function loadAllRemainingDistribution() {
+            const baseUrl = '<?= base_url() ?>';
+
+            // Disable the button
+            const $btn = $('#btnLoadAllRemaining');
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Loading...');
+
+            $.ajax({
+                url: baseUrl + 'Inventory/LoadFromDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 3000);
+                        // Refresh the distribution list modal
+                        openDistributionModal();
+                        // Refresh the inventory table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 3000);
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Failed to load distribution data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    showToast('error', msg, 3000);
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html(
+                        '<i class="fas fa-download mr-1"></i> Load All Remaining');
                 }
-            },
-            error: function(xhr, status, error) {
-                showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
-                    2000);
-                console.log(xhr.responseJSON);
-            }
-        });
-    }
+            });
+        }
 
-    function fetchAllStockitems() {
-        const baseURL = '<?= base_url() ?>';
-        $.ajax({
-            url: `${baseURL}Inventory/FetchAllStockItems`,
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                console.log(response);
-                if (response.success) {
-                    // showToast('success', response.message, 2000);
-                    loadInventory(response.data);
-                    console.log('Inventory data:', response.data);
-                } else {
-                    console.log("Error: " + response.error);
+        function addTodaysInventoryFromDistribution(time_start, time_end) {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddInventoryFromDistribution',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    time_start: time_start,
+                    time_end: time_end
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        let msg = response.message;
+                        if (response.carryover_count > 0) {
+                            msg += ' (' + response.carryover_count + ' item(s) carried over from yesterday.)';
+                        }
+                        showToast('success', msg, 3000);
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 3000);
+                    }
+                },
+                error: function (xhr) {
+                    const errorMessage = (xhr.responseJSON && xhr.responseJSON.message) ?
+                        xhr.responseJSON.message :
+                        'An error occurred while creating inventory from distribution.';
+                    showToast('danger', errorMessage, 4000);
                 }
-            },
-            error: function(xhr, status, error) {
-                showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error),
-                    2000);
-                console.log(xhr.responseJSON);
-            }
-        });
-    }
+            });
+        }
 
-    // Mobile pagination variables
-    let allInventoryItems = [];
-    let filteredItems = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
-
-    // Carryover data map: { product_id: remaining_stock }
-    let carryoverData = {};
-
-    // Fetch carryover data once and store globally
-    function fetchCarryoverData() {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/GetYesterdayRemaining',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                carryoverData = {};
-                if (response.success && response.data && response.data.length > 0) {
-                    response.data.forEach(function(item) {
-                        carryoverData[item.product_id] = parseInt(item.remaining_stock) || 0;
-                    });
+        // If no inventory, show button for creating inventory
+        function addTodaysInventory(time_start, time_end) {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddTodaysInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    time_start: time_start,
+                    time_end: time_end
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
+                        console.log(response.message);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
+                        2000);
+                    console.log(xhr.responseJSON);
                 }
-            },
-            error: function() {
-                carryoverData = {};
-            }
-        });
-    }
+            });
+        }
 
-    function loadInventory(items) {
-        // Store items for mobile pagination
-        allInventoryItems = items || [];
-        filteredItems = [...allInventoryItems];
-        currentPage = 1;
+        function fetchAllStockitems() {
+            const baseURL = '<?= base_url() ?>';
+            $.ajax({
+                url: `${baseURL}Inventory/FetchAllStockItems`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        // showToast('success', response.message, 2000);
+                        loadInventory(response.data);
+                        console.log('Inventory data:', response.data);
+                    } else {
+                        console.log("Error: " + response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error),
+                        2000);
+                    console.log(xhr.responseJSON);
+                }
+            });
+        }
 
-        // Fetch carryover data for use in edit modal
-        fetchCarryoverData();
+        // Mobile pagination variables
+        let allInventoryItems = [];
+        let filteredItems = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
-        // Separate items by category
-        const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
-        const drinksItems = items ? items.filter(i => i.category === 'drinks') : [];
-        const groceryItems = items ? items.filter(i => i.category === 'grocery') : [];
+        // Carryover data map: { product_id: remaining_stock }
+        let carryoverData = {};
 
-        // Render each category table
-        renderBakeryTable(bakeryItems);
-        renderDrinksTable(drinksItems);
-        renderGroceryTable(groceryItems);
+        // Fetch carryover data once and store globally
+        function fetchCarryoverData() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/GetYesterdayRemaining',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    carryoverData = {};
+                    if (response.success && response.data && response.data.length > 0) {
+                        response.data.forEach(function (item) {
+                            carryoverData[item.product_id] = parseInt(item.remaining_stock) || 0;
+                        });
+                    }
+                },
+                error: function () {
+                    carryoverData = {};
+                }
+            });
+        }
 
-        // Update totals
-        updateGrandTotals(items || []);
+        function loadInventory(items) {
+            // Store items for mobile pagination
+            allInventoryItems = items || [];
+            filteredItems = [...allInventoryItems];
+            currentPage = 1;
 
-        // Render mobile cards with pagination
-        renderMobileCards();
-    }
+            // Fetch carryover data for use in edit modal
+            fetchCarryoverData();
 
-    function renderBakeryTable(items) {
-        let rows = '';
-        let totalQty = 0;
+            // Separate items by category
+            const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
+            const drinksItems = items ? items.filter(i => i.category === 'drinks') : [];
+            const groceryItems = items ? items.filter(i => i.category === 'grocery') : [];
 
-        if (items && items.length > 0) {
-            items.forEach(function(item) {
-                const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item
-                    .selling_price;
-                const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-                const beginning = parseInt(item.beginning_stock) || 0;
-                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                const qtySold = parseInt(item.quantity_sold) || 0;
-                const ending_stock = parseInt(item.ending_stock) || 0;
-                const isEnabled = parseInt(item.is_enabled) === 1;
-                const notes = item.notes || '';
+            // Render each category table
+            renderBakeryTable(bakeryItems);
+            renderDrinksTable(drinksItems);
+            renderGroceryTable(groceryItems);
 
-                totalQty += qtySold;
+            // Update totals
+            updateGrandTotals(items || []);
 
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
+            // Render mobile cards with pagination
+            renderMobileCards();
+        }
+
+        function renderBakeryTable(items) {
+            let rows = '';
+            let totalQty = 0;
+
+            if (items && items.length > 0) {
+                items.forEach(function (item) {
+                    const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item
+                        .selling_price;
+                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const qtySold = parseInt(item.quantity_sold) || 0;
+                    const ending_stock = parseInt(item.ending_stock) || 0;
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+                    const notes = item.notes || '';
+
+                    totalQty += qtySold;
+
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
+                        '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
                         isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
-                    '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
-                    .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
-                    '</td>';
-                rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
+                        .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
+                        '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                rows += (isEnabled ?
-                    '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                    .item_id +
-                    '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                rows += '</td>';
-                rows += '</tr>';
-            });
-        } else {
-            rows =
-                '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
-        }
-
-        $('#bakeryTableBody').html(rows);
-        $('#bakeryTotalQty').text(totalQty);
-    }
-
-    function renderDrinksTable(items) {
-        let rows = '';
-        let totalQty = 0;
-        let totalSales = 0;
-
-        if (items && items.length > 0) {
-            items.forEach(function(item) {
-                const srp = parseFloat(item.srp ?? item.selling_price ?? 0) || 0;
-                const formattedPrice = '₱' + srp.toFixed(2);
-                const qtySold = parseInt(item.quantity_sold) || 0;
-                const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
-                const formattedSales = '₱' + sales.toFixed(2);
-                const isEnabled = parseInt(item.is_enabled) === 1;
-
-                totalQty += qtySold;
-                totalSales += sales;
-
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
-                    'N/A') + (!isEnabled ?
-                    ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
-                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                rows += '</td>';
-                rows += '</tr>';
-            });
-        } else {
-            rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
-        }
-
-        $('#drinksTableBody').html(rows);
-        $('#drinksTotalQty').text(totalQty);
-        $('#drinksTotalSales').text('₱' + totalSales.toFixed(2));
-    }
-
-    function renderGroceryTable(items) {
-        let rows = '';
-        let totalQty = 0;
-
-        if (items && items.length > 0) {
-            items.forEach(function(item) {
-                const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
-                const beginning = parseInt(item.beginning_stock) || 0;
-                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                const qtySold = parseInt(item.quantity_sold) || 0;
-                const ending_stock = parseInt(item.ending_stock) || 0;
-                const isEnabled = parseInt(item.is_enabled) === 1;
-                const notes = item.notes || '';
-
-                totalQty += qtySold;
-
-                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
-                    '') + '">';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
-                        isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
-                    '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
-                    .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
-                    '</td>';
-                rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
-                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                rows += (isEnabled ?
-                    '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                    .item_id +
-                    '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                rows += '</td>';
-                rows += '</tr>';
-            });
-        } else {
-            rows =
-                '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
-        }
-
-        $('#groceryTableBody').html(rows);
-        $('#groceryTotalQty').text(totalQty);
-    }
-
-    function updateGrandTotals(items) {
-        let grandQty = 0;
-
-        items.forEach(function(item) {
-            grandQty += parseInt(item.quantity_sold) || 0;
-        });
-
-        $('#grandTotalQty').text(grandQty);
-    }
-
-    // Edit Inventory Item - Open Modal
-    $(document).on('click', '.btn-edit', function() {
-        const itemId = $(this).data('id');
-
-        // Always get data from stored items array (more reliable)
-        const item = allInventoryItems.find(i => i.item_id == itemId);
-
-        if (item) {
-            const category = (item.category || '').toLowerCase();
-            const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
-            const beginningStock = parseInt(item.beginning_stock) || 0;
-            const pullOutQty = parseInt(item.pull_out_quantity) || 0;
-            const endingStock = parseInt(item.ending_stock) || 0;
-
-            // Store item ID and populate modal
-            $('#editItemId').val(itemId);
-            $('#editCategory').val(category);
-            $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
-            $('#editProductName').text(item.product_name || 'N/A');
-            $('#editOldBeginningStock').val(beginningStock);
-            $('#editOldPullOutQuantity').val(pullOutQty);
-            $('#editOldEndingStock').val(endingStock);
-            const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
-                endingStock);
-            $('#editOldQuantitySold').val(quantitySold);
-
-            if (isAdjustmentMode) {
-                $('#editBeginningLabel').text('Beginning Stock ');
-                $('#editPullOutLabel').text('Pull Out Quantity (add only)');
-                $('#editEndingLabel').text('Ending Stock ');
-
-                $('#editAdjustmentGuide').removeClass('hidden');
-                $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
-                $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
-                $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
-
-                $('#editBeginningStock').val(beginningStock).attr('min', 0);
-                $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
-                $('#editEndingStock').val(endingStock).attr('min', 0);
-                $('#editEndingGroup').removeClass('hidden');
+                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ?
+                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                            .item_id +
+                        '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                    rows += '</td>';
+                    rows += '</tr>';
+                });
             } else {
-                $('#editBeginningLabel').text('Beginning Stock');
-                $('#editPullOutLabel').text('Pull Out Quantity');
-                $('#editEndingLabel').text('Ending Stock');
-
-                $('#editAdjustmentGuide').addClass('hidden');
-                $('#editBeginningHint').text('');
-                $('#editPullOutHint').text('');
-                $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
-
-                $('#editBeginningStock').val(beginningStock).attr('min', 0);
-                $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
-                $('#editEndingStock').val(endingStock).attr('min', 0);
-                $('#editEndingGroup').addClass('hidden');
+                rows =
+                    '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
             }
 
-            $('#editNotes').val(item.notes || '');
+            $('#bakeryTableBody').html(rows);
+            $('#bakeryTotalQty').text(totalQty);
+        }
 
-            // Populate distribution and carryover info
-            const distQty = parseInt(item.distribution_qty) || 0;
-            const carryQty = parseInt(carryoverData[item.product_id]) || 0;
-            $('#editDistributionQty').val(distQty);
-            $('#editCarryoverQty').val(carryQty);
+        function renderDrinksTable(items) {
+            let rows = '';
+            let totalQty = 0;
+            let totalSales = 0;
 
-            // Update the distribution display and notes requirement
+            if (items && items.length > 0) {
+                items.forEach(function (item) {
+                    const srp = parseFloat(item.srp ?? item.selling_price ?? 0) || 0;
+                    const formattedPrice = '₱' + srp.toFixed(2);
+                    const qtySold = parseInt(item.quantity_sold) || 0;
+                    const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
+                    const formattedSales = '₱' + sales.toFixed(2);
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+
+                    totalQty += qtySold;
+                    totalSales += sales;
+
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
+                        '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
+                        'N/A') + (!isEnabled ?
+                            ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
+                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                    rows += '</td>';
+                    rows += '</tr>';
+                });
+            } else {
+                rows = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+            }
+
+            $('#drinksTableBody').html(rows);
+            $('#drinksTotalQty').text(totalQty);
+            $('#drinksTotalSales').text('₱' + totalSales.toFixed(2));
+        }
+
+        function renderGroceryTable(items) {
+            let rows = '';
+            let totalQty = 0;
+
+            if (items && items.length > 0) {
+                items.forEach(function (item) {
+                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const qtySold = parseInt(item.quantity_sold) || 0;
+                    const ending_stock = parseInt(item.ending_stock) || 0;
+                    const isEnabled = parseInt(item.is_enabled) === 1;
+                    const notes = item.notes || '';
+
+                    totalQty += qtySold;
+
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' :
+                        '') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
+                        isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
+                        '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes
+                        .replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') +
+                        '</td>';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
+                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ?
+                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                            .item_id +
+                        '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                    rows += '</td>';
+                    rows += '</tr>';
+                });
+            } else {
+                rows =
+                    '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+            }
+
+            $('#groceryTableBody').html(rows);
+            $('#groceryTotalQty').text(totalQty);
+        }
+
+        function updateGrandTotals(items) {
+            let grandQty = 0;
+
+            items.forEach(function (item) {
+                grandQty += parseInt(item.quantity_sold) || 0;
+            });
+
+            $('#grandTotalQty').text(grandQty);
+        }
+
+        // Edit Inventory Item - Open Modal
+        $(document).on('click', '.btn-edit', function () {
+            const itemId = $(this).data('id');
+
+            // Always get data from stored items array (more reliable)
+            const item = allInventoryItems.find(i => i.item_id == itemId);
+
+            if (item) {
+                const category = (item.category || '').toLowerCase();
+                const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
+                const beginningStock = parseInt(item.beginning_stock) || 0;
+                const pullOutQty = parseInt(item.pull_out_quantity) || 0;
+                const endingStock = parseInt(item.ending_stock) || 0;
+
+                // Store item ID and populate modal
+                $('#editItemId').val(itemId);
+                $('#editCategory').val(category);
+                $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
+                $('#editProductName').text(item.product_name || 'N/A');
+                $('#editOldBeginningStock').val(beginningStock);
+                $('#editOldPullOutQuantity').val(pullOutQty);
+                $('#editOldEndingStock').val(endingStock);
+                const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
+                    endingStock);
+                $('#editOldQuantitySold').val(quantitySold);
+
+                if (isAdjustmentMode) {
+                    $('#editBeginningLabel').text('Beginning Stock ');
+                    $('#editPullOutLabel').text('Pull Out Quantity (add only)');
+                    $('#editEndingLabel').text('Ending Stock ');
+
+                    $('#editAdjustmentGuide').removeClass('hidden');
+                    $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
+                    $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
+                    $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
+
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    $('#editEndingGroup').removeClass('hidden');
+                } else {
+                    $('#editBeginningLabel').text('Beginning Stock');
+                    $('#editPullOutLabel').text('Pull Out Quantity');
+                    $('#editEndingLabel').text('Ending Stock');
+
+                    $('#editAdjustmentGuide').addClass('hidden');
+                    $('#editBeginningHint').text('');
+                    $('#editPullOutHint').text('');
+                    $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    $('#editEndingGroup').addClass('hidden');
+                }
+
+                $('#editNotes').val(item.notes || '');
+
+                // Populate distribution and carryover info
+                const distQty = parseInt(item.distribution_qty) || 0;
+                const carryQty = parseInt(carryoverData[item.product_id]) || 0;
+                $('#editDistributionQty').val(distQty);
+                $('#editCarryoverQty').val(carryQty);
+
+                // Update the distribution display and notes requirement
+                updateBeginningStockDisplay();
+                updateRemainingPreview();
+
+                // Show modal
+                $('#editInventoryModal').removeClass('hidden');
+            } else {
+                showToast('error', 'Could not find item data', 2000);
+            }
+        });
+
+        // +/- buttons for beginning stock
+        $('#btnDecreaseBeginning').on('click', function () {
+            const current = parseInt($('#editBeginningStock').val()) || 0;
+            $('#editBeginningStock').val(Math.max(0, current - 1));
+            updateBeginningStockDisplay();
+        });
+
+        $('#btnIncreaseBeginning').on('click', function () {
+            const current = parseInt($('#editBeginningStock').val()) || 0;
+            $('#editBeginningStock').val(current + 1);
+            updateBeginningStockDisplay();
+        });
+
+        // Also update on manual input change
+        $('#editBeginningStock').on('input change', function () {
             updateBeginningStockDisplay();
             updateRemainingPreview();
+        });
 
-            // Show modal
-            $('#editInventoryModal').removeClass('hidden');
-        } else {
-            showToast('error', 'Could not find item data', 2000);
-        }
-    });
+        $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
+            updateRemainingPreview();
+        });
 
-    // +/- buttons for beginning stock
-    $('#btnDecreaseBeginning').on('click', function() {
-        const current = parseInt($('#editBeginningStock').val()) || 0;
-        $('#editBeginningStock').val(Math.max(0, current - 1));
-        updateBeginningStockDisplay();
-    });
+        function updateRemainingPreview() {
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
 
-    $('#btnIncreaseBeginning').on('click', function() {
-        const current = parseInt($('#editBeginningStock').val()) || 0;
-        $('#editBeginningStock').val(current + 1);
-        updateBeginningStockDisplay();
-    });
+            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+            const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+            const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+            const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
-    // Also update on manual input change
-    $('#editBeginningStock').on('input change', function() {
-        updateBeginningStockDisplay();
-        updateRemainingPreview();
-    });
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingInput = parseInt($('#editEndingStock').val()) || 0;
 
-    $('#editPullOutQuantity, #editEndingStock').on('input change', function() {
-        updateRemainingPreview();
-    });
+            let projectedRemaining = 0;
 
-    function updateRemainingPreview() {
-        const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            if (isAdjustmentMode) {
+                const projectedBeginning = beginningInput;
+                const projectedPullOut = pullOutInput;
+                projectedRemaining = endingInput;
 
-        const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
-        const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
-        const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
-        const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
-
-        const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-        const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
-        const endingInput = parseInt($('#editEndingStock').val()) || 0;
-
-        let projectedRemaining = 0;
-
-        if (isAdjustmentMode) {
-            const projectedBeginning = beginningInput;
-            const projectedPullOut = pullOutInput;
-            projectedRemaining = endingInput;
-
-            $('#editRemainingHint').text(
-                'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
-                ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
-            );
-        } else {
-            projectedRemaining = beginningInput - pullOutInput - oldQtySold;
-            $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
-        }
-
-        $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
-    }
-
-    /**
-     * Update the distribution limit display and notes requirement
-     * based on current beginning stock vs expected (distribution + carryover).
-     */
-    function updateBeginningStockDisplay() {
-        const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-        const distQty = parseInt($('#editDistributionQty').val()) || 0;
-        const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
-        const expected = distQty + carryQty;
-        const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
-        const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-        const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
-
-        // Distribution limit info bar
-        if (expected > 0) {
-            let infoText = '';
-            if (distQty > 0 && carryQty > 0) {
-                infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Carryover: <strong>' + carryQty +
-                    '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
-            } else if (distQty > 0) {
-                infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Expected: <strong>' + expected +
-                    '</strong> pcs';
+                $('#editRemainingHint').text(
+                    'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
+                    ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
+                );
             } else {
-                infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected +
-                    '</strong> pcs';
+                projectedRemaining = beginningInput - pullOutInput - oldQtySold;
+                $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
             }
-            $('#editDistInfoText').html(infoText);
-            $('#editDistributionInfo').removeClass('hidden');
-        } else {
-            $('#editDistributionInfo').addClass('hidden');
+
+            $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
         }
 
-        // Over/Under warning and notes requirement
-        if (expected > 0 && currentBeginning !== expected) {
-            const delta = currentBeginning - expected;
-            let warningText = '';
-            if (delta > 0) {
-                warningText = 'Exceeds expected by <strong>' + delta + '</strong> — note required';
-            } else {
-                warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
-            }
-            $('#editStockWarningText').html(warningText);
-            $('#editStockWarning').removeClass('hidden');
+        /**
+         * Update the distribution limit display and notes requirement
+         * based on current beginning stock vs expected (distribution + carryover).
+         */
+        function updateBeginningStockDisplay() {
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            const distQty = parseInt($('#editDistributionQty').val()) || 0;
+            const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
+            const expected = distQty + carryQty;
+            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
 
-            // Make notes required
-            $('#editNotes').attr('required', true);
-            $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
-            $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
-            $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
-                'text-red-500');
-            if (!$('#editNotes').val()) {
-                $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            // Distribution limit info bar
+            if (expected > 0) {
+                let infoText = '';
+                if (distQty > 0 && carryQty > 0) {
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Carryover: <strong>' + carryQty +
+                        '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                } else if (distQty > 0) {
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Expected: <strong>' + expected +
+                        '</strong> pcs';
+                } else {
+                    infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected +
+                        '</strong> pcs';
+                }
+                $('#editDistInfoText').html(infoText);
+                $('#editDistributionInfo').removeClass('hidden');
             } else {
+                $('#editDistributionInfo').addClass('hidden');
+            }
+
+            // Over/Under warning and notes requirement
+            if (expected > 0 && currentBeginning !== expected) {
+                const delta = currentBeginning - expected;
+                let warningText = '';
+                if (delta > 0) {
+                    warningText = 'Exceeds expected by <strong>' + delta + '</strong> — note required';
+                } else {
+                    warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
+                }
+                $('#editStockWarningText').html(warningText);
+                $('#editStockWarning').removeClass('hidden');
+
+                // Make notes required
+                $('#editNotes').attr('required', true);
+                $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
+                $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
+                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
+                    'text-red-500');
+                if (!$('#editNotes').val()) {
+                    $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                } else {
+                    $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                }
+            } else {
+                // No deviation or no expected baseline
+                $('#editStockWarning').addClass('hidden');
+                $('#editNotes').removeAttr('required');
+                $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                $('#editNotesLabel').text('Notes');
+                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                    'text-gray-400');
                 $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
-        } else {
-            // No deviation or no expected baseline
+        }
+
+        // Update notes border styling on input
+        $('#editNotes').on('input', function () {
+            if ($('#editNotes').is('[required]') && !$(this).val().trim()) {
+                $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            } else {
+                $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+            }
+        });
+
+        // Close Edit Modal
+        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
+            $('#editInventoryModal').addClass('hidden');
+            $('#editInventoryForm')[0].reset();
+            $('#editAdjustmentGuide').addClass('hidden');
+            $('#editBeginningLabel').text('Beginning Stock');
+            $('#editPullOutLabel').text('Pull Out Quantity');
+            $('#editEndingLabel').text('Ending Stock');
+            $('#editBeginningHint').text('');
+            $('#editPullOutHint').text('');
+            $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+            $('#editRemainingPreview').val('');
+            $('#editRemainingHint').text('Live preview while editing fields above.');
+            $('#editEndingGroup').addClass('hidden');
+            $('#editBeginningStock').attr('min', 0);
+            $('#editPullOutQuantity').attr('min', 0);
+            // Reset distribution display state
+            $('#editDistributionInfo').addClass('hidden');
             $('#editStockWarning').addClass('hidden');
             $('#editNotes').removeAttr('required');
-            $('#editNotes').attr('placeholder', 'Add notes (optional)');
             $('#editNotesLabel').text('Notes');
             $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
                 'text-gray-400');
             $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-        }
-    }
-
-    // Update notes border styling on input
-    $('#editNotes').on('input', function() {
-        if ($('#editNotes').is('[required]') && !$(this).val().trim()) {
-            $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-        } else {
-            $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-        }
-    });
-
-    // Close Edit Modal
-    $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function() {
-        $('#editInventoryModal').addClass('hidden');
-        $('#editInventoryForm')[0].reset();
-        $('#editAdjustmentGuide').addClass('hidden');
-        $('#editBeginningLabel').text('Beginning Stock');
-        $('#editPullOutLabel').text('Pull Out Quantity');
-        $('#editEndingLabel').text('Ending Stock');
-        $('#editBeginningHint').text('');
-        $('#editPullOutHint').text('');
-        $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
-        $('#editRemainingPreview').val('');
-        $('#editRemainingHint').text('Live preview while editing fields above.');
-        $('#editEndingGroup').addClass('hidden');
-        $('#editBeginningStock').attr('min', 0);
-        $('#editPullOutQuantity').attr('min', 0);
-        // Reset distribution display state
-        $('#editDistributionInfo').addClass('hidden');
-        $('#editStockWarning').addClass('hidden');
-        $('#editNotes').removeAttr('required');
-        $('#editNotesLabel').text('Notes');
-        $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-            'text-gray-400');
-        $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-    });
-
-    $(document).on('click', '.btn-toggle-enabled', function() {
-        const itemId = $(this).data('id');
-        const currentEnabled = parseInt($(this).data('enabled'));
-        const newEnabled = currentEnabled === 1 ? 0 : 1;
-        const baseUrl = '<?= base_url() ?>';
-
-        $.ajax({
-            url: baseUrl + 'Inventory/ToggleStockItem/' + itemId,
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                is_enabled: newEnabled
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 2000);
-                    fetchAllStockitems();
-                } else {
-                    showToast('error', response.message, 2000);
-                }
-            },
-            error: function(xhr, status, error) {
-                showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error),
-                    2000);
-            }
         });
-    });
 
-    $('#editInventoryForm').on('submit', function(e) {
-        e.preventDefault();
+        $(document).on('click', '.btn-toggle-enabled', function () {
+            const itemId = $(this).data('id');
+            const currentEnabled = parseInt($(this).data('enabled'));
+            const newEnabled = currentEnabled === 1 ? 0 : 1;
+            const baseUrl = '<?= base_url() ?>';
 
-        const itemId = $('#editItemId').val();
-        const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-        const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
-        const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
-        const endingStock = parseInt($('#editEndingStock').val()) || 0;
-        const notes = $('#editNotes').val();
-
-        const distQty = parseInt($('#editDistributionQty').val()) || 0;
-        const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
-        const expected = distQty + carryQty;
-
-        let payload;
-
-        if (isAdjustmentMode) {
-            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
-            const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
-            const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
-
-            const projectedBeginning = beginningStock;
-            const projectedPullOut = pullOutQuantity;
-            const projectedEnding = endingStock;
-
-            if (projectedPullOut < oldPullOut) {
-                showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
-                    2500);
-                return;
-            }
-
-            if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
-                showToast('warning', 'Adjustment results cannot go below zero', 2500);
-                return;
-            }
-
-            if (expected > 0 && projectedBeginning !== expected && !notes.trim()) {
-                showToast('warning', 'Notes are required when beginning stock differs from expected (' +
-                    expected + ')', 3000);
-                $('#editNotes').focus();
-                return;
-            }
-
-            payload = {
-                adjustment_mode: true,
-                beginning_stock: projectedBeginning,
-                pull_out_quantity: projectedPullOut,
-                ending_stock: projectedEnding,
-                notes: notes
-            };
-        } else {
-            if (beginningStock < 0 || pullOutQuantity < 0) {
-                showToast('warning', 'Values cannot be negative', 2000);
-                return;
-            }
-
-            if (expected > 0 && beginningStock !== expected && !notes.trim()) {
-                showToast('warning', 'Notes are required when beginning stock differs from expected (' +
-                    expected + ')', 3000);
-                $('#editNotes').focus();
-                return;
-            }
-
-            payload = {
-                beginning_stock: beginningStock,
-                pull_out_quantity: pullOutQuantity,
-                notes: notes
-            };
-        }
-
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/UpdateStockItem/' + itemId,
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 2000);
-                    $('#editInventoryModal').addClass('hidden');
-                    $('#editInventoryForm')[0].reset();
-                    fetchAllStockitems(); // Reload the table
-                } else {
-                    showToast('error', response.message, 2000);
-                }
-            },
-            error: function(xhr, status, error) {
-                // Show detailed insufficient materials modal
-                if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
-                    showInsufficientStockModal(xhr.responseJSON);
-                } else {
-                    showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message ||
-                        error), 2000);
-                }
-                console.log(xhr);
-            }
-        });
-    });
-
-    function deleteTodaysInventory() {
-        const baseUrl = '<?= base_url() ?>';
-        const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
-        $.ajax({
-            url: baseUrl + 'Inventory/DeleteTodaysInventory',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                date: today
-            }),
-            success: function(response) {
-                if (response.success) {
-                    inventoryExistsToday = false;
-                    showToast('success', response.message, 2000);
-                    if ($('#btnSendInventoryReport').length) {
-                        $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+            $.ajax({
+                url: baseUrl + 'Inventory/ToggleStockItem/' + itemId,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    is_enabled: newEnabled
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
                     }
-                    // Clear the table
-                    $('#materialsTableBody').html(
-                        '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
-                    );
-                    // Reset date/time display
-                    $('#timeRange').text('--:-- - --:--');
-                    // Show add inventory buttons since no inventory exists
-                    $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                    $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                    // Hide delete and add product buttons
-                    $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                    $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    // Re-check distribution status for next inventory creation
-                    checkIfDistributionExists();
-                    // Hide distribution button
-                    $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
-                    // Reload the table
-                    fetchAllStockitems();
-                } else {
-                    showToast('error', response.message, 2000);
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error),
+                        2000);
                 }
-            },
-            error: function(xhr, status, error) {
-                showToast('danger', xhr.responseJSON.message, 2000);
-                console.log(xhr);
-            }
+            });
         });
-    }
 
-    // Add Product to Inventory functionality
-    $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function() {
-        loadAvailableProducts();
-        $('#addProductModal').removeClass('hidden');
-    });
+        $('#editInventoryForm').on('submit', function (e) {
+            e.preventDefault();
 
-    // Close Add Product Modal
-    $('#addProductModalClose, #addProductModalCancel').on('click', function() {
-        $('#addProductModal').addClass('hidden');
-        $('#addProductForm')[0].reset();
-    });
+            const itemId = $('#editItemId').val();
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingStock = parseInt($('#editEndingStock').val()) || 0;
+            const notes = $('#editNotes').val();
 
-    // Load available products (not yet in inventory)
-    function loadAvailableProducts() {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/GetAvailableProducts',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                const select = $('#selectProduct');
-                select.html('<option value="">-- Select a product --</option>');
+            const distQty = parseInt($('#editDistributionQty').val()) || 0;
+            const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
+            const expected = distQty + carryQty;
 
-                if (response.success && response.data.length > 0) {
-                    response.data.forEach(function(product) {
-                        let categoryLabel = 'Unknown';
-                        if (product.category === 'bakery') {
-                            categoryLabel = 'Bakery';
-                        } else if (product.category === 'drinks') {
-                            categoryLabel = 'Drinks';
-                        } else if (product.category === 'grocery') {
-                            categoryLabel = 'Grocery';
-                        } else if (product.category === 'dough') {
-                            categoryLabel = 'Dough';
-                        } else if (product.category) {
-                            categoryLabel = product.category.charAt(0).toUpperCase() + product
-                                .category.slice(1);
+            let payload;
+
+            if (isAdjustmentMode) {
+                const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+                const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+                const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+
+                const projectedBeginning = beginningStock;
+                const projectedPullOut = pullOutQuantity;
+                const projectedEnding = endingStock;
+
+                if (projectedPullOut < oldPullOut) {
+                    showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
+                        2500);
+                    return;
+                }
+
+                if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
+                    showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    return;
+                }
+
+                if (expected > 0 && projectedBeginning !== expected && !notes.trim()) {
+                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                        expected + ')', 3000);
+                    $('#editNotes').focus();
+                    return;
+                }
+
+                payload = {
+                    adjustment_mode: true,
+                    beginning_stock: projectedBeginning,
+                    pull_out_quantity: projectedPullOut,
+                    ending_stock: projectedEnding,
+                    notes: notes
+                };
+            } else {
+                if (beginningStock < 0 || pullOutQuantity < 0) {
+                    showToast('warning', 'Values cannot be negative', 2000);
+                    return;
+                }
+
+                if (expected > 0 && beginningStock !== expected && !notes.trim()) {
+                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                        expected + ')', 3000);
+                    $('#editNotes').focus();
+                    return;
+                }
+
+                payload = {
+                    beginning_stock: beginningStock,
+                    pull_out_quantity: pullOutQuantity,
+                    notes: notes
+                };
+            }
+
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/UpdateStockItem/' + itemId,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        $('#editInventoryModal').addClass('hidden');
+                        $('#editInventoryForm')[0].reset();
+                        fetchAllStockitems(); // Reload the table
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Show detailed insufficient materials modal
+                    if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message ||
+                            error), 2000);
+                    }
+                    console.log(xhr);
+                }
+            });
+        });
+
+        function deleteTodaysInventory() {
+            const baseUrl = '<?= base_url() ?>';
+            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+            $.ajax({
+                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    date: today
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        inventoryExistsToday = false;
+                        showToast('success', response.message, 2000);
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                         }
-                        select.append(
-                            `<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`
+                        // Clear the table
+                        $('#materialsTableBody').html(
+                            '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
                         );
-                    });
-                    $('#noProductsMessage').addClass('hidden');
-                    $('#btnSubmitAddProduct').prop('disabled', false);
-                } else {
-                    $('#noProductsMessage').removeClass('hidden');
-                    $('#btnSubmitAddProduct').prop('disabled', true);
-                }
-            },
-            error: function(xhr, status, error) {
-                showToast('danger', 'Error loading products: ' + error, 2000);
-            }
-        });
-    }
-
-    // Mobile Search functionality
-    $('#mobileSearchInput').on('input', function() {
-        const searchTerm = $(this).val().toLowerCase().trim();
-
-        if (searchTerm === '') {
-            filteredItems = [...allInventoryItems];
-        } else {
-            filteredItems = allInventoryItems.filter(item => {
-                return (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
-                    (item.category && item.category.toLowerCase().includes(searchTerm));
-            });
-        }
-
-        currentPage = 1;
-        renderMobileCards();
-    });
-
-    // Render mobile cards for each category tab
-    function renderMobileCards() {
-        const bakeryItems = filteredItems.filter(i => i.category === 'bakery');
-        const drinksItems = filteredItems.filter(i => i.category === 'drinks');
-        const groceryItems = filteredItems.filter(i => i.category === 'grocery');
-
-        // Bakery cards
-        let bakeryCards = '';
-        if (bakeryItems.length > 0) {
-            bakeryItems.forEach(function(item) {
-                bakeryCards += renderMobileCard(item, 'bakery');
-            });
-        } else {
-            bakeryCards =
-                '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No bakery items in inventory</div>';
-        }
-        $('#bakeryMobileCards').html(bakeryCards);
-
-        // Drinks cards
-        let drinksCards = '';
-        if (drinksItems.length > 0) {
-            drinksItems.forEach(function(item) {
-                drinksCards += renderMobileCard(item, 'drinks');
-            });
-        } else {
-            drinksCards =
-                '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No drinks in inventory</div>';
-        }
-        $('#drinksMobileCards').html(drinksCards);
-
-        // Grocery cards
-        let groceryCards = '';
-        if (groceryItems.length > 0) {
-            groceryItems.forEach(function(item) {
-                groceryCards += renderMobileCard(item, 'grocery');
-            });
-        } else {
-            groceryCards =
-                '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No grocery items in inventory</div>';
-        }
-        $('#groceryMobileCards').html(groceryCards);
-    }
-
-    function renderMobileCard(item, category) {
-        const price = category === 'bakery' && item.selling_price_per_piece > 0 ?
-            item.selling_price_per_piece :
-            (item.srp ?? item.selling_price);
-        const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-        const ending_stock = parseInt(item.ending_stock) || 0;
-        const isEnabled = parseInt(item.is_enabled) === 1;
-        const notes = item.notes || '';
-
-        let borderColor = 'border-gray-200';
-        if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
-        else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
-        else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
-
-        let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') +
-            '" data-id="' + item.item_id + '">';
-        card += '  <div class="flex items-center justify-between mb-2">';
-        card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ?
-            ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
-        card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
-        card += '  </div>';
-
-        if (category === 'drinks') {
-            card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
-            card += '    <span>Qty Sold: <span class="text-gray-700">' + (parseInt(item.quantity_sold) || 0) +
-                '</span></span>';
-            card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + ((parseFloat(item
-                .sales ?? item.total_sales ?? 0) || 0).toFixed(2)) + '</span></span>';
-            card += '  </div>';
-        } else {
-            card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
-            card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
-            card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
-            card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
-            card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
-                .total_sales).toFixed(2) || 0) + '</span></span>';
-            card += '  </div>';
-        }
-
-        if (notes && category !== 'drinks') {
-            card += '  <div class="text-xs text-gray-500 mb-2 px-2 py-1.5 bg-gray-50 rounded">';
-            card += '    <i class="fas fa-sticky-note mr-1 text-amber-400"></i>' + notes;
-            card += '  </div>';
-        }
-
-        card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-        card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ?
-                'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item
-            .item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
-        card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
-            'Enabled' : 'Disabled');
-        card += '    </button>';
-        if (isEnabled && category !== 'drinks') {
-            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
-                item.item_id + '">';
-            card += '      <i class="fas fa-edit mr-1"></i>Edit';
-            card += '    </button>';
-        }
-        if (isEnabled) {
-            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' +
-                item.item_id + '">';
-            card += '      <i class="fas fa-trash mr-1"></i>Delete';
-            card += '    </button>';
-        }
-        card += '  </div>';
-        card += '</div>';
-
-        return card;
-    }
-
-    // Render mobile pagination
-    function renderMobilePagination(totalPages, totalItems, startIndex, endIndex) {
-        let pagination = '';
-
-        if (totalPages > 1) {
-            // Previous button
-            pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
-                (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                    'bg-white text-gray-700 hover:bg-gray-50') +
-                '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="prev">';
-            pagination += '<i class="fas fa-chevron-left"></i>';
-            pagination += '</button>';
-
-            // Page numbers
-            const maxVisiblePages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-            if (endPage - startPage + 1 < maxVisiblePages) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
-
-            if (startPage > 1) {
-                pagination +=
-                    '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="1">1</button>';
-                if (startPage > 2) {
-                    pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
-                }
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
-                    (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') +
-                    '" data-page="' + i + '">' + i + '</button>';
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
-                }
-                pagination +=
-                    '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="' +
-                    totalPages + '">' + totalPages + '</button>';
-            }
-
-            // Next button
-            pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
-                (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                    'bg-white text-gray-700 hover:bg-gray-50') +
-                '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="next">';
-            pagination += '<i class="fas fa-chevron-right"></i>';
-            pagination += '</button>';
-        }
-
-        $('#mobilePagination').html(pagination);
-
-        // Page info
-        if (totalItems > 0) {
-            $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems +
-                ' entries');
-        } else {
-            $('#mobilePageInfo').text('');
-        }
-    }
-
-    // Mobile pagination click handler
-    $(document).on('click', '#mobilePagination button:not([disabled])', function() {
-        const page = $(this).data('page');
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-
-        if (page === 'prev') {
-            currentPage = Math.max(1, currentPage - 1);
-        } else if (page === 'next') {
-            currentPage = Math.min(totalPages, currentPage + 1);
-        } else {
-            currentPage = parseInt(page);
-        }
-
-        renderMobileCards();
-
-        // Scroll to top of cards
-        $('html, body').animate({
-            scrollTop: $('#mobileCardView').offset().top - 100
-        }, 300);
-    });
-
-    // Submit Add Product Form
-    $('#addProductForm').on('submit', function(e) {
-        e.preventDefault();
-
-        const productId = $('#selectProduct').val();
-        const beginningStock = $('#addBeginningStock').val() || 0;
-
-        if (!productId) {
-            showToast('warning', 'Please select a product', 2000);
-            return;
-        }
-
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/AddProductToInventory',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                product_id: productId,
-                beginning_stock: beginningStock
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showToast('success', response.message, 2000);
-                    $('#addProductModal').addClass('hidden');
-                    $('#addProductForm')[0].reset();
-                    fetchAllStockitems(); // Reload the table
-
-                    // Show deduction info/warnings for the single product
-                    if (response.deduction) {
-                        if (response.deduction.success && response.deduction.deductions && response
-                            .deduction.deductions.length > 0) {
-                            var count = response.deduction.deductions.length;
-                            var msg = count + ' raw material' + (count > 1 ? 's' : '') +
-                                ' deducted for ' + response.deduction.pieces + ' pcs';
-                            if (response.deduction.has_insufficient) {
-                                showToast('warning', msg +
-                                    ' — some materials had insufficient stock', 4000);
-                            } else {
-                                showToast('info', msg, 3000);
-                            }
-                        } else if (!response.deduction.success) {
-                            showToast('warning', 'Raw materials not deducted: ' + (response
-                                    .deduction.message || 'No recipe found for this product'),
-                                5000);
-                        }
+                        // Reset date/time display
+                        $('#timeRange').text('--:-- - --:--');
+                        // Show add inventory buttons since no inventory exists
+                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                        // Hide delete and add product buttons
+                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        // Re-check distribution status for next inventory creation
+                        checkIfDistributionExists();
+                        // Hide distribution button
+                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                        // Reload the table
+                        fetchAllStockitems();
+                    } else {
+                        showToast('error', response.message, 2000);
                     }
-                } else {
-                    showToast('error', response.message, 2000);
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', xhr.responseJSON.message, 2000);
+                    console.log(xhr);
                 }
-            },
-            error: function(xhr, status, error) {
-                // Show detailed insufficient materials modal
-                if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
-                    showInsufficientStockModal(xhr.responseJSON);
-                } else {
-                    showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
-                        error), 2000);
+            });
+        }
+
+        // Add Product to Inventory functionality
+        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function () {
+            loadAvailableProducts();
+            $('#addProductModal').removeClass('hidden');
+        });
+
+        // Close Add Product Modal
+        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
+            $('#addProductModal').addClass('hidden');
+            $('#addProductForm')[0].reset();
+        });
+
+        // Load available products (not yet in inventory)
+        function loadAvailableProducts() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/GetAvailableProducts',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const select = $('#selectProduct');
+                    select.html('<option value="">-- Select a product --</option>');
+
+                    if (response.success && response.data.length > 0) {
+                        response.data.forEach(function (product) {
+                            let categoryLabel = 'Unknown';
+                            if (product.category === 'bakery') {
+                                categoryLabel = 'Bakery';
+                            } else if (product.category === 'drinks') {
+                                categoryLabel = 'Drinks';
+                            } else if (product.category === 'grocery') {
+                                categoryLabel = 'Grocery';
+                            } else if (product.category === 'dough') {
+                                categoryLabel = 'Dough';
+                            } else if (product.category) {
+                                categoryLabel = product.category.charAt(0).toUpperCase() + product
+                                    .category.slice(1);
+                            }
+                            select.append(
+                                `<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`
+                            );
+                        });
+                        $('#noProductsMessage').addClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', false);
+                    } else {
+                        $('#noProductsMessage').removeClass('hidden');
+                        $('#btnSubmitAddProduct').prop('disabled', true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error loading products: ' + error, 2000);
                 }
+            });
+        }
+
+        // Mobile Search functionality
+        $('#mobileSearchInput').on('input', function () {
+            const searchTerm = $(this).val().toLowerCase().trim();
+
+            if (searchTerm === '') {
+                filteredItems = [...allInventoryItems];
+            } else {
+                filteredItems = allInventoryItems.filter(item => {
+                    return (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
+                        (item.category && item.category.toLowerCase().includes(searchTerm));
+                });
             }
-        });
-    });
 
-    // Tab Switching Function
-    function switchTab(tabName) {
-        // Remove active state from all tab buttons
-        document.querySelectorAll('.tab-btn').forEach(function(btn) {
-            btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-            btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
-                'hover:border-gray-400');
+            currentPage = 1;
+            renderMobileCards();
         });
 
-        // Add active state to clicked button
-        var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
-        if (activeBtn) {
-            activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
-                'hover:border-gray-400');
-            activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+        // Render mobile cards for each category tab
+        function renderMobileCards() {
+            const bakeryItems = filteredItems.filter(i => i.category === 'bakery');
+            const drinksItems = filteredItems.filter(i => i.category === 'drinks');
+            const groceryItems = filteredItems.filter(i => i.category === 'grocery');
+
+            // Bakery cards
+            let bakeryCards = '';
+            if (bakeryItems.length > 0) {
+                bakeryItems.forEach(function (item) {
+                    bakeryCards += renderMobileCard(item, 'bakery');
+                });
+            } else {
+                bakeryCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No bakery items in inventory</div>';
+            }
+            $('#bakeryMobileCards').html(bakeryCards);
+
+            // Drinks cards
+            let drinksCards = '';
+            if (drinksItems.length > 0) {
+                drinksItems.forEach(function (item) {
+                    drinksCards += renderMobileCard(item, 'drinks');
+                });
+            } else {
+                drinksCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No drinks in inventory</div>';
+            }
+            $('#drinksMobileCards').html(drinksCards);
+
+            // Grocery cards
+            let groceryCards = '';
+            if (groceryItems.length > 0) {
+                groceryItems.forEach(function (item) {
+                    groceryCards += renderMobileCard(item, 'grocery');
+                });
+            } else {
+                groceryCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No grocery items in inventory</div>';
+            }
+            $('#groceryMobileCards').html(groceryCards);
         }
 
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(function(content) {
-            content.classList.add('hidden');
+        function renderMobileCard(item, category) {
+            const price = category === 'bakery' && item.selling_price_per_piece > 0 ?
+                item.selling_price_per_piece :
+                (item.srp ?? item.selling_price);
+            const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+            const ending_stock = parseInt(item.ending_stock) || 0;
+            const isEnabled = parseInt(item.is_enabled) === 1;
+            const notes = item.notes || '';
+
+            let borderColor = 'border-gray-200';
+            if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
+            else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
+            else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
+
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') +
+                '" data-id="' + item.item_id + '">';
+            card += '  <div class="flex items-center justify-between mb-2">';
+            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ?
+                ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
+            card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
+            card += '  </div>';
+
+            if (category === 'drinks') {
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+                card += '    <span>Qty Sold: <span class="text-gray-700">' + (parseInt(item.quantity_sold) || 0) +
+                    '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + ((parseFloat(item
+                    .sales ?? item.total_sales ?? 0) || 0).toFixed(2)) + '</span></span>';
+                card += '  </div>';
+            } else {
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+                card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
+                card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+                card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
+                    .total_sales).toFixed(2) || 0) + '</span></span>';
+                card += '  </div>';
+            }
+
+            if (notes && category !== 'drinks') {
+                card += '  <div class="text-xs text-gray-500 mb-2 px-2 py-1.5 bg-gray-50 rounded">';
+                card += '    <i class="fas fa-sticky-note mr-1 text-amber-400"></i>' + notes;
+                card += '  </div>';
+            }
+
+            card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
+            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ?
+                'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item
+                    .item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
+            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
+                'Enabled' : 'Disabled');
+            card += '    </button>';
+            if (isEnabled && category !== 'drinks') {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
+                    item.item_id + '">';
+                card += '      <i class="fas fa-edit mr-1"></i>Edit';
+                card += '    </button>';
+            }
+            if (isEnabled) {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' +
+                    item.item_id + '">';
+                card += '      <i class="fas fa-trash mr-1"></i>Delete';
+                card += '    </button>';
+            }
+            card += '  </div>';
+            card += '</div>';
+
+            return card;
+        }
+
+        // Render mobile pagination
+        function renderMobilePagination(totalPages, totalItems, startIndex, endIndex) {
+            let pagination = '';
+
+            if (totalPages > 1) {
+                // Previous button
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                        'bg-white text-gray-700 hover:bg-gray-50') +
+                    '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="prev">';
+                pagination += '<i class="fas fa-chevron-left"></i>';
+                pagination += '</button>';
+
+                // Page numbers
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                if (startPage > 1) {
+                    pagination +=
+                        '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="1">1</button>';
+                    if (startPage > 2) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                        (i === currentPage ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50') +
+                        '" data-page="' + i + '">' + i + '</button>';
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
+                    }
+                    pagination +=
+                        '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="' +
+                        totalPages + '">' + totalPages + '</button>';
+                }
+
+                // Next button
+                pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
+                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                        'bg-white text-gray-700 hover:bg-gray-50') +
+                    '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="next">';
+                pagination += '<i class="fas fa-chevron-right"></i>';
+                pagination += '</button>';
+            }
+
+            $('#mobilePagination').html(pagination);
+
+            // Page info
+            if (totalItems > 0) {
+                $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems +
+                    ' entries');
+            } else {
+                $('#mobilePageInfo').text('');
+            }
+        }
+
+        // Mobile pagination click handler
+        $(document).on('click', '#mobilePagination button:not([disabled])', function () {
+            const page = $(this).data('page');
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+            if (page === 'prev') {
+                currentPage = Math.max(1, currentPage - 1);
+            } else if (page === 'next') {
+                currentPage = Math.min(totalPages, currentPage + 1);
+            } else {
+                currentPage = parseInt(page);
+            }
+
+            renderMobileCards();
+
+            // Scroll to top of cards
+            $('html, body').animate({
+                scrollTop: $('#mobileCardView').offset().top - 100
+            }, 300);
         });
 
-        // Show selected tab content
-        var targetContent = document.getElementById(tabName + '-content');
-        if (targetContent) {
-            targetContent.classList.remove('hidden');
-        }
-    }
+        // Submit Add Product Form
+        $('#addProductForm').on('submit', function (e) {
+            e.preventDefault();
 
-    /**
-     * Show a BLOCKING modal when raw materials are insufficient.
-     * Prevents the operation from proceeding (400 response).
-     */
-    function showInsufficientStockModal(data) {
-        let html = '';
+            const productId = $('#selectProduct').val();
+            const beginningStock = $('#addBeginningStock').val() || 0;
 
-        // Title message
-        html += '<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">';
-        html += '<p class="text-sm font-semibold text-red-700"><i class="fas fa-ban mr-2"></i>' + (data.message ||
-            'Operation blocked due to insufficient raw materials.') + '</p>';
-        html += '</div>';
+            if (!productId) {
+                showToast('warning', 'Please select a product', 2000);
+                return;
+            }
 
-        // Insufficient products (from batch/distribution endpoint)
-        if (data.insufficient_products && data.insufficient_products.length > 0) {
-            html += '<div class="mb-4">';
-            html +=
-                '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
-            html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-            data.insufficient_products.forEach(function(name) {
-                html += '<li>' + name + '</li>';
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/AddProductToInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    product_id: productId,
+                    beginning_stock: beginningStock
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        $('#addProductModal').addClass('hidden');
+                        $('#addProductForm')[0].reset();
+                        fetchAllStockitems(); // Reload the table
+
+                        // Show deduction info/warnings for the single product
+                        if (response.deduction) {
+                            if (response.deduction.success && response.deduction.deductions && response
+                                .deduction.deductions.length > 0) {
+                                var count = response.deduction.deductions.length;
+                                var msg = count + ' raw material' + (count > 1 ? 's' : '') +
+                                    ' deducted for ' + response.deduction.pieces + ' pcs';
+                                if (response.deduction.has_insufficient) {
+                                    showToast('warning', msg +
+                                        ' — some materials had insufficient stock', 4000);
+                                } else {
+                                    showToast('info', msg, 3000);
+                                }
+                            } else if (!response.deduction.success) {
+                                showToast('warning', 'Raw materials not deducted: ' + (response
+                                    .deduction.message || 'No recipe found for this product'),
+                                    5000);
+                            }
+                        }
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Show detailed insufficient materials modal
+                    if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
+                            error), 2000);
+                    }
+                }
             });
-            html += '</ul>';
-            html += '</div>';
-        }
+        });
 
-        // Insufficient materials detail (from single-product endpoints)
-        if (data.insufficient_materials && data.insufficient_materials.length > 0) {
-            html += '<div class="mb-4">';
-            html +=
-                '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
-            html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-            data.insufficient_materials.forEach(function(detail) {
-                html += '<li>' + detail + '</li>';
+        // Tab Switching Function
+        function switchTab(tabName) {
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(function (btn) {
+                btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
+                    'hover:border-gray-400');
             });
-            html += '</ul>';
-            html += '</div>';
-        }
 
-        // Tip
-        html += '<div class="mt-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">';
-        html += '<i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before proceeding.';
-        html += '</div>';
+            // Add active state to clicked button
+            var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
+                    'hover:border-gray-400');
+                activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
+            }
 
-        // Reuse the deduction warning modal
-        $('#deductionWarningContent').html(html);
-        $('#deductionWarningModal').removeClass('hidden');
-    }
-
-    /**
-     * Show a warning modal with deduction issues after inventory creation.
-     * Alerts for products with no recipe and/or insufficient raw material stock.
-     */
-    function showDeductionWarningModal(warnings, deduction) {
-        let html = '';
-
-        // Products with no recipe
-        if (deduction && deduction.no_recipe_products && deduction.no_recipe_products.length > 0) {
-            html += '<div class="mb-4">';
-            html +=
-                '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
-            html +=
-                '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
-            html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
-            deduction.no_recipe_products.forEach(function(name) {
-                html += '<li>' + name + '</li>';
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(function (content) {
+                content.classList.add('hidden');
             });
-            html += '</ul>';
-            html += '</div>';
+
+            // Show selected tab content
+            var targetContent = document.getElementById(tabName + '-content');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
         }
 
-        // Products with insufficient stock
-        if (deduction && deduction.insufficient_products && deduction.insufficient_products.length > 0) {
-            html += '<div class="mb-4">';
-            html +=
-                '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
-            html +=
-                '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
-            html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
-            deduction.insufficient_products.forEach(function(name) {
-                html += '<li>' + name + '</li>';
-            });
-            html += '</ul>';
+        /**
+         * Show a BLOCKING modal when raw materials are insufficient.
+         * Prevents the operation from proceeding (400 response).
+         */
+        function showInsufficientStockModal(data) {
+            let html = '';
+
+            // Title message
+            html += '<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">';
+            html += '<p class="text-sm font-semibold text-red-700"><i class="fas fa-ban mr-2"></i>' + (data.message ||
+                'Operation blocked due to insufficient raw materials.') + '</p>';
             html += '</div>';
+
+            // Insufficient products (from batch/distribution endpoint)
+            if (data.insufficient_products && data.insufficient_products.length > 0) {
+                html += '<div class="mb-4">';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
+                data.insufficient_products.forEach(function (name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Insufficient materials detail (from single-product endpoints)
+            if (data.insufficient_materials && data.insufficient_materials.length > 0) {
+                html += '<div class="mb-4">';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
+                data.insufficient_materials.forEach(function (detail) {
+                    html += '<li>' + detail + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Tip
+            html += '<div class="mt-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">';
+            html += '<i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before proceeding.';
+            html += '</div>';
+
+            // Reuse the deduction warning modal
+            $('#deductionWarningContent').html(html);
+            $('#deductionWarningModal').removeClass('hidden');
         }
 
-        // Summary
-        if (deduction) {
-            html += '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">';
-            html += '<i class="fas fa-info-circle mr-1"></i> ';
-            html += 'Deducted raw materials for <strong>' + (deduction.products_deducted || 0) +
-                '</strong> of <strong>' + (deduction.total_products || 0) + '</strong> products.';
-            html += '</div>';
-        }
+        /**
+         * Show a warning modal with deduction issues after inventory creation.
+         * Alerts for products with no recipe and/or insufficient raw material stock.
+         */
+        function showDeductionWarningModal(warnings, deduction) {
+            let html = '';
 
-        // Use the deduction warning modal
-        $('#deductionWarningContent').html(html);
-        $('#deductionWarningModal').removeClass('hidden');
-    }
+            // Products with no recipe
+            if (deduction && deduction.no_recipe_products && deduction.no_recipe_products.length > 0) {
+                html += '<div class="mb-4">';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
+                html +=
+                    '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
+                deduction.no_recipe_products.forEach(function (name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Products with insufficient stock
+            if (deduction && deduction.insufficient_products && deduction.insufficient_products.length > 0) {
+                html += '<div class="mb-4">';
+                html +=
+                    '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
+                html +=
+                    '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
+                html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
+                deduction.insufficient_products.forEach(function (name) {
+                    html += '<li>' + name + '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Summary
+            if (deduction) {
+                html += '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">';
+                html += '<i class="fas fa-info-circle mr-1"></i> ';
+                html += 'Deducted raw materials for <strong>' + (deduction.products_deducted || 0) +
+                    '</strong> of <strong>' + (deduction.total_products || 0) + '</strong> products.';
+                html += '</div>';
+            }
+
+            // Use the deduction warning modal
+            $('#deductionWarningContent').html(html);
+            $('#deductionWarningModal').removeClass('hidden');
+        }
     </script>
 
     <!-- Deduction Warning Modal -->
