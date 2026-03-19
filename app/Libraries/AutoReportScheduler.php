@@ -126,17 +126,13 @@ class AutoReportScheduler
     {
         $targetDate = $date ?: date('Y-m-d');
         $manualSlot = self::normalizeSlot($slot) ?? self::resolveManualSlotForNow();
-        $includeMissedFirstShift = $manualSlot === 'pm' && !self::hasShiftBeenReported($targetDate, 'am');
 
-        $sent = self::sendInventoryReport($manualSlot, $targetDate, $includeMissedFirstShift);
+        $sent = self::sendInventoryReport($manualSlot, $targetDate);
         if (!$sent) {
             return false;
         }
 
         self::markShiftReported($targetDate, $manualSlot);
-        if ($includeMissedFirstShift) {
-            self::markShiftReported($targetDate, 'am');
-        }
 
         return true;
     }
@@ -151,7 +147,7 @@ class AutoReportScheduler
      * @param string $slot  'am' or 'pm'
      * @param string $date  'Y-m-d'
      */
-    private static function sendInventoryReport(string $slot, string $date, bool $includeMissedFirstShift = false): bool
+    private static function sendInventoryReport(string $slot, string $date): bool
     {
         $dailyStockModel = new DailyStockModel();
         $dailyStock = $dailyStockModel->checkInventoryExists($date);
@@ -167,7 +163,7 @@ class AutoReportScheduler
             return false;
         }
 
-        $shiftWindows = self::resolveShiftWindowsForSlot($slot, $date, $includeMissedFirstShift);
+        $shiftWindows = self::resolveShiftWindowsForSlot($slot, $date);
         $shiftReports = self::buildShiftReports($allItems, $date, $shiftWindows);
         if (empty($shiftReports)) {
             log_message('info', 'AutoReportScheduler: No shift data available for inventory report. Report skipped.');
@@ -237,49 +233,53 @@ class AutoReportScheduler
         if ($slot === 'am') {
             $slotTitle = 'Morning Shift Inventory Report';
             $slotSubtitle = 'Morning Shift Snapshot';
-            $headerColor = '#17a2b8';
+            $headerColor = '#fde047';
         } elseif ($slot === 'pm') {
             $slotTitle = 'Afternoon Shift Inventory Report';
             $slotSubtitle = 'Afternoon Shift Snapshot';
-            $headerColor = '#6f42c1';
+            $headerColor = '#facc15';
         } else {
             $slotTitle = 'Inventory Report';
             $slotSubtitle = 'Manually Generated Snapshot';
-            $headerColor = '#0f766e';
+            $headerColor = '#fbbf24';
         }
 
         $totalProducts = 0;
         $totalSales = 0.0;
-        $totalDirectCostUsed = 0.0;
+        $totalRawMaterialsUsed = 0.0;
         $totalOverheadCostUsed = 0.0;
         foreach ($shiftReports as $report) {
             $totalProducts += intval($report['totals']['products'] ?? 0);
             $totalSales += floatval($report['totals']['sales'] ?? 0);
-            $totalDirectCostUsed += floatval($report['totals']['direct_cost_used'] ?? 0);
+            $totalRawMaterialsUsed += floatval($report['totals']['raw_materials_used'] ?? 0);
             $totalOverheadCostUsed += floatval($report['totals']['overhead_cost_used'] ?? 0);
         }
+
+        $showOverheadColumn = true;
 
         $shiftBlocks = '';
         foreach ($shiftReports as $report) {
             $label = htmlspecialchars((string) ($report['label'] ?? 'Shift'));
             $timeRange = htmlspecialchars((string) ($report['time_range'] ?? ''));
-            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], true);
-            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], true);
-            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], false);
+            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], true, $showOverheadColumn);
+            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], true, $showOverheadColumn);
+            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], false, $showOverheadColumn);
 
             $shiftBlocks .= "
-                <div style='margin-top:20px;padding:14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;'>
-                    <div style='font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;'>{$label}</div>
-                    <div style='font-size:12px;color:#6b7280;margin-bottom:12px;'>{$timeRange}</div>
+                <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
+                    <div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;'>
+                        <div style='font-size:16px;font-weight:700;color:#0f172a;'>{$label}</div>
+                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>{$timeRange}</span>
+                    </div>
 
-                    <div style='font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;'>BREAD</div>
-                    " . self::buildCategoryTable($bakeryRows, true) . "
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
+                    " . self::buildCategoryTable($bakeryRows, true, $showOverheadColumn) . "
 
-                    <div style='font-size:13px;font-weight:700;color:#111827;margin:14px 0 6px;'>GROCERY</div>
-                    " . self::buildCategoryTable($groceryRows, true) . "
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>GROCERY</div>
+                    " . self::buildCategoryTable($groceryRows, true, $showOverheadColumn) . "
 
-                    <div style='font-size:13px;font-weight:700;color:#111827;margin:14px 0 6px;'>DRINKS</div>
-                    " . self::buildCategoryTable($drinksRows, false) . "
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>DRINKS</div>
+                    " . self::buildCategoryTable($drinksRows, false, $showOverheadColumn) . "
                 </div>";
         }
 
@@ -290,12 +290,12 @@ class AutoReportScheduler
         <head>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-                .container { max-width: 750px; margin: 0 auto; padding: 20px; }
-                .header { background-color: {$headerColor}; color: white; padding: 25px; text-align: center; border-radius: 5px 5px 0 0; }
-                .content { background-color: #f9f9f9; padding: 25px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+                body { font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937; margin: 0; padding: 0; background:#f1f5f9; }
+                .container { max-width: 780px; margin: 0 auto; padding: 20px; }
+                .header { background-color: {$headerColor}; color: #b91c1c; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 3px solid #16a34a; }
+                .content { background-color: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top:none; border-radius: 0 0 14px 14px; }
                 table { width: 100%; border-collapse: collapse; }
-                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
             </style>
         </head>
         <body>
@@ -303,65 +303,86 @@ class AutoReportScheduler
 
                 <!-- Header -->
                 <div class='header'>
-                    <h1 style='margin:0;font-size:24px;'>{$slotTitle}</h1>
-                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery &mdash; {$slotSubtitle}</p>
+                    <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#991b1b;'>E n' G Bakery &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
-
-                    <!-- Report Metadata -->
-                    <table style='margin-bottom:20px;'>
+                    <table style='margin-bottom:16px;'>
                         <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;width:140px;'><strong>Report Reference:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportRef}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Report Date:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportDate}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Generated At:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportTime}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Product Rows:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$totalProducts}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Sales:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>₱" . number_format($totalSales, 2) . "</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Direct Cost Used:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>₱" . number_format($totalDirectCostUsed, 2) . "</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Overhead Cost Used:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>₱" . number_format($totalOverheadCostUsed, 2) . "</td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#dc2626;color:#ffffff;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;opacity:.85;'>OVERALL TOTAL SALES</div>
+                                    <div style='font-size:20px;font-weight:800;margin-top:4px;'>₱" . number_format($totalSales, 2) . "</div>
+                                </div>
+                            </td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#ecfeff;color:#0f766e;border:1px solid #99f6e4;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;'>TOTAL RAW MATERIALS USED</div>
+                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</div>
+                                </div>
+                            </td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#ecfdf5;color:#166534;border:1px solid #bbf7d0;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;'>TOTAL PRODUCT ROWS</div>
+                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>" . intval($totalProducts) . "</div>
+                                </div>
+                            </td>
                         </tr>
                     </table>
 
-                    <hr style='border:none;border-top:1px solid #ddd;margin:15px 0;'>
+                    <div style='margin:4px 6px 10px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:12px;'>
+                        Total Overhead Cost Used: <strong>₱" . number_format($totalOverheadCostUsed, 2) . "</strong>
+                    </div>
+
+                    <!-- Report Metadata -->
+                    <table style='margin-bottom:20px;background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;width:160px;'><strong>Report Reference:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportRef}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Report Date:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportDate}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Generated At:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportTime}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Product Rows:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$totalProducts}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Overall Total Sales:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalSales, 2) . "</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Raw Materials Used:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</td>
+                        </tr>
+                    </table>
+
+                    <hr style='border:none;border-top:1px solid #dbeafe;margin:16px 0;'>
 
                     <p style='font-size:14px;'>Dear Owner,</p>
                     <p style='font-size:14px;'>
                         Below is your <strong>{$slotSubtitle}</strong> inventory snapshot for <strong>{$reportDate}</strong>.
-                        Sales, direct cost used, and overhead cost used are computed per shift and per product using the required formulas.
+                        Sales and raw materials used are computed per shift and per product using the required formulas.
                     </p>
 
                     {$shiftBlocks}
 
-                    <hr style='border:none;border-top:1px solid #ddd;margin:25px 0 15px;'>
+                    <hr style='border:none;border-top:1px solid #dbeafe;margin:24px 0 14px;'>
 
-                    <p style='font-size:14px;'>
+                    <div style='font-size:13px;background:#fffbeb;border:1px solid #fde68a;color:#78350f;padding:12px;border-radius:10px;'>
                         Formula used:
                         <strong>Sales = QTY SOLD × SRP</strong>
                         and
-                        <strong>Direct Cost Used = Direct Cost per Piece × (PO + QTY SOLD)</strong>.
-                        and
-                        <strong>Overhead Cost Used = Overhead Cost per Piece × (PO + QTY SOLD)</strong>.
+                        <strong>Raw Materials Used = Raw Material Cost per Piece × (PO + QTY SOLD)</strong>.
+                        and <strong>Overhead Cost Used = Overhead Cost per Piece × (PO + QTY SOLD)</strong>.
                         For the full inventory management interface, visit the <strong>Inventory</strong> page in the system.
-                    </p>
+                    </div>
 
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
@@ -380,7 +401,7 @@ class AutoReportScheduler
         </html>";
     }
 
-    private static function resolveShiftWindowsForSlot(string $slot, string $date, bool $includeMissedFirstShift = false): array
+    private static function resolveShiftWindowsForSlot(string $slot, string $date): array
     {
         $all = ShiftSchedule::getShiftWindowsForDate($date);
         $byKey = [];
@@ -396,18 +417,6 @@ class AutoReportScheduler
         }
 
         if ($slot === 'pm') {
-            if ($includeMissedFirstShift) {
-                $windows = [];
-                if (isset($byKey['shift_a'])) {
-                    $windows[] = $byKey['shift_a'];
-                }
-                if (isset($byKey['shift_b'])) {
-                    $windows[] = $byKey['shift_b'];
-                }
-
-                return !empty($windows) ? $windows : array_slice($all, 0, 2);
-            }
-
             return isset($byKey['shift_b']) ? [$byKey['shift_b']] : array_slice($all, 1, 1);
         }
 
@@ -448,8 +457,8 @@ class AutoReportScheduler
                 $srp = self::resolveSrp($item);
                 $sales = $qtySold * $srp;
                 $directCostPerPiece = self::resolveDirectCostPerPiece($item);
+                $rawMaterialsUsed = $directCostPerPiece * ($po + $qtySold);
                 $overheadCostPerPiece = self::resolveOverheadCostPerPiece($item);
-                $directCostUsed = $directCostPerPiece * ($po + $qtySold);
                 $overheadCostUsed = $overheadCostPerPiece * ($po + $qtySold);
 
                 $row = [
@@ -460,8 +469,7 @@ class AutoReportScheduler
                     'end' => intval($item['ending_stock'] ?? 0),
                     'qty_sold' => $qtySold,
                     'sales' => $sales,
-                    'direct_cost_used' => $directCostUsed,
-                    'raw_materials_used' => $directCostUsed,
+                    'raw_materials_used' => $rawMaterialsUsed,
                     'overhead_cost_used' => $overheadCostUsed,
                 ];
 
@@ -483,8 +491,7 @@ class AutoReportScheduler
                 'totals' => [
                     'products' => count($bakery) + count($grocery) + count($drinks),
                     'sales' => self::sumRows($bakery, 'sales') + self::sumRows($grocery, 'sales') + self::sumRows($drinks, 'sales'),
-                    'direct_cost_used' => self::sumRows($bakery, 'direct_cost_used') + self::sumRows($grocery, 'direct_cost_used') + self::sumRows($drinks, 'direct_cost_used'),
-                    'raw_materials_used' => self::sumRows($bakery, 'direct_cost_used') + self::sumRows($grocery, 'direct_cost_used') + self::sumRows($drinks, 'direct_cost_used'),
+                    'raw_materials_used' => self::sumRows($bakery, 'raw_materials_used') + self::sumRows($grocery, 'raw_materials_used') + self::sumRows($drinks, 'raw_materials_used'),
                     'overhead_cost_used' => self::sumRows($bakery, 'overhead_cost_used') + self::sumRows($grocery, 'overhead_cost_used') + self::sumRows($drinks, 'overhead_cost_used'),
                 ],
             ];
@@ -572,11 +579,11 @@ class AutoReportScheduler
         return $sum;
     }
 
-    private static function buildCategoryRows(array $rows, bool $showBegPoEnd): array
+    private static function buildCategoryRows(array $rows, bool $showBegPoEnd, bool $showOverheadColumn): array
     {
         $htmlRows = '';
         $totalSales = 0.0;
-        $totalDirectUsed = 0.0;
+        $totalRawUsed = 0.0;
         $totalOverheadUsed = 0.0;
 
         foreach ($rows as $row) {
@@ -587,11 +594,11 @@ class AutoReportScheduler
             $end = intval($row['end'] ?? 0);
             $qtySold = intval($row['qty_sold'] ?? 0);
             $sales = floatval($row['sales'] ?? 0);
-            $directUsed = floatval($row['direct_cost_used'] ?? ($row['raw_materials_used'] ?? 0));
+            $rawUsed = floatval($row['raw_materials_used'] ?? 0);
             $overheadUsed = floatval($row['overhead_cost_used'] ?? 0);
 
             $totalSales += $sales;
-            $totalDirectUsed += $directUsed;
+            $totalRawUsed += $rawUsed;
             $totalOverheadUsed += $overheadUsed;
 
             $htmlRows .= "<tr>
@@ -611,24 +618,30 @@ class AutoReportScheduler
             $htmlRows .= "
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($directUsed, 2) . "</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
+
+            if ($showOverheadColumn) {
+                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>";
+            }
+
+            $htmlRows .= "
             </tr>";
         }
 
         return [
             'rows' => $htmlRows,
             'total_sales' => $totalSales,
-            'total_direct_used' => $totalDirectUsed,
+            'total_raw_used' => $totalRawUsed,
             'total_overhead_used' => $totalOverheadUsed,
         ];
     }
 
-    private static function buildCategoryTable(array $categoryData, bool $showBegPoEnd): string
+    private static function buildCategoryTable(array $categoryData, bool $showBegPoEnd, bool $showOverheadColumn): string
     {
         $rowsHtml = (string) ($categoryData['rows'] ?? '');
         $totalSales = floatval($categoryData['total_sales'] ?? 0);
-        $totalDirectUsed = floatval($categoryData['total_direct_used'] ?? 0);
+        $totalRawUsed = floatval($categoryData['total_raw_used'] ?? 0);
         $totalOverheadUsed = floatval($categoryData['total_overhead_used'] ?? 0);
 
         $headers = "
@@ -648,15 +661,28 @@ class AutoReportScheduler
         $headers .= "
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SALES</th>
-            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>DIRECT COST USED</th>
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>RAW MATERIALS USED</th>";
+
+        if ($showOverheadColumn) {
+            $headers .= "
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>OVERHEAD COST USED</th>";
+        }
 
         if (trim($rowsHtml) === '') {
-            $colspan = $showBegPoEnd ? 9 : 7;
+            $baseColspan = $showBegPoEnd ? 8 : 6;
+            $colspan = $showOverheadColumn ? $baseColspan + 1 : $baseColspan;
             $rowsHtml = "<tr><td colspan='{$colspan}' style='padding:10px;font-size:12px;color:#6b7280;text-align:center;border-bottom:1px solid #e5e7eb;'>No items</td></tr>";
         }
 
         $colspanForTotalLabel = $showBegPoEnd ? 6 : 4;
+        $totalCells = "
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalRawUsed, 2) . "</td>";
+
+        if ($showOverheadColumn) {
+            $totalCells .= "
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalOverheadUsed, 2) . "</td>";
+        }
 
         return "
             <div style='overflow-x:auto;'>
@@ -666,9 +692,7 @@ class AutoReportScheduler
                         {$rowsHtml}
                         <tr>
                             <td colspan='{$colspanForTotalLabel}' style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>TOTAL:</td>
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalDirectUsed, 2) . "</td>
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalOverheadUsed, 2) . "</td>
+                            {$totalCells}
                         </tr>
                     </tbody>
                 </table>

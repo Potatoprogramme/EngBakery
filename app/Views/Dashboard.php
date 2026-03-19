@@ -454,8 +454,11 @@
 
                 <p id="salesTrendSubtitle" class="text-xs sm:text-sm text-gray-500 mb-3">Daily sales for the last 14 days.</p>
 
-                <div class="relative h-56 sm:h-64 rounded-lg border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-2 sm:p-3">
+                <div id="salesTrendCanvasWrap" class="relative h-56 sm:h-64 rounded-lg border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-2 sm:p-3">
                     <canvas id="salesTrendCanvas" class="w-full h-full"></canvas>
+                    <div id="salesTrendTooltip"
+                        class="hidden absolute z-20 pointer-events-none rounded-md bg-gray-900/95 text-white text-[11px] leading-tight px-2 py-1 shadow-lg whitespace-nowrap">
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap justify-between items-center mt-3 pt-3 border-t border-gray-100 gap-2 text-xs sm:text-sm">
@@ -564,6 +567,22 @@
         const salesTrendData = <?= json_encode($salesTrend ?? ['daily' => [], 'weekly' => [], 'monthly' => []], JSON_UNESCAPED_UNICODE) ?>;
         let currentTrendMode = 'daily';
         let currentChartType = 'line';
+        let trendRenderRafId = null;
+        let trendResizeTimer = null;
+        let trendState = { width: 0, height: 0, mode: '', type: '' };
+        let trendPlotPoints = [];
+        let trendLastPoints = [];
+
+        const trendEls = {
+            canvas: null,
+            subtitle: null,
+            low: null,
+            high: null,
+            total: null,
+            title: null,
+            tooltip: null,
+            canvasWrap: null
+        };
 
         function formatPeso(value) {
             return '₱' + (Number(value) || 0).toLocaleString('en-PH', {
@@ -572,29 +591,47 @@
             });
         }
 
-        function drawSalesTrend(mode) {
+        function drawSalesTrend(mode, force = false) {
             const points = Array.isArray(salesTrendData[mode]) ? salesTrendData[mode] : [];
-            const canvas = document.getElementById('salesTrendCanvas');
+            const canvas = trendEls.canvas;
             if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
             const ratio = window.devicePixelRatio || 1;
             const cssWidth = canvas.clientWidth || 700;
             const cssHeight = canvas.clientHeight || 260;
+
+            if (!force && trendState.width === cssWidth && trendState.height === cssHeight && trendState.mode === mode && trendState.type === currentChartType) {
+                return;
+            }
+
+            trendState = {
+                width: cssWidth,
+                height: cssHeight,
+                mode,
+                type: currentChartType
+            };
+
             canvas.width = Math.floor(cssWidth * ratio);
             canvas.height = Math.floor(cssHeight * ratio);
             ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
+            // Ensure consistent light canvas base before drawing.
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, cssWidth, cssHeight);
             ctx.clearRect(0, 0, cssWidth, cssHeight);
+            trendPlotPoints = [];
 
             if (!points.length) {
                 ctx.fillStyle = '#6b7280';
                 ctx.font = '14px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText('No sales data available', cssWidth / 2, cssHeight / 2);
-                document.getElementById('salesTrendLow').textContent = formatPeso(0);
-                document.getElementById('salesTrendHigh').textContent = formatPeso(0);
-                document.getElementById('salesTrendTotal').textContent = formatPeso(0);
+                trendEls.low.textContent = formatPeso(0);
+                trendEls.high.textContent = formatPeso(0);
+                trendEls.total.textContent = formatPeso(0);
+                trendLastPoints = [];
+                hideTrendTooltip();
                 return;
             }
 
@@ -604,19 +641,19 @@
             const maxVal = Math.max(...values);
             const totalVal = values.reduce((sum, val) => sum + val, 0);
 
-            document.getElementById('salesTrendLow').textContent = formatPeso(minVal);
-            document.getElementById('salesTrendHigh').textContent = formatPeso(maxVal);
-            document.getElementById('salesTrendTotal').textContent = formatPeso(totalVal);
+            trendEls.low.textContent = formatPeso(minVal);
+            trendEls.high.textContent = formatPeso(maxVal);
+            trendEls.total.textContent = formatPeso(totalVal);
 
             const subtitles = {
                 daily: 'Daily sales for the last 14 days.',
                 weekly: 'Weekly sales for the last 8 weeks.',
                 monthly: 'Monthly sales for the last 12 months.'
             };
-            const subtitleEl = document.getElementById('salesTrendSubtitle');
-            if (subtitleEl) subtitleEl.textContent = subtitles[mode] || subtitles.daily;
+            if (trendEls.subtitle) trendEls.subtitle.textContent = subtitles[mode] || subtitles.daily;
 
-            const pad = { top: 18, right: 18, bottom: 40, left: 46 };
+            const isSmallScreen = window.innerWidth < 640;
+            const pad = isSmallScreen ? { top: 16, right: 12, bottom: 34, left: 42 } : { top: 18, right: 18, bottom: 40, left: 46 };
             const chartW = cssWidth - pad.left - pad.right;
             const chartH = cssHeight - pad.top - pad.bottom;
             const safeMin = 0;
@@ -645,9 +682,15 @@
 
             // X labels
             ctx.textAlign = 'center';
+            const maxLabels = isSmallScreen ? 5 : 10;
+            const labelStep = Math.max(1, Math.ceil(labels.length / maxLabels));
             labels.forEach((label, idx) => {
+                if (idx % labelStep !== 0 && idx !== labels.length - 1) {
+                    return;
+                }
                 const x = pad.left + stepX * idx;
-                const shortLabel = label.length > 10 ? label.slice(0, 10) + '…' : label;
+                const maxLen = isSmallScreen ? 6 : 10;
+                const shortLabel = label.length > maxLen ? label.slice(0, maxLen) + '…' : label;
                 ctx.fillText(shortLabel, x, cssHeight - 12);
             });
 
@@ -663,6 +706,13 @@
 
                     ctx.fillStyle = '#16a34a';
                     ctx.fillRect(leftX, topY, barW, barH);
+
+                    trendPlotPoints.push({
+                        x: centerX,
+                        y: topY,
+                        label: labels[idx],
+                        value: val
+                    });
                 });
             } else {
                 // Line
@@ -683,10 +733,84 @@
                     const x = pad.left + stepX * idx;
                     const y = scaleY(val);
                     ctx.beginPath();
-                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.arc(x, y, isSmallScreen ? 2.5 : 3, 0, Math.PI * 2);
                     ctx.fill();
+
+                    trendPlotPoints.push({
+                        x,
+                        y,
+                        label: labels[idx],
+                        value: val
+                    });
                 });
             }
+
+            trendLastPoints = trendPlotPoints;
+        }
+
+        function hideTrendTooltip() {
+            if (trendEls.tooltip) {
+                trendEls.tooltip.classList.add('hidden');
+            }
+        }
+
+        function showTrendTooltip(clientX, clientY) {
+            if (!trendEls.canvas || !trendEls.tooltip || !trendEls.canvasWrap || !trendLastPoints.length) {
+                return;
+            }
+
+            const rect = trendEls.canvas.getBoundingClientRect();
+            const localX = clientX - rect.left;
+            const localY = clientY - rect.top;
+
+            if (localX < 0 || localY < 0 || localX > rect.width || localY > rect.height) {
+                hideTrendTooltip();
+                return;
+            }
+
+            let nearest = trendLastPoints[0];
+            let minDistance = Math.abs(localX - nearest.x);
+
+            for (let i = 1; i < trendLastPoints.length; i++) {
+                const candidate = trendLastPoints[i];
+                const distance = Math.abs(localX - candidate.x);
+                if (distance < minDistance) {
+                    nearest = candidate;
+                    minDistance = distance;
+                }
+            }
+
+            trendEls.tooltip.innerHTML = `${nearest.label}<br><strong>${formatPeso(nearest.value)}</strong>`;
+            trendEls.tooltip.classList.remove('hidden');
+
+            const wrapRect = trendEls.canvasWrap.getBoundingClientRect();
+            const tipRect = trendEls.tooltip.getBoundingClientRect();
+            let left = (nearest.x + 10);
+            let top = (nearest.y - tipRect.height - 8);
+
+            if (left + tipRect.width > wrapRect.width - 6) {
+                left = wrapRect.width - tipRect.width - 6;
+            }
+            if (left < 6) {
+                left = 6;
+            }
+            if (top < 6) {
+                top = nearest.y + 10;
+            }
+
+            trendEls.tooltip.style.left = `${left}px`;
+            trendEls.tooltip.style.top = `${top}px`;
+        }
+
+        function scheduleTrendDraw(force = false) {
+            if (trendRenderRafId !== null) {
+                cancelAnimationFrame(trendRenderRafId);
+            }
+
+            trendRenderRafId = requestAnimationFrame(() => {
+                trendRenderRafId = null;
+                drawSalesTrend(currentTrendMode, force);
+            });
         }
 
         function setTrendMode(mode) {
@@ -698,7 +822,7 @@
                 btn.classList.toggle('bg-white', !active);
                 btn.classList.toggle('text-gray-600', !active);
             });
-            drawSalesTrend(mode);
+            scheduleTrendDraw(true);
         }
 
         function setChartType(type) {
@@ -712,16 +836,52 @@
                 btn.classList.toggle('text-gray-600', !active);
             });
 
-            const titleEl = document.getElementById('salesTrendTitle');
-            if (titleEl) {
+            if (trendEls.title) {
                 const iconClass = currentChartType === 'bar' ? 'fa-chart-bar' : 'fa-chart-line';
-                titleEl.innerHTML = `<i class="fas ${iconClass} text-primary mr-2"></i>Sales Report Trend`;
+                trendEls.title.innerHTML = `<i class="fas ${iconClass} text-primary mr-2"></i>Sales Report Trend`;
             }
 
-            drawSalesTrend(currentTrendMode);
+            scheduleTrendDraw(true);
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            trendEls.canvas = document.getElementById('salesTrendCanvas');
+            trendEls.subtitle = document.getElementById('salesTrendSubtitle');
+            trendEls.low = document.getElementById('salesTrendLow');
+            trendEls.high = document.getElementById('salesTrendHigh');
+            trendEls.total = document.getElementById('salesTrendTotal');
+            trendEls.title = document.getElementById('salesTrendTitle');
+            trendEls.tooltip = document.getElementById('salesTrendTooltip');
+            trendEls.canvasWrap = document.getElementById('salesTrendCanvasWrap');
+
+            if (trendEls.canvas) {
+                trendEls.canvas.addEventListener('mousemove', function (event) {
+                    showTrendTooltip(event.clientX, event.clientY);
+                });
+
+                trendEls.canvas.addEventListener('mouseleave', function () {
+                    hideTrendTooltip();
+                });
+
+                trendEls.canvas.addEventListener('touchstart', function (event) {
+                    const touch = event.touches && event.touches[0];
+                    if (touch) {
+                        showTrendTooltip(touch.clientX, touch.clientY);
+                    }
+                }, { passive: true });
+
+                trendEls.canvas.addEventListener('touchmove', function (event) {
+                    const touch = event.touches && event.touches[0];
+                    if (touch) {
+                        showTrendTooltip(touch.clientX, touch.clientY);
+                    }
+                }, { passive: true });
+
+                trendEls.canvas.addEventListener('touchend', function () {
+                    hideTrendTooltip();
+                }, { passive: true });
+            }
+
             document.querySelectorAll('.sales-trend-toggle').forEach((btn) => {
                 btn.addEventListener('click', function () {
                     setTrendMode(this.getAttribute('data-mode') || 'daily');
@@ -735,8 +895,16 @@
             });
 
             window.addEventListener('resize', function () {
-                drawSalesTrend(currentTrendMode);
-            });
+                if (trendResizeTimer !== null) {
+                    clearTimeout(trendResizeTimer);
+                }
+
+                trendResizeTimer = setTimeout(function () {
+                    trendResizeTimer = null;
+                    hideTrendTooltip();
+                    scheduleTrendDraw(true);
+                }, 120);
+            }, { passive: true });
 
             setTrendMode('daily');
             setChartType('line');

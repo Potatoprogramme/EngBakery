@@ -406,7 +406,8 @@
     <!-- Edit Inventory Modal -->
     <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-black/40" id="editInventoryModalBackdrop"></div>
-        <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
+        <div
+            class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
             <button type="button" id="editInventoryModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-lg"></i>
@@ -414,7 +415,8 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Edit Inventory Item</h3>
             <p class="text-sm text-gray-500 mb-5">Product: <span id="editProductName"
                     class="font-medium text-gray-700"></span></p>
-            <div id="editAdjustmentGuide" class="hidden mb-4 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
+            <div id="editAdjustmentGuide"
+                class="hidden mb-4 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
                 <strong>Adjustment Guide:</strong> Use <strong>+</strong> to add and <strong>-</strong> to subtract.
                 <strong>Pull Out</strong> accepts positive values only.
             </div>
@@ -431,7 +433,8 @@
                 <input type="hidden" id="editOldQuantitySold" value="0">
 
                 <div class="mb-4">
-                    <label for="editBeginningStock" id="editBeginningLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
+                    <label for="editBeginningStock" id="editBeginningLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseBeginning"
@@ -466,7 +469,8 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="editPullOutQuantity" id="editPullOutLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
+                    <label for="editPullOutQuantity" id="editPullOutLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
@@ -474,18 +478,22 @@
                 </div>
 
                 <div class="mb-4 hidden" id="editEndingGroup">
-                    <label for="editEndingStock" id="editEndingLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Ending
+                    <label for="editEndingStock" id="editEndingLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Ending
                         Stock</label>
                     <input type="number" id="editEndingStock" name="ending_stock" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Use + to add or - to subtract from current ending stock</p>
+                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Use + to add or - to subtract from current
+                        ending stock</p>
                 </div>
 
                 <div class="mb-4">
-                    <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining (Preview)</label>
+                    <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining
+                        (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
                         class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
-                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields above.</p>
+                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields
+                        above.</p>
                 </div>
 
                 <div class="mb-6">
@@ -616,7 +624,7 @@
                     <option value="morning">Morning shift</option>
                     <option value="afternoon">Afternoon shift</option>
                 </select>
-                <p class="mt-1 text-xs text-gray-500">If morning was missed, sending afternoon will include morning and afternoon.</p>
+                <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
             </div>
             <div class="flex gap-3">
                 <button type="button" id="btnConfirmSendInventoryReport"
@@ -1423,7 +1431,7 @@
 
         return normalizedGroups.map(function(group, groupIndex) {
             const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function(
-            item) {
+                item) {
                 const productData = Object.assign({}, getTodayDistProductData(item && item
                     .product_id) || {}, item || {});
                 const piecesCalculated = getTodayDistPieces(item, productData);
@@ -2399,7 +2407,7 @@
             },
             complete: function() {
                 $btn.prop('disabled', false).html(
-                '<i class="fas fa-download mr-1"></i> Load All Remaining');
+                    '<i class="fas fa-download mr-1"></i> Load All Remaining');
             }
         });
     }
@@ -2732,22 +2740,23 @@
             $('#editOldBeginningStock').val(beginningStock);
             $('#editOldPullOutQuantity').val(pullOutQty);
             $('#editOldEndingStock').val(endingStock);
-            const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty - endingStock);
+            const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
+                endingStock);
             $('#editOldQuantitySold').val(quantitySold);
 
             if (isAdjustmentMode) {
-                $('#editBeginningLabel').text('Beginning Adjustment (+ add, - subtract)');
-                $('#editPullOutLabel').text('Pull Out Adjustment (+ add only)');
-                $('#editEndingLabel').text('Ending Adjustment (+ add, - subtract)');
+                $('#editBeginningLabel').text('Beginning Stock ');
+                $('#editPullOutLabel').text('Pull Out Quantity (add only)');
+                $('#editEndingLabel').text('Ending Stock ');
 
                 $('#editAdjustmentGuide').removeClass('hidden');
-                $('#editBeginningHint').text('Examples: +10 adds stock, -5 removes stock');
-                $('#editPullOutHint').text('Enter positive numbers only (e.g., 3, 5, 12)');
-                $('#editEndingHint').text('Examples: +4 increases ending, -2 decreases ending');
+                $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
+                $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
+                $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
 
-                $('#editBeginningStock').val(0).removeAttr('min');
-                $('#editPullOutQuantity').val(0).attr('min', 0);
-                $('#editEndingStock').val(0).removeAttr('min');
+                $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
+                $('#editEndingStock').val(endingStock).attr('min', 0);
                 $('#editEndingGroup').removeClass('hidden');
             } else {
                 $('#editBeginningLabel').text('Beginning Stock');
@@ -2786,9 +2795,8 @@
 
     // +/- buttons for beginning stock
     $('#btnDecreaseBeginning').on('click', function() {
-        const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
         const current = parseInt($('#editBeginningStock').val()) || 0;
-        $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
+        $('#editBeginningStock').val(Math.max(0, current - 1));
         updateBeginningStockDisplay();
     });
 
@@ -2823,9 +2831,9 @@
         let projectedRemaining = 0;
 
         if (isAdjustmentMode) {
-            const projectedBeginning = oldBeginning + beginningInput;
-            const projectedPullOut = oldPullOut + pullOutInput;
-            projectedRemaining = oldEnding + endingInput + beginningInput - pullOutInput;
+            const projectedBeginning = beginningInput;
+            const projectedPullOut = pullOutInput;
+            projectedRemaining = endingInput;
 
             $('#editRemainingHint').text(
                 'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
@@ -2850,7 +2858,7 @@
         const expected = distQty + carryQty;
         const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
         const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-        const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
+        const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
 
         // Distribution limit info bar
         if (expected > 0) {
@@ -2977,7 +2985,7 @@
         const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
         const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
         const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
-        const endingAdjustment = parseInt($('#editEndingStock').val()) || 0;
+        const endingStock = parseInt($('#editEndingStock').val()) || 0;
         const notes = $('#editNotes').val();
 
         const distQty = parseInt($('#editDistributionQty').val()) || 0;
@@ -2991,12 +2999,13 @@
             const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
             const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
 
-            const projectedBeginning = oldBeginning + beginningStock;
-            const projectedPullOut = oldPullOut + pullOutQuantity;
-            const projectedEnding = oldEnding + endingAdjustment;
+            const projectedBeginning = beginningStock;
+            const projectedPullOut = pullOutQuantity;
+            const projectedEnding = endingStock;
 
-            if (pullOutQuantity < 0) {
-                showToast('warning', 'Pulled Out adjustment only allows adding values', 2500);
+            if (projectedPullOut < oldPullOut) {
+                showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
+                    2500);
                 return;
             }
 
@@ -3006,16 +3015,17 @@
             }
 
             if (expected > 0 && projectedBeginning !== expected && !notes.trim()) {
-                showToast('warning', 'Notes are required when beginning stock differs from expected (' + expected + ')', 3000);
+                showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                    expected + ')', 3000);
                 $('#editNotes').focus();
                 return;
             }
 
             payload = {
                 adjustment_mode: true,
-                beginning_adjustment: beginningStock,
-                pull_out_adjustment: pullOutQuantity,
-                ending_adjustment: endingAdjustment,
+                beginning_stock: projectedBeginning,
+                pull_out_quantity: projectedPullOut,
+                ending_stock: projectedEnding,
                 notes: notes
             };
         } else {
@@ -3025,7 +3035,8 @@
             }
 
             if (expected > 0 && beginningStock !== expected && !notes.trim()) {
-                showToast('warning', 'Notes are required when beginning stock differs from expected (' + expected + ')', 3000);
+                showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                    expected + ')', 3000);
                 $('#editNotes').focus();
                 return;
             }
@@ -3089,7 +3100,7 @@
                     // Clear the table
                     $('#materialsTableBody').html(
                         '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
-                        );
+                    );
                     // Reset date/time display
                     $('#timeRange').text('--:-- - --:--');
                     // Show add inventory buttons since no inventory exists
@@ -3156,7 +3167,7 @@
                         }
                         select.append(
                             `<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`
-                            );
+                        );
                     });
                     $('#noProductsMessage').addClass('hidden');
                     $('#btnSubmitAddProduct').prop('disabled', false);
