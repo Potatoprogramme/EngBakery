@@ -7,7 +7,7 @@ class DashboardController extends BaseController
     public function dashboard()
     {
         $sessionData = $this->getSessionData();
-        $data = $sessionData;
+        $data = array_merge($sessionData, $this->getDashboardData());
 
         if ($redirect = $this->redirectIfNotLoggedIn()) {
             return $redirect;
