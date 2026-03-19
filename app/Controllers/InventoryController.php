@@ -772,17 +772,10 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+        if (!$json) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Invalid input data'
-            ]);
-        }
-
-        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Values cannot be negative'
             ]);
         }
 
@@ -800,8 +793,88 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
 
-        $newBeginning = intval($json->beginning_stock);
-        $newPullOut = intval($json->pull_out_quantity);
+        $product = $this->productModel->find(intval($item['product_id'] ?? 0));
+        $category = strtolower(trim((string) ($product['category'] ?? '')));
+        $isAdjustmentMode = !empty($json->adjustment_mode) && in_array($category, ['bakery', 'grocery'], true);
+
+        if ($isAdjustmentMode) {
+            $hasAbsoluteInputs = isset($json->beginning_stock) || isset($json->pull_out_quantity) || isset($json->ending_stock);
+
+            if ($hasAbsoluteInputs) {
+                if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity) || !isset($json->ending_stock)) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Beginning, Pull Out, and Ending values are required'
+                    ]);
+                }
+
+                $newBeginning = intval($json->beginning_stock);
+                $newPullOut = intval($json->pull_out_quantity);
+                $newEndingStock = intval($json->ending_stock);
+
+                if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Values cannot be negative'
+                    ]);
+                }
+
+                if ($newPullOut < $oldPullOut) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Pull Out can only increase from the current value'
+                    ]);
+                }
+            } else {
+                $beginningAdjustment = intval($json->beginning_adjustment ?? 0);
+                $pullOutAdjustment = intval($json->pull_out_adjustment ?? 0);
+                $endingAdjustment = intval($json->ending_adjustment ?? 0);
+
+                if ($pullOutAdjustment < 0) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Pulled Out adjustment only allows adding values'
+                    ]);
+                }
+
+                $newBeginning = $oldBeginning + $beginningAdjustment;
+                $newPullOut = $oldPullOut + $pullOutAdjustment;
+                $newEndingStock = $oldEnding + $endingAdjustment + $beginningAdjustment - $pullOutAdjustment;
+
+                if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Adjustment results cannot go below zero'
+                    ]);
+                }
+            }
+        } else {
+            if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Invalid input data'
+                ]);
+            }
+
+            if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Values cannot be negative'
+                ]);
+            }
+
+            $newBeginning = intval($json->beginning_stock);
+            $newPullOut = intval($json->pull_out_quantity);
+
+            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+            if ($quantitySold < 0)
+                $quantitySold = 0;
+
+            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+            if ($newEndingStock < 0)
+                $newEndingStock = 0;
+        }
+
         $notes = isset($json->notes) ? trim($json->notes) : null;
 
         // Validate notes requirement when beginning stock deviates from expected
@@ -818,14 +891,6 @@ class InventoryController extends BaseController
                 'notes_required' => true
             ]);
         }
-
-        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-        if ($quantitySold < 0)
-            $quantitySold = 0;
-
-        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-        if ($newEndingStock < 0)
-            $newEndingStock = 0;
 
         $beginningDelta = $newBeginning - $oldBeginning;
         $pullOutDelta = $newPullOut - $oldPullOut;
@@ -1360,7 +1425,9 @@ class InventoryController extends BaseController
 
         try {
             $today = date('Y-m-d');
-            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today);
+            $requestData = $this->request->getJSON(true) ?: [];
+            $shift = $requestData['shift'] ?? null;
+            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today, is_string($shift) ? $shift : null);
 
             if ($sent) {
                 return $this->response->setJSON([
@@ -1372,7 +1439,7 @@ class InventoryController extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Report could not be sent. Please check email SMTP credentials/settings and try again.',
+                'message' => 'Report not sent. Inventory data was unavailable for today, or email delivery failed.',
             ]);
 
         } catch (\Throwable $e) {

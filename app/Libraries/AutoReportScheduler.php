@@ -2,7 +2,8 @@
 
 namespace App\Libraries;
 
-use App\Models\RawMaterialStockModel;
+use App\Models\DailyStockModel;
+use App\Models\DailyStockItemsModel;
 use App\Models\UsersModel;
 
 /**
@@ -47,12 +48,6 @@ class AutoReportScheduler
         'am' => ['start_h' => 15, 'end_h' => 16],  // 15:00 – 15:59
         'pm' => ['start_h' => 20, 'end_h' => 21],  // 20:00 – 20:59
     ];
-
-    /**
-     * Stock classification thresholds (must match LowStockNotifier).
-     */
-    private const CRITICAL_PCT = 25.0;
-    private const WARNING_PCT  = 40.0;
 
     // =========================================================================
     //  PUBLIC API
@@ -127,10 +122,19 @@ class AutoReportScheduler
     /**
      * Public manual trigger used by Inventory/SendReport.
      */
-    public static function sendManualReport(?string $date = null): bool
+    public static function sendManualReport(?string $date = null, ?string $slot = null): bool
     {
         $targetDate = $date ?: date('Y-m-d');
-        return self::sendInventoryReport('manual', $targetDate);
+        $manualSlot = self::normalizeSlot($slot) ?? self::resolveManualSlotForNow();
+
+        $sent = self::sendInventoryReport($manualSlot, $targetDate);
+        if (!$sent) {
+            return false;
+        }
+
+        self::markShiftReported($targetDate, $manualSlot);
+
+        return true;
     }
 
     // =========================================================================
@@ -145,49 +149,25 @@ class AutoReportScheduler
      */
     private static function sendInventoryReport(string $slot, string $date): bool
     {
-        // ── 1. Fetch ALL raw material stock entries ──────────────────────────
-        $stockModel = new RawMaterialStockModel();
-        $allItems   = $stockModel->getAllWithDetails();
-
-        if (empty($allItems)) {
-            log_message('info', 'AutoReportScheduler: No stock entries in database. Report skipped.');
+        $dailyStockModel = new DailyStockModel();
+        $dailyStock = $dailyStockModel->checkInventoryExists($date);
+        if (!$dailyStock || empty($dailyStock['daily_stock_id'])) {
+            log_message('info', 'AutoReportScheduler: No daily inventory record found. Report skipped.');
             return false;
         }
 
-        // ── 2. Classify each material by remaining stock percentage ──────────
-        $criticalItems = [];
-        $warningItems  = [];
-        $normalItems   = [];
+        $itemsModel = new DailyStockItemsModel();
+        $allItems = $itemsModel->fetchAllStockItems(intval($dailyStock['daily_stock_id']));
+        if (empty($allItems)) {
+            log_message('info', 'AutoReportScheduler: No inventory products found. Report skipped.');
+            return false;
+        }
 
-        foreach ($allItems as $item) {
-            $initial   = floatval($item['initial_qty'] ?? 0);
-            $remaining = floatval($item['remaining']   ?? 0);
-
-            if ($initial <= 0) {
-                $pct    = 0.0;
-                $status = 'critical';
-            } else {
-                $pct    = round(($remaining / $initial) * 100, 1);
-                if ($pct <= self::CRITICAL_PCT) {
-                    $status = 'critical';
-                } elseif ($pct <= self::WARNING_PCT) {
-                    $status = 'warning';
-                } else {
-                    $status = 'normal';
-                }
-            }
-
-            $item['stock_percentage'] = $pct;
-            $item['stock_status']     = $status;
-            $item['current_quantity'] = $remaining;
-
-            if ($status === 'critical') {
-                $criticalItems[] = $item;
-            } elseif ($status === 'warning') {
-                $warningItems[] = $item;
-            } else {
-                $normalItems[] = $item;
-            }
+        $shiftWindows = self::resolveShiftWindowsForSlot($slot, $date);
+        $shiftReports = self::buildShiftReports($allItems, $date, $shiftWindows);
+        if (empty($shiftReports)) {
+            log_message('info', 'AutoReportScheduler: No shift data available for inventory report. Report skipped.');
+            return false;
         }
 
         // ── 3. Resolve owner recipients ──────────────────────────────────────
@@ -204,15 +184,15 @@ class AutoReportScheduler
 
         $ownerEmails = array_column($owners, 'email');
         $slotLabelMap = [
-            'am' => 'Afternoon (3:00 PM)',
-            'pm' => 'Evening (8:00 PM)',
+            'am' => 'Morning Shift',
+            'pm' => 'Afternoon Shift',
         ];
         $slotLabel = $slotLabelMap[$slot] ?? null;
         $subject = $slotLabel
-            ? ('📦 Inventory Status Report — ' . $slotLabel . ' — ' . date('F d, Y', strtotime($date)))
-            : ('📦 Inventory Status Report — ' . date('F d, Y', strtotime($date)));
+            ? ('📦 Inventory Report — ' . $slotLabel . ' — ' . date('F d, Y', strtotime($date)))
+            : ('📦 Inventory Report — ' . date('F d, Y', strtotime($date)));
 
-        $emailBody = self::buildEmailBody($criticalItems, $warningItems, $normalItems, $slot, $date);
+        $emailBody = self::buildEmailBody($shiftReports, $slot, $date);
 
         // ── 4. Send via the configured email service ─────────────────────────
         try {
@@ -245,51 +225,63 @@ class AutoReportScheduler
     /**
      * Assemble the complete HTML email body for a scheduled inventory report.
      */
-    private static function buildEmailBody(
-        array  $criticalItems,
-        array  $warningItems,
-        array  $normalItems,
-        string $slot,
-        string $date
-    ): string {
+    private static function buildEmailBody(array $shiftReports, string $slot, string $date): string
+    {
         $reportDate   = date('F d, Y', strtotime($date));
         $reportTime   = date('h:i A');
         $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
         if ($slot === 'am') {
-            $slotTitle = 'Afternoon Inventory Report';
-            $slotSubtitle = '3:00 PM Scheduled Snapshot';
-            $headerColor = '#17a2b8';
+            $slotTitle = 'Morning Shift Inventory Report';
+            $slotSubtitle = 'Morning Shift Snapshot';
+            $headerColor = '#fde047';
         } elseif ($slot === 'pm') {
-            $slotTitle = 'Evening Inventory Report';
-            $slotSubtitle = '8:00 PM Scheduled Snapshot';
-            $headerColor = '#6f42c1';
+            $slotTitle = 'Afternoon Shift Inventory Report';
+            $slotSubtitle = 'Afternoon Shift Snapshot';
+            $headerColor = '#facc15';
         } else {
             $slotTitle = 'Inventory Report';
             $slotSubtitle = 'Manually Generated Snapshot';
-            $headerColor = '#0f766e';
+            $headerColor = '#fbbf24';
         }
 
-        $totalCritical = count($criticalItems);
-        $totalWarning  = count($warningItems);
-        $totalNormal   = count($normalItems);
-        $totalItems    = $totalCritical + $totalWarning + $totalNormal;
+        $totalProducts = 0;
+        $totalSales = 0.0;
+        $totalRawMaterialsUsed = 0.0;
+        $totalOverheadCostUsed = 0.0;
+        foreach ($shiftReports as $report) {
+            $totalProducts += intval($report['totals']['products'] ?? 0);
+            $totalSales += floatval($report['totals']['sales'] ?? 0);
+            $totalRawMaterialsUsed += floatval($report['totals']['raw_materials_used'] ?? 0);
+            $totalOverheadCostUsed += floatval($report['totals']['overhead_cost_used'] ?? 0);
+        }
 
-        // Build per-section card HTML
-        $criticalCards = self::buildItemCards($criticalItems, '#dc3545', 'LOW',     '#fff5f5');
-        $warningCards  = self::buildItemCards($warningItems,  '#e67e22', 'WARNING', '#fffdf0');
-        $normalCards   = self::buildItemCards($normalItems,   '#28a745', 'OK',      '#f0fff4');
+        $showOverheadColumn = true;
 
-        $criticalSection = $totalCritical > 0
-            ? "<h3 style='font-size:16px;color:#dc3545;margin:25px 0 15px;'>&#128308; Critical Stock ({$totalCritical})</h3>{$criticalCards}"
-            : '';
+        $shiftBlocks = '';
+        foreach ($shiftReports as $report) {
+            $label = htmlspecialchars((string) ($report['label'] ?? 'Shift'));
+            $timeRange = htmlspecialchars((string) ($report['time_range'] ?? ''));
+            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], true, $showOverheadColumn);
+            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], true, $showOverheadColumn);
+            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], false, $showOverheadColumn);
 
-        $warningSection = $totalWarning > 0
-            ? "<h3 style='font-size:16px;color:#e67e22;margin:25px 0 15px;'>&#128993; Warning Stock ({$totalWarning})</h3>{$warningCards}"
-            : '';
+            $shiftBlocks .= "
+                <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
+                    <div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;'>
+                        <div style='font-size:16px;font-weight:700;color:#0f172a;'>{$label}</div>
+                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>{$timeRange}</span>
+                    </div>
 
-        $normalSection = $totalNormal > 0
-            ? "<h3 style='font-size:16px;color:#28a745;margin:25px 0 15px;'>&#128994; Adequate Stock ({$totalNormal})</h3>{$normalCards}"
-            : '';
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
+                    " . self::buildCategoryTable($bakeryRows, true, $showOverheadColumn) . "
+
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>GROCERY</div>
+                    " . self::buildCategoryTable($groceryRows, true, $showOverheadColumn) . "
+
+                    <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>DRINKS</div>
+                    " . self::buildCategoryTable($drinksRows, false, $showOverheadColumn) . "
+                </div>";
+        }
 
         $year = date('Y');
 
@@ -298,12 +290,12 @@ class AutoReportScheduler
         <head>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-                .container { max-width: 750px; margin: 0 auto; padding: 20px; }
-                .header { background-color: {$headerColor}; color: white; padding: 25px; text-align: center; border-radius: 5px 5px 0 0; }
-                .content { background-color: #f9f9f9; padding: 25px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+                body { font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937; margin: 0; padding: 0; background:#f1f5f9; }
+                .container { max-width: 780px; margin: 0 auto; padding: 20px; }
+                .header { background-color: {$headerColor}; color: #b91c1c; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 3px solid #16a34a; }
+                .content { background-color: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top:none; border-radius: 0 0 14px 14px; }
                 table { width: 100%; border-collapse: collapse; }
-                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
             </style>
         </head>
         <body>
@@ -311,71 +303,86 @@ class AutoReportScheduler
 
                 <!-- Header -->
                 <div class='header'>
-                    <h1 style='margin:0;font-size:24px;'>{$slotTitle}</h1>
-                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery &mdash; {$slotSubtitle}</p>
+                    <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#991b1b;'>E n' G Bakery &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
-
-                    <!-- Report Metadata -->
-                    <table style='margin-bottom:20px;'>
+                    <table style='margin-bottom:16px;'>
                         <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;width:140px;'><strong>Report Reference:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportRef}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Report Date:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportDate}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Generated At:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportTime}</td>
-                        </tr>
-                        <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Materials:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$totalItems} material(s) tracked</td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#dc2626;color:#ffffff;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;opacity:.85;'>OVERALL TOTAL SALES</div>
+                                    <div style='font-size:20px;font-weight:800;margin-top:4px;'>₱" . number_format($totalSales, 2) . "</div>
+                                </div>
+                            </td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#ecfeff;color:#0f766e;border:1px solid #99f6e4;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;'>TOTAL RAW MATERIALS USED</div>
+                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</div>
+                                </div>
+                            </td>
+                            <td style='width:33.33%;padding:6px;'>
+                                <div style='background:#ecfdf5;color:#166534;border:1px solid #bbf7d0;border-radius:10px;padding:12px;'>
+                                    <div style='font-size:11px;'>TOTAL PRODUCT ROWS</div>
+                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>" . intval($totalProducts) . "</div>
+                                </div>
+                            </td>
                         </tr>
                     </table>
 
-                    <hr style='border:none;border-top:1px solid #ddd;margin:15px 0;'>
+                    <div style='margin:4px 6px 10px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:12px;'>
+                        Total Overhead Cost Used: <strong>₱" . number_format($totalOverheadCostUsed, 2) . "</strong>
+                    </div>
+
+                    <!-- Report Metadata -->
+                    <table style='margin-bottom:20px;background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;width:160px;'><strong>Report Reference:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportRef}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Report Date:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportDate}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Generated At:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportTime}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Product Rows:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$totalProducts}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Overall Total Sales:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalSales, 2) . "</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Raw Materials Used:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</td>
+                        </tr>
+                    </table>
+
+                    <hr style='border:none;border-top:1px solid #dbeafe;margin:16px 0;'>
 
                     <p style='font-size:14px;'>Dear Owner,</p>
                     <p style='font-size:14px;'>
                         Below is your <strong>{$slotSubtitle}</strong> inventory snapshot for <strong>{$reportDate}</strong>.
-                        All tracked raw materials are listed with their current stock levels.
+                        Sales and raw materials used are computed per shift and per product using the required formulas.
                     </p>
 
-                    <!-- Summary Cards -->
-                    <table style='margin:20px 0;'>
-                        <tr>
-                            <td style='padding:15px;background:#fff5f5;border:1px solid #dc3545;border-radius:5px;text-align:center;width:33%;'>
-                                <div style='font-size:28px;font-weight:bold;color:#dc3545;'>{$totalCritical}</div>
-                                <div style='font-size:11px;color:#666;margin-top:4px;'>Critical (&le;&nbsp;25%)</div>
-                            </td>
-                            <td style='width:10px;'></td>
-                            <td style='padding:15px;background:#fffdf0;border:1px solid #e67e22;border-radius:5px;text-align:center;width:33%;'>
-                                <div style='font-size:28px;font-weight:bold;color:#e67e22;'>{$totalWarning}</div>
-                                <div style='font-size:11px;color:#666;margin-top:4px;'>Warning (&le;&nbsp;40%)</div>
-                            </td>
-                            <td style='width:10px;'></td>
-                            <td style='padding:15px;background:#f0fff4;border:1px solid #28a745;border-radius:5px;text-align:center;width:33%;'>
-                                <div style='font-size:28px;font-weight:bold;color:#28a745;'>{$totalNormal}</div>
-                                <div style='font-size:11px;color:#666;margin-top:4px;'>Adequate (&gt;&nbsp;40%)</div>
-                            </td>
-                        </tr>
-                    </table>
+                    {$shiftBlocks}
 
-                    <!-- Per-Status Item Sections -->
-                    {$criticalSection}
-                    {$warningSection}
-                    {$normalSection}
+                    <hr style='border:none;border-top:1px solid #dbeafe;margin:24px 0 14px;'>
 
-                    <hr style='border:none;border-top:1px solid #ddd;margin:25px 0 15px;'>
-
-                    <p style='font-size:14px;'>
-                        Please review any critical or warning items and arrange restocking as needed.
-                        For the full inventory management interface, visit the <strong>Stock Initial</strong> page in the system.
-                    </p>
+                    <div style='font-size:13px;background:#fffbeb;border:1px solid #fde68a;color:#78350f;padding:12px;border-radius:10px;'>
+                        Formula used:
+                        <strong>Sales = QTY SOLD × SRP</strong>
+                        and
+                        <strong>Raw Materials Used = Raw Material Cost per Piece × (PO + QTY SOLD)</strong>.
+                        and <strong>Overhead Cost Used = Overhead Cost per Piece × (PO + QTY SOLD)</strong>.
+                        For the full inventory management interface, visit the <strong>Inventory</strong> page in the system.
+                    </div>
 
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
@@ -394,74 +401,339 @@ class AutoReportScheduler
         </html>";
     }
 
-    /**
-     * Render a grid of material cards for a single status group.
-     *
-     * @param array  $items      Items in this status group
-     * @param string $color      Accent / border color (hex)
-     * @param string $badge      Badge label text (e.g. "LOW", "WARNING", "OK")
-     * @param string $bgColor    Card background color (hex)
-     */
-    private static function buildItemCards(
-        array  $items,
-        string $color,
-        string $badge,
-        string $bgColor
-    ): string {
-        if (empty($items)) {
-            return '';
+    private static function resolveShiftWindowsForSlot(string $slot, string $date): array
+    {
+        $all = ShiftSchedule::getShiftWindowsForDate($date);
+        $byKey = [];
+        foreach ($all as $window) {
+            $key = strtolower((string) ($window['key'] ?? ''));
+            if ($key !== '') {
+                $byKey[$key] = $window;
+            }
         }
 
-        $cards = '';
-
-        foreach ($items as $item) {
-            $name       = htmlspecialchars($item['material_name'] ?? '—');
-            $category   = htmlspecialchars($item['category_name'] ?? '—');
-            $unit       = htmlspecialchars($item['unit'] ?? '');
-            $initial    = number_format(floatval($item['initial_qty']                             ?? 0), 2);
-            $used       = number_format(floatval($item['qty_used']                               ?? 0), 2);
-            $remaining  = number_format(floatval($item['remaining'] ?? $item['current_quantity'] ?? 0), 2);
-            $pct        = $item['stock_percentage'] ?? 0;
-            $lastUpdate = isset($item['updated_at'])
-                ? date('M d, Y h:i A', strtotime($item['updated_at']))
-                : '—';
-
-            $cards .= "
-                <div style='background:{$bgColor};border:1px solid {$color};border-radius:8px;padding:15px;margin-bottom:12px;'>
-                    <div style='margin-bottom:12px;border-bottom:2px solid {$color};padding-bottom:10px;overflow:hidden;'>
-                        <span style='font-size:16px;font-weight:bold;color:#333;'>{$name}</span>
-                        <span style='font-size:12px;color:#888;margin-left:8px;'>({$category})</span>
-                        <span style='float:right;background:{$color};color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:bold;'>{$badge}</span>
-                    </div>
-                    <table style='width:100%;border-collapse:collapse;'>
-                        <tr>
-                            <td style='padding:8px 0;width:33%;border-bottom:1px solid #f0f0f0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Initial Stock</div>
-                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$initial} {$unit}</div>
-                            </td>
-                            <td style='padding:8px 0;width:33%;border-bottom:1px solid #f0f0f0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Used</div>
-                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$used} {$unit}</div>
-                            </td>
-                            <td style='padding:8px 0;width:33%;border-bottom:1px solid #f0f0f0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Remaining</div>
-                                <div style='font-size:13px;font-weight:bold;color:{$color};margin-top:2px;'>{$remaining} {$unit}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style='padding:8px 0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Stock Level</div>
-                                <div style='font-size:15px;font-weight:bold;color:{$color};margin-top:2px;'>{$pct}%</div>
-                            </td>
-                            <td colspan='2' style='padding:8px 0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Last Updated</div>
-                                <div style='font-size:12px;color:#666;margin-top:2px;'>{$lastUpdate}</div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>";
+        if ($slot === 'am') {
+            return isset($byKey['shift_a']) ? [$byKey['shift_a']] : array_slice($all, 0, 1);
         }
 
-        return $cards;
+        if ($slot === 'pm') {
+            return isset($byKey['shift_b']) ? [$byKey['shift_b']] : array_slice($all, 1, 1);
+        }
+
+        $windows = [];
+        if (isset($byKey['shift_a'])) {
+            $windows[] = $byKey['shift_a'];
+        }
+        if (isset($byKey['shift_b'])) {
+            $windows[] = $byKey['shift_b'];
+        }
+
+        return !empty($windows) ? $windows : $all;
+    }
+
+    private static function buildShiftReports(array $allItems, string $date, array $shiftWindows): array
+    {
+        $reports = [];
+        foreach ($shiftWindows as $window) {
+            $start = (string) ($window['start'] ?? '00:00:00');
+            $end = (string) ($window['end'] ?? '23:59:59');
+            $label = (string) ($window['label'] ?? 'Shift');
+
+            $soldByProduct = self::getQtySoldByProductForShift($date, $start, $end);
+
+            $bakery = [];
+            $grocery = [];
+            $drinks = [];
+
+            foreach ($allItems as $item) {
+                $category = strtolower((string) ($item['category'] ?? ''));
+                if (!in_array($category, ['bakery', 'grocery', 'drinks'], true)) {
+                    continue;
+                }
+
+                $productId = intval($item['product_id'] ?? 0);
+                $qtySold = intval($soldByProduct[$productId] ?? 0);
+                $po = intval($item['pull_out_quantity'] ?? 0);
+                $srp = self::resolveSrp($item);
+                $sales = $qtySold * $srp;
+                $directCostPerPiece = self::resolveDirectCostPerPiece($item);
+                $rawMaterialsUsed = $directCostPerPiece * ($po + $qtySold);
+                $overheadCostPerPiece = self::resolveOverheadCostPerPiece($item);
+                $overheadCostUsed = $overheadCostPerPiece * ($po + $qtySold);
+
+                $row = [
+                    'product_name' => (string) ($item['product_name'] ?? 'Unknown'),
+                    'srp' => $srp,
+                    'beg' => intval($item['beginning_stock'] ?? 0),
+                    'po' => $po,
+                    'end' => intval($item['ending_stock'] ?? 0),
+                    'qty_sold' => $qtySold,
+                    'sales' => $sales,
+                    'raw_materials_used' => $rawMaterialsUsed,
+                    'overhead_cost_used' => $overheadCostUsed,
+                ];
+
+                if ($category === 'bakery') {
+                    $bakery[] = $row;
+                } elseif ($category === 'grocery') {
+                    $grocery[] = $row;
+                } else {
+                    $drinks[] = $row;
+                }
+            }
+
+            $reports[] = [
+                'label' => $label,
+                'time_range' => $start . ' - ' . $end,
+                'bakery' => $bakery,
+                'grocery' => $grocery,
+                'drinks' => $drinks,
+                'totals' => [
+                    'products' => count($bakery) + count($grocery) + count($drinks),
+                    'sales' => self::sumRows($bakery, 'sales') + self::sumRows($grocery, 'sales') + self::sumRows($drinks, 'sales'),
+                    'raw_materials_used' => self::sumRows($bakery, 'raw_materials_used') + self::sumRows($grocery, 'raw_materials_used') + self::sumRows($drinks, 'raw_materials_used'),
+                    'overhead_cost_used' => self::sumRows($bakery, 'overhead_cost_used') + self::sumRows($grocery, 'overhead_cost_used') + self::sumRows($drinks, 'overhead_cost_used'),
+                ],
+            ];
+        }
+
+        return $reports;
+    }
+
+    private static function getQtySoldByProductForShift(string $date, string $start, string $end): array
+    {
+        $db = \Config\Database::connect();
+        $rows = $db->query(
+            "SELECT dsi.product_id, SUM(t.quantity_sold) AS qty_sold
+             FROM transactions t
+             JOIN orders o ON o.order_id = t.order_id
+             JOIN daily_stock_items dsi ON dsi.item_id = t.item_id
+             WHERE t.date_created = ?
+               AND o.time_created >= ?
+               AND o.time_created <= ?
+               AND o.voided_at IS NULL
+             GROUP BY dsi.product_id",
+            [$date, $start, $end]
+        )->getResultArray();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[intval($row['product_id'] ?? 0)] = intval($row['qty_sold'] ?? 0);
+        }
+
+        return $map;
+    }
+
+    private static function resolveSrp(array $item): float
+    {
+        $category = strtolower((string) ($item['category'] ?? ''));
+        $sellingPricePerPiece = floatval($item['selling_price_per_piece'] ?? 0);
+        $sellingPrice = floatval($item['selling_price'] ?? 0);
+
+        if ($category === 'bakery' && $sellingPricePerPiece > 0) {
+            return $sellingPricePerPiece;
+        }
+
+        return $sellingPrice;
+    }
+
+    private static function resolveDirectCostPerPiece(array $item): float
+    {
+        $directCost = floatval($item['direct_cost'] ?? 0);
+        $piecesPerYield = intval($item['pieces_per_yield'] ?? 0);
+
+        if ($directCost <= 0) {
+            return 0.0;
+        }
+
+        if ($piecesPerYield > 0) {
+            return $directCost / $piecesPerYield;
+        }
+
+        return $directCost;
+    }
+
+    private static function resolveOverheadCostPerPiece(array $item): float
+    {
+        $overheadCostAmount = floatval($item['overhead_cost_amount'] ?? 0);
+        $piecesPerYield = intval($item['pieces_per_yield'] ?? 0);
+
+        if ($overheadCostAmount <= 0) {
+            return 0.0;
+        }
+
+        if ($piecesPerYield > 0) {
+            return $overheadCostAmount / $piecesPerYield;
+        }
+
+        return $overheadCostAmount;
+    }
+
+    private static function sumRows(array $rows, string $key): float
+    {
+        $sum = 0.0;
+        foreach ($rows as $row) {
+            $sum += floatval($row[$key] ?? 0);
+        }
+
+        return $sum;
+    }
+
+    private static function buildCategoryRows(array $rows, bool $showBegPoEnd, bool $showOverheadColumn): array
+    {
+        $htmlRows = '';
+        $totalSales = 0.0;
+        $totalRawUsed = 0.0;
+        $totalOverheadUsed = 0.0;
+
+        foreach ($rows as $row) {
+            $name = htmlspecialchars((string) ($row['product_name'] ?? 'Unknown'));
+            $srp = floatval($row['srp'] ?? 0);
+            $beg = intval($row['beg'] ?? 0);
+            $po = intval($row['po'] ?? 0);
+            $end = intval($row['end'] ?? 0);
+            $qtySold = intval($row['qty_sold'] ?? 0);
+            $sales = floatval($row['sales'] ?? 0);
+            $rawUsed = floatval($row['raw_materials_used'] ?? 0);
+            $overheadUsed = floatval($row['overhead_cost_used'] ?? 0);
+
+            $totalSales += $sales;
+            $totalRawUsed += $rawUsed;
+            $totalOverheadUsed += $overheadUsed;
+
+            $htmlRows .= "<tr>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;'>{$name}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($srp, 2) . "</td>";
+
+            if ($showBegPoEnd) {
+                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>";
+            } else {
+                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>";
+            }
+
+            $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
+
+            if ($showOverheadColumn) {
+                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>";
+            }
+
+            $htmlRows .= "
+            </tr>";
+        }
+
+        return [
+            'rows' => $htmlRows,
+            'total_sales' => $totalSales,
+            'total_raw_used' => $totalRawUsed,
+            'total_overhead_used' => $totalOverheadUsed,
+        ];
+    }
+
+    private static function buildCategoryTable(array $categoryData, bool $showBegPoEnd, bool $showOverheadColumn): string
+    {
+        $rowsHtml = (string) ($categoryData['rows'] ?? '');
+        $totalSales = floatval($categoryData['total_sales'] ?? 0);
+        $totalRawUsed = floatval($categoryData['total_raw_used'] ?? 0);
+        $totalOverheadUsed = floatval($categoryData['total_overhead_used'] ?? 0);
+
+        $headers = "
+            <th style='padding:8px;text-align:left;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>ITEMS</th>
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SRP</th>";
+
+        if ($showBegPoEnd) {
+            $headers .= "
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>BEG</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>END</th>";
+        } else {
+            $headers .= "
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>";
+        }
+
+        $headers .= "
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SALES</th>
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>RAW MATERIALS USED</th>";
+
+        if ($showOverheadColumn) {
+            $headers .= "
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>OVERHEAD COST USED</th>";
+        }
+
+        if (trim($rowsHtml) === '') {
+            $baseColspan = $showBegPoEnd ? 8 : 6;
+            $colspan = $showOverheadColumn ? $baseColspan + 1 : $baseColspan;
+            $rowsHtml = "<tr><td colspan='{$colspan}' style='padding:10px;font-size:12px;color:#6b7280;text-align:center;border-bottom:1px solid #e5e7eb;'>No items</td></tr>";
+        }
+
+        $colspanForTotalLabel = $showBegPoEnd ? 6 : 4;
+        $totalCells = "
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalRawUsed, 2) . "</td>";
+
+        if ($showOverheadColumn) {
+            $totalCells .= "
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalOverheadUsed, 2) . "</td>";
+        }
+
+        return "
+            <div style='overflow-x:auto;'>
+                <table style='width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;'>
+                    <thead><tr>{$headers}</tr></thead>
+                    <tbody>
+                        {$rowsHtml}
+                        <tr>
+                            <td colspan='{$colspanForTotalLabel}' style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>TOTAL:</td>
+                            {$totalCells}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>";
+    }
+
+    private static function resolveManualSlotForNow(): string
+    {
+        return ((int) date('G') >= self::SLOTS['pm']['start_h']) ? 'pm' : 'am';
+    }
+
+    private static function normalizeSlot(?string $slot): ?string
+    {
+        if ($slot === null) {
+            return null;
+        }
+
+        $normalized = strtolower(trim($slot));
+        if (in_array($normalized, ['am', 'morning', 'first', 'first_shift', 'shift_a'], true)) {
+            return 'am';
+        }
+
+        if (in_array($normalized, ['pm', 'afternoon', 'second', 'second_shift', 'shift_b'], true)) {
+            return 'pm';
+        }
+
+        return null;
+    }
+
+    private static function getShiftFlagFilePath(string $date, string $slot): string
+    {
+        return WRITEPATH . "inventory_report_sent_{$date}_{$slot}.flag";
+    }
+
+    private static function hasShiftBeenReported(string $date, string $slot): bool
+    {
+        return file_exists(self::getShiftFlagFilePath($date, $slot));
+    }
+
+    private static function markShiftReported(string $date, string $slot): void
+    {
+        @file_put_contents(self::getShiftFlagFilePath($date, $slot), date('Y-m-d H:i:s'));
     }
 }
