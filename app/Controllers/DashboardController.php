@@ -2,32 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\OrderModel;
-use App\Models\TransactionsModel;
-use App\Models\ProductModel;
-use App\Models\RawMaterialsModel;
-use App\Models\DailyStockModel;
-use App\Models\DailyStockItemsModel;
-
 class DashboardController extends BaseController
 {
-    protected $orderModel;
-    protected $transactionsModel;
-    protected $productModel;
-    protected $rawMaterialsModel;
-    protected $dailyStockModel;
-    protected $dailyStockItemsModel;
-
-    public function __construct()
-    {
-        $this->orderModel = new OrderModel();
-        $this->transactionsModel = new TransactionsModel();
-        $this->productModel = new ProductModel();
-        $this->rawMaterialsModel = new RawMaterialsModel();
-        $this->dailyStockModel = new DailyStockModel();
-        $this->dailyStockItemsModel = new DailyStockItemsModel();
-    }
-
     public function dashboard()
     {
         $sessionData = $this->getSessionData();
@@ -119,10 +95,10 @@ class DashboardController extends BaseController
             LIMIT 5
         ", [$today])->getResultArray();
 
-            // Sales trends for dashboard line graph section
-            $dailyTrend = $this->getDailySalesTrend(14);
-            $weeklyTrend = $this->getWeeklySalesTrend(8);
-            $monthlyTrend = $this->getMonthlySalesTrend(12);
+        // Sales trends for dashboard line graph section
+        $dailyTrend = $this->getDailySalesTrend(14);
+        $weeklyTrend = $this->getWeeklySalesTrend(8);
+        $monthlyTrend = $this->getMonthlySalesTrend(12);
 
         return [
             'todaysSales' => floatval($todaysSales['total_sales'] ?? 0),
@@ -144,11 +120,11 @@ class DashboardController extends BaseController
             'productsByCategory' => $productsByCategory,
             'recentOrders' => $recentOrders,
             'bestSellers' => $bestSellers,
-                'salesTrend' => [
-                    'daily' => $dailyTrend,
-                    'weekly' => $weeklyTrend,
-                    'monthly' => $monthlyTrend,
-                ],
+            'salesTrend' => [
+                'daily' => $dailyTrend,
+                'weekly' => $weeklyTrend,
+                'monthly' => $monthlyTrend,
+            ],
             'currentDate' => date('F j, Y'),
             'currentTime' => date('g:i A'),
         ];
