@@ -406,7 +406,7 @@
     <!-- Edit Inventory Modal -->
     <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-black/40" id="editInventoryModalBackdrop"></div>
-        <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
+        <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
             <button type="button" id="editInventoryModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-lg"></i>
@@ -419,7 +419,7 @@
                 <strong>Pull Out</strong> accepts positive values only.
             </div>
 
-            <form id="editInventoryForm">
+            <form id="editInventoryForm" class="flex-1 overflow-y-auto pr-1">
                 <input type="hidden" id="editItemId" name="item_id">
                 <input type="hidden" id="editDistributionQty" value="0">
                 <input type="hidden" id="editCarryoverQty" value="0">
@@ -428,6 +428,7 @@
                 <input type="hidden" id="editOldBeginningStock" value="0">
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
+                <input type="hidden" id="editOldQuantitySold" value="0">
 
                 <div class="mb-4">
                     <label for="editBeginningStock" id="editBeginningLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
@@ -478,6 +479,13 @@
                     <input type="number" id="editEndingStock" name="ending_stock" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Use + to add or - to subtract from current ending stock</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining (Preview)</label>
+                    <input type="number" id="editRemainingPreview" readonly
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
+                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields above.</p>
                 </div>
 
                 <div class="mb-6">
@@ -1964,6 +1972,9 @@
                     // showToast('info', response.message, 2000);
                     updateDateTime(response.data);
                     fetchAllStockitems();
+                    if ($('#btnSendInventoryReport').length) {
+                        $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
+                    }
                     // Show delete buttons and add product button when inventory exists
                     $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -1977,6 +1988,9 @@
                     inventoryExistsToday = false;
                     showToast('warning', response.message, 2000);
                     loadInventory([]);
+                    if ($('#btnSendInventoryReport').length) {
+                        $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                    }
                     // Show add inventory buttons when no inventory
                     $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -1990,6 +2004,9 @@
             error: function(xhr, status, error) {
                 inventoryExistsToday = false;
                 console.log('Error checking inventory: ' + error);
+                if ($('#btnSendInventoryReport').length) {
+                    $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                }
                 // Show add inventory buttons on error (safe default)
                 $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                 $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -2528,7 +2545,7 @@
                 const beginning = parseInt(item.beginning_stock) || 0;
                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                 const qtySold = parseInt(item.quantity_sold) || 0;
-                const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                const ending_stock = parseInt(item.ending_stock) || 0;
                 const isEnabled = parseInt(item.is_enabled) === 1;
                 const notes = item.notes || '';
 
@@ -2626,7 +2643,7 @@
                 const beginning = parseInt(item.beginning_stock) || 0;
                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                 const qtySold = parseInt(item.quantity_sold) || 0;
-                const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                const ending_stock = parseInt(item.ending_stock) || 0;
                 const isEnabled = parseInt(item.is_enabled) === 1;
                 const notes = item.notes || '';
 
@@ -2701,6 +2718,8 @@
             $('#editOldBeginningStock').val(beginningStock);
             $('#editOldPullOutQuantity').val(pullOutQty);
             $('#editOldEndingStock').val(endingStock);
+            const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty - endingStock);
+            $('#editOldQuantitySold').val(quantitySold);
 
             if (isAdjustmentMode) {
                 $('#editBeginningLabel').text('Beginning Adjustment (+ add, - subtract)');
@@ -2742,6 +2761,7 @@
 
             // Update the distribution display and notes requirement
             updateBeginningStockDisplay();
+            updateRemainingPreview();
 
             // Show modal
             $('#editInventoryModal').removeClass('hidden');
@@ -2767,7 +2787,43 @@
     // Also update on manual input change
     $('#editBeginningStock').on('input change', function() {
         updateBeginningStockDisplay();
+        updateRemainingPreview();
     });
+
+    $('#editPullOutQuantity, #editEndingStock').on('input change', function() {
+        updateRemainingPreview();
+    });
+
+    function updateRemainingPreview() {
+        const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+
+        const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+        const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+        const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+        const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
+
+        const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+        const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+        const endingInput = parseInt($('#editEndingStock').val()) || 0;
+
+        let projectedRemaining = 0;
+
+        if (isAdjustmentMode) {
+            const projectedBeginning = oldBeginning + beginningInput;
+            const projectedPullOut = oldPullOut + pullOutInput;
+            projectedRemaining = oldEnding + endingInput + beginningInput - pullOutInput;
+
+            $('#editRemainingHint').text(
+                'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
+                ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
+            );
+        } else {
+            projectedRemaining = beginningInput - pullOutInput - oldQtySold;
+            $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
+        }
+
+        $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
+    }
 
     /**
      * Update the distribution limit display and notes requirement
@@ -2856,6 +2912,8 @@
         $('#editBeginningHint').text('');
         $('#editPullOutHint').text('');
         $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+        $('#editRemainingPreview').val('');
+        $('#editRemainingHint').text('Live preview while editing fields above.');
         $('#editEndingGroup').addClass('hidden');
         $('#editBeginningStock').attr('min', 0);
         $('#editPullOutQuantity').attr('min', 0);
@@ -3011,6 +3069,9 @@
                 if (response.success) {
                     inventoryExistsToday = false;
                     showToast('success', response.message, 2000);
+                    if ($('#btnSendInventoryReport').length) {
+                        $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                    }
                     // Clear the table
                     $('#materialsTableBody').html(
                         '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
@@ -3161,7 +3222,7 @@
             item.selling_price_per_piece :
             (item.srp ?? item.selling_price);
         const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-        const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+        const ending_stock = parseInt(item.ending_stock) || 0;
         const isEnabled = parseInt(item.is_enabled) === 1;
         const notes = item.notes || '';
 

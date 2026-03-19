@@ -811,7 +811,7 @@ class InventoryController extends BaseController
 
             $newBeginning = $oldBeginning + $beginningAdjustment;
             $newPullOut = $oldPullOut + $pullOutAdjustment;
-            $newEndingStock = $oldEnding + $endingAdjustment;
+            $newEndingStock = $oldEnding + $endingAdjustment + $beginningAdjustment - $pullOutAdjustment;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -1408,7 +1408,7 @@ class InventoryController extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Report could not be sent. Please check email SMTP credentials/settings and try again.',
+                'message' => 'Report not sent. No low product stock alerts were found for today, or email delivery failed.',
             ]);
 
         } catch (\Throwable $e) {
