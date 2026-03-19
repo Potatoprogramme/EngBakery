@@ -505,7 +505,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit"
+                    <button type="submit" id="btnSubmitEditInventory"
                         class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Update Item
                     </button>
@@ -2718,6 +2718,40 @@
         $('#grandTotalQty').text(grandQty);
     }
 
+    function applyUpdatedInventoryItemLocally(itemId, updatedData) {
+        if (!Array.isArray(allInventoryItems) || !updatedData) {
+            return false;
+        }
+
+        const targetId = String(itemId);
+        const idx = allInventoryItems.findIndex(i => String(i.item_id) === targetId);
+        if (idx === -1) {
+            return false;
+        }
+
+        allInventoryItems[idx] = {
+            ...allInventoryItems[idx],
+            beginning_stock: parseInt(updatedData.beginning_stock ?? allInventoryItems[idx].beginning_stock ?? 0),
+            pull_out_quantity: parseInt(updatedData.pull_out_quantity ?? allInventoryItems[idx].pull_out_quantity ?? 0),
+            ending_stock: parseInt(updatedData.ending_stock ?? allInventoryItems[idx].ending_stock ?? 0),
+            notes: (updatedData.notes ?? allInventoryItems[idx].notes ?? '')
+        };
+
+        filteredItems = [...allInventoryItems];
+
+        const bakeryItems = allInventoryItems.filter(i => i.category === 'bakery');
+        const drinksItems = allInventoryItems.filter(i => i.category === 'drinks');
+        const groceryItems = allInventoryItems.filter(i => i.category === 'grocery');
+
+        renderBakeryTable(bakeryItems);
+        renderDrinksTable(drinksItems);
+        renderGroceryTable(groceryItems);
+        updateGrandTotals(allInventoryItems);
+        renderMobileCards();
+
+        return true;
+    }
+
     // Edit Inventory Item - Open Modal
     $(document).on('click', '.btn-edit', function() {
         const itemId = $(this).data('id');
@@ -2981,6 +3015,16 @@
     $('#editInventoryForm').on('submit', function(e) {
         e.preventDefault();
 
+        const submitBtn = $('#btnSubmitEditInventory');
+        if (submitBtn.prop('disabled')) {
+            return;
+        }
+
+        const originalSubmitHtml = submitBtn.html();
+        submitBtn.prop('disabled', true)
+            .addClass('opacity-70 cursor-not-allowed')
+            .html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
+
         const itemId = $('#editItemId').val();
         const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
         const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
@@ -3006,11 +3050,17 @@
             if (projectedPullOut < oldPullOut) {
                 showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
                     2500);
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
                 return;
             }
 
             if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                 showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
                 return;
             }
 
@@ -3018,6 +3068,9 @@
                 showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                     expected + ')', 3000);
                 $('#editNotes').focus();
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
                 return;
             }
 
@@ -3031,6 +3084,9 @@
         } else {
             if (beginningStock < 0 || pullOutQuantity < 0) {
                 showToast('warning', 'Values cannot be negative', 2000);
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
                 return;
             }
 
@@ -3038,6 +3094,9 @@
                 showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                     expected + ')', 3000);
                 $('#editNotes').focus();
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
                 return;
             }
 
@@ -3060,7 +3119,11 @@
                     showToast('success', response.message, 2000);
                     $('#editInventoryModal').addClass('hidden');
                     $('#editInventoryForm')[0].reset();
-                    fetchAllStockitems(); // Reload the table
+
+                    const localApplied = applyUpdatedInventoryItemLocally(itemId, response.data || payload);
+                    if (!localApplied) {
+                        fetchAllStockitems(); // Fallback if local data is unavailable
+                    }
                 } else {
                     showToast('error', response.message, 2000);
                 }
@@ -3074,6 +3137,11 @@
                         error), 2000);
                 }
                 console.log(xhr);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
             }
         });
     });
