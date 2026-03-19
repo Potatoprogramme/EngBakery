@@ -7,7 +7,7 @@ class DashboardController extends BaseController
     public function dashboard()
     {
         $sessionData = $this->getSessionData();
-        $data = array_merge($sessionData, $this->getDashboardData());
+        $data = $sessionData;
 
         if ($redirect = $this->redirectIfNotLoggedIn()) {
             return $redirect;
@@ -80,8 +80,8 @@ class DashboardController extends BaseController
         ")->getResultArray();
 
         // Recent orders (last 5)
-        $recentOrders = $this->orderModel->getOrderHistory(null, null);
-        $recentOrders = array_slice($recentOrders, 0, 5);
+        $limit = 5;
+        $recentOrders = $this->orderModel->getOrderHistory(null, null, null, $limit);
 
         // Best selling products today
         $bestSellers = $this->db->query("
