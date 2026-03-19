@@ -95,7 +95,7 @@ class AuthenticationController extends BaseController
             log_message('info', 'User Data: ' . print_r($userData, true));
 
             if ($this->isStaff()) {
-                return redirect()->to(base_url('MaterialCosting'))->with('success_message', 'Successfully logged in.');
+                return redirect()->to(base_url('MaterialStock'))->with('success_message', 'Successfully logged in.');
             } else {
                 return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
             }
@@ -212,7 +212,7 @@ class AuthenticationController extends BaseController
             log_message('info', 'User logged in successfully via Google: ' . $userInformation['email']);
 
             if ($this->isStaff()) {
-                return redirect()->to(base_url('MaterialCosting'))->with('success_message', 'Successfully logged in.');
+                return redirect()->to(base_url('MaterialStock'))->with('success_message', 'Successfully logged in.');
             } else {
                 return redirect()->to(base_url('Dashboard'))->with('success_message', 'Successfully logged in.');
             }

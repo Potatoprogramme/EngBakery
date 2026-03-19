@@ -1,3 +1,4 @@
+<?php $isStaffView = session('employee_type') === 'staff'; ?>
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
@@ -75,44 +76,46 @@
                 </span>
             </div>
 
-            <!-- Desktop Table View -->
-            <div class="hidden lg:block p-4 bg-white rounded-lg shadow-md mb-20 sm:mb-0">
-                <table id="stockInitialTable" class="min-w-full text-sm text-left text-gray-500">
+            <!-- Tablet/Desktop Table View -->
+            <div class="hidden md:block w-full p-3 md:p-4 bg-white rounded-lg shadow-md mb-20 md:mb-0 overflow-x-auto">
+                <table id="stockInitialTable" class="w-full min-w-full table-auto text-sm text-left text-gray-500">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Material Name</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Category</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Initial Qty</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Used</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Remaining</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
+                            <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
                                 <span class="flex items-center">Unit</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-green-700">
-                                <span class="flex items-center">Initial Cost</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-orange-700">
-                                <span class="flex items-center">Used Cost</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-blue-700">
-                                <span class="flex items-center">Remaining Cost</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Date Updated</span>
-                            </th>
-                            <th scope="col" class="px-6 py-3 whitespace-nowrap">
-                                <span class="flex items-center">Actions</span>
-                            </th>
+                            <?php if (!$isStaffView): ?>
+                                <th scope="col" class="px-3 md:px-4 lg:px-6 py-3 text-green-700">
+                                    <span class="flex items-center">Initial Cost</span>
+                                </th>
+                                <th scope="col" class="px-3 md:px-4 lg:px-6 py-3 text-orange-700">
+                                    <span class="flex items-center">Used Cost</span>
+                                </th>
+                                <th scope="col" class="px-3 md:px-4 lg:px-6 py-3 text-blue-700">
+                                    <span class="flex items-center">Remaining Cost</span>
+                                </th>
+                                <th scope="col" class="px-3 md:px-4 lg:px-6 py-3">
+                                    <span class="flex items-center">Date Updated</span>
+                                </th>
+                                <th scope="col" class="px-3 md:px-4 lg:px-6 py-3 whitespace-nowrap">
+                                    <span class="flex items-center">Actions</span>
+                                </th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody id="stockInitialTableBody">
@@ -122,7 +125,7 @@
             </div>
 
             <!-- Mobile Card View -->
-            <div class="lg:hidden mb-24">
+            <div class="md:hidden mb-24">
                 <!-- Search Bar for Mobile -->
                 <div class="mb-3">
                     <div class="relative">
@@ -371,5 +374,6 @@
     <!-- App Scripts -->
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+        window.USER_ROLE = '<?= esc(strtolower((string) (session('employee_type') ?? ''))) ?>';
     </script>
     <script src="<?= asset_url('js/StockInitial.js') ?>"></script>

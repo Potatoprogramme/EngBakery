@@ -189,7 +189,7 @@ abstract class BaseController extends Controller
     {
         if ($this->isLoggedIn()) {
             if ($this->isStaff()){
-                return redirect()->to(base_url('MaterialCosting'))->with('success_message', $message);
+                return redirect()->to(base_url('MaterialStock'))->with('success_message', $message);
             } else {
                 return redirect()->to(base_url('Dashboard'))->with('success_message', $message);
             } 
