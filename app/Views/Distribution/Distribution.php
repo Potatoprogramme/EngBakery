@@ -122,7 +122,7 @@
                     </div>
 
                     <?php if ($isOwnerView): ?>
-                        <div class="grid grid-cols-1 gap-2 mb-4">
+                        <div class="grid grid-cols-2 gap-2 mb-4">
                             <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -131,6 +131,17 @@
                                     </div>
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                                         <i class="fas fa-calculator text-emerald-600 text-sm"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-amber-100 p-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Overhead Cost (Day)</p>
+                                        <p id="ownerOverheadCostTotalDesktop" class="text-sm font-bold text-amber-600">₱0.00</p>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                                        <i class="fas fa-chart-pie text-amber-600 text-sm"></i>
                                     </div>
                                 </div>
                             </div>
@@ -291,10 +302,14 @@
                 </div>
 
                 <?php if ($isOwnerView): ?>
-                    <div class="grid grid-cols-1 gap-2 mb-3">
+                    <div class="grid grid-cols-2 gap-2 mb-3">
                         <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
                             <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-amber-100 shadow-sm">
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Overhead Cost</p>
+                            <p id="ownerOverheadCostTotalMobile" class="text-sm font-bold text-amber-600">₱0.00</p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -889,6 +904,15 @@
                 return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
             }
 
+            function calculateItemOverheadCost(item, product) {
+                const overheadCostPerYield = parseNumericValue(product && product.overhead_cost_amount);
+                if (overheadCostPerYield <= 0) return 0;
+
+                const yieldsNeeded = getDistributionYieldUnits(item, product);
+
+                return yieldsNeeded > 0 ? (yieldsNeeded * overheadCostPerYield) : 0;
+            }
+
             function decorateDistributionItems(items, fallbackDate = '') {
                 const normalizedItems = applyLocalDistributionGroupMeta(items, fallbackDate);
 
@@ -925,6 +949,26 @@
                     }
 
                     decoratedItem.direct_cost = computedDirectCost;
+
+                    // ─────────────────────────────────────────────────────────────
+                    // Compute overhead cost
+                    // Priority: explicit value > product overhead_cost_amount > calculated
+                    // ─────────────────────────────────────────────────────────────
+                    const explicitOverheadCost = parseNumericValue(decoratedItem.overhead_cost);
+                    let computedOverheadCost = 0;
+
+                    if (explicitOverheadCost > 0) {
+                        // Use explicit value if available
+                        computedOverheadCost = explicitOverheadCost;
+                    } else if (productData && parseNumericValue(productData.overhead_cost_amount) > 0) {
+                        // Use product's overhead cost
+                        computedOverheadCost = calculateItemOverheadCost(decoratedItem, productData);
+                    } else {
+                        // Fallback: calculate from product data
+                        computedOverheadCost = calculateItemOverheadCost(decoratedItem, productData);
+                    }
+
+                    decoratedItem.overhead_cost = computedOverheadCost;
 
                     if (!Array.isArray(decoratedItem.raw_material_usage)) {
                         decoratedItem.raw_material_usage = [];
@@ -1259,6 +1303,8 @@
 
                 const directCostTotal = resolveGroupDirectCost(group, groupItems);
 
+                const overheadCostTotal = resolveGroupOverheadCost(group, groupItems);
+
                 return {
                     total_items: groupItems.length,
                     total_groups: groupItems.length > 0 ? 1 : 0,
@@ -1266,6 +1312,7 @@
                     total_pieces: totalPieces,
                     forecasted_sales_total: forecastTotal,
                     direct_cost_total: directCostTotal,
+                    overhead_cost_total: overheadCostTotal,
                     raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
                         group.raw_material_usage_total : [],
                 };
@@ -1299,6 +1346,16 @@
 
                 return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     return sum + parseNumericValue(item.direct_cost);
+                }, 0);
+            }
+
+            function resolveGroupOverheadCost(group, items) {
+                if (hasPersistedNumericValue(group, 'overhead_cost')) {
+                    return parseNumericValue(group.overhead_cost);
+                }
+
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                    return sum + parseNumericValue(item.overhead_cost);
                 }, 0);
             }
 
@@ -1651,9 +1708,12 @@
                 if (!isOwnerView) return;
 
                 const directCost = parseNumericValue(summary.direct_cost_total);
+                const overheadCost = parseNumericValue(summary.overhead_cost_total);
 
                 $('#ownerDirectCostTotalDesktop').text(formatPesoAmount(directCost));
                 $('#ownerDirectCostTotalMobile').text(formatPesoAmount(directCost));
+                $('#ownerOverheadCostTotalDesktop').text(formatPesoAmount(overheadCost));
+                $('#ownerOverheadCostTotalMobile').text(formatPesoAmount(overheadCost));
             }
 
             function renderOwnerAnalytics(groups, summary) {
@@ -1912,6 +1972,7 @@
                             summary.total_pieces = items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.direct_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0);
+                            summary.overhead_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.overhead_cost), 0);
 
                             if (!Array.isArray(summary.raw_material_usage_total)) {
                                 summary.raw_material_usage_total = [];
