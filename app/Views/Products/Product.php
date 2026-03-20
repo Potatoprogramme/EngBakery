@@ -907,6 +907,11 @@
             // Track disabled products view state
             let showingDisabledOnly = false;
 
+            function updateModalScrollLock() {
+                const isAnyModalOpen = !$('#addMaterialModal').hasClass('hidden') || !$('#viewProductModal').hasClass('hidden');
+                $('html, body').toggleClass('overflow-hidden', isAnyModalOpen);
+            }
+
             // Load data on page load
             loadMaterials();
             loadFilterCategories();
@@ -1003,6 +1008,7 @@
             // Open Add Product Modal (Desktop & Mobile)
             $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function() {
                 $('#addMaterialModal').removeClass('hidden');
+                updateModalScrollLock();
                 loadIngredients();
                 loadCombinedRecipesDropdown();
                 // test ingredients
@@ -1254,6 +1260,7 @@
 
             function closeModal() {
                 $('#addMaterialModal').addClass('hidden');
+                updateModalScrollLock();
                 $('#addMaterialForm')[0].reset();
                 ingredientsList = [];
                 combinedRecipesList = [];
@@ -3096,6 +3103,7 @@
                                 updateStepDisplay();
 
                                 $('#addMaterialModal').removeClass('hidden');
+                                updateModalScrollLock();
                             } else {
                                 Toast.error('Error loading product data: ' + (response.message || 'Unknown error'));
                             }
@@ -3108,17 +3116,6 @@
                     Toast.error('Error loading lookup data for editing product.');
                 });
             }
-
-            // When opening Edit from the View modal
-            $('#btnViewEdit').off('click').on('click', function() {
-                const productId = currentViewProductId;
-                if (productId) {
-                    closeViewModal();
-                    openEditModal(productId);
-                } else {
-                    Toast.error('No product selected to edit.');
-                }
-            });
 
             // =====================================================
             // END EDIT PRODUCT MODAL FUNCTIONALITY (merged)
@@ -3398,6 +3395,7 @@
 
                             // Show modal
                             $('#viewProductModal').removeClass('hidden');
+                            updateModalScrollLock();
                         } else {
                             Toast.error('Error loading product details: ' + (response.message || 'Unknown error'));
                         }
@@ -3415,11 +3413,12 @@
 
             function closeViewModal() {
                 $('#viewProductModal').addClass('hidden');
+                updateModalScrollLock();
                 currentViewProductId = null;
             }
 
             // Edit button in view modal - close view modal and open edit modal
-            $('#btnViewEdit').on('click', function() {
+            $('#btnViewEdit').off('click').on('click', function() {
                 const productId = currentViewProductId;
                 if (productId) {
                     closeViewModal();
