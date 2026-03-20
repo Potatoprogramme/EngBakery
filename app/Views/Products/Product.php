@@ -1764,8 +1764,9 @@
             }
 
             // Update Costing Display
-            function updateCostingDisplay(changedField = null) {
+            function updateCostingDisplay(changedField = null, options = {}) {
                 const currentCategory = $('#category_id').val();
+                const preserveSavedYieldValues = options && options.preserveSavedYieldValues === true;
 
                 // For grocery category, use the grocery direct cost input
                 let directCost;
@@ -1840,7 +1841,7 @@
                         // Default: calculate grams per tray from trays (only when gramsPerTray was not explicitly cleared)
                         gramsPerTray = totalYieldGrams / traysPerYield;
                         $('#gramsPerTray').val(gramsPerTray.toFixed(2));
-                    } else if (!changedField && gramsPerTray > 0 && totalYieldGrams > 0) {
+                    } else if (!changedField && !preserveSavedYieldValues && gramsPerTray > 0 && totalYieldGrams > 0) {
                         // Ingredients changed (no specific field) - recalculate trays based on existing grams per tray
                         traysPerYield = Math.floor(totalYieldGrams / gramsPerTray);
                         $('#traysPerYield').val(traysPerYield);
@@ -1900,7 +1901,7 @@
                         } else if (totalYieldGrams > 0) {
                             gramsPerPiece = totalYieldGrams / piecesPerYield;
                         }
-                    } else if (!changedField && gramsPerPiece > 0) {
+                    } else if (!changedField && !preserveSavedYieldValues && gramsPerPiece > 0) {
                         // Ingredients changed (no specific field) - recalculate pieces based on existing grams per piece
                         if (traysPerYield > 0 && gramsPerTray > 0) {
                             piecesPerYield = Math.floor(gramsPerTray / gramsPerPiece);
@@ -2600,8 +2601,9 @@
                 if (!isGrocery) {
                     // Check if all ingredients are in grams or ml (ml can be treated as grams for yield calculation)
                     const allowedUnitsForYield = ['grams', 'ml', 'g'];
-                    const allIngredientsInGrams = ingredientsList.length > 0 && ingredientsList.every(item => allowedUnitsForYield.includes(item.unit.toLowerCase()));
-                    yieldGrams = allIngredientsInGrams ? ingredientsList.reduce((sum, item) => sum + item.quantity, 0) : 0;
+                    yieldGrams = ingredientsList.reduce((sum, item) => {
+                        return allowedUnitsForYield.includes((item.unit || '').toLowerCase()) ? sum + (parseFloat(item.quantity) || 0) : sum;
+                    }, 0);
                     traysPerYield = parseInt($('#traysPerYield').val()) || 0;
                     piecesPerYield = parseInt($('#piecesPerYield').val()) || 0;
                     gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
@@ -3096,7 +3098,9 @@
 
                                 updateIngredientsListDisplay();
                                 updateCombinedRecipesListDisplay();
-                                updateCostingDisplay();
+                                updateCostingDisplay(null, {
+                                    preserveSavedYieldValues: true
+                                });
                                 updateUIBasedOnCategory();
 
                                 currentAddStep = 1;
@@ -3227,7 +3231,12 @@
                             $('#viewTotalCost').text('₱ ' + parseFloat(product.total_cost || 0).toFixed(2));
 
                             // Populate yield information with detailed computation
-                            const yieldGrams = parseFloat(product.yield_grams || 0);
+                            const computedYieldFromIngredients = (product.ingredients || []).reduce((sum, ing) => {
+                                const unit = (ing.unit || '').toLowerCase();
+                                return ['grams', 'ml', 'g'].includes(unit) ? sum + (parseFloat(ing.quantity) || 0) : sum;
+                            }, 0);
+                            const yieldGramsFromDb = parseFloat(product.yield_grams || 0);
+                            const yieldGrams = yieldGramsFromDb > 0 ? yieldGramsFromDb : computedYieldFromIngredients;
                             const traysPerYield = parseInt(product.trays_per_yield || 0);
                             const piecesPerYield = parseInt(product.pieces_per_yield || 0);
                             const totalCost = parseFloat(product.total_cost || 0);
@@ -3265,7 +3274,7 @@
                                     const unitPricePerTray = totalCost / traysPerYield;
 
                                     $('#viewGramsPerTray').text(gramsPerTray.toFixed(2) + ' g');
-                                    $('#viewUnitPricePerTray').text('₱ ' + unitPricePerTray.toFixed(2));
+                                    $('#viewUnitPricePerTray').text('₱ ' + unitPricePerTray.toFixed(5));
 
                                     // Calculate additional price per tray if there are combined recipes
                                     if (product.combined_recipes && product.combined_recipes.length > 0 && piecesPerYield > 0) {
