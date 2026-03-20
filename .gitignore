@@ -130,4 +130,4 @@ _modules/*
 
 
 *.flag
-writable/inventory_report_pm.lock
+*.lock
