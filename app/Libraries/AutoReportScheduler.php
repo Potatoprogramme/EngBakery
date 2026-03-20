@@ -255,6 +255,15 @@ class AutoReportScheduler
             $totalOverheadCostUsed += floatval($report['totals']['overhead_cost_used'] ?? 0);
         }
 
+        $shiftCoverageParts = [];
+        foreach ($shiftReports as $report) {
+            $coverageLabel = trim((string) ($report['label'] ?? 'Shift'));
+            $coverageTime = trim((string) ($report['time_range'] ?? ''));
+            $shiftCoverageParts[] = trim($coverageLabel . ($coverageTime !== '' ? (' (' . $coverageTime . ')') : ''));
+        }
+        $shiftCoverage = implode(' • ', array_filter($shiftCoverageParts));
+        $shiftCoverageEscaped = htmlspecialchars($shiftCoverage !== '' ? $shiftCoverage : '—');
+
         $showOverheadColumn = true;
 
         $shiftBlocks = '';
@@ -269,7 +278,7 @@ class AutoReportScheduler
                 <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
                     <div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;'>
                         <div style='font-size:16px;font-weight:700;color:#0f172a;'>{$label}</div>
-                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>{$timeRange}</span>
+                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>Shift Time: {$timeRange}</span>
                     </div>
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
@@ -348,6 +357,10 @@ class AutoReportScheduler
                         <tr>
                             <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Generated At:</strong></td>
                             <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportTime}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Shift Time:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$shiftCoverageEscaped}</td>
                         </tr>
                         <tr>
                             <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Product Rows:</strong></td>
@@ -484,7 +497,7 @@ class AutoReportScheduler
 
             $reports[] = [
                 'label' => $label,
-                'time_range' => $start . ' - ' . $end,
+                'time_range' => self::formatShiftTimeRange($start, $end),
                 'bakery' => $bakery,
                 'grocery' => $grocery,
                 'drinks' => $drinks,
@@ -569,6 +582,18 @@ class AutoReportScheduler
         return $overheadCostAmount;
     }
 
+    private static function formatShiftTimeRange(string $start, string $end): string
+    {
+        $startTs = strtotime($start);
+        $endTs = strtotime($end);
+
+        if ($startTs === false || $endTs === false) {
+            return $start . ' - ' . $end;
+        }
+
+        return date('h:i A', $startTs) . ' - ' . date('h:i A', $endTs);
+    }
+
     private static function sumRows(array $rows, string $key): float
     {
         $sum = 0.0;
@@ -610,9 +635,6 @@ class AutoReportScheduler
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>";
-            } else {
-                $htmlRows .= "
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>";
             }
 
             $htmlRows .= "
@@ -653,9 +675,6 @@ class AutoReportScheduler
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>BEG</th>
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>END</th>";
-        } else {
-            $headers .= "
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>";
         }
 
         $headers .= "
@@ -669,12 +688,12 @@ class AutoReportScheduler
         }
 
         if (trim($rowsHtml) === '') {
-            $baseColspan = $showBegPoEnd ? 8 : 6;
+            $baseColspan = $showBegPoEnd ? 8 : 5;
             $colspan = $showOverheadColumn ? $baseColspan + 1 : $baseColspan;
             $rowsHtml = "<tr><td colspan='{$colspan}' style='padding:10px;font-size:12px;color:#6b7280;text-align:center;border-bottom:1px solid #e5e7eb;'>No items</td></tr>";
         }
 
-        $colspanForTotalLabel = $showBegPoEnd ? 6 : 4;
+        $colspanForTotalLabel = $showBegPoEnd ? 6 : 3;
         $totalCells = "
                             <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>
                             <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalRawUsed, 2) . "</td>";

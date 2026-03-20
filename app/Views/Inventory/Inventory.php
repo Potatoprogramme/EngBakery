@@ -1782,11 +1782,155 @@
                 renderTodayDistributionGroupItemsPane(selectedIndex, true);
             });
 
+            let reportShiftConfig = [];
+
+            function formatShiftTimeLabel(timeValue) {
+                if (!timeValue) {
+                    return '--:--';
+                }
+
+                const parts = String(timeValue).split(':');
+                const hour = parseInt(parts[0], 10);
+                if (Number.isNaN(hour)) {
+                    return timeValue;
+                }
+
+                const minute = parts[1] || '00';
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minute} ${ampm}`;
+            }
+
+            function mapShiftKeyToInventorySlot(shiftKey, index) {
+                const normalized = String(shiftKey || '').toLowerCase();
+                if (['shift_a', 'morning', 'am', 'first', 'first_shift'].includes(normalized)) {
+                    return 'morning';
+                }
+
+                if (['shift_c', 'weekend_morning', 'sat_sun_morning'].includes(normalized)) {
+                    return 'morning';
+                }
+
+                if (['shift_b', 'afternoon', 'pm', 'second', 'second_shift'].includes(normalized)) {
+                    return 'afternoon';
+                }
+
+                if (['shift_d', 'weekend_afternoon', 'sat_sun_afternoon'].includes(normalized)) {
+                    return 'afternoon';
+                }
+
+                return index === 0 ? 'morning' : 'afternoon';
+            }
+
+            function buildSendReportShiftOptions(shifts) {
+                const select = $('#sendReportShiftSelect');
+                if (!select.length) {
+                    return;
+                }
+
+                if (!Array.isArray(shifts) || shifts.length === 0) {
+                    select.html([
+                        '<option value="morning">Morning shift</option>',
+                        '<option value="afternoon">Afternoon shift</option>'
+                    ].join(''));
+                    return;
+                }
+
+                const usedSlots = {};
+                const optionsHtml = shifts.map(function (shift, index) {
+                    const optionValue = mapShiftKeyToInventorySlot(shift.key, index);
+                    if (usedSlots[optionValue]) {
+                        return '';
+                    }
+
+                    usedSlots[optionValue] = true;
+                    const label = shift.label || (index === 0 ? 'Morning shift' : 'Afternoon shift');
+                    const start = formatShiftTimeLabel(shift.start);
+                    const end = formatShiftTimeLabel(shift.end);
+
+                    return `<option value="${optionValue}">${label} (${start} - ${end})</option>`;
+                }).join('');
+
+                if (optionsHtml.trim() === '') {
+                    select.html([
+                        '<option value="morning">Morning shift</option>',
+                        '<option value="afternoon">Afternoon shift</option>'
+                    ].join(''));
+                    return;
+                }
+
+                select.html(optionsHtml);
+            }
+
+            function getSuggestedInventorySlot(shifts) {
+                if (!Array.isArray(shifts) || shifts.length === 0) {
+                    return new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                }
+
+                const now = new Date();
+                const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+
+                for (let i = 0; i < shifts.length; i++) {
+                    const shift = shifts[i];
+                    if (shift.start && shift.end && currentTime >= shift.start && currentTime <= shift.end) {
+                        return mapShiftKeyToInventorySlot(shift.key, i);
+                    }
+                }
+
+                return mapShiftKeyToInventorySlot(shifts[0].key, 0);
+            }
+
+            function loadSendReportShifts(callback) {
+                const today = new Date();
+                const dateStr = today.getFullYear() + '-' +
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(today.getDate()).padStart(2, '0');
+
+                $.ajax({
+                    url: baseUrl + '/Sales/getShiftConfig',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        date: dateStr
+                    },
+                    success: function (response) {
+                        if (response && response.success) {
+                            reportShiftConfig = response.shifts || [];
+                        } else {
+                            reportShiftConfig = [];
+                        }
+
+                        buildSendReportShiftOptions(reportShiftConfig);
+
+                        const suggestedShift = getSuggestedInventorySlot(reportShiftConfig);
+                        if ($('#sendReportShiftSelect option[value="' + suggestedShift + '"]').length) {
+                            $('#sendReportShiftSelect').val(suggestedShift);
+                        }
+
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    },
+                    error: function () {
+                        reportShiftConfig = [];
+                        buildSendReportShiftOptions(reportShiftConfig);
+
+                        const fallbackShift = new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                        $('#sendReportShiftSelect').val(fallbackShift);
+
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    }
+                });
+            }
+
             function openSendReportConfirmModal() {
-                const currentHour = new Date().getHours();
-                const suggestedShift = currentHour >= 12 ? 'afternoon' : 'morning';
-                $('#sendReportShiftSelect').val(suggestedShift);
-                $('#sendReportConfirmModal').removeClass('hidden');
+                loadSendReportShifts(function () {
+                    $('#sendReportConfirmModal').removeClass('hidden');
+                });
             }
 
             function closeSendReportConfirmModal() {
