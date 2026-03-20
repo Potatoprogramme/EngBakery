@@ -868,6 +868,15 @@
                 return quantity * batchPiecesPerYield;
             }
 
+            function calculateTotalDistributionPieces(items) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                    const productData = getProductAnalyticsData(item && item.product_id);
+                    return sum + getDistributionPieces(item, productData);
+                }, 0);
+            }
+
+            window.calculateTotalDistributionPieces = calculateTotalDistributionPieces;
+
             function getDistributionYieldUnits(item, product) {
                 const quantity = parseNumericValue(item && item.product_qnty);
                 const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
@@ -1244,16 +1253,16 @@
 
                     const quantity = parseNumericValue(item.product_qnty);
                     const qtyMode = (item.qty_mode || 'batch').toLowerCase();
+                    const productData = getProductAnalyticsData(item.product_id);
 
                     groupedMap[groupKey].total_items += 1;
-                    if (qtyMode === 'pieces') {
-                        groupedMap[groupKey].total_pieces += quantity;
-                    } else {
+                    if (qtyMode !== 'pieces') {
                         groupedMap[groupKey].total_batches += quantity;
                     }
+                    groupedMap[groupKey].total_pieces += getDistributionPieces(item, productData);
 
                     const fallbackForecast = quantity * getForecastUnitPrice(
-                        getProductAnalyticsData(item.product_id),
+                        productData,
                         qtyMode
                     );
 
@@ -1295,9 +1304,7 @@
 
                 const totalPieces = group ?
                     parseNumericValue(group.total_pieces) :
-                    groupItems.reduce(function(sum, item) {
-                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
-                    }, 0);
+                    calculateTotalDistributionPieces(groupItems);
 
                 const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
@@ -1958,7 +1965,7 @@
                                     total_items: items.length,
                                     total_groups: getDistinctGroupCount(items, date),
                                     total_batches: items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0),
-                                    total_pieces: items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0),
+                                    total_pieces: calculateTotalDistributionPieces(items),
                                     forecasted_sales_total: calculateForecastedSalesTotal(items),
                                     direct_cost_total: items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0),
                                     raw_material_usage_total: []
@@ -1969,7 +1976,7 @@
                             summary.total_items = items.length;
                             summary.total_groups = getDistinctGroupCount(items, date);
                             summary.total_batches = items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
-                            summary.total_pieces = items.reduce((sum, item) => sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
+                            summary.total_pieces = calculateTotalDistributionPieces(items);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.direct_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.direct_cost), 0);
                             summary.overhead_cost_total = items.reduce((sum, item) => sum + parseNumericValue(item.overhead_cost), 0);
@@ -2879,9 +2886,7 @@
                         const totalBatches = groupItems.reduce(function(sum, item) {
                             return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                         }, 0);
-                        const totalPieces = groupItems.reduce(function(sum, item) {
-                            return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
-                        }, 0);
+                        const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                         return {
                             group_key: 'group-' + String(apiGroup.id),
@@ -2963,7 +2968,7 @@
                 setCalendarDayModalPane('list');
 
                 const batchTotal = flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
-                const piecesTotal = flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') === 'pieces' ? parseNumericValue(item.product_qnty) : 0), 0);
+                const piecesTotal = calculateTotalDistributionPieces(flatItems);
                 $('#modalItemCount').text(flatItems.length);
                 $('#modalBatchesCount').text(formatQuantityValue(batchTotal));
                 $('#modalPiecesCount').text(formatQuantityValue(piecesTotal));
@@ -3159,9 +3164,7 @@
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const totalPieces = groupItems.reduce(function(sum, item) {
-                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
-                    }, 0);
+                    const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                     const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
@@ -3212,9 +3215,7 @@
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0);
                     }, 0);
 
-                    const totalPieces = groupItems.reduce(function(sum, item) {
-                        return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
-                    }, 0);
+                    const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                     const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
@@ -3713,19 +3714,24 @@
 
                 const product = productsData.find(p => p.product_id == productId);
                 const piecesPerYield = product ? parseNumericValue(product.pieces_per_yield || 0) : 0;
+                const traysPerYield = product ? parseNumericValue(product.trays_per_yield || 0) : 0;
+                const batchPiecesPerYield = product ? getProductBatchPiecesPerYield(product) : 0;
 
-                if (piecesPerYield <= 0) {
+                if (batchPiecesPerYield <= 0) {
                     $('#piecesConversionHint').addClass('hidden');
                     return;
                 }
 
                 if (mode === 'batch') {
-                    const totalPieces = qty * piecesPerYield;
-                    $('#conversionText').text(qty + ' batch(es) × ' + piecesPerYield + ' pcs/batch = ' + totalPieces + ' pieces total');
+                    const totalPieces = qty * batchPiecesPerYield;
+                    const batchBreakdown = traysPerYield > 0 ?
+                        (traysPerYield + ' tray(es) × ' + piecesPerYield + ' pcs/tray') :
+                        (piecesPerYield + ' pcs/batch');
+                    $('#conversionText').text(qty + ' batch(es) × (' + batchBreakdown + ') = ' + totalPieces + ' pieces total');
                     $('#piecesConversionHint').removeClass('hidden');
                 } else if (mode === 'pieces') {
-                    const batches = (qty / piecesPerYield).toFixed(2);
-                    $('#conversionText').text(qty + ' pieces ÷ ' + piecesPerYield + ' pcs/batch = ' + batches + ' batch(es) of raw materials used');
+                    const batches = (qty / batchPiecesPerYield).toFixed(2);
+                    $('#conversionText').text(qty + ' pieces ÷ ' + batchPiecesPerYield + ' pcs/batch = ' + batches + ' batch(es) of raw materials used');
                     $('#piecesConversionHint').removeClass('hidden');
                 } else {
                     $('#piecesConversionHint').addClass('hidden');
@@ -4550,14 +4556,17 @@
         function updateSummaryCounts(items, summary = {}, fallbackDate = '') {
             const distributionItems = Array.isArray(items) ? items : [];
             const hasSummary = summary && typeof summary === 'object';
+            const totalPiecesCalculator = (typeof window.calculateTotalDistributionPieces === 'function') ?
+                window.calculateTotalDistributionPieces :
+                function() {
+                    return 0;
+                };
 
             const computedTotalItems = distributionItems.length;
             const computedTotalBatches = distributionItems.reduce(function(sum, item) {
                 return sum + (((item.qty_mode || 'batch') === 'pieces') ? 0 : parseNumericValue(item.product_qnty));
             }, 0);
-            const computedTotalPieces = distributionItems.reduce(function(sum, item) {
-                return sum + (((item.qty_mode || 'batch') === 'pieces') ? parseNumericValue(item.product_qnty) : 0);
-            }, 0);
+            const computedTotalPieces = totalPiecesCalculator(distributionItems);
 
             const total = hasSummary && summary.total_items != null ?
                 (parseInt(summary.total_items) || 0) :
