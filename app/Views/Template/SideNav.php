@@ -89,20 +89,22 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                     </a>
                 </li>
             <?php endif; ?>
-            <li class="pt-2 mt-2 border-t border-gray-100">
-                <a href="<?= base_url('MaterialCosting') ?>"
-                    class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'materialcosting') ? 'bg-primary' : '' ?>">
-                    <svg class="w-6 h-6 <?= ($current === 'materialcosting') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200"
-                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span
-                        class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'materialcosting') ? 'text-white' : '' ?>">Material
-                        Costing</span>
-                </a>
-            </li>
+            <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
+                <li class="pt-2 mt-2 border-t border-gray-100">
+                    <a href="<?= base_url('MaterialCosting') ?>"
+                        class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'materialcosting') ? 'bg-primary' : '' ?>">
+                        <svg class="w-6 h-6 <?= ($current === 'materialcosting') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200"
+                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span
+                            class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'materialcosting') ? 'text-white' : '' ?>">Material
+                            Costing</span>
+                    </a>
+                </li>
+            <?php endif; ?>
             <li class="pt-2 mt-2 border-t border-gray-100">
                 <a href="<?= base_url('MaterialStock') ?>"
                     class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'materialstock') ? 'bg-primary' : '' ?>">

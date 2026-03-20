@@ -505,7 +505,7 @@ class InventoryController extends BaseController
             $currentEnding = intval($existingItem['ending_stock'] ?? 0);
             $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
             $manualQty = max(0, $currentBeginning - $currentDistQty - $carryoverQty);
-            $newDistQty = $currentDistQty + $quantity;
+            $newDistQty = $quantity;
             $newBeginning = $carryoverQty + $manualQty + $newDistQty;
             $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
             $existingNotes = trim($existingItem['notes'] ?? '');
@@ -549,7 +549,7 @@ class InventoryController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Distribution item loaded successfully (+'.$quantity.' pcs).',
+            'message' => 'Distribution item loaded successfully (' . $quantity . ' pcs).',
         ]);
     }
 
@@ -1281,10 +1281,11 @@ class InventoryController extends BaseController
     }
 
     /**
-     * Manually send the auto-generated inventory report.
-     * Owner-only.
+     * Manually trigger the scheduled inventory report for a given slot.
+     * Owner-only. Used for verifying the email before the scheduled window fires.
      *
      * POST /Inventory/SendReport
+     * Body (JSON): { "slot": "am"|"pm", "force": true }
      */
     public function sendInventoryReport()
     {
@@ -1298,29 +1299,95 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $json  = $this->request->getJSON(true);
+        $slot  = in_array($json['slot'] ?? '', ['am', 'pm']) ? $json['slot'] : 'am';
+        $force = !empty($json['force']);
+
+        $today    = date('Y-m-d');
+        $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
+
+        if (!$force && file_exists($flagFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Report for the '{$slot}' slot was already sent today. Pass \"force\": true to resend.",
+                'flag'    => $flagFile,
+            ]);
+        }
+
+        // Delete flag so the sender is not blocked
+        if ($force && file_exists($flagFile)) {
+            @unlink($flagFile);
+        }
+
         try {
-            $today = date('Y-m-d');
-            $sent = \App\Libraries\AutoReportScheduler::sendManualReport($today);
+            // Use reflection to call private method for the force-test path
+            $scheduler = new \ReflectionClass(\App\Libraries\AutoReportScheduler::class);
+            $method    = $scheduler->getMethod('sendInventoryReport');
+            $method->setAccessible(true);
+            $sent      = $method->invoke(null, $slot, $today);
 
             if ($sent) {
+                // Re-plant flag so the scheduler won't double-send
+                file_put_contents($flagFile, date('Y-m-d H:i:s') . ' (manual)');
+
                 return $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Inventory report sent successfully.',
+                    'message' => "Inventory report for slot '{$slot}' sent successfully.",
+                    'slot'    => $slot,
                     'date'    => $today,
                 ]);
             }
 
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Report could not be sent. Please check email SMTP credentials/settings and try again.',
+                'message' => 'Report was not sent. Check writable/logs for details.',
             ]);
 
         } catch (\Throwable $e) {
             log_message('error', 'Manual inventory report trigger failed: ' . $e->getMessage());
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Get product recipe with raw materials and quantities
+     * GET /Inventory/GetProductRecipe/{productId}
+     * 
+     * Returns all raw materials needed to produce one unit (piece) of the product
+     * with their quantities and units.
+     */
+    public function GetProductRecipe($productId = null)
+    {
+        $productId = intval($productId);
+
+        if ($productId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Invalid product ID.'
+            ]);
+        }
+
+        $product = $this->productModel->find($productId);
+        if (!$product) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Product not found.'
+            ]);
+        }
+
+        $recipeModel = model('ProductRecipeModel');
+        $recipe = $recipeModel->getRecipeWithMaterialDetails($productId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'product_id' => $productId,
+            'product_name' => $product['product_name'] ?? '',
+            'category' => $product['category'] ?? '',
+            'recipe' => $recipe,
+            'recipe_count' => count($recipe)
+        ]);
     }
 }

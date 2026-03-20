@@ -54,7 +54,7 @@ class OrderModel extends Model
         return false;
     }
 
-    public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null, ?string $orderType = null): array
+    public function getOrderHistory(?string $dateFrom = null, ?string $dateTo = null, ?string $orderType = null, $limit = null): array
     {
         $builder = $this->builder();
         $builder->select("orders.*, orders.voided_at, orders.voided_by,
@@ -73,6 +73,10 @@ class OrderModel extends Model
 
         $builder->orderBy('date_created', 'DESC');
         $builder->orderBy('time_created', 'DESC');
+
+        if ($limit !== null) {
+            $builder->limit($limit);
+        }
 
         return $builder->get()->getResultArray();
     }

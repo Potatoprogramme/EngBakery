@@ -421,6 +421,13 @@
                                 </div>
                             </div>
 
+                            <!-- Overhead Cost Amount -->
+                            <div id="overheadCostAmountSection"
+                                class="p-3 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Overhead Cost Amount</span>
+                                <span id="overheadCostAmountDisplay" class="text-sm font-medium text-gray-900">₱ 0.00</span>
+                            </div>
+
                             <!-- Overall Amount (Direct + Combined + Overhead) -->
                             <div id="overallAmountSection"
                                 class="mt-3 p-3 rounded-lg border-2 border-primary/30 bg-primary/5 flex items-center justify-between">
@@ -2014,6 +2021,7 @@
                 }
 
                 $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
+                $('#overheadCostAmountDisplay').text('₱ ' + overheadCost.toFixed(2));
                 $('#overallAmountDisplay').text('₱ ' + totalCostWithCombined.toFixed(2));
                 $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#recommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
@@ -2311,7 +2319,7 @@
 
                             displayProducts.forEach(function(product) {
                                 // Desktop table rows
-                                rows += '<tr class="hover:bg-neutral-secondary-soft cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
+                                rows += '<tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer product-row" data-product-id="' + product.product_id + '" data-category="' + (product.category || '') + '">';
                                 rows += '<td class="px-6 py-4 font-medium text-heading whitespace-nowrap">' + product.product_name + '</td>';
                                 rows += '<td class="px-6 py-4">' + (product.category || '-') + '</td>';
                                 rows += '<td class="px-6 py-4">' + parseFloat(product.direct_cost || 0).toFixed(2) + '</td>';

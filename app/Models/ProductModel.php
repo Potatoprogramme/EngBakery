@@ -48,7 +48,11 @@ class ProductModel extends Model
             LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
                         WHERE p.is_disabled = 0
                             AND p.deleted_at IS NULL
-                            AND (dsi.item_id IS NULL OR dsi.is_enabled = 1)
+                            AND (
+                                (p.category = 'drinks' AND dsi.is_enabled = 1)
+                                OR (p.category = 'grocery')
+                                OR (p.category NOT IN ('drinks', 'grocery') AND (dsi.item_id IS NULL OR dsi.is_enabled = 1))
+                            )
             ORDER BY p.category, p.product_name
         ", [$today])->getResultArray();
     }

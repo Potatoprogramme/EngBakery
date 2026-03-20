@@ -1,4 +1,5 @@
 <?php $isOwnerView = (($employee_type ?? '') === 'owner'); ?>
+
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
@@ -12,10 +13,10 @@
                             <i class="fas fa-history mr-2"></i> History
                         </a>
                         <?php if ($isOwnerView): ?>
-                        <button id="btnSendInventoryReport" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                        </button>
+                            <button id="btnSendInventoryReport" type="button"
+                                class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                                <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
+                            </button>
                         <?php endif; ?>
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
@@ -77,154 +78,175 @@
                 <div class="xl:col-span-8 min-w-0">
                     <!-- Category Tabs -->
                     <div class="flex gap-2 mb-3">
-                <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
-                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
-                    <i class="fas fa-bread-slice mr-1.5 hidden sm:inline"></i> Bakery
-                </button>
-                <button type="button" data-tab="drinks" onclick="switchTab('drinks')"
-                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
-                    <i class="fas fa-mug-hot mr-1.5 hidden sm:inline"></i> Drinks
-                </button>
-                <button type="button" data-tab="grocery" onclick="switchTab('grocery')"
-                    class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
-                    <i class="fas fa-shopping-basket mr-1.5 hidden sm:inline"></i> Grocery
-                </button>
-            </div>
-
-            <!-- Tab Content: Bakery -->
-            <div id="bakery-content" class="tab-content mb-20 sm:mb-0">
-                <!-- Mobile Card View -->
-                <div class="sm:hidden">
-                    <div id="bakeryMobileCards" class="space-y-3">
-                        <!-- Cards will be loaded via AJAX -->
+                        <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
+                            class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-primary text-white bg-primary shadow-md cursor-pointer">
+                            <i class="fas fa-bread-slice mr-1.5 hidden sm:inline"></i> Bakery
+                        </button>
+                        <button type="button" data-tab="drinks" onclick="switchTab('drinks')"
+                            class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                            <i class="fas fa-mug-hot mr-1.5 hidden sm:inline"></i> Drinks
+                        </button>
+                        <button type="button" data-tab="grocery" onclick="switchTab('grocery')"
+                            class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
+                            <i class="fas fa-shopping-basket mr-1.5 hidden sm:inline"></i> Grocery
+                        </button>
                     </div>
-                </div>
-                <!-- Desktop Table View -->
-                <div class="hidden sm:block">
-                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="bakeryTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bakeryTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="bakeryTotalQty">0
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+
+                    <!-- Tab Content: Bakery -->
+                    <div id="bakery-content" class="tab-content mb-20 sm:mb-0">
+                        <!-- Mobile Card View -->
+                        <div class="sm:hidden">
+                            <div id="bakeryMobileCards" class="space-y-3">
+                                <!-- Cards will be loaded via AJAX -->
+                            </div>
+                        </div>
+                        <!-- Desktop Table View -->
+                        <div class="hidden sm:block">
+                            <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table id="bakeryTable" class="min-w-full text-sm text-left">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">
+                                                    Items/Particulars
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bakeryTableBody">
+                                            <!-- Data will be loaded via AJAX -->
+                                        </tbody>
+                                        <tfoot class="bg-gray-50 border-t border-gray-200">
+                                            <tr>
+                                                <td colspan="5"
+                                                    class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                                    Total:</td>
+                                                <td class="px-6 py-2 text-sm font-medium text-gray-700"
+                                                    id="bakeryTotalQty">0
+                                                </td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Tab Content: Drinks -->
-            <div id="drinks-content" class="tab-content hidden mb-20 sm:mb-0">
-                <!-- Mobile Card View -->
-                <div class="sm:hidden">
-                    <div id="drinksMobileCards" class="space-y-3">
-                        <!-- Cards will be loaded via AJAX -->
-                    </div>
-                </div>
-                <!-- Desktop Table View -->
-                <div class="hidden sm:block">
-                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="drinksTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="drinksTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="drinksTotalQty">0
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                    <!-- Tab Content: Drinks -->
+                    <div id="drinks-content" class="tab-content hidden mb-20 sm:mb-0">
+                        <!-- Mobile Card View -->
+                        <div class="sm:hidden">
+                            <div id="drinksMobileCards" class="space-y-3">
+                                <!-- Cards will be loaded via AJAX -->
+                            </div>
+                        </div>
+                        <!-- Desktop Table View -->
+                        <div class="hidden sm:block">
+                            <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table id="drinksTable" class="min-w-full text-sm text-left">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">
+                                                    Items/Particulars
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="drinksTableBody">
+                                            <!-- Data will be loaded via AJAX -->
+                                        </tbody>
+                                        <tfoot class="bg-gray-50 border-t border-gray-200">
+                                            <tr>
+                                                <td colspan="2"
+                                                    class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                                    Total:</td>
+                                                <td class="px-6 py-2 text-sm font-medium text-gray-700"
+                                                    id="drinksTotalQty">0
+                                                </td>
+                                                <td class="px-6 py-2 text-sm font-medium text-gray-700"
+                                                    id="drinksTotalSales">₱0.00
+                                                </td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Tab Content: Grocery -->
-            <div id="grocery-content" class="tab-content hidden mb-20 sm:mb-0">
-                <!-- Mobile Card View -->
-                <div class="sm:hidden">
-                    <div id="groceryMobileCards" class="space-y-3">
-                        <!-- Cards will be loaded via AJAX -->
-                    </div>
-                </div>
-                <!-- Desktop Table View -->
-                <div class="hidden sm:block">
-                    <div class="bg-white rounded border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table id="groceryTable" class="min-w-full text-sm text-left">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Items/Particulars
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Notes</th>
-                                        <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groceryTableBody">
-                                    <!-- Data will be loaded via AJAX -->
-                                </tbody>
-                                <tfoot class="bg-gray-50 border-t border-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
-                                            Total:</td>
-                                        <td class="px-6 py-2 text-sm font-medium text-gray-700" id="groceryTotalQty">0
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                    <!-- Tab Content: Grocery -->
+                    <div id="grocery-content" class="tab-content hidden mb-20 sm:mb-0">
+                        <!-- Mobile Card View -->
+                        <div class="sm:hidden">
+                            <div id="groceryMobileCards" class="space-y-3">
+                                <!-- Cards will be loaded via AJAX -->
+                            </div>
+                        </div>
+                        <!-- Desktop Table View -->
+                        <div class="hidden sm:block">
+                            <div class="bg-white rounded border border-gray-200 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table id="groceryTable" class="min-w-full text-sm text-left">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">
+                                                    Items/Particulars
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials Used</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="groceryTableBody">
+                                            <!-- Data will be loaded via AJAX -->
+                                        </tbody>
+                                        <tfoot class="bg-gray-50 border-t border-gray-200">
+                                            <tr>
+                                                <td colspan="5"
+                                                    class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
+                                                    Total:</td>
+                                                <td class="px-6 py-2 text-sm font-medium text-gray-700"
+                                                    id="groceryTotalQty">0
+                                                </td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
                 </div>
 
@@ -271,33 +293,43 @@
                                 </div>
                                 <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg col-span-2">
                                     <p class="text-[11px] text-gray-600">Direct Cost</p>
-                                    <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">₱0.00</p>
+                                    <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">
+                                        ₱0.00</p>
                                 </div>
                             </div>
 
-                            <div id="todayDistributionSlideViewport" class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
-                                <div id="todayDistributionSlideTrack" class="flex transition-transform duration-300 ease-in-out" style="width: 200%; transform: translateX(0);">
+                            <div id="todayDistributionSlideViewport"
+                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
+                                <div id="todayDistributionSlideTrack"
+                                    class="flex transition-transform duration-300 ease-in-out"
+                                    style="width: 200%; transform: translateX(0);">
                                     <div class="flex-shrink-0 p-3" style="width: 50%;">
                                         <p class="text-xs font-semibold text-gray-700 mb-2">
                                             <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
                                         </p>
-                                        <div id="todayDistributionGroupList" class="space-y-2 max-h-[340px] overflow-y-auto"></div>
+                                        <div id="todayDistributionGroupList"
+                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
                                     </div>
 
                                     <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
                                         <div class="mb-2">
-                                            <button type="button" id="btnTodayDistBackToGroups" class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
+                                            <button type="button" id="btnTodayDistBackToGroups"
+                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
                                                 <i class="fas fa-arrow-left mr-1"></i>Back to groups
                                             </button>
                                         </div>
 
                                         <div class="mb-2.5">
-                                            <p id="todayDistSelectedGroupName" class="text-sm font-semibold text-gray-800">Selected Group</p>
-                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0 batches • 0 pcs • ₱0.00</p>
-                                            <p id="todayDistSelectedGroupNote" class="hidden text-[11px] text-amber-700 mt-1"></p>
+                                            <p id="todayDistSelectedGroupName"
+                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
+                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
+                                                batches • 0 pcs • ₱0.00</p>
+                                            <p id="todayDistSelectedGroupNote"
+                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
                                         </div>
 
-                                        <div id="todayDistributionGroupItems" class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+                                        <div id="todayDistributionGroupItems"
+                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
                                     </div>
                                 </div>
                             </div>
@@ -318,11 +350,13 @@
                     <p class="text-xs text-gray-500 mb-2">Set the operating hours for today.</p>
 
                     <!-- Inventory Source Badge -->
-                    <div id="inventoryModeBadge" class="hidden mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                    <div id="inventoryModeBadge"
+                        class="hidden mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
                         <i class="fas fa-truck-loading text-blue-500 text-xs"></i>
                         <span class="text-xs font-medium text-blue-700">Using today's distribution data</span>
                     </div>
-                    <div id="noDistributionModeBadge" class="hidden mb-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
+                    <div id="noDistributionModeBadge"
+                        class="hidden mb-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
                         <i class="fas fa-boxes text-gray-400 text-xs"></i>
                         <span class="text-xs text-gray-500">Using all active products (no distribution today)</span>
                     </div>
@@ -378,7 +412,8 @@
     <!-- Edit Inventory Modal -->
     <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-black/40" id="editInventoryModalBackdrop"></div>
-        <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
+        <div
+            class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
             <button type="button" id="editInventoryModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-lg"></i>
@@ -386,14 +421,26 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Edit Inventory Item</h3>
             <p class="text-sm text-gray-500 mb-5">Product: <span id="editProductName"
                     class="font-medium text-gray-700"></span></p>
+            <div id="editAdjustmentGuide"
+                class="hidden mb-4 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
+                <strong>Adjustment Guide:</strong> Use <strong>+</strong> to add and <strong>-</strong> to subtract.
+                <strong>Pull Out</strong> accepts positive values only.
+            </div>
 
-            <form id="editInventoryForm">
+            <form id="editInventoryForm" class="flex-1 overflow-y-auto pr-1">
                 <input type="hidden" id="editItemId" name="item_id">
                 <input type="hidden" id="editDistributionQty" value="0">
                 <input type="hidden" id="editCarryoverQty" value="0">
+                <input type="hidden" id="editCategory" value="">
+                <input type="hidden" id="editAdjustmentMode" value="0">
+                <input type="hidden" id="editOldBeginningStock" value="0">
+                <input type="hidden" id="editOldPullOutQuantity" value="0">
+                <input type="hidden" id="editOldEndingStock" value="0">
+                <input type="hidden" id="editOldQuantitySold" value="0">
 
                 <div class="mb-4">
-                    <label for="editBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
+                    <label for="editBeginningStock" id="editBeginningLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseBeginning"
@@ -407,9 +454,11 @@
                             +
                         </button>
                     </div>
+                    <p id="editBeginningHint" class="text-xs text-gray-400 mt-1"></p>
 
                     <!-- Distribution Limit Info Bar -->
-                    <div id="editDistributionInfo" class="hidden mt-2 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div id="editDistributionInfo"
+                        class="hidden mt-2 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
                         <div class="flex items-center gap-1.5 text-xs text-blue-700">
                             <i class="fas fa-info-circle"></i>
                             <span id="editDistInfoText"></span>
@@ -426,14 +475,36 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="editPullOutQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
+                    <label for="editPullOutQuantity" id="editPullOutLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
                     <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+
+                <div class="mb-4 hidden" id="editEndingGroup">
+                    <label for="editEndingStock" id="editEndingLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Ending
+                        Stock</label>
+                    <input type="number" id="editEndingStock" name="ending_stock" step="1"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Use + to add or - to subtract from current
+                        ending stock</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining
+                        (Preview)</label>
+                    <input type="number" id="editRemainingPreview" readonly
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
+                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields
+                        above.</p>
                 </div>
 
                 <div class="mb-6">
-                    <label for="editNotes" id="editNotesLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
+                    <label for="editNotes" id="editNotesLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
                     <p id="editNotesHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
@@ -538,31 +609,41 @@
     </div>
 
     <?php if ($isOwnerView): ?>
-    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
-        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-            <button type="button" id="sendReportConfirmModalClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
-            </button>
-            <div class="text-center">
-                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
-                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
-                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and emailed.</p>
-            </div>
-            <div class="flex gap-3">
-                <button type="button" id="btnConfirmSendInventoryReport"
-                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                    Send Report
+        <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+            <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+                <button type="button" id="sendReportConfirmModalClose"
+                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                    <i class="fas fa-xmark"></i>
                 </button>
-                <button type="button" id="sendReportConfirmModalCancel"
-                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                    Cancel
-                </button>
+                <div class="text-center">
+                    <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                    <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                    <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
+                        emailed.</p>
+                </div>
+                <div class="mb-4">
+                    <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                    <select id="sendReportShiftSelect"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
+                        <option value="morning">Morning shift</option>
+                        <option value="afternoon">Afternoon shift</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" id="btnConfirmSendInventoryReport"
+                        class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                        Send Report
+                    </button>
+                    <button type="button" id="sendReportConfirmModalCancel"
+                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <script>
@@ -655,7 +736,8 @@
     <!-- Distribution Items List Modal -->
     <div id="distributionListModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-black/40" id="distributionListModalBackdrop"></div>
-        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col z-10">
+        <div
+            class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col z-10">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900">
                     <i class="fas fa-truck-loading mr-2 text-primary"></i>Today's Distribution Items
@@ -693,7 +775,8 @@
                 <i class="fas fa-times text-lg"></i>
             </button>
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Load Distribution Item</h3>
-            <p class="text-sm text-gray-500 mb-4">Product: <span id="loadItemProductName" class="font-medium text-gray-700"></span></p>
+            <p class="text-sm text-gray-500 mb-4">Product: <span id="loadItemProductName"
+                    class="font-medium text-gray-700"></span></p>
 
             <form id="loadSingleItemForm">
                 <input type="hidden" id="loadItemProductId" value="0">
@@ -705,7 +788,8 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="loadItemQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Quantity (pcs)</label>
+                    <label for="loadItemQuantity" class="block mb-1.5 text-sm font-medium text-gray-700">Quantity
+                        (pcs)</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseLoadQty"
                             class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
@@ -721,7 +805,8 @@
                 </div>
 
                 <!-- Deviation Warning -->
-                <div id="loadItemDeviationWarning" class="hidden mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <div id="loadItemDeviationWarning"
+                    class="hidden mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                     <p class="text-xs text-amber-700 flex items-center">
                         <i class="fas fa-exclamation-triangle mr-1.5"></i>
                         <span id="loadItemDeviationText"></span>
@@ -729,7 +814,8 @@
                 </div>
 
                 <div class="mb-5">
-                    <label for="loadItemNote" id="loadItemNoteLabel" class="block mb-1.5 text-sm font-medium text-gray-700">Note</label>
+                    <label for="loadItemNote" id="loadItemNoteLabel"
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Note</label>
                     <textarea id="loadItemNote" name="note" rows="3" maxlength="500" placeholder="Add note (optional)"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
                     <p id="loadItemNoteHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
@@ -748,6 +834,107 @@
             </form>
         </div>
     </div>
+
+    <!-- Item Details Modal -->
+    <div id="itemDetailsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/40" id="itemDetailsModalBackdrop"></div>
+        <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10">
+            <div class="sticky top-0 bg-gradient-to-r from-primary to-secondary p-6 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white" id="itemDetailsProductName">Product Details</h3>
+                <button type="button" id="itemDetailsModalClose" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <!-- Product Notes -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-sticky-note text-blue-600 mr-2"></i> Notes
+                    </h4>
+                    <p id="itemDetailsNotes" class="text-sm text-gray-600 whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Shift Production Summary -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-dolly text-blue-600 mr-2"></i> Shift Production Summary
+                    </h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white rounded p-3 border border-blue-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Pull-Out (PO)</p>
+                            <p id="itemDetailsPO" class="text-lg font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-blue-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Qty Sold</p>
+                            <p id="itemDetailsQtySold" class="text-lg font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-green-100">
+                            <p class="text-xs text-gray-500 font-medium mb-1">Total Units</p>
+                            <p id="itemDetailsTotalUnits" class="text-lg font-bold text-green-600">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Information -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-shopping-cart text-green-600 mr-2"></i> Sales Performance
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-gray-600">SRP per Unit:</p>
+                            <p id="itemDetailsSRP" class="text-sm font-semibold text-gray-800">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between bg-white rounded p-3 border border-green-100">
+                            <p class="text-sm font-medium text-gray-700">Total Sales Revenue:</p>
+                            <p id="itemDetailsTotalSales" class="text-lg font-bold text-green-600">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw Materials Used Section -->
+                <div class="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-flask text-orange-600 mr-2"></i> Raw Materials Used
+                    </h4>
+                    <p class="text-xs text-gray-500 mb-3 italic">Based on <strong>Total Units (PO + Qty Sold)</strong></p>
+                    <div id="itemDetailsMaterialsList" class="space-y-2">
+                        <p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading materials...</p>
+                    </div>
+                </div>
+
+                <!-- Cost Analysis & Shift Performance -->
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-chart-bar text-purple-600 mr-2"></i> Shift Performance Analysis
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-white rounded p-3 border border-purple-100">
+                            <p class="text-sm font-medium text-gray-700">Total Raw Materials Cost:</p>
+                            <p id="itemDetailsTotalMaterialsCost" class="text-lg font-bold text-red-600">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between bg-white rounded p-3 border-2 border-purple-200">
+                            <p class="text-sm font-semibold text-gray-800">Profit/Loss:</p>
+                            <p id="itemDetailsProfit" class="text-lg font-bold text-purple-600">₱0.00</p>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs text-gray-500">Profit Margin:</p>
+                            <p id="itemDetailsProfitMargin" class="text-sm font-semibold text-gray-800">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border-t border-gray-200 p-4 flex gap-2 sticky bottom-0">
+                <button type="button" id="itemDetailsModalCancel"
+                    class="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <style>
         @media (max-width: 640px) {
 
@@ -846,21 +1033,21 @@
             return pieces > 0 ? pieces : 1;
         }
 
-            function getTodayDistTraysPerYield(product) {
-                const trays = parseInventoryNumericValue(product && product.trays_per_yield);
-                return trays > 0 ? trays : 0;
-            }
+        function getTodayDistTraysPerYield(product) {
+            const trays = parseInventoryNumericValue(product && product.trays_per_yield);
+            return trays > 0 ? trays : 0;
+        }
 
-            function getTodayDistBatchPiecesPerYield(product) {
-                const traysPerYield = getTodayDistTraysPerYield(product);
-                const piecesPerYield = getTodayDistPiecesPerYield(product);
+        function getTodayDistBatchPiecesPerYield(product) {
+            const traysPerYield = getTodayDistTraysPerYield(product);
+            const piecesPerYield = getTodayDistPiecesPerYield(product);
 
-                return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
-            }
+            return traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
+        }
 
-            function getTodayDistBoxPieces(product) {
-                return getTodayDistPiecesPerYield(product);
-            }
+        function getTodayDistBoxPieces(product) {
+            return getTodayDistPiecesPerYield(product);
+        }
 
         function getTodayDistPieces(item, product) {
             const qty = parseInventoryNumericValue(item && item.product_qnty);
@@ -1008,7 +1195,8 @@
                         if (response && response.success && response.data) {
                             const productData = response.data;
                             todayDistProductDetailCache[key] = productData;
-                            todayDistProductMap[key] = Object.assign({}, todayDistProductMap[key] || {}, productData);
+                            todayDistProductMap[key] = Object.assign({}, todayDistProductMap[key] || {},
+                                productData);
                             resolve(productData);
                             return;
                         }
@@ -1033,12 +1221,20 @@
                     url: inventoryBaseUrl + 'Distribution/GetDistributionByDate',
                     method: 'GET',
                     dataType: 'json',
-                    data: { date: dateValue },
+                    data: {
+                        date: dateValue
+                    },
                     success: function (response) {
-                        resolve(response || { success: false, data: [] });
+                        resolve(response || {
+                            success: false,
+                            data: []
+                        });
                     },
                     error: function () {
-                        resolve({ success: false, data: [] });
+                        resolve({
+                            success: false,
+                            data: []
+                        });
                     }
                 });
             });
@@ -1092,12 +1288,14 @@
                 const groupItems = Array.isArray(entry.items) ? entry.items : null;
 
                 if (groupItems) {
-                    const explicitGroupKey = (entry.distribution_group_key || entry.group_key || '').toString().trim();
+                    const explicitGroupKey = (entry.distribution_group_key || entry.group_key || '').toString()
+                        .trim();
                     const defaultGroupKey = explicitGroupKey || ((entry.id != null && entry.id !== '') ?
                         ('group-' + String(entry.id).trim()) :
                         ('group-' + (entryIndex + 1)));
 
-                    const groupName = (entry.title || entry.distribution_group_name || entry.group_name || ('Group ' + (entryIndex + 1))).toString().trim() || ('Group ' + (entryIndex + 1));
+                    const groupName = (entry.title || entry.distribution_group_name || entry.group_name || (
+                        'Group ' + (entryIndex + 1))).toString().trim() || ('Group ' + (entryIndex + 1));
                     const groupNote = getTodayDistributionGroupNote(entry, groupItems);
 
                     const normalizedItems = groupItems
@@ -1106,10 +1304,14 @@
                         })
                         .map(function (groupItem) {
                             return Object.assign({}, groupItem, {
-                                distribution_date: groupItem.distribution_date || entry.distribution_date || null,
-                                distribution_group_key: (groupItem.distribution_group_key || defaultGroupKey).toString(),
-                                distribution_group_name: (groupItem.distribution_group_name || groupName).toString(),
-                                distribution_group_note: (groupItem.distribution_group_note || groupNote).toString(),
+                                distribution_date: groupItem.distribution_date || entry
+                                    .distribution_date || null,
+                                distribution_group_key: (groupItem.distribution_group_key ||
+                                    defaultGroupKey).toString(),
+                                distribution_group_name: (groupItem.distribution_group_name ||
+                                    groupName).toString(),
+                                distribution_group_note: (groupItem.distribution_group_note ||
+                                    groupNote).toString(),
                             });
                         });
 
@@ -1133,7 +1335,8 @@
                 }
 
                 const fallbackGroupKey = ((entry.distribution_group_key || '').toString().trim()) || 'legacy-group';
-                const fallbackGroupName = ((entry.distribution_group_name || entry.group_name || 'Default Group').toString().trim()) || 'Default Group';
+                const fallbackGroupName = ((entry.distribution_group_name || entry.group_name || 'Default Group')
+                    .toString().trim()) || 'Default Group';
                 const fallbackGroupNote = getTodayDistributionGroupNote(entry, [entry]);
 
                 if (!fallbackGroupMap[fallbackGroupKey]) {
@@ -1169,7 +1372,8 @@
             }, []);
         }
 
-        async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap, visitedProducts = new Set(), productHint = null) {
+        async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap,
+            visitedProducts = new Set(), productHint = null) {
             const key = String(productId || '').trim();
             if (!key || yieldsNeeded <= 0 || visitedProducts.has(key)) return;
 
@@ -1181,7 +1385,8 @@
 
             const ingredients = Array.isArray(productData.ingredients) ? productData.ingredients : [];
             ingredients.forEach(function (ingredient) {
-                const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient.quantity_needed);
+                const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient
+                    .quantity_needed);
                 if (quantityPerYield <= 0) return;
 
                 const amount = quantityPerYield * yieldsNeeded;
@@ -1189,7 +1394,8 @@
 
                 mergeTodayDistMaterialUsageEntry(materialMap, {
                     material_id: ingredient.material_id,
-                    material_name: ingredient.material_name || ('Material #' + (ingredient.material_id ?? 'N/A')),
+                    material_name: ingredient.material_name || ('Material #' + (ingredient
+                        .material_id ?? 'N/A')),
                     unit: ingredient.unit || '',
                     amount: amount,
                     line_cost: lineCost,
@@ -1199,16 +1405,19 @@
             const combinedRecipes = Array.isArray(productData.combined_recipes) ? productData.combined_recipes : [];
 
             for (const combinedRecipe of combinedRecipes) {
-                const sourceProductId = parseInventoryNumericValue(combinedRecipe.source_product_id || combinedRecipe.id);
+                const sourceProductId = parseInventoryNumericValue(combinedRecipe.source_product_id || combinedRecipe
+                    .id);
                 if (!sourceProductId) continue;
 
-                const gramsPerPiece = parseInventoryNumericValue(combinedRecipe.grams_per_piece ?? combinedRecipe.gramsPerPiece);
+                const gramsPerPiece = parseInventoryNumericValue(combinedRecipe.grams_per_piece ?? combinedRecipe
+                    .gramsPerPiece);
                 if (gramsPerPiece <= 0 || piecesNeeded <= 0) continue;
 
                 const sourceProduct = await fetchTodayDistProductDetail(sourceProductId);
                 if (!sourceProduct) continue;
 
-                const sourceYieldGrams = parseInventoryNumericValue(sourceProduct.yield_grams || combinedRecipe.source_yield_grams);
+                const sourceYieldGrams = parseInventoryNumericValue(sourceProduct.yield_grams || combinedRecipe
+                    .source_yield_grams);
                 if (sourceYieldGrams <= 0) continue;
 
                 const totalGramsNeeded = gramsPerPiece * piecesNeeded;
@@ -1236,9 +1445,9 @@
 
             if (!productData) return [];
 
-            const pieces = parseInventoryNumericValue(piecesHint) > 0
-                ? parseInventoryNumericValue(piecesHint)
-                : getTodayDistPieces(item, productData);
+            const pieces = parseInventoryNumericValue(piecesHint) > 0 ?
+                parseInventoryNumericValue(piecesHint) :
+                getTodayDistPieces(item, productData);
 
             if (pieces <= 0) return [];
 
@@ -1247,7 +1456,8 @@
             if (yieldsNeeded <= 0) return [];
 
             const materialMap = {};
-            await accumulateTodayDistRawMaterialUsage(item.product_id, yieldsNeeded, pieces, materialMap, new Set(), productData);
+            await accumulateTodayDistRawMaterialUsage(item.product_id, yieldsNeeded, pieces, materialMap, new Set(),
+                productData);
             return todayDistMaterialMapToArray(materialMap);
         }
 
@@ -1309,23 +1519,28 @@
 
             if (qtyMode === 'batch') {
                 const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
-                return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+                return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' +
+                    formatInventoryNumber(pieces, 0) + ' pcs';
             }
 
             if (qtyMode === 'box') {
                 const isSingleBox = Math.abs(quantity - 1) < 0.000001;
-                return formatInventoryNumber(quantity, 0) + ' box' + (isSingleBox ? '' : 'es') + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+                return formatInventoryNumber(quantity, 0) + ' box' + (isSingleBox ? '' : 'es') + ' • ' +
+                    formatInventoryNumber(pieces, 0) + ' pcs';
             }
 
-            return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(pieces, 0) + ' pcs';
+            return formatInventoryNumber(quantity, 0) + ' ' + escapeInventoryHtml(qtyMode) + ' • ' + formatInventoryNumber(
+                pieces, 0) + ' pcs';
         }
 
         function hydrateTodayDistributionGroups(groups) {
             const normalizedGroups = Array.isArray(groups) ? groups : [];
 
             return normalizedGroups.map(function (group, groupIndex) {
-                const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function (item) {
-                    const productData = Object.assign({}, getTodayDistProductData(item && item.product_id) || {}, item || {});
+                const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function (
+                    item) {
+                    const productData = Object.assign({}, getTodayDistProductData(item && item
+                        .product_id) || {}, item || {});
                     const piecesCalculated = getTodayDistPieces(item, productData);
                     const directCostCalculated = calculateTodayDistItemDirectCost(item, productData);
 
@@ -1349,8 +1564,10 @@
                 }, 0);
 
                 return {
-                    group_key: ((group && group.group_key) || (group && group.distribution_group_key) || ('group-' + (groupIndex + 1))).toString(),
-                    group_name: ((group && group.group_name) || (group && group.distribution_group_name) || ('Group ' + (groupIndex + 1))).toString().trim() || ('Group ' + (groupIndex + 1)),
+                    group_key: ((group && group.group_key) || (group && group.distribution_group_key) || ('group-' +
+                        (groupIndex + 1))).toString(),
+                    group_name: ((group && group.group_name) || (group && group.distribution_group_name) || (
+                        'Group ' + (groupIndex + 1))).toString().trim() || ('Group ' + (groupIndex + 1)),
                     group_note: getTodayDistributionGroupNote(group, normalizedItems),
                     distribution_date: (group && group.distribution_date) || null,
                     total_items: totalItems,
@@ -1364,8 +1581,10 @@
 
         function renderTodayDistributionGroupItemsPane(groupIndex, shouldOpenPane = true) {
             const normalizedIndex = parseInt(groupIndex, 10);
-            if (!Number.isFinite(normalizedIndex) || normalizedIndex < 0 || normalizedIndex >= todayDistributionGroupedData.length) {
-                $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No items found for this group.</p>');
+            if (!Number.isFinite(normalizedIndex) || normalizedIndex < 0 || normalizedIndex >= todayDistributionGroupedData
+                .length) {
+                $('#todayDistributionGroupItems').html(
+                    '<p class="text-xs text-gray-400">No items found for this group.</p>');
                 if (shouldOpenPane) {
                     setTodayDistributionPanelPane('items');
                 }
@@ -1413,7 +1632,8 @@
                 `;
             }).join('');
 
-            $('#todayDistributionGroupItems').html(itemRows || '<p class="text-xs text-gray-400">No distributed items in this group.</p>');
+            $('#todayDistributionGroupItems').html(itemRows ||
+                '<p class="text-xs text-gray-400">No distributed items in this group.</p>');
 
             if (shouldOpenPane) {
                 setTodayDistributionPanelPane('items');
@@ -1444,7 +1664,8 @@
             $('#todayDistSummaryDirectCost').text(formatInventoryPeso(totalDirectCost));
 
             if (normalizedGroups.length === 0) {
-                $('#todayDistributionGroupList').html('<p class="text-xs text-gray-400">No distribution groups for today.</p>');
+                $('#todayDistributionGroupList').html(
+                    '<p class="text-xs text-gray-400">No distribution groups for today.</p>');
                 $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
                 $('#todayDistSelectedGroupName').text('Selected Group');
                 $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
@@ -1561,8 +1782,155 @@
                 renderTodayDistributionGroupItemsPane(selectedIndex, true);
             });
 
+            let reportShiftConfig = [];
+
+            function formatShiftTimeLabel(timeValue) {
+                if (!timeValue) {
+                    return '--:--';
+                }
+
+                const parts = String(timeValue).split(':');
+                const hour = parseInt(parts[0], 10);
+                if (Number.isNaN(hour)) {
+                    return timeValue;
+                }
+
+                const minute = parts[1] || '00';
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                return `${hour12}:${minute} ${ampm}`;
+            }
+
+            function mapShiftKeyToInventorySlot(shiftKey, index) {
+                const normalized = String(shiftKey || '').toLowerCase();
+                if (['shift_a', 'morning', 'am', 'first', 'first_shift'].includes(normalized)) {
+                    return 'morning';
+                }
+
+                if (['shift_c', 'weekend_morning', 'sat_sun_morning'].includes(normalized)) {
+                    return 'morning';
+                }
+
+                if (['shift_b', 'afternoon', 'pm', 'second', 'second_shift'].includes(normalized)) {
+                    return 'afternoon';
+                }
+
+                if (['shift_d', 'weekend_afternoon', 'sat_sun_afternoon'].includes(normalized)) {
+                    return 'afternoon';
+                }
+
+                return index === 0 ? 'morning' : 'afternoon';
+            }
+
+            function buildSendReportShiftOptions(shifts) {
+                const select = $('#sendReportShiftSelect');
+                if (!select.length) {
+                    return;
+                }
+
+                if (!Array.isArray(shifts) || shifts.length === 0) {
+                    select.html([
+                        '<option value="morning">Morning shift</option>',
+                        '<option value="afternoon">Afternoon shift</option>'
+                    ].join(''));
+                    return;
+                }
+
+                const usedSlots = {};
+                const optionsHtml = shifts.map(function (shift, index) {
+                    const optionValue = mapShiftKeyToInventorySlot(shift.key, index);
+                    if (usedSlots[optionValue]) {
+                        return '';
+                    }
+
+                    usedSlots[optionValue] = true;
+                    const label = shift.label || (index === 0 ? 'Morning shift' : 'Afternoon shift');
+                    const start = formatShiftTimeLabel(shift.start);
+                    const end = formatShiftTimeLabel(shift.end);
+
+                    return `<option value="${optionValue}">${label} (${start} - ${end})</option>`;
+                }).join('');
+
+                if (optionsHtml.trim() === '') {
+                    select.html([
+                        '<option value="morning">Morning shift</option>',
+                        '<option value="afternoon">Afternoon shift</option>'
+                    ].join(''));
+                    return;
+                }
+
+                select.html(optionsHtml);
+            }
+
+            function getSuggestedInventorySlot(shifts) {
+                if (!Array.isArray(shifts) || shifts.length === 0) {
+                    return new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                }
+
+                const now = new Date();
+                const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+
+                for (let i = 0; i < shifts.length; i++) {
+                    const shift = shifts[i];
+                    if (shift.start && shift.end && currentTime >= shift.start && currentTime <= shift.end) {
+                        return mapShiftKeyToInventorySlot(shift.key, i);
+                    }
+                }
+
+                return mapShiftKeyToInventorySlot(shifts[0].key, 0);
+            }
+
+            function loadSendReportShifts(callback) {
+                const today = new Date();
+                const dateStr = today.getFullYear() + '-' +
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(today.getDate()).padStart(2, '0');
+
+                $.ajax({
+                    url: baseUrl + '/Sales/getShiftConfig',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        date: dateStr
+                    },
+                    success: function (response) {
+                        if (response && response.success) {
+                            reportShiftConfig = response.shifts || [];
+                        } else {
+                            reportShiftConfig = [];
+                        }
+
+                        buildSendReportShiftOptions(reportShiftConfig);
+
+                        const suggestedShift = getSuggestedInventorySlot(reportShiftConfig);
+                        if ($('#sendReportShiftSelect option[value="' + suggestedShift + '"]').length) {
+                            $('#sendReportShiftSelect').val(suggestedShift);
+                        }
+
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    },
+                    error: function () {
+                        reportShiftConfig = [];
+                        buildSendReportShiftOptions(reportShiftConfig);
+
+                        const fallbackShift = new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                        $('#sendReportShiftSelect').val(fallbackShift);
+
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    }
+                });
+            }
+
             function openSendReportConfirmModal() {
-                $('#sendReportConfirmModal').removeClass('hidden');
+                loadSendReportShifts(function () {
+                    $('#sendReportConfirmModal').removeClass('hidden');
+                });
             }
 
             function closeSendReportConfirmModal() {
@@ -1573,9 +1941,11 @@
                     .text('Send Report');
             }
 
-            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on('click', function () {
-                closeSendReportConfirmModal();
-            });
+            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on(
+                'click',
+                function () {
+                    closeSendReportConfirmModal();
+                });
 
             $('#btnSendInventoryReport').on('click', function () {
                 const btn = $(this);
@@ -1608,18 +1978,22 @@
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json',
-                    data: JSON.stringify({}),
+                    data: JSON.stringify({
+                        shift: $('#sendReportShiftSelect').val()
+                    }),
                     success: function (response) {
                         if (response && response.success) {
-                            showToast('success', response.message || 'Inventory report sent successfully.', 2500);
+                            showToast('success', response.message ||
+                                'Inventory report sent successfully.', 2500);
                         } else {
-                            showToast('error', (response && response.message) || 'Failed to send inventory report.', 3000);
+                            showToast('error', (response && response.message) ||
+                                'Failed to send inventory report.', 3000);
                         }
                     },
                     error: function (xhr, status, error) {
-                        const message = xhr && xhr.responseJSON && xhr.responseJSON.message
-                            ? xhr.responseJSON.message
-                            : ('Error sending report: ' + error);
+                        const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
+                            xhr.responseJSON.message :
+                            ('Error sending report: ' + error);
                         showToast('danger', message, 3000);
                     },
                     complete: function () {
@@ -1722,18 +2096,58 @@
                         dataType: 'json',
                         success: function (response) {
                             if (response.success) {
-                                showToast('success', 'Inventory item deleted successfully!', 2000);
+                                showToast('success',
+                                    'Inventory item deleted successfully!', 2000);
                                 fetchAllStockitems();
                             } else {
                                 showToast('error', response.message, 3000);
                             }
                         },
                         error: function (xhr, status, error) {
-                            showToast('danger', xhr.responseJSON.message || 'An error occured while deleting inventory', 3000);
+                            showToast('danger', xhr.responseJSON.message ||
+                                'An error occured while deleting inventory', 3000);
                         }
                     });
                 });
             });
+
+        // Open Item Details Modal from row click
+        $(document).on('click', '.inventory-item-row', function(e) {
+            if ($(e.target).closest('button').length > 0) {
+                return; // Don't open if clicking on a button
+            }
+            openItemDetailsModal(
+                $(this).data('item-id'),
+                $(this).data('product-id'),
+                $(this).data('product-name'),
+                $(this).data('qty-sold'),
+                $(this).data('po') || 0,
+                $(this).data('price') || 0,
+                $(this).data('total-sales'),
+                $(this).data('notes')
+            );
+        });
+
+        // Materials Used Button Click
+        $(document).on('click', '.btn-materials-used', function(e) {
+            e.stopPropagation();
+            const itemId = $(this).data('item-id');
+            const productId = $(this).data('product-id');
+            const row = $(this).closest('tr');
+            const productName = row.data('product-name');
+            const qtySold = parseInt(row.data('qty-sold')) || 0;
+            const po = parseInt(row.data('po')) || 0;
+            const price = parseFloat(row.data('price')) || 0;
+            const totalSales = parseFloat(row.data('total-sales')) || 0;
+            const notes = row.data('notes');
+
+            openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes);
+        });
+
+        // Close Item Details Modal
+        $('#itemDetailsModalClose, #itemDetailsModalCancel, #itemDetailsModalBackdrop').on('click', function() {
+            $('#itemDetailsModal').addClass('hidden');
+        });
 
             // Apply Filter
             $('#apply-filters').on('click', function () {
@@ -1781,9 +2195,12 @@
                     if (response.success && response.data && response.data.length > 0) {
                         let html = '';
                         response.data.forEach(function (item) {
-                            html += '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
-                            html += '<span class="text-gray-700">' + item.product_name + ' <span class="text-gray-400">(' + item.category + ')</span></span>';
-                            html += '<span class="font-semibold text-amber-700">' + item.remaining_stock + ' pcs</span>';
+                            html +=
+                                '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
+                            html += '<span class="text-gray-700">' + item.product_name +
+                                ' <span class="text-gray-400">(' + item.category + ')</span></span>';
+                            html += '<span class="font-semibold text-amber-700">' + item
+                                .remaining_stock + ' pcs</span>';
                             html += '</div>';
                         });
                         $('#carryoverList').html(html);
@@ -1866,6 +2283,9 @@
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
+                        }
                         // Show delete buttons and add product button when inventory exists
                         $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -1879,6 +2299,9 @@
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                        }
                         // Show add inventory buttons when no inventory
                         $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -1892,6 +2315,9 @@
                 error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     console.log('Error checking inventory: ' + error);
+                    if ($('#btnSendInventoryReport').length) {
+                        $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                    }
                     // Show add inventory buttons on error (safe default)
                     $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -1987,27 +2413,49 @@
 
             items.forEach(function (item) {
                 const categoryColors = {
-                    bakery: { bg: 'bg-amber-100', text: 'text-amber-700', icon: 'fa-bread-slice' },
-                    drinks: { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-mug-hot' },
-                    grocery: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: 'fa-shopping-basket' },
+                    bakery: {
+                        bg: 'bg-amber-100',
+                        text: 'text-amber-700',
+                        icon: 'fa-bread-slice'
+                    },
+                    drinks: {
+                        bg: 'bg-blue-100',
+                        text: 'text-blue-700',
+                        icon: 'fa-mug-hot'
+                    },
+                    grocery: {
+                        bg: 'bg-emerald-100',
+                        text: 'text-emerald-700',
+                        icon: 'fa-shopping-basket'
+                    },
                 };
-                const cat = categoryColors[item.category] || { bg: 'bg-gray-100', text: 'text-gray-600', icon: 'fa-box' };
+                const cat = categoryColors[item.category] || {
+                    bg: 'bg-gray-100',
+                    text: 'text-gray-600',
+                    icon: 'fa-box'
+                };
 
-                const qtyLabel = item.qty_mode === 'batch'
-                    ? item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item.calculated_pieces + ' pcs'
-                    : item.qty_mode === 'box'
-                        ? item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item.calculated_pieces + ' pcs'
-                        : item.calculated_pieces + ' pcs';
+                const qtyLabel = item.qty_mode === 'batch' ?
+                    item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
+                        .calculated_pieces + ' pcs' :
+                    item.qty_mode === 'box' ?
+                        item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
+                            .calculated_pieces + ' pcs' :
+                        item.calculated_pieces + ' pcs';
 
                 const isLoaded = item.loaded && item.loaded_qty > 0;
                 if (!isLoaded) hasUnloaded = true;
 
-                html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' : 'bg-white') + '">';
+                html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' :
+                    'bg-white') + '">';
                 html += '  <div class="flex items-start justify-between gap-2">';
                 html += '    <div class="flex-1 min-w-0">';
                 html += '      <div class="flex items-center gap-2 mb-1">';
-                html += '        <span class="text-sm font-medium text-gray-800 truncate">' + item.product_name + '</span>';
-                html += '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ' + cat.bg + ' ' + cat.text + '">';
+                html += '        <span class="text-sm font-medium text-gray-800 truncate">' + item.product_name +
+                    '</span>';
+                html +=
+                    '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ' +
+                    cat.bg + ' ' + cat.text + '">';
                 html += '          <i class="fas ' + cat.icon + ' mr-1"></i>' + item.category;
                 html += '        </span>';
                 html += '      </div>';
@@ -2017,7 +2465,8 @@
 
                 if (isLoaded) {
                     html += '      <div class="mt-1.5">';
-                    html += '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
+                    html +=
+                        '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
                     html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + item.loaded_qty + ' pcs';
                     html += '        </span>';
                     html += '      </div>';
@@ -2027,9 +2476,11 @@
                 html += '    <div class="flex-shrink-0">';
 
                 if (isLoaded) {
-                    html += '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors"';
+                    html +=
+                        '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-colors"';
                 } else {
-                    html += '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-secondary transition-colors"';
+                    html +=
+                        '      <button type="button" class="btn-load-dist-item px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-secondary transition-colors"';
                 }
                 html += '        data-product-id="' + item.product_id + '"';
                 html += '        data-product-name="' + (item.product_name || '').replace(/"/g, '&quot;') + '"';
@@ -2075,7 +2526,8 @@
             // Info bar
             let infoText = 'Distribution: <strong>' + expectedPieces + '</strong> pcs';
             if (qtyMode === 'batch') {
-                infoText = productQnty + ' batch' + (productQnty > 1 ? 'es' : '') + ' → <strong>' + expectedPieces + '</strong> pcs';
+                infoText = productQnty + ' batch' + (productQnty > 1 ? 'es' : '') + ' → <strong>' + expectedPieces +
+                    '</strong> pcs';
             }
             if (alreadyLoaded) {
                 infoText += ' <span class="text-green-600">(previously loaded)</span>';
@@ -2111,7 +2563,8 @@
                 $('#loadItemNote').attr('required', true);
                 $('#loadItemNote').attr('placeholder', 'Explain why quantity differs from distribution');
                 $('#loadItemNoteLabel').html('Note <span class="text-red-500">*</span>');
-                $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400').addClass('text-red-500');
+                $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400')
+                    .addClass('text-red-500');
                 if (!$('#loadItemNote').val()) {
                     $('#loadItemNote').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 } else {
@@ -2123,7 +2576,8 @@
                 $('#loadItemNote').removeAttr('required');
                 $('#loadItemNote').attr('placeholder', 'Add note (optional)');
                 $('#loadItemNoteLabel').text('Note');
-                $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                    'text-gray-400');
                 $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
         }
@@ -2136,7 +2590,8 @@
             $('#loadItemNote').removeAttr('required');
             $('#loadItemNote').attr('placeholder', 'Add note (optional)');
             $('#loadItemNoteLabel').text('Note');
-            $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+            $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                'text-gray-400');
             $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         }
 
@@ -2157,7 +2612,8 @@
 
             // Client-side note validation
             if (expectedPieces > 0 && quantity !== expectedPieces && !note) {
-                showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces + ' pcs).', 3000);
+                showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces +
+                    ' pcs).', 3000);
                 $('#loadItemNote').focus();
                 return;
             }
@@ -2239,7 +2695,8 @@
                     showToast('error', msg, 3000);
                 },
                 complete: function () {
-                    $btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Load All Remaining');
+                    $btn.prop('disabled', false).html(
+                        '<i class="fas fa-download mr-1"></i> Load All Remaining');
                 }
             });
         }
@@ -2269,9 +2726,9 @@
                     }
                 },
                 error: function (xhr) {
-                    const errorMessage = (xhr.responseJSON && xhr.responseJSON.message)
-                        ? xhr.responseJSON.message
-                        : 'An error occurred while creating inventory from distribution.';
+                    const errorMessage = (xhr.responseJSON && xhr.responseJSON.message) ?
+                        xhr.responseJSON.message :
+                        'An error occurred while creating inventory from distribution.';
                     showToast('danger', errorMessage, 4000);
                 }
             });
@@ -2300,7 +2757,8 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory', 2000);
+                    showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
+                        2000);
                     console.log(xhr.responseJSON);
                 }
             });
@@ -2323,7 +2781,8 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error),
+                        2000);
                     console.log(xhr.responseJSON);
                 }
             });
@@ -2389,37 +2848,54 @@
             let rows = '';
             let totalQty = 0;
 
-            if (items && items.length > 0) {
-                items.forEach(function (item) {
-                    const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price;
-                    const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-                    const beginning = parseInt(item.beginning_stock) || 0;
-                    const pullOut = parseInt(item.pull_out_quantity) || 0;
-                    const qtySold = parseInt(item.quantity_sold) || 0;
-                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
-                    const isEnabled = parseInt(item.is_enabled) === 1;
-                    const notes = item.notes || '';
+        if (items && items.length > 0) {
+            items.forEach(function(item) {
+                const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item
+                    .selling_price;
+                const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
+                const beginning = parseInt(item.beginning_stock) || 0;
+                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                const qtySold = parseInt(item.quantity_sold) || 0;
+                const ending_stock = parseInt(item.ending_stock) || 0;
+                const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
+                const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
+                const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                    rows += '</td>';
-                    rows += '</tr>';
-                });
-            } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
-            }
+                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                        '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
+                        isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
+                    '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
+                rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
+                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                rows += (isEnabled ?
+                    '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    .item_id +
+                    '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                rows += '</td>';
+                rows += '</tr>';
+            });
+        } else {
+            rows =
+                '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
+        }
 
             $('#bakeryTableBody').html(rows);
             $('#bakeryTotalQty').text(totalQty);
@@ -2428,80 +2904,292 @@
         function renderDrinksTable(items) {
             let rows = '';
             let totalQty = 0;
+            let totalSales = 0;
 
             if (items && items.length > 0) {
                 items.forEach(function (item) {
-                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
-                    const beginning = parseInt(item.beginning_stock) || 0;
-                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const srp = parseFloat(item.srp ?? item.selling_price ?? 0) || 0;
+                    const formattedPrice = '₱' + srp.toFixed(2);
                     const qtySold = parseInt(item.quantity_sold) || 0;
-                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
+                    const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
+                    const formattedSales = '₱' + sales.toFixed(2);
                     const isEnabled = parseInt(item.is_enabled) === 1;
-                    const notes = item.notes || '';
 
                     totalQty += qtySold;
+                    totalSales += sales;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                    rows += '</td>';
-                    rows += '</tr>';
-                });
-            } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
-            }
+                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                    '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-price="' + srp + '" data-product-name="' + (item.item || item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + sales.toFixed(2) + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
+                    'N/A') + (!isEnabled ?
+                    ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
+                rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
+                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                rows += '</td>';
+                rows += '</tr>';
+            });
+        } else {
+            rows = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No drinks in inventory</td></tr>';
+        }
 
             $('#drinksTableBody').html(rows);
             $('#drinksTotalQty').text(totalQty);
+            $('#drinksTotalSales').text('₱' + totalSales.toFixed(2));
         }
 
         function renderGroceryTable(items) {
             let rows = '';
             let totalQty = 0;
 
-            if (items && items.length > 0) {
-                items.forEach(function (item) {
-                    const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
-                    const beginning = parseInt(item.beginning_stock) || 0;
-                    const pullOut = parseInt(item.pull_out_quantity) || 0;
-                    const qtySold = parseInt(item.quantity_sold) || 0;
-                    const ending_stock = Math.max(0, beginning - pullOut - qtySold);
-                    const isEnabled = parseInt(item.is_enabled) === 1;
-                    const notes = item.notes || '';
+        if (items && items.length > 0) {
+            items.forEach(function(item) {
+                const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
+                const beginning = parseInt(item.beginning_stock) || 0;
+                const pullOut = parseInt(item.pull_out_quantity) || 0;
+                const qtySold = parseInt(item.quantity_sold) || 0;
+                const ending_stock = parseInt(item.ending_stock) || 0;
+                const price = parseFloat(item.selling_price || 0);
+                const totalSales = (qtySold * price).toFixed(2);
+                const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
+                const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
 
-                    rows += '<tr class="hover:bg-gray-50 border-b border-gray-100' + (!isEnabled ? ' opacity-50' : '') + '">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-500 max-w-[200px] truncate" title="' + notes.replace(/"/g, '&quot;') + '">' + (notes ? notes : '<span class="text-gray-300">—</span>') + '</td>';
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' + (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ? '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
-                    rows += '</td>';
-                    rows += '</tr>';
-                });
-            } else {
-                rows = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
-            }
-
-            $('#groceryTableBody').html(rows);
-            $('#groceryTotalQty').text(totalQty);
+                rows += '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (!isEnabled ? ' opacity-50' :
+                    '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(item.selling_price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
+                        isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
+                    '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id + '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                rows += '</td>';
+                rows += '<td class="px-6 py-3 whitespace-nowrap">';
+                rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
+                        'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
+                    '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
+                    (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
+                        'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                rows += (isEnabled ?
+                    '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    .item_id +
+                    '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
+                rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                rows += '</td>';
+                rows += '</tr>';
+            });
+        } else {
+            rows =
+                '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
         }
+
+        $('#groceryTableBody').html(rows);
+        $('#groceryTotalQty').text(totalQty);
+    }
+
+    /**
+     * Open the Item Details Modal and load data
+     */
+    function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes) {
+        const baseUrl = '<?= base_url() ?>';
+        
+        // Normalize values
+        qtySold = parseInt(qtySold) || 0;
+        po = parseInt(po) || 0;
+        price = parseFloat(price) || 0;
+        totalSales = parseFloat(totalSales) || 0;
+        
+        // Calculate totals
+        const totalUnits = qtySold + po;
+        const srp = price;
+        const salesRevenue = qtySold * srp;
+        
+        // Set header and basic info
+        $('#itemDetailsProductName').text(productName || 'Product Details');
+        $('#itemDetailsPO').text(po);
+        $('#itemDetailsQtySold').text(qtySold);
+        $('#itemDetailsTotalUnits').text(totalUnits);
+        $('#itemDetailsSRP').text('₱' + srp.toFixed(2));
+        $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
+        
+        // Set notes or placeholder
+        if (notes && notes.trim()) {
+            $('#itemDetailsNotes').text(notes);
+        } else {
+            $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
+        }
+        
+        // Show loading state for materials
+        $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading materials...</p>');
+        
+        // Store values for use in material calculations
+        window.currentItemData = {
+            itemId: itemId,
+            productId: productId,
+            qtySold: qtySold,
+            po: po,
+            totalUnits: totalUnits,
+            price: price,
+            salesRevenue: salesRevenue
+        };
+        
+        // Open modal
+        $('#itemDetailsModal').removeClass('hidden');
+        
+        // Fetch and calculate materials if total units > 0 and product has recipe
+        if (totalUnits > 0 && productId) {
+            fetchProductRecipe(productId, totalUnits);
+        } else {
+            $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No materials data available</p>');
+            updateProfitAnalysis(0);
+        }
+    }
+
+    /**
+     * Fetch product recipe from backend
+     */
+    function fetchProductRecipe(productId, totalUnits) {
+        const baseUrl = '<?= base_url() ?>';
+        
+        $.ajax({
+            url: baseUrl + 'Inventory/GetProductRecipe/' + productId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.recipe && response.recipe.length > 0) {
+                    displayMaterialsUsed(response.recipe, totalUnits);
+                } else {
+                    $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No raw materials configured for this product</p>');
+                    updateProfitAnalysis(0);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#itemDetailsMaterialsList').html('<p class="text-sm text-red-500 text-center py-4">Error loading materials</p>');
+                console.error('Error fetching recipe:', error);
+                updateProfitAnalysis(0);
+            }
+        });
+    }
+
+    /**
+     * Display materials used with calculated quantities and costs
+     */
+    function displayMaterialsUsed(recipe, totalUnits) {
+        let html = '';
+        let totalMaterialsCost = 0;
+        
+        if (!recipe || recipe.length === 0) {
+            $('#itemDetailsMaterialsList').html('<p class="text-sm text-gray-500 text-center py-4">No raw materials configured</p>');
+            updateProfitAnalysis(0);
+            return;
+        }
+        
+        recipe.forEach(function(material) {
+            const quantityNeeded = parseFloat(material.quantity_needed) || 0;
+            const unit = material.unit || '';
+            const materialName = material.material_name || 'Unknown Material';
+            const costPerUnit = parseFloat(material.cost_per_unit) || 0;
+            
+            // Calculate total quantity and cost (quantity per piece × total units)
+            const totalQuantity = quantityNeeded * totalUnits;
+            const materialCost = (totalQuantity * costPerUnit).toFixed(2);
+            totalMaterialsCost += parseFloat(materialCost);
+            
+            html += '<div class="bg-gray-50 rounded-lg p-3 border border-gray-200">';
+            html += '<div class="space-y-2">';
+            html += '<div class="flex items-start justify-between">';
+            html += '<div class="flex-1">';
+            html += '<p class="text-sm font-medium text-gray-800">' + escapeHtml(materialName) + '</p>';
+            html += '<p class="text-xs text-gray-500 mt-1">₱' + costPerUnit.toFixed(2) + ' per ' + escapeHtml(unit) + '</p>';
+            html += '</div>';
+            html += '<div class="text-right">';
+            html += '<p class="text-sm font-bold text-gray-800">' + totalQuantity.toFixed(2) + ' ' + escapeHtml(unit) + '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="border-t border-gray-300 pt-2 flex items-center justify-between">';
+            html += '<p class="text-xs text-gray-600">Material Cost:</p>';
+            html += '<p class="text-sm font-semibold text-orange-600">₱' + parseFloat(materialCost).toFixed(2) + '</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        html += '<div class="mt-4 pt-4 border-t-2 border-orange-300">';
+        html += '<div class="flex items-center justify-between bg-orange-50 rounded-lg p-3">';
+        html += '<p class="text-sm font-semibold text-gray-800">Total Materials Cost:</p>';
+        html += '<p class="text-lg font-bold text-orange-600">₱' + totalMaterialsCost.toFixed(2) + '</p>';
+        html += '</div>';
+        html += '</div>';
+        
+        $('#itemDetailsMaterialsList').html(html);
+        updateProfitAnalysis(totalMaterialsCost);
+    }
+
+    /**
+     * Update profit/loss analysis section
+     */
+    function updateProfitAnalysis(totalMaterialsCost) {
+        if (!window.currentItemData) return;
+        
+        const data = window.currentItemData;
+        const salesRevenue = data.salesRevenue;
+        const materialsCost = parseFloat(totalMaterialsCost) || 0;
+        const profit = salesRevenue - materialsCost;
+        const profitMargin = salesRevenue > 0 ? ((profit / salesRevenue) * 100).toFixed(2) : 0;
+        
+        // Update costs section
+        $('#itemDetailsTotalMaterialsCost').text('₱' + materialsCost.toFixed(2));
+        
+        // Update profit section with color coding
+        const profitDisplay = $('#itemDetailsProfit');
+        profitDisplay.text('₱' + profit.toFixed(2));
+        
+        if (profit > 0) {
+            profitDisplay.removeClass('text-red-600 text-gray-600').addClass('text-green-600');
+        } else if (profit < 0) {
+            profitDisplay.removeClass('text-green-600 text-gray-600').addClass('text-red-600');
+        } else {
+            profitDisplay.removeClass('text-green-600 text-red-600').addClass('text-gray-600');
+        }
+        
+        // Update margin
+        $('#itemDetailsProfitMargin').text(profitMargin + '%');
+        const marginDisplay = $('#itemDetailsProfitMargin');
+        if (profit > 0) {
+            marginDisplay.removeClass('text-red-600 text-gray-600').addClass('text-green-600');
+        } else if (profit < 0) {
+            marginDisplay.removeClass('text-green-600 text-gray-600').addClass('text-red-600');
+        } else {
+            marginDisplay.removeClass('text-green-600 text-red-600').addClass('text-gray-600');
+        }
+    }
+
+    /**
+     * Escape HTML special characters
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
         function updateGrandTotals(items) {
             let grandQty = 0;
@@ -2521,11 +3209,54 @@
             const item = allInventoryItems.find(i => i.item_id == itemId);
 
             if (item) {
+                const category = (item.category || '').toLowerCase();
+                const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
+                const beginningStock = parseInt(item.beginning_stock) || 0;
+                const pullOutQty = parseInt(item.pull_out_quantity) || 0;
+                const endingStock = parseInt(item.ending_stock) || 0;
+
                 // Store item ID and populate modal
                 $('#editItemId').val(itemId);
+                $('#editCategory').val(category);
+                $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
-                $('#editBeginningStock').val(item.beginning_stock || 0);
-                $('#editPullOutQuantity').val(item.pull_out_quantity || 0);
+                $('#editOldBeginningStock').val(beginningStock);
+                $('#editOldPullOutQuantity').val(pullOutQty);
+                $('#editOldEndingStock').val(endingStock);
+                const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
+                    endingStock);
+                $('#editOldQuantitySold').val(quantitySold);
+
+                if (isAdjustmentMode) {
+                    $('#editBeginningLabel').text('Beginning Stock ');
+                    $('#editPullOutLabel').text('Pull Out Quantity (add only)');
+                    $('#editEndingLabel').text('Ending Stock ');
+
+                    $('#editAdjustmentGuide').removeClass('hidden');
+                    $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
+                    $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
+                    $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
+
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    $('#editEndingGroup').removeClass('hidden');
+                } else {
+                    $('#editBeginningLabel').text('Beginning Stock');
+                    $('#editPullOutLabel').text('Pull Out Quantity');
+                    $('#editEndingLabel').text('Ending Stock');
+
+                    $('#editAdjustmentGuide').addClass('hidden');
+                    $('#editBeginningHint').text('');
+                    $('#editPullOutHint').text('');
+                    $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    $('#editEndingGroup').addClass('hidden');
+                }
+
                 $('#editNotes').val(item.notes || '');
 
                 // Populate distribution and carryover info
@@ -2536,6 +3267,7 @@
 
                 // Update the distribution display and notes requirement
                 updateBeginningStockDisplay();
+                updateRemainingPreview();
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
@@ -2560,27 +3292,69 @@
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
             updateBeginningStockDisplay();
+            updateRemainingPreview();
         });
+
+        $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
+            updateRemainingPreview();
+        });
+
+        function updateRemainingPreview() {
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+
+            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+            const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+            const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+            const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
+
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingInput = parseInt($('#editEndingStock').val()) || 0;
+
+            let projectedRemaining = 0;
+
+            if (isAdjustmentMode) {
+                const projectedBeginning = beginningInput;
+                const projectedPullOut = pullOutInput;
+                projectedRemaining = endingInput;
+
+                $('#editRemainingHint').text(
+                    'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
+                    ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
+                );
+            } else {
+                projectedRemaining = beginningInput - pullOutInput - oldQtySold;
+                $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
+            }
+
+            $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
+        }
 
         /**
          * Update the distribution limit display and notes requirement
          * based on current beginning stock vs expected (distribution + carryover).
          */
         function updateBeginningStockDisplay() {
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
             const expected = distQty + carryQty;
-            const currentBeginning = parseInt($('#editBeginningStock').val()) || 0;
+            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
 
             // Distribution limit info bar
             if (expected > 0) {
                 let infoText = '';
                 if (distQty > 0 && carryQty > 0) {
-                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Carryover: <strong>' + carryQty +
+                        '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
                 } else if (distQty > 0) {
-                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                    infoText = 'Distribution: <strong>' + distQty + '</strong> pcs · Expected: <strong>' + expected +
+                        '</strong> pcs';
                 } else {
-                    infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected + '</strong> pcs';
+                    infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected +
+                        '</strong> pcs';
                 }
                 $('#editDistInfoText').html(infoText);
                 $('#editDistributionInfo').removeClass('hidden');
@@ -2604,7 +3378,8 @@
                 $('#editNotes').attr('required', true);
                 $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
                 $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
-                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass('text-red-500');
+                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
+                    'text-red-500');
                 if (!$('#editNotes').val()) {
                     $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 } else {
@@ -2616,7 +3391,8 @@
                 $('#editNotes').removeAttr('required');
                 $('#editNotes').attr('placeholder', 'Add notes (optional)');
                 $('#editNotesLabel').text('Notes');
-                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                    'text-gray-400');
                 $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
         }
@@ -2634,12 +3410,25 @@
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
+            $('#editAdjustmentGuide').addClass('hidden');
+            $('#editBeginningLabel').text('Beginning Stock');
+            $('#editPullOutLabel').text('Pull Out Quantity');
+            $('#editEndingLabel').text('Ending Stock');
+            $('#editBeginningHint').text('');
+            $('#editPullOutHint').text('');
+            $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+            $('#editRemainingPreview').val('');
+            $('#editRemainingHint').text('Live preview while editing fields above.');
+            $('#editEndingGroup').addClass('hidden');
+            $('#editBeginningStock').attr('min', 0);
+            $('#editPullOutQuantity').attr('min', 0);
             // Reset distribution display state
             $('#editDistributionInfo').addClass('hidden');
             $('#editStockWarning').addClass('hidden');
             $('#editNotes').removeAttr('required');
             $('#editNotesLabel').text('Notes');
-            $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+            $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                'text-gray-400');
             $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         });
 
@@ -2654,7 +3443,9 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({ is_enabled: newEnabled }),
+                data: JSON.stringify({
+                    is_enabled: newEnabled
+                }),
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
@@ -2664,7 +3455,8 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error), 2000);
+                    showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error),
+                        2000);
                 }
             });
         });
@@ -2673,24 +3465,70 @@
             e.preventDefault();
 
             const itemId = $('#editItemId').val();
-            const beginningStock = $('#editBeginningStock').val();
-            const pullOutQuantity = $('#editPullOutQuantity').val();
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingStock = parseInt($('#editEndingStock').val()) || 0;
             const notes = $('#editNotes').val();
 
-            // Validate inputs
-            if (beginningStock < 0 || pullOutQuantity < 0) {
-                showToast('warning', 'Values cannot be negative', 2000);
-                return;
-            }
-
-            // Client-side: validate notes required when stock deviates from expected
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
             const expected = distQty + carryQty;
-            if (expected > 0 && parseInt(beginningStock) !== expected && !notes.trim()) {
-                showToast('warning', 'Notes are required when beginning stock differs from expected (' + expected + ')', 3000);
-                $('#editNotes').focus();
-                return;
+
+            let payload;
+
+            if (isAdjustmentMode) {
+                const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+                const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+                const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+
+                const projectedBeginning = beginningStock;
+                const projectedPullOut = pullOutQuantity;
+                const projectedEnding = endingStock;
+
+                if (projectedPullOut < oldPullOut) {
+                    showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
+                        2500);
+                    return;
+                }
+
+                if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
+                    showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    return;
+                }
+
+                if (expected > 0 && projectedBeginning !== expected && !notes.trim()) {
+                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                        expected + ')', 3000);
+                    $('#editNotes').focus();
+                    return;
+                }
+
+                payload = {
+                    adjustment_mode: true,
+                    beginning_stock: projectedBeginning,
+                    pull_out_quantity: projectedPullOut,
+                    ending_stock: projectedEnding,
+                    notes: notes
+                };
+            } else {
+                if (beginningStock < 0 || pullOutQuantity < 0) {
+                    showToast('warning', 'Values cannot be negative', 2000);
+                    return;
+                }
+
+                if (expected > 0 && beginningStock !== expected && !notes.trim()) {
+                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
+                        expected + ')', 3000);
+                    $('#editNotes').focus();
+                    return;
+                }
+
+                payload = {
+                    beginning_stock: beginningStock,
+                    pull_out_quantity: pullOutQuantity,
+                    notes: notes
+                };
             }
 
             const baseUrl = '<?= base_url() ?>';
@@ -2699,11 +3537,7 @@
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({
-                    beginning_stock: beginningStock,
-                    pull_out_quantity: pullOutQuantity,
-                    notes: notes
-                }),
+                data: JSON.stringify(payload),
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
@@ -2719,7 +3553,8 @@
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
                     } else {
-                        showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                        showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message ||
+                            error), 2000);
                     }
                     console.log(xhr);
                 }
@@ -2742,8 +3577,13 @@
                     if (response.success) {
                         inventoryExistsToday = false;
                         showToast('success', response.message, 2000);
+                        if ($('#btnSendInventoryReport').length) {
+                            $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                        }
                         // Clear the table
-                        $('#materialsTableBody').html('<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>');
+                        $('#materialsTableBody').html(
+                            '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
+                        );
                         // Reset date/time display
                         $('#timeRange').text('--:-- - --:--');
                         // Show add inventory buttons since no inventory exists
@@ -2805,9 +3645,12 @@
                             } else if (product.category === 'dough') {
                                 categoryLabel = 'Dough';
                             } else if (product.category) {
-                                categoryLabel = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+                                categoryLabel = product.category.charAt(0).toUpperCase() + product
+                                    .category.slice(1);
                             }
-                            select.append(`<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`);
+                            select.append(
+                                `<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`
+                            );
                         });
                         $('#noProductsMessage').addClass('hidden');
                         $('#btnSubmitAddProduct').prop('disabled', false);
@@ -2852,7 +3695,8 @@
                     bakeryCards += renderMobileCard(item, 'bakery');
                 });
             } else {
-                bakeryCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No bakery items in inventory</div>';
+                bakeryCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No bakery items in inventory</div>';
             }
             $('#bakeryMobileCards').html(bakeryCards);
 
@@ -2863,7 +3707,8 @@
                     drinksCards += renderMobileCard(item, 'drinks');
                 });
             } else {
-                drinksCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No drinks in inventory</div>';
+                drinksCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No drinks in inventory</div>';
             }
             $('#drinksMobileCards').html(drinksCards);
 
@@ -2874,7 +3719,8 @@
                     groceryCards += renderMobileCard(item, 'grocery');
                 });
             } else {
-                groceryCards = '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No grocery items in inventory</div>';
+                groceryCards =
+                    '<div class="bg-white rounded border border-gray-200 p-6 text-center text-gray-500 text-sm">No grocery items in inventory</div>';
             }
             $('#groceryMobileCards').html(groceryCards);
         }
@@ -2882,9 +3728,9 @@
         function renderMobileCard(item, category) {
             const price = category === 'bakery' && item.selling_price_per_piece > 0 ?
                 item.selling_price_per_piece :
-                item.selling_price;
+                (item.srp ?? item.selling_price);
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
-            const ending_stock = (item.beginning_stock || 0) - (item.pull_out_quantity || 0) - (item.quantity_sold || 0);
+            const ending_stock = parseInt(item.ending_stock) || 0;
             const isEnabled = parseInt(item.is_enabled) === 1;
             const notes = item.notes || '';
 
@@ -2893,34 +3739,53 @@
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
             else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') + '" data-id="' + item.item_id + '">';
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') +
+                '" data-id="' + item.item_id + '">';
             card += '  <div class="flex items-center justify-between mb-2">';
-            card += '    <span class="text-sm text-gray-800">' + (item.product_name || 'N/A') + (!isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
+            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ?
+                ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
 
-            card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
-            card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
-            card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
-            card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
-            card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item.total_sales).toFixed(2) || 0) + '</span></span>';
-            card += '  </div>';
+            if (category === 'drinks') {
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+                card += '    <span>Qty Sold: <span class="text-gray-700">' + (parseInt(item.quantity_sold) || 0) +
+                    '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + ((parseFloat(item
+                    .sales ?? item.total_sales ?? 0) || 0).toFixed(2)) + '</span></span>';
+                card += '  </div>';
+            } else {
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
+                card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
+                card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+                card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
+                    .total_sales).toFixed(2) || 0) + '</span></span>';
+                card += '  </div>';
+            }
 
-            if (notes) {
+            if (notes && category !== 'drinks') {
                 card += '  <div class="text-xs text-gray-500 mb-2 px-2 py-1.5 bg-gray-50 rounded">';
                 card += '    <i class="fas fa-sticky-note mr-1 text-amber-400"></i>' + notes;
                 card += '  </div>';
             }
 
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
-            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ? 'Enabled' : 'Disabled');
+            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ?
+                'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item
+                    .item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
+            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
+                'Enabled' : 'Disabled');
             card += '    </button>';
-            if (isEnabled) {
-                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' + item.item_id + '">';
+            if (isEnabled && category !== 'drinks') {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
+                    item.item_id + '">';
                 card += '      <i class="fas fa-edit mr-1"></i>Edit';
                 card += '    </button>';
-                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' + item.item_id + '">';
+            }
+            if (isEnabled) {
+                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' +
+                    item.item_id + '">';
                 card += '      <i class="fas fa-trash mr-1"></i>Delete';
                 card += '    </button>';
             }
@@ -2937,7 +3802,8 @@
             if (totalPages > 1) {
                 // Previous button
                 pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
-                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') +
+                    (currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                        'bg-white text-gray-700 hover:bg-gray-50') +
                     '" ' + (currentPage === 1 ? 'disabled' : '') + ' data-page="prev">';
                 pagination += '<i class="fas fa-chevron-left"></i>';
                 pagination += '</button>';
@@ -2952,7 +3818,8 @@
                 }
 
                 if (startPage > 1) {
-                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="1">1</button>';
+                    pagination +=
+                        '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="1">1</button>';
                     if (startPage > 2) {
                         pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
                     }
@@ -2968,12 +3835,15 @@
                     if (endPage < totalPages - 1) {
                         pagination += '<span class="px-2 py-2 text-gray-400">...</span>';
                     }
-                    pagination += '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="' + totalPages + '">' + totalPages + '</button>';
+                    pagination +=
+                        '<button class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50" data-page="' +
+                        totalPages + '">' + totalPages + '</button>';
                 }
 
                 // Next button
                 pagination += '<button class="px-3 py-2 text-sm rounded-lg border ' +
-                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50') +
+                    (currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                        'bg-white text-gray-700 hover:bg-gray-50') +
                     '" ' + (currentPage === totalPages ? 'disabled' : '') + ' data-page="next">';
                 pagination += '<i class="fas fa-chevron-right"></i>';
                 pagination += '</button>';
@@ -2983,7 +3853,8 @@
 
             // Page info
             if (totalItems > 0) {
-                $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries');
+                $('#mobilePageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems +
+                    ' entries');
             } else {
                 $('#mobilePageInfo').text('');
             }
@@ -3041,16 +3912,21 @@
 
                         // Show deduction info/warnings for the single product
                         if (response.deduction) {
-                            if (response.deduction.success && response.deduction.deductions && response.deduction.deductions.length > 0) {
+                            if (response.deduction.success && response.deduction.deductions && response
+                                .deduction.deductions.length > 0) {
                                 var count = response.deduction.deductions.length;
-                                var msg = count + ' raw material' + (count > 1 ? 's' : '') + ' deducted for ' + response.deduction.pieces + ' pcs';
+                                var msg = count + ' raw material' + (count > 1 ? 's' : '') +
+                                    ' deducted for ' + response.deduction.pieces + ' pcs';
                                 if (response.deduction.has_insufficient) {
-                                    showToast('warning', msg + ' — some materials had insufficient stock', 4000);
+                                    showToast('warning', msg +
+                                        ' — some materials had insufficient stock', 4000);
                                 } else {
                                     showToast('info', msg, 3000);
                                 }
                             } else if (!response.deduction.success) {
-                                showToast('warning', 'Raw materials not deducted: ' + (response.deduction.message || 'No recipe found for this product'), 5000);
+                                showToast('warning', 'Raw materials not deducted: ' + (response
+                                    .deduction.message || 'No recipe found for this product'),
+                                    5000);
                             }
                         }
                     } else {
@@ -3062,7 +3938,8 @@
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
                     } else {
-                        showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message || error), 2000);
+                        showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
+                            error), 2000);
                     }
                 }
             });
@@ -3073,13 +3950,15 @@
             // Remove active state from all tab buttons
             document.querySelectorAll('.tab-btn').forEach(function (btn) {
                 btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
-                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+                btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
+                    'hover:border-gray-400');
             });
 
             // Add active state to clicked button
             var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
             if (activeBtn) {
-                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300', 'hover:border-gray-400');
+                activeBtn.classList.remove('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
+                    'hover:border-gray-400');
                 activeBtn.classList.add('text-white', 'bg-primary', 'shadow-md', 'border-primary');
             }
 
@@ -3104,13 +3983,15 @@
 
             // Title message
             html += '<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">';
-            html += '<p class="text-sm font-semibold text-red-700"><i class="fas fa-ban mr-2"></i>' + (data.message || 'Operation blocked due to insufficient raw materials.') + '</p>';
+            html += '<p class="text-sm font-semibold text-red-700"><i class="fas fa-ban mr-2"></i>' + (data.message ||
+                'Operation blocked due to insufficient raw materials.') + '</p>';
             html += '</div>';
 
             // Insufficient products (from batch/distribution endpoint)
             if (data.insufficient_products && data.insufficient_products.length > 0) {
                 html += '<div class="mb-4">';
-                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
                 data.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
@@ -3122,7 +4003,8 @@
             // Insufficient materials detail (from single-product endpoints)
             if (data.insufficient_materials && data.insufficient_materials.length > 0) {
                 html += '<div class="mb-4">';
-                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
                 data.insufficient_materials.forEach(function (detail) {
                     html += '<li>' + detail + '</li>';
@@ -3151,8 +4033,10 @@
             // Products with no recipe
             if (deduction && deduction.no_recipe_products && deduction.no_recipe_products.length > 0) {
                 html += '<div class="mb-4">';
-                html += '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
-                html += '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
+                html +=
+                    '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>No Recipe Found</h4>';
+                html +=
+                    '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
                 deduction.no_recipe_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
@@ -3164,8 +4048,10 @@
             // Products with insufficient stock
             if (deduction && deduction.insufficient_products && deduction.insufficient_products.length > 0) {
                 html += '<div class="mb-4">';
-                html += '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
-                html += '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
+                html +=
+                    '<h4 class="font-semibold text-amber-600 mb-2 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i>Insufficient Raw Material Stock</h4>';
+                html +=
+                    '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
                 deduction.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
@@ -3178,7 +4064,8 @@
             if (deduction) {
                 html += '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">';
                 html += '<i class="fas fa-info-circle mr-1"></i> ';
-                html += 'Deducted raw materials for <strong>' + (deduction.products_deducted || 0) + '</strong> of <strong>' + (deduction.total_products || 0) + '</strong> products.';
+                html += 'Deducted raw materials for <strong>' + (deduction.products_deducted || 0) +
+                    '</strong> of <strong>' + (deduction.total_products || 0) + '</strong> products.';
                 html += '</div>';
             }
 
