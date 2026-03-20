@@ -7,7 +7,7 @@ class DashboardController extends BaseController
     public function dashboard()
     {
         $sessionData = $this->getSessionData();
-        $data = array_merge($sessionData, $this->getDashboardData());
+        $data = $sessionData;
 
         if ($redirect = $this->redirectIfNotLoggedIn()) {
             return $redirect;
@@ -30,26 +30,64 @@ class DashboardController extends BaseController
             view('Template/Footer');
     }
 
-    private function getDashboardData(): array
+    public function getDashboardData()
     {
         $today = date('Y-m-d');
 
-        // Today's Sales Summary
-        $todaysSales = $this->orderModel->getTodaysSales();
-        $todaysOrderCount = $this->orderModel->getTodaysOrderCount();
-        $todaysItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
+        // ✅ FIX 1: Separate queries — the JOIN between orders & transactions
+        // has no direct relationship column, so combining them inflates counts
+        $salesSummary = $this->db->query("
+        SELECT 
+            COUNT(DISTINCT order_id) as order_count,
+            COALESCE(SUM(total_payment_due), 0) as total_sales
+        FROM orders
+        WHERE DATE(date_created) = ?
+    ", [$today])->getRowArray();
 
-        // Sales by Category
-        $bakerySales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
-        $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
-        $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
+        $itemsSoldRow = $this->db->query("
+        SELECT COALESCE(SUM(quantity_sold), 0) as items_sold
+        FROM transactions
+        WHERE date_created = ?
+    ", [$today])->getRowArray();
 
-        // Payment Methods
-        $cashSales = $this->orderModel->getTotalSalesByPaymentMethod('cash');
-        $gcashSales = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
-        $foodpandaSales = $this->orderModel->getTotalSalesByOrderType('foodpanda');
+        // ✅ 2. Sales by Category
+        $salesByCategory = $this->db->query("
+        SELECT 
+            p.category,
+            COALESCE(SUM(t.total_sales), 0) as total_revenue
+        FROM transactions t
+        JOIN daily_stock_items dsi ON t.item_id = dsi.item_id
+        JOIN products p ON dsi.product_id = p.product_id
+        WHERE t.date_created = ?
+        GROUP BY p.category
+    ", [$today])->getResultArray();
 
-        // Inventory Status
+        $categoryMap = array_column($salesByCategory, 'total_revenue', 'category');
+
+        // ✅ 3. Payment Methods
+        $salesByPayment = $this->db->query("
+        SELECT 
+            payment_method,
+            order_type,
+            COALESCE(SUM(total_payment_due), 0) as total_revenue
+        FROM orders
+        WHERE DATE(date_created) = ?
+        GROUP BY payment_method, order_type
+    ", [$today])->getResultArray();
+
+        $cashSales = 0;
+        $gcashSales = 0;
+        $foodpandaSales = 0;
+        foreach ($salesByPayment as $row) {
+            if ($row['payment_method'] === 'cash')
+                $cashSales = $row['total_revenue'];
+            if ($row['payment_method'] === 'gcash')
+                $gcashSales = $row['total_revenue'];
+            if ($row['order_type'] === 'foodpanda')
+                $foodpandaSales = $row['total_revenue'];
+        }
+
+        // ✅ 4. Inventory
         $inventoryToday = $this->dailyStockModel->checkInventoryExists($today);
         $inventoryItems = [];
         $totalBeginningStock = 0;
@@ -61,55 +99,66 @@ class DashboardController extends BaseController
             foreach ($inventoryItems as $item) {
                 $totalBeginningStock += intval($item['beginning_stock']);
                 $totalEndingStock += intval($item['ending_stock']);
-                // Low stock alert (less than 5 items remaining)
                 if (intval($item['ending_stock']) > 0 && intval($item['ending_stock']) <= 5) {
                     $lowStockProducts[] = $item;
                 }
             }
         }
 
-        // Total counts
-        $totalProducts = $this->productModel->countAll();
+        // ✅ 5. Product counts
+        $productStats = $this->db->query("
+        SELECT category, COUNT(*) as count
+        FROM products
+        WHERE deleted_at IS NULL
+        GROUP BY category
+    ")->getResultArray();
+
+        $totalProducts = array_sum(array_column($productStats, 'count'));
         $totalRawMaterials = $this->rawMaterialsModel->countAll();
 
-        // Product counts by category
-        $productsByCategory = $this->db->query("
-            SELECT category, COUNT(*) as count 
-            FROM products 
-            GROUP BY category
-        ")->getResultArray();
+        // ✅ 6. Recent Orders
+        $recentOrders = $this->orderModel->getOrderHistory(null, null, null, 5);
 
-        // Recent orders (last 5)
-        $limit = 5;
-        $recentOrders = $this->orderModel->getOrderHistory(null, null, null, $limit);
-
-        // Best selling products today
+        // ✅ 7. Best Sellers
         $bestSellers = $this->db->query("
-            SELECT p.product_name, p.category, SUM(t.quantity_sold) as total_sold, SUM(t.total_sales) as revenue
-            FROM transactions t
-            JOIN daily_stock_items dsi ON t.item_id = dsi.item_id
-            JOIN products p ON dsi.product_id = p.product_id
-            WHERE t.date_created = ?
-            GROUP BY p.product_id, p.product_name, p.category
-            ORDER BY total_sold DESC
-            LIMIT 5
-        ", [$today])->getResultArray();
+        SELECT 
+            p.product_name, 
+            p.category, 
+            SUM(t.quantity_sold) as total_sold, 
+            SUM(t.total_sales)   as revenue
+        FROM transactions t
+        JOIN daily_stock_items dsi ON t.item_id = dsi.item_id
+        JOIN products p ON dsi.product_id = p.product_id
+        WHERE t.date_created = ?
+        GROUP BY p.product_id, p.product_name, p.category
+        ORDER BY total_sold DESC
+        LIMIT 5
+    ", [$today])->getResultArray();
 
-        // Sales trends for dashboard line graph section
-        $dailyTrend = $this->getDailySalesTrend(14);
-        $weeklyTrend = $this->getWeeklySalesTrend(8);
-        $monthlyTrend = $this->getMonthlySalesTrend(12);
+        // ✅ 8. Sales Trends — cached
+        $cacheKey = "sales_trend_{$today}";
+        $cache = \Config\Services::cache();
+        $salesTrend = $cache->get($cacheKey);
 
-        return [
-            'todaysSales' => floatval($todaysSales['total_sales'] ?? 0),
-            'todaysOrderCount' => $todaysOrderCount,
-            'todaysItemsSold' => $todaysItemsSold,
-            'bakerySales' => floatval($bakerySales['total_revenue'] ?? 0),
-            'drinksSales' => floatval($drinksSales['total_revenue'] ?? 0),
-            'grocerySales' => floatval($grocerySales['total_revenue'] ?? 0),
-            'cashSales' => floatval($cashSales['total_revenue'] ?? 0),
-            'gcashSales' => floatval($gcashSales['total_revenue'] ?? 0),
-            'foodpandaSales' => floatval($foodpandaSales['total_revenue'] ?? 0),
+        if ($salesTrend === null) {
+            $salesTrend = [
+                'daily' => $this->getDailySalesTrend(14),
+                'weekly' => $this->getWeeklySalesTrend(8),
+                'monthly' => $this->getMonthlySalesTrend(12),
+            ];
+            $cache->save($cacheKey, $salesTrend, 300);
+        }
+
+        return $this->response->setStatusCode(200)->setJSON([
+            'todaysSales' => floatval($salesSummary['total_sales'] ?? 0),
+            'todaysOrderCount' => intval($salesSummary['order_count'] ?? 0),
+            'todaysItemsSold' => intval($itemsSoldRow['items_sold'] ?? 0),
+            'bakerySales' => floatval($categoryMap['bakery'] ?? 0),
+            'drinksSales' => floatval($categoryMap['drinks'] ?? 0),
+            'grocerySales' => floatval($categoryMap['grocery'] ?? 0),
+            'cashSales' => floatval($cashSales),
+            'gcashSales' => floatval($gcashSales),
+            'foodpandaSales' => floatval($foodpandaSales),
             'inventoryExists' => $inventoryToday !== null,
             'inventoryData' => $inventoryToday,
             'totalBeginningStock' => $totalBeginningStock,
@@ -117,119 +166,80 @@ class DashboardController extends BaseController
             'lowStockProducts' => $lowStockProducts,
             'totalProducts' => $totalProducts,
             'totalRawMaterials' => $totalRawMaterials,
-            'productsByCategory' => $productsByCategory,
+            'productsByCategory' => $productStats,
             'recentOrders' => $recentOrders,
             'bestSellers' => $bestSellers,
-            'salesTrend' => [
-                'daily' => $dailyTrend,
-                'weekly' => $weeklyTrend,
-                'monthly' => $monthlyTrend,
-            ],
+            'salesTrend' => $salesTrend,
             'currentDate' => date('F j, Y'),
             'currentTime' => date('g:i A'),
-        ];
+        ]);
     }
 
     private function getDailySalesTrend(int $days = 14): array
     {
-        $days = max(1, $days);
-        $end = new \DateTimeImmutable(date('Y-m-d'));
-        $start = $end->sub(new \DateInterval('P' . ($days - 1) . 'D'));
-
-        $rows = $this->db->query(
-            "SELECT date_created AS day, SUM(total_payment_due) AS total
-             FROM orders
-             WHERE date_created BETWEEN ? AND ?
-               AND voided_at IS NULL
-             GROUP BY date_created",
-            [$start->format('Y-m-d'), $end->format('Y-m-d')]
-        )->getResultArray();
-
-        $totalsByDate = [];
-        foreach ($rows as $row) {
-            $totalsByDate[$row['day']] = floatval($row['total'] ?? 0);
-        }
-
-        $trend = [];
-        for ($i = 0; $i < $days; $i++) {
-            $date = $start->add(new \DateInterval('P' . $i . 'D'));
-            $key = $date->format('Y-m-d');
-            $trend[] = [
-                'label' => $date->format('M j'),
-                'value' => floatval($totalsByDate[$key] ?? 0),
-            ];
-        }
-
-        return $trend;
+        return $this->db->query("
+        WITH RECURSIVE date_series AS (
+            SELECT CURDATE() - INTERVAL (? - 1) DAY AS dt
+            UNION ALL
+            SELECT dt + INTERVAL 1 DAY FROM date_series WHERE dt < CURDATE()
+        )
+        SELECT
+            DATE_FORMAT(ds.dt, '%b %e') AS label,
+            COALESCE(SUM(o.total_payment_due), 0) AS value
+        FROM date_series ds
+        LEFT JOIN orders o
+            ON DATE(o.date_created) = ds.dt
+            AND o.voided_at IS NULL
+        GROUP BY ds.dt
+        ORDER BY ds.dt ASC
+    ", [$days])->getResultArray();
     }
 
     private function getWeeklySalesTrend(int $weeks = 8): array
     {
-        $weeks = max(1, $weeks);
-        $today = new \DateTimeImmutable(date('Y-m-d'));
-        $currentWeekStart = $today->modify('monday this week');
-        $startWeek = $currentWeekStart->sub(new \DateInterval('P' . ($weeks - 1) . 'W'));
-
-        $rows = $this->db->query(
-            "SELECT DATE_SUB(date_created, INTERVAL WEEKDAY(date_created) DAY) AS week_start,
-                    SUM(total_payment_due) AS total
-             FROM orders
-             WHERE date_created BETWEEN ? AND ?
-               AND voided_at IS NULL
-             GROUP BY week_start",
-            [$startWeek->format('Y-m-d'), $today->format('Y-m-d')]
-        )->getResultArray();
-
-        $totalsByWeek = [];
-        foreach ($rows as $row) {
-            $totalsByWeek[$row['week_start']] = floatval($row['total'] ?? 0);
-        }
-
-        $trend = [];
-        for ($i = 0; $i < $weeks; $i++) {
-            $weekStart = $startWeek->add(new \DateInterval('P' . $i . 'W'));
-            $key = $weekStart->format('Y-m-d');
-            $trend[] = [
-                'label' => 'Wk of ' . $weekStart->format('M j'),
-                'value' => floatval($totalsByWeek[$key] ?? 0),
-            ];
-        }
-
-        return $trend;
+        return $this->db->query("
+        WITH RECURSIVE week_series AS (
+            SELECT DATE(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))
+                   - INTERVAL (? - 1) * 7 DAY AS week_start
+            UNION ALL
+            SELECT week_start + INTERVAL 7 DAY
+            FROM week_series
+            WHERE week_start + INTERVAL 7 DAY <=
+                  DATE(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))
+        )
+        SELECT
+            CONCAT(DATE_FORMAT(ws.week_start, '%b %e'), ' - ',
+                   DATE_FORMAT(ws.week_start + INTERVAL 6 DAY, '%b %e')) AS label,
+            COALESCE(SUM(o.total_payment_due), 0) AS value
+        FROM week_series ws
+        LEFT JOIN orders o
+            ON DATE(o.date_created) >= ws.week_start
+            AND DATE(o.date_created) <= ws.week_start + INTERVAL 6 DAY
+            AND o.voided_at IS NULL
+        GROUP BY ws.week_start
+        ORDER BY ws.week_start ASC
+    ", [$weeks])->getResultArray();
     }
 
     private function getMonthlySalesTrend(int $months = 12): array
     {
-        $months = max(1, $months);
-        $monthStart = new \DateTimeImmutable(date('Y-m-01'));
-        $startMonth = $monthStart->sub(new \DateInterval('P' . ($months - 1) . 'M'));
-        $endDate = (new \DateTimeImmutable(date('Y-m-d')))->format('Y-m-d');
-
-        $rows = $this->db->query(
-            "SELECT DATE_FORMAT(date_created, '%Y-%m-01') AS month_start,
-                    SUM(total_payment_due) AS total
-             FROM orders
-             WHERE date_created BETWEEN ? AND ?
-               AND voided_at IS NULL
-             GROUP BY month_start",
-            [$startMonth->format('Y-m-d'), $endDate]
-        )->getResultArray();
-
-        $totalsByMonth = [];
-        foreach ($rows as $row) {
-            $totalsByMonth[$row['month_start']] = floatval($row['total'] ?? 0);
-        }
-
-        $trend = [];
-        for ($i = 0; $i < $months; $i++) {
-            $month = $startMonth->add(new \DateInterval('P' . $i . 'M'));
-            $key = $month->format('Y-m-01');
-            $trend[] = [
-                'label' => $month->format('M Y'),
-                'value' => floatval($totalsByMonth[$key] ?? 0),
-            ];
-        }
-
-        return $trend;
+        return $this->db->query("
+        WITH RECURSIVE month_series AS (
+            SELECT DATE_FORMAT(CURDATE() - INTERVAL (? - 1) MONTH, '%Y-%m-01') AS month_start
+            UNION ALL
+            SELECT DATE_FORMAT(month_start + INTERVAL 1 MONTH, '%Y-%m-01')
+            FROM month_series
+            WHERE month_start + INTERVAL 1 MONTH <= CURDATE()
+        )
+        SELECT
+            DATE_FORMAT(ms.month_start, '%b %Y') AS label,
+            COALESCE(SUM(o.total_payment_due), 0) AS value
+        FROM month_series ms
+        LEFT JOIN orders o
+            ON DATE_FORMAT(o.date_created, '%Y-%m') = DATE_FORMAT(ms.month_start, '%Y-%m')
+            AND o.voided_at IS NULL
+        GROUP BY ms.month_start
+        ORDER BY ms.month_start ASC
+    ", [$months])->getResultArray();
     }
 }

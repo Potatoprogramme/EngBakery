@@ -39,6 +39,7 @@ $routes->group('User', function (RouteCollection $routes) {
 // Main Pages Routes
 $routes->group('Dashboard', function (RouteCollection $routes) {
     $routes->get('/', 'DashboardController::dashboard');
+    $routes->get('GetDashboardData', 'DashboardController::getDashboardData');
 });
 
 $routes->group('MaterialCosting', function (RouteCollection $routes) {
@@ -185,20 +186,20 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('/', 'DistributionController::index');
 
     // ── Groups ──────────────────────────────────────────────────────────────
-    $routes->get('GetDistributionByDate',      'DistributionController::getDistributionByDate');
+    $routes->get('GetDistributionByDate', 'DistributionController::getDistributionByDate');
     $routes->get('GetDistributionByDateRange', 'DistributionController::getDistributionByDateRange');
-    $routes->get('GetGroup/(:num)',             'DistributionController::getGroup/$1');
-    $routes->post('AddGroup',                  'DistributionController::addGroup');
-    $routes->post('UpdateGroup/(:num)',         'DistributionController::updateGroup/$1');
-    $routes->post('DeleteGroup/(:num)',         'DistributionController::deleteGroup/$1');
+    $routes->get('GetGroup/(:num)', 'DistributionController::getGroup/$1');
+    $routes->post('AddGroup', 'DistributionController::addGroup');
+    $routes->post('UpdateGroup/(:num)', 'DistributionController::updateGroup/$1');
+    $routes->post('DeleteGroup/(:num)', 'DistributionController::deleteGroup/$1');
 
     // ── Items (lines inside a group) ─────────────────────────────────────
-    $routes->post('AddItem',               'DistributionController::addItem');
-    $routes->post('UpdateItem/(:num)',      'DistributionController::updateItem/$1');
-    $routes->post('DeleteItem/(:num)',      'DistributionController::deleteItem/$1');
+    $routes->post('AddItem', 'DistributionController::addItem');
+    $routes->post('UpdateItem/(:num)', 'DistributionController::updateItem/$1');
+    $routes->post('DeleteItem/(:num)', 'DistributionController::deleteItem/$1');
 
     // ── Utility / read-only checks ───────────────────────────────────────
-    $routes->get('CheckInventoryByDate',   'DistributionController::checkInventoryByDate');
+    $routes->get('CheckInventoryByDate', 'DistributionController::checkInventoryByDate');
     $routes->get('CheckDistributionToday', 'DistributionController::checkDistributionToday');
 
     // ── Products lookup (unchanged) ──────────────────────────────────────
