@@ -775,7 +775,9 @@ class InventoryController extends BaseController
             ]);
         }
 
-        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+        $isAdjustmentMode = isset($json->adjustment_mode) && boolval($json->adjustment_mode);
+
+        if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Values cannot be negative'
@@ -796,9 +798,33 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
 
-        $newBeginning = intval($json->beginning_stock);
-        $newPullOut = intval($json->pull_out_quantity);
+        $inputBeginning = intval($json->beginning_stock);
+        $inputPullOut = intval($json->pull_out_quantity);
+        $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
         $notes = isset($json->notes) ? trim($json->notes) : null;
+
+        if ($isAdjustmentMode) {
+            if ($inputPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Pull Out only accepts positive additions in adjustment mode.'
+                ]);
+            }
+
+            $newBeginning = $oldBeginning + $inputBeginning;
+            $newPullOut = $oldPullOut + $inputPullOut;
+            $newEndingStock = $oldEnding + $inputEnding;
+
+            if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+        } else {
+            $newBeginning = $inputBeginning;
+            $newPullOut = $inputPullOut;
+        }
 
         // Validate notes requirement when beginning stock deviates from expected
         $distributionQty = intval($item['distribution_qty'] ?? 0);
@@ -815,13 +841,17 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-        if ($quantitySold < 0)
-            $quantitySold = 0;
+        if (!$isAdjustmentMode) {
+            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+            if ($quantitySold < 0) {
+                $quantitySold = 0;
+            }
 
-        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-        if ($newEndingStock < 0)
-            $newEndingStock = 0;
+            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+            if ($newEndingStock < 0) {
+                $newEndingStock = 0;
+            }
+        }
 
         $beginningDelta = $newBeginning - $oldBeginning;
         $pullOutDelta = $newPullOut - $oldPullOut;

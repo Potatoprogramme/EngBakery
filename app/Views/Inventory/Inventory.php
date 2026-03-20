@@ -3233,13 +3233,14 @@
                     $('#editEndingLabel').text('Ending Stock ');
 
                     $('#editAdjustmentGuide').removeClass('hidden');
-                    $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
-                    $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
-                    $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
+                    $('#editBeginningHint').text('Enter adjustment only (e.g. +10 or -5).');
+                    $('#editPullOutHint').text('Enter added PO only (e.g. +5). No subtraction.');
+                    $('#editEndingHint').text('Enter adjustment only (e.g. +10 or -5).');
 
-                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
-                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
-                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    // Adjustment mode uses deltas, not absolute values.
+                    $('#editBeginningStock').val(0).removeAttr('min');
+                    $('#editPullOutQuantity').val(0).attr('min', 0);
+                    $('#editEndingStock').val(0).removeAttr('min');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
                     $('#editBeginningLabel').text('Beginning Stock');
@@ -3279,14 +3280,17 @@
         // +/- buttons for beginning stock
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
-            $('#editBeginningStock').val(Math.max(0, current - 1));
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
             updateBeginningStockDisplay();
+            updateRemainingPreview();
         });
 
         $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
             updateBeginningStockDisplay();
+            updateRemainingPreview();
         });
 
         // Also update on manual input change
@@ -3314,13 +3318,13 @@
             let projectedRemaining = 0;
 
             if (isAdjustmentMode) {
-                const projectedBeginning = beginningInput;
-                const projectedPullOut = pullOutInput;
-                projectedRemaining = endingInput;
+                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedPullOut = oldPullOut + pullOutInput;
+                projectedRemaining = oldEnding + endingInput;
 
                 $('#editRemainingHint').text(
-                    'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
-                    ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
+                    'Current End: ' + oldEnding + ' | Projected End: ' + Math.max(0, projectedRemaining) +
+                    ' (Beg Δ ' + beginningInput + ', PO + ' + pullOutInput + ', End Δ ' + endingInput + ')'
                 );
             } else {
                 projectedRemaining = beginningInput - pullOutInput - oldQtySold;
@@ -3341,7 +3345,7 @@
             const expected = distQty + carryQty;
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-            const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
+            const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
 
             // Distribution limit info bar
             if (expected > 0) {
@@ -3466,9 +3470,9 @@
 
             const itemId = $('#editItemId').val();
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-            const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
-            const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
-            const endingStock = parseInt($('#editEndingStock').val()) || 0;
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingInput = parseInt($('#editEndingStock').val()) || 0;
             const notes = $('#editNotes').val();
 
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
@@ -3482,12 +3486,12 @@
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
                 const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
 
-                const projectedBeginning = beginningStock;
-                const projectedPullOut = pullOutQuantity;
-                const projectedEnding = endingStock;
+                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedPullOut = oldPullOut + pullOutInput;
+                const projectedEnding = oldEnding + endingInput;
 
-                if (projectedPullOut < oldPullOut) {
-                    showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
+                if (pullOutInput < 0) {
+                    showToast('warning', 'Pull Out only accepts positive additions.',
                         2500);
                     return;
                 }
@@ -3506,18 +3510,18 @@
 
                 payload = {
                     adjustment_mode: true,
-                    beginning_stock: projectedBeginning,
-                    pull_out_quantity: projectedPullOut,
-                    ending_stock: projectedEnding,
+                    beginning_stock: beginningInput,
+                    pull_out_quantity: pullOutInput,
+                    ending_stock: endingInput,
                     notes: notes
                 };
             } else {
-                if (beginningStock < 0 || pullOutQuantity < 0) {
+                if (beginningInput < 0 || pullOutInput < 0) {
                     showToast('warning', 'Values cannot be negative', 2000);
                     return;
                 }
 
-                if (expected > 0 && beginningStock !== expected && !notes.trim()) {
+                if (expected > 0 && beginningInput !== expected && !notes.trim()) {
                     showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                         expected + ')', 3000);
                     $('#editNotes').focus();
@@ -3525,8 +3529,8 @@
                 }
 
                 payload = {
-                    beginning_stock: beginningStock,
-                    pull_out_quantity: pullOutQuantity,
+                    beginning_stock: beginningInput,
+                    pull_out_quantity: pullOutInput,
                     notes: notes
                 };
             }
