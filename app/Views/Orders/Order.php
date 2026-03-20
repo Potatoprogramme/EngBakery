@@ -1,3 +1,4 @@
+<?php $isStaffView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'staff'; ?>
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
@@ -346,7 +347,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Order Type <span
                                 class="text-red-500">*</span></label>
                         <input type="hidden" id="checkoutOrderType" value="walk-in">
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid <?= $isStaffView ? 'grid-cols-2' : 'grid-cols-3' ?> gap-3">
                             <button type="button" id="btnOrderTypeWalkin" onclick="selectOrderType('walk-in')"
                                 class="order-type-btn p-4 rounded-lg border-2 border-primary bg-primary/10 text-center transition-all hover:shadow-md">
                                 <i class="fas fa-walking text-2xl text-primary mb-2"></i>
@@ -360,7 +361,7 @@
                                 <p class="font-semibold text-gray-700">FoodPanda</p>
                             </button>
                             <button type="button" id="btnOrderTypeDistributed" onclick="selectOrderType('distributed')"
-                                class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300">
+                                class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300 <?= $isStaffView ? 'hidden' : '' ?>">
                                 <i class="fas fa-truck text-2xl text-gray-500 mb-2"></i>
                                 <p class="font-semibold text-gray-700">Distributed</p>
                             </button>
@@ -648,6 +649,8 @@
 
     <!-- Tab Switching Function (inline to ensure it works) -->
     <script>
+        const isStaffView = <?= $isStaffView ? 'true' : 'false' ?>;
+
         function switchTab(tabName) {
             // Remove active state from all tab buttons
             document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -717,6 +720,10 @@
 
         // Order Type Selection Function
         function selectOrderType(type) {
+            if (isStaffView && type === 'distributed') {
+                type = 'walk-in';
+            }
+
             document.getElementById('checkoutOrderType').value = type;
 
             // Reset all buttons
@@ -733,12 +740,15 @@
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.remove('text-pink-600');
             document.getElementById('btnOrderTypeFoodpanda').querySelector('p').classList.add('text-gray-700');
 
-            document.getElementById('btnOrderTypeDistributed').classList.remove('border-blue-500', 'bg-blue-50');
-            document.getElementById('btnOrderTypeDistributed').classList.add('border-gray-300', 'bg-white');
-            document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.remove('text-blue-600');
-            document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.add('text-gray-500');
-            document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.remove('text-blue-600');
-            document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.add('text-gray-700');
+            const distributedBtn = document.getElementById('btnOrderTypeDistributed');
+            if (distributedBtn) {
+                distributedBtn.classList.remove('border-blue-500', 'bg-blue-50');
+                distributedBtn.classList.add('border-gray-300', 'bg-white');
+                distributedBtn.querySelector('i').classList.remove('text-blue-600');
+                distributedBtn.querySelector('i').classList.add('text-gray-500');
+                distributedBtn.querySelector('p').classList.remove('text-blue-600');
+                distributedBtn.querySelector('p').classList.add('text-gray-700');
+            }
 
             // Hide distributed note by default
             document.getElementById('distributedNoteContainer').classList.add('hidden');
@@ -764,12 +774,16 @@
                 // Hide payment method for foodpanda (payment is handled by foodpanda)
                 document.getElementById('paymentMethodContainer').classList.add('hidden');
             } else if (type === 'distributed') {
-                document.getElementById('btnOrderTypeDistributed').classList.remove('border-gray-300', 'bg-white');
-                document.getElementById('btnOrderTypeDistributed').classList.add('border-blue-500', 'bg-blue-50');
-                document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.remove('text-gray-500');
-                document.getElementById('btnOrderTypeDistributed').querySelector('i').classList.add('text-blue-600');
-                document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.remove('text-gray-700');
-                document.getElementById('btnOrderTypeDistributed').querySelector('p').classList.add('text-blue-600');
+                if (!distributedBtn) {
+                    return;
+                }
+
+                distributedBtn.classList.remove('border-gray-300', 'bg-white');
+                distributedBtn.classList.add('border-blue-500', 'bg-blue-50');
+                distributedBtn.querySelector('i').classList.remove('text-gray-500');
+                distributedBtn.querySelector('i').classList.add('text-blue-600');
+                distributedBtn.querySelector('p').classList.remove('text-gray-700');
+                distributedBtn.querySelector('p').classList.add('text-blue-600');
                 // Show distributed note field
                 document.getElementById('distributedNoteContainer').classList.remove('hidden');
                 document.getElementById('distributedNote').setAttribute('required', 'required');
