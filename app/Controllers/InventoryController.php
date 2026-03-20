@@ -813,7 +813,7 @@ class InventoryController extends BaseController
 
             $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
-            $newEndingStock = $oldEnding + $inputEnding;
+            $newEndingStock = $oldEnding + $inputBeginning - $inputPullOut + $inputEnding;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -867,38 +867,30 @@ class InventoryController extends BaseController
         // (Pull out has NO effect — products are already made)
         $netRawMaterialChange = $beginningDelta;
 
-        // Pre-check: block if raw materials are insufficient for the increase
+        $deductionResult = null;
+
+        // Perform deduction once (non-preview) to avoid double computation latency.
         if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(
+            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                 intval($item['product_id']),
-                $netRawMaterialChange,
-                true // preview only
+                $netRawMaterialChange
             );
 
-            if (!empty($preview['has_insufficient'])) {
-                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+            if (empty($deductionResult['success'])) {
+                $shortMaterials = array_filter($deductionResult['deductions'] ?? [], fn($d) => !empty($d['insufficient']));
                 $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Cannot update — insufficient raw material stock for the additional ' . $netRawMaterialChange . ' pieces.',
+                    'message' => $deductionResult['message'] ?? ('Cannot update — insufficient raw material stock for the additional ' . $netRawMaterialChange . ' pieces.'),
                     'insufficient_materials' => array_values($shortNames),
-                    'preview' => $preview,
+                    'preview' => $deductionResult,
                 ]);
             }
         }
 
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
-            $deductionResult = null;
             $restorationResult = null;
-
-            // Beginning increase → deduct raw materials
-            if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
-                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($item['product_id']),
-                    $netRawMaterialChange
-                );
-            }
 
             // Beginning decrease → restore raw materials
             if ($netRawMaterialChange < 0 && isset($item['product_id'])) {
@@ -925,6 +917,14 @@ class InventoryController extends BaseController
                 ]
             ]);
         } else {
+            // Roll back raw material deduction if inventory row update fails.
+            if ($netRawMaterialChange > 0 && !empty($deductionResult['success']) && isset($item['product_id'])) {
+                $this->rawMaterialStockModel->restoreForProduction(
+                    intval($item['product_id']),
+                    $netRawMaterialChange
+                );
+            }
+
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Failed to update inventory item',

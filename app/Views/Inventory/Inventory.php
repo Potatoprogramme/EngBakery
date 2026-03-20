@@ -2818,14 +2818,17 @@
             });
         }
 
-        function loadInventory(items) {
+        function loadInventory(items, options) {
+            const opts = options || {};
             // Store items for mobile pagination
             allInventoryItems = items || [];
             filteredItems = [...allInventoryItems];
             currentPage = 1;
 
             // Fetch carryover data for use in edit modal
-            fetchCarryoverData();
+            if (opts.fetchCarryover !== false) {
+                fetchCarryoverData();
+            }
 
             // Separate items by category
             const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
@@ -2842,6 +2845,55 @@
 
             // Render mobile cards with pagination
             renderMobileCards();
+        }
+
+        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode) {
+            const index = allInventoryItems.findIndex(item => String(item.item_id) === String(itemId));
+            if (index < 0) {
+                return false;
+            }
+
+            const item = {
+                ...allInventoryItems[index]
+            };
+
+            const beginningInput = parseInt(payload.beginning_stock) || 0;
+            const pullOutInput = parseInt(payload.pull_out_quantity) || 0;
+            const endingInput = parseInt(payload.ending_stock) || 0;
+
+            if (isAdjustmentMode) {
+                item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
+                item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
+                item.ending_stock = (parseInt(item.ending_stock) || 0) + beginningInput - pullOutInput + endingInput;
+            } else {
+                item.beginning_stock = beginningInput;
+                item.pull_out_quantity = pullOutInput;
+                const oldQtySold = Math.max(0, parseInt(item.quantity_sold) ||
+                    ((parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) -
+                        (parseInt(item.ending_stock) || 0))
+                );
+                item.ending_stock = Math.max(0, item.beginning_stock - item.pull_out_quantity - oldQtySold);
+                item.quantity_sold = oldQtySold;
+            }
+
+            item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
+            item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
+            item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
+            if (isAdjustmentMode) {
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+            }
+            item.notes = payload.notes || '';
+
+            // Keep sales columns in sync for immediate redraw.
+            const price = parseFloat(
+                (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) || item.srp || 0
+            ) || 0;
+            item.sales = item.quantity_sold * price;
+            item.total_sales = item.sales;
+
+            allInventoryItems[index] = item;
+            filteredItems = [...allInventoryItems];
+            return true;
         }
 
         function renderBakeryTable(items) {
@@ -3266,6 +3318,8 @@
                 $('#editDistributionQty').val(distQty);
                 $('#editCarryoverQty').val(carryQty);
 
+                resetEditPreviewUiState();
+
                 // Update the distribution display and notes requirement
                 updateBeginningStockDisplay();
                 updateRemainingPreview();
@@ -3286,6 +3340,16 @@
             remainingHint: '',
             remainingValue: null
         };
+
+        function resetEditPreviewUiState() {
+            editPreviewUiState = {
+                infoKey: '',
+                warningKey: '',
+                notesRequired: null,
+                remainingHint: '',
+                remainingValue: null
+            };
+        }
 
         function runEditPreviewUpdate() {
             updateBeginningStockDisplay();
@@ -3342,11 +3406,11 @@
             if (isAdjustmentMode) {
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                projectedRemaining = oldEnding + endingInput;
+                projectedRemaining = oldEnding + beginningInput - pullOutInput + endingInput;
 
                 const nextHint =
                     'Current End: ' + oldEnding + ' | Projected End: ' + Math.max(0, projectedRemaining) +
-                    ' (Beg Δ ' + beginningInput + ', PO + ' + pullOutInput + ', End Δ ' + endingInput + ')';
+                    ' (Beg Δ ' + beginningInput + ', Pull Out + ' + pullOutInput + ', End Adj ' + endingInput + ')';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').text(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
@@ -3466,6 +3530,7 @@
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
+            resetEditPreviewUiState();
             $('#editAdjustmentGuide').addClass('hidden');
             $('#editBeginningLabel').text('Beginning Stock');
             $('#editPullOutLabel').text('Pull Out Quantity');
@@ -3556,7 +3621,7 @@
 
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                const projectedEnding = oldEnding + endingInput;
+                const projectedEnding = oldEnding + beginningInput - pullOutInput + endingInput;
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
@@ -3618,9 +3683,18 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
+                        const patched = applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode);
+                        if (patched) {
+                            loadInventory(allInventoryItems, {
+                                fetchCarryover: false
+                            });
+                            // Re-sync in the background so totals remain source-of-truth accurate.
+                            setTimeout(fetchAllStockitems, 700);
+                        } else {
+                            fetchAllStockitems(); // Fallback when local cache is missing
+                        }
                         $('#editInventoryModal').addClass('hidden');
                         $('#editInventoryForm')[0].reset();
-                        fetchAllStockitems(); // Reload the table
                     } else {
                         showToast('error', response.message, 2000);
                     }
