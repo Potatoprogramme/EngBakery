@@ -1,3 +1,4 @@
+<?php $isStaffView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'staff'; ?>
 <body class="bg-gray-50">
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
@@ -133,7 +134,9 @@
                                 <option value="">All Types</option>
                                 <option value="walk-in">Walk-in</option>
                                 <option value="foodpanda">Foodpanda</option>
-                                <option value="distributed">Distributed</option>
+                                <?php if (!$isStaffView): ?>
+                                    <option value="distributed">Distributed</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>

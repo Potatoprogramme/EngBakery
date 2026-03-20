@@ -511,7 +511,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit"
+                    <button type="submit" id="btnSubmitEditInventory"
                         class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Update Item
                     </button>
@@ -2818,14 +2818,17 @@
             });
         }
 
-        function loadInventory(items) {
+        function loadInventory(items, options) {
+            const opts = options || {};
             // Store items for mobile pagination
             allInventoryItems = items || [];
             filteredItems = [...allInventoryItems];
             currentPage = 1;
 
             // Fetch carryover data for use in edit modal
-            fetchCarryoverData();
+            if (opts.fetchCarryover !== false) {
+                fetchCarryoverData();
+            }
 
             // Separate items by category
             const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
@@ -2842,6 +2845,55 @@
 
             // Render mobile cards with pagination
             renderMobileCards();
+        }
+
+        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode) {
+            const index = allInventoryItems.findIndex(item => String(item.item_id) === String(itemId));
+            if (index < 0) {
+                return false;
+            }
+
+            const item = {
+                ...allInventoryItems[index]
+            };
+
+            const beginningInput = parseInt(payload.beginning_stock) || 0;
+            const pullOutInput = parseInt(payload.pull_out_quantity) || 0;
+            const endingInput = parseInt(payload.ending_stock) || 0;
+
+            if (isAdjustmentMode) {
+                item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
+                item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
+                item.ending_stock = (parseInt(item.ending_stock) || 0) + beginningInput - pullOutInput + endingInput;
+            } else {
+                item.beginning_stock = beginningInput;
+                item.pull_out_quantity = pullOutInput;
+                const oldQtySold = Math.max(0, parseInt(item.quantity_sold) ||
+                    ((parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) -
+                        (parseInt(item.ending_stock) || 0))
+                );
+                item.ending_stock = Math.max(0, item.beginning_stock - item.pull_out_quantity - oldQtySold);
+                item.quantity_sold = oldQtySold;
+            }
+
+            item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
+            item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
+            item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
+            if (isAdjustmentMode) {
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+            }
+            item.notes = payload.notes || '';
+
+            // Keep sales columns in sync for immediate redraw.
+            const price = parseFloat(
+                (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) || item.srp || 0
+            ) || 0;
+            item.sales = item.quantity_sold * price;
+            item.total_sales = item.sales;
+
+            allInventoryItems[index] = item;
+            filteredItems = [...allInventoryItems];
+            return true;
         }
 
         function renderBakeryTable(items) {
@@ -3233,13 +3285,14 @@
                     $('#editEndingLabel').text('Ending Stock ');
 
                     $('#editAdjustmentGuide').removeClass('hidden');
-                    $('#editBeginningHint').text('Current value loaded. You can increase or decrease it.');
-                    $('#editPullOutHint').text('Current value loaded. Only increases are allowed.');
-                    $('#editEndingHint').text('Current value loaded. You can increase or decrease it.');
+                    $('#editBeginningHint').text('Enter adjustment only (e.g. +10 or -5).');
+                    $('#editPullOutHint').text('Enter added PO only (e.g. +5). No subtraction.');
+                    $('#editEndingHint').text('Enter adjustment only (e.g. +10 or -5).');
 
-                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
-                    $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
-                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    // Adjustment mode uses deltas, not absolute values.
+                    $('#editBeginningStock').val(0).removeAttr('min');
+                    $('#editPullOutQuantity').val(0).attr('min', 0);
+                    $('#editEndingStock').val(0).removeAttr('min');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
                     $('#editBeginningLabel').text('Beginning Stock');
@@ -3265,6 +3318,8 @@
                 $('#editDistributionQty').val(distQty);
                 $('#editCarryoverQty').val(carryQty);
 
+                resetEditPreviewUiState();
+
                 // Update the distribution display and notes requirement
                 updateBeginningStockDisplay();
                 updateRemainingPreview();
@@ -3277,26 +3332,61 @@
         });
 
         // +/- buttons for beginning stock
+        let editPreviewDebounceTimer = null;
+        let editPreviewUiState = {
+            infoKey: '',
+            warningKey: '',
+            notesRequired: null,
+            remainingHint: '',
+            remainingValue: null
+        };
+
+        function resetEditPreviewUiState() {
+            editPreviewUiState = {
+                infoKey: '',
+                warningKey: '',
+                notesRequired: null,
+                remainingHint: '',
+                remainingValue: null
+            };
+        }
+
+        function runEditPreviewUpdate() {
+            updateBeginningStockDisplay();
+            updateRemainingPreview();
+        }
+
+        function scheduleEditPreviewUpdate(delayMs = 60) {
+            if (editPreviewDebounceTimer) {
+                clearTimeout(editPreviewDebounceTimer);
+            }
+
+            editPreviewDebounceTimer = setTimeout(function () {
+                editPreviewDebounceTimer = null;
+                runEditPreviewUpdate();
+            }, delayMs);
+        }
+
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
-            $('#editBeginningStock').val(Math.max(0, current - 1));
-            updateBeginningStockDisplay();
+            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
+            runEditPreviewUpdate();
         });
 
         $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
-            updateBeginningStockDisplay();
+            runEditPreviewUpdate();
         });
 
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
-            updateBeginningStockDisplay();
-            updateRemainingPreview();
+            scheduleEditPreviewUpdate();
         });
 
         $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
-            updateRemainingPreview();
+            scheduleEditPreviewUpdate();
         });
 
         function updateRemainingPreview() {
@@ -3314,20 +3404,31 @@
             let projectedRemaining = 0;
 
             if (isAdjustmentMode) {
-                const projectedBeginning = beginningInput;
-                const projectedPullOut = pullOutInput;
-                projectedRemaining = endingInput;
+                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedPullOut = oldPullOut + pullOutInput;
+                projectedRemaining = oldEnding + beginningInput - pullOutInput + endingInput;
 
-                $('#editRemainingHint').text(
-                    'Current: ' + oldEnding + ' | Projected: ' + Math.max(0, projectedRemaining) +
-                    ' (Beg ' + projectedBeginning + ', PO ' + projectedPullOut + ')'
-                );
+                const nextHint =
+                    'Current End: ' + oldEnding + ' | Projected End: ' + Math.max(0, projectedRemaining) +
+                    ' (Beg Δ ' + beginningInput + ', Pull Out + ' + pullOutInput + ', End Adj ' + endingInput + ')';
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').text(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
             } else {
                 projectedRemaining = beginningInput - pullOutInput - oldQtySold;
-                $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
+                const nextHint = 'Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').';
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').text(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
             }
 
-            $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
+            const nextRemainingValue = Math.max(0, projectedRemaining);
+            if (editPreviewUiState.remainingValue !== nextRemainingValue) {
+                $('#editRemainingPreview').val(nextRemainingValue);
+                editPreviewUiState.remainingValue = nextRemainingValue;
+            }
         }
 
         /**
@@ -3341,9 +3442,10 @@
             const expected = distQty + carryQty;
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-            const currentBeginning = isAdjustmentMode ? beginningInput : beginningInput;
+            const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
 
             // Distribution limit info bar
+            const infoKey = expected + '|' + distQty + '|' + carryQty;
             if (expected > 0) {
                 let infoText = '';
                 if (distQty > 0 && carryQty > 0) {
@@ -3356,10 +3458,16 @@
                     infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected +
                         '</strong> pcs';
                 }
-                $('#editDistInfoText').html(infoText);
-                $('#editDistributionInfo').removeClass('hidden');
+                if (editPreviewUiState.infoKey !== infoKey) {
+                    $('#editDistInfoText').html(infoText);
+                    $('#editDistributionInfo').removeClass('hidden');
+                    editPreviewUiState.infoKey = infoKey;
+                }
             } else {
-                $('#editDistributionInfo').addClass('hidden');
+                if (editPreviewUiState.infoKey !== 'hidden') {
+                    $('#editDistributionInfo').addClass('hidden');
+                    editPreviewUiState.infoKey = 'hidden';
+                }
             }
 
             // Over/Under warning and notes requirement
@@ -3371,15 +3479,21 @@
                 } else {
                     warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
                 }
-                $('#editStockWarningText').html(warningText);
-                $('#editStockWarning').removeClass('hidden');
+                if (editPreviewUiState.warningKey !== warningText) {
+                    $('#editStockWarningText').html(warningText);
+                    $('#editStockWarning').removeClass('hidden');
+                    editPreviewUiState.warningKey = warningText;
+                }
 
                 // Make notes required
-                $('#editNotes').attr('required', true);
-                $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
-                $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
-                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
-                    'text-red-500');
+                if (editPreviewUiState.notesRequired !== true) {
+                    $('#editNotes').attr('required', true);
+                    $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
+                    $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
+                    $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
+                        'text-red-500');
+                    editPreviewUiState.notesRequired = true;
+                }
                 if (!$('#editNotes').val()) {
                     $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 } else {
@@ -3387,12 +3501,18 @@
                 }
             } else {
                 // No deviation or no expected baseline
-                $('#editStockWarning').addClass('hidden');
-                $('#editNotes').removeAttr('required');
-                $('#editNotes').attr('placeholder', 'Add notes (optional)');
-                $('#editNotesLabel').text('Notes');
-                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                    'text-gray-400');
+                if (editPreviewUiState.warningKey !== 'hidden') {
+                    $('#editStockWarning').addClass('hidden');
+                    editPreviewUiState.warningKey = 'hidden';
+                }
+                if (editPreviewUiState.notesRequired !== false) {
+                    $('#editNotes').removeAttr('required');
+                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                        'text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+                }
                 $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
         }
@@ -3410,6 +3530,7 @@
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
+            resetEditPreviewUiState();
             $('#editAdjustmentGuide').addClass('hidden');
             $('#editBeginningLabel').text('Beginning Stock');
             $('#editPullOutLabel').text('Pull Out Quantity');
@@ -3464,11 +3585,27 @@
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
+            const submitBtn = $('#btnSubmitEditInventory');
+            if (submitBtn.prop('disabled')) {
+                return;
+            }
+
+            const originalSubmitHtml = submitBtn.html();
+            const restoreSubmitButton = function () {
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
+            };
+
+            submitBtn.prop('disabled', true)
+                .addClass('opacity-70 cursor-not-allowed')
+                .html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
+
             const itemId = $('#editItemId').val();
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-            const beginningStock = parseInt($('#editBeginningStock').val()) || 0;
-            const pullOutQuantity = parseInt($('#editPullOutQuantity').val()) || 0;
-            const endingStock = parseInt($('#editEndingStock').val()) || 0;
+            const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
+            const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+            const endingInput = parseInt($('#editEndingStock').val()) || 0;
             const notes = $('#editNotes').val();
 
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
@@ -3482,18 +3619,20 @@
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
                 const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
 
-                const projectedBeginning = beginningStock;
-                const projectedPullOut = pullOutQuantity;
-                const projectedEnding = endingStock;
+                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedPullOut = oldPullOut + pullOutInput;
+                const projectedEnding = oldEnding + beginningInput - pullOutInput + endingInput;
 
-                if (projectedPullOut < oldPullOut) {
-                    showToast('warning', 'Pull Out can only increase from the current value (' + oldPullOut + ')',
+                if (pullOutInput < 0) {
+                    showToast('warning', 'Pull Out only accepts positive additions.',
                         2500);
+                    restoreSubmitButton();
                     return;
                 }
 
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
                     return;
                 }
 
@@ -3501,32 +3640,35 @@
                     showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                         expected + ')', 3000);
                     $('#editNotes').focus();
+                    restoreSubmitButton();
                     return;
                 }
 
                 payload = {
                     adjustment_mode: true,
-                    beginning_stock: projectedBeginning,
-                    pull_out_quantity: projectedPullOut,
-                    ending_stock: projectedEnding,
+                    beginning_stock: beginningInput,
+                    pull_out_quantity: pullOutInput,
+                    ending_stock: endingInput,
                     notes: notes
                 };
             } else {
-                if (beginningStock < 0 || pullOutQuantity < 0) {
+                if (beginningInput < 0 || pullOutInput < 0) {
                     showToast('warning', 'Values cannot be negative', 2000);
+                    restoreSubmitButton();
                     return;
                 }
 
-                if (expected > 0 && beginningStock !== expected && !notes.trim()) {
+                if (expected > 0 && beginningInput !== expected && !notes.trim()) {
                     showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                         expected + ')', 3000);
                     $('#editNotes').focus();
+                    restoreSubmitButton();
                     return;
                 }
 
                 payload = {
-                    beginning_stock: beginningStock,
-                    pull_out_quantity: pullOutQuantity,
+                    beginning_stock: beginningInput,
+                    pull_out_quantity: pullOutInput,
                     notes: notes
                 };
             }
@@ -3541,9 +3683,18 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
+                        const patched = applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode);
+                        if (patched) {
+                            loadInventory(allInventoryItems, {
+                                fetchCarryover: false
+                            });
+                            // Re-sync in the background so totals remain source-of-truth accurate.
+                            setTimeout(fetchAllStockitems, 700);
+                        } else {
+                            fetchAllStockitems(); // Fallback when local cache is missing
+                        }
                         $('#editInventoryModal').addClass('hidden');
                         $('#editInventoryForm')[0].reset();
-                        fetchAllStockitems(); // Reload the table
                     } else {
                         showToast('error', response.message, 2000);
                     }
@@ -3557,6 +3708,9 @@
                             error), 2000);
                     }
                     console.log(xhr);
+                },
+                complete: function () {
+                    restoreSubmitButton();
                 }
             });
         });

@@ -775,7 +775,9 @@ class InventoryController extends BaseController
             ]);
         }
 
-        if ($json->beginning_stock < 0 || $json->pull_out_quantity < 0) {
+        $isAdjustmentMode = isset($json->adjustment_mode) && boolval($json->adjustment_mode);
+
+        if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Values cannot be negative'
@@ -796,9 +798,33 @@ class InventoryController extends BaseController
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
 
-        $newBeginning = intval($json->beginning_stock);
-        $newPullOut = intval($json->pull_out_quantity);
+        $inputBeginning = intval($json->beginning_stock);
+        $inputPullOut = intval($json->pull_out_quantity);
+        $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
         $notes = isset($json->notes) ? trim($json->notes) : null;
+
+        if ($isAdjustmentMode) {
+            if ($inputPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Pull Out only accepts positive additions in adjustment mode.'
+                ]);
+            }
+
+            $newBeginning = $oldBeginning + $inputBeginning;
+            $newPullOut = $oldPullOut + $inputPullOut;
+            $newEndingStock = $oldEnding + $inputBeginning - $inputPullOut + $inputEnding;
+
+            if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+        } else {
+            $newBeginning = $inputBeginning;
+            $newPullOut = $inputPullOut;
+        }
 
         // Validate notes requirement when beginning stock deviates from expected
         $distributionQty = intval($item['distribution_qty'] ?? 0);
@@ -815,13 +841,17 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-        if ($quantitySold < 0)
-            $quantitySold = 0;
+        if (!$isAdjustmentMode) {
+            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
+            if ($quantitySold < 0) {
+                $quantitySold = 0;
+            }
 
-        $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-        if ($newEndingStock < 0)
-            $newEndingStock = 0;
+            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
+            if ($newEndingStock < 0) {
+                $newEndingStock = 0;
+            }
+        }
 
         $beginningDelta = $newBeginning - $oldBeginning;
         $pullOutDelta = $newPullOut - $oldPullOut;
@@ -837,38 +867,30 @@ class InventoryController extends BaseController
         // (Pull out has NO effect — products are already made)
         $netRawMaterialChange = $beginningDelta;
 
-        // Pre-check: block if raw materials are insufficient for the increase
+        $deductionResult = null;
+
+        // Perform deduction once (non-preview) to avoid double computation latency.
         if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(
+            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                 intval($item['product_id']),
-                $netRawMaterialChange,
-                true // preview only
+                $netRawMaterialChange
             );
 
-            if (!empty($preview['has_insufficient'])) {
-                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+            if (empty($deductionResult['success'])) {
+                $shortMaterials = array_filter($deductionResult['deductions'] ?? [], fn($d) => !empty($d['insufficient']));
                 $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
 
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Cannot update — insufficient raw material stock for the additional ' . $netRawMaterialChange . ' pieces.',
+                    'message' => $deductionResult['message'] ?? ('Cannot update — insufficient raw material stock for the additional ' . $netRawMaterialChange . ' pieces.'),
                     'insufficient_materials' => array_values($shortNames),
-                    'preview' => $preview,
+                    'preview' => $deductionResult,
                 ]);
             }
         }
 
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
-            $deductionResult = null;
             $restorationResult = null;
-
-            // Beginning increase → deduct raw materials
-            if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
-                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($item['product_id']),
-                    $netRawMaterialChange
-                );
-            }
 
             // Beginning decrease → restore raw materials
             if ($netRawMaterialChange < 0 && isset($item['product_id'])) {
@@ -895,6 +917,14 @@ class InventoryController extends BaseController
                 ]
             ]);
         } else {
+            // Roll back raw material deduction if inventory row update fails.
+            if ($netRawMaterialChange > 0 && !empty($deductionResult['success']) && isset($item['product_id'])) {
+                $this->rawMaterialStockModel->restoreForProduction(
+                    intval($item['product_id']),
+                    $netRawMaterialChange
+                );
+            }
+
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Failed to update inventory item',
