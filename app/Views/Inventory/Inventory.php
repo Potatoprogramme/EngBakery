@@ -511,7 +511,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit"
+                    <button type="submit" id="btnSubmitEditInventory"
                         class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
                         Update Item
                     </button>
@@ -3278,29 +3278,51 @@
         });
 
         // +/- buttons for beginning stock
+        let editPreviewDebounceTimer = null;
+        let editPreviewUiState = {
+            infoKey: '',
+            warningKey: '',
+            notesRequired: null,
+            remainingHint: '',
+            remainingValue: null
+        };
+
+        function runEditPreviewUpdate() {
+            updateBeginningStockDisplay();
+            updateRemainingPreview();
+        }
+
+        function scheduleEditPreviewUpdate(delayMs = 60) {
+            if (editPreviewDebounceTimer) {
+                clearTimeout(editPreviewDebounceTimer);
+            }
+
+            editPreviewDebounceTimer = setTimeout(function () {
+                editPreviewDebounceTimer = null;
+                runEditPreviewUpdate();
+            }, delayMs);
+        }
+
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
-            updateBeginningStockDisplay();
-            updateRemainingPreview();
+            runEditPreviewUpdate();
         });
 
         $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
-            updateBeginningStockDisplay();
-            updateRemainingPreview();
+            runEditPreviewUpdate();
         });
 
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
-            updateBeginningStockDisplay();
-            updateRemainingPreview();
+            scheduleEditPreviewUpdate();
         });
 
         $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
-            updateRemainingPreview();
+            scheduleEditPreviewUpdate();
         });
 
         function updateRemainingPreview() {
@@ -3322,16 +3344,27 @@
                 const projectedPullOut = oldPullOut + pullOutInput;
                 projectedRemaining = oldEnding + endingInput;
 
-                $('#editRemainingHint').text(
+                const nextHint =
                     'Current End: ' + oldEnding + ' | Projected End: ' + Math.max(0, projectedRemaining) +
-                    ' (Beg Δ ' + beginningInput + ', PO + ' + pullOutInput + ', End Δ ' + endingInput + ')'
-                );
+                    ' (Beg Δ ' + beginningInput + ', PO + ' + pullOutInput + ', End Δ ' + endingInput + ')';
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').text(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
             } else {
                 projectedRemaining = beginningInput - pullOutInput - oldQtySold;
-                $('#editRemainingHint').text('Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').');
+                const nextHint = 'Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').';
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').text(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
             }
 
-            $('#editRemainingPreview').val(Math.max(0, projectedRemaining));
+            const nextRemainingValue = Math.max(0, projectedRemaining);
+            if (editPreviewUiState.remainingValue !== nextRemainingValue) {
+                $('#editRemainingPreview').val(nextRemainingValue);
+                editPreviewUiState.remainingValue = nextRemainingValue;
+            }
         }
 
         /**
@@ -3348,6 +3381,7 @@
             const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
 
             // Distribution limit info bar
+            const infoKey = expected + '|' + distQty + '|' + carryQty;
             if (expected > 0) {
                 let infoText = '';
                 if (distQty > 0 && carryQty > 0) {
@@ -3360,10 +3394,16 @@
                     infoText = 'Carryover: <strong>' + carryQty + '</strong> pcs · Expected: <strong>' + expected +
                         '</strong> pcs';
                 }
-                $('#editDistInfoText').html(infoText);
-                $('#editDistributionInfo').removeClass('hidden');
+                if (editPreviewUiState.infoKey !== infoKey) {
+                    $('#editDistInfoText').html(infoText);
+                    $('#editDistributionInfo').removeClass('hidden');
+                    editPreviewUiState.infoKey = infoKey;
+                }
             } else {
-                $('#editDistributionInfo').addClass('hidden');
+                if (editPreviewUiState.infoKey !== 'hidden') {
+                    $('#editDistributionInfo').addClass('hidden');
+                    editPreviewUiState.infoKey = 'hidden';
+                }
             }
 
             // Over/Under warning and notes requirement
@@ -3375,15 +3415,21 @@
                 } else {
                     warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
                 }
-                $('#editStockWarningText').html(warningText);
-                $('#editStockWarning').removeClass('hidden');
+                if (editPreviewUiState.warningKey !== warningText) {
+                    $('#editStockWarningText').html(warningText);
+                    $('#editStockWarning').removeClass('hidden');
+                    editPreviewUiState.warningKey = warningText;
+                }
 
                 // Make notes required
-                $('#editNotes').attr('required', true);
-                $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
-                $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
-                $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
-                    'text-red-500');
+                if (editPreviewUiState.notesRequired !== true) {
+                    $('#editNotes').attr('required', true);
+                    $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
+                    $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
+                    $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400').addClass(
+                        'text-red-500');
+                    editPreviewUiState.notesRequired = true;
+                }
                 if (!$('#editNotes').val()) {
                     $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 } else {
@@ -3391,12 +3437,18 @@
                 }
             } else {
                 // No deviation or no expected baseline
-                $('#editStockWarning').addClass('hidden');
-                $('#editNotes').removeAttr('required');
-                $('#editNotes').attr('placeholder', 'Add notes (optional)');
-                $('#editNotesLabel').text('Notes');
-                $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                    'text-gray-400');
+                if (editPreviewUiState.warningKey !== 'hidden') {
+                    $('#editStockWarning').addClass('hidden');
+                    editPreviewUiState.warningKey = 'hidden';
+                }
+                if (editPreviewUiState.notesRequired !== false) {
+                    $('#editNotes').removeAttr('required');
+                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                        'text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+                }
                 $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
         }
@@ -3468,6 +3520,22 @@
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
+            const submitBtn = $('#btnSubmitEditInventory');
+            if (submitBtn.prop('disabled')) {
+                return;
+            }
+
+            const originalSubmitHtml = submitBtn.html();
+            const restoreSubmitButton = function () {
+                submitBtn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-not-allowed')
+                    .html(originalSubmitHtml);
+            };
+
+            submitBtn.prop('disabled', true)
+                .addClass('opacity-70 cursor-not-allowed')
+                .html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
+
             const itemId = $('#editItemId').val();
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
@@ -3493,11 +3561,13 @@
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
                         2500);
+                    restoreSubmitButton();
                     return;
                 }
 
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
                     return;
                 }
 
@@ -3505,6 +3575,7 @@
                     showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                         expected + ')', 3000);
                     $('#editNotes').focus();
+                    restoreSubmitButton();
                     return;
                 }
 
@@ -3518,6 +3589,7 @@
             } else {
                 if (beginningInput < 0 || pullOutInput < 0) {
                     showToast('warning', 'Values cannot be negative', 2000);
+                    restoreSubmitButton();
                     return;
                 }
 
@@ -3525,6 +3597,7 @@
                     showToast('warning', 'Notes are required when beginning stock differs from expected (' +
                         expected + ')', 3000);
                     $('#editNotes').focus();
+                    restoreSubmitButton();
                     return;
                 }
 
@@ -3561,6 +3634,9 @@
                             error), 2000);
                     }
                     console.log(xhr);
+                },
+                complete: function () {
+                    restoreSubmitButton();
                 }
             });
         });
