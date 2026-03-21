@@ -55,7 +55,7 @@
                             <label class="text-sm font-medium text-gray-700">Time:</label>
                             <span id="timeRange"
                                 class="text-sm font-semibold text-gray-900 px-3 py-2 bg-gray-50 rounded-md border border-gray-200">--:--
-                                - --:--</span>
+                                - --:--</span>p
                         </div> -->
                     </div>
                 </div>
