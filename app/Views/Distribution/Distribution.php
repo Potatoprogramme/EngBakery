@@ -2036,8 +2036,8 @@
                                     <p class="text-[11px] text-gray-500">${group.total_items || groupItems.length} item(s)</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(groupForecast)}</p>
-                                    <p class="text-[11px] font-semibold text-emerald-600">${formatPesoAmount(groupTotal)}</p>
+                                    <p class="text-[11px] font-semibold text-primary">Total Selling Price: ${formatPesoAmount(groupForecast)}</p>
+                                    <p class="text-[11px] font-semibold text-emerald-600">Total Cost: ${formatPesoAmount(groupTotal)}</p>
                                 </div>
                             </div>
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mb-2"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
@@ -2846,8 +2846,8 @@
                                     <p class="text-[11px] text-gray-500">${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[11px] text-primary font-semibold">${formatPesoAmount(itemForecast)}</p>
-                                    <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemTotal)}</p>
+                                    <p class="text-[11px] text-primary font-semibold">Total Selling Price: ${formatPesoAmount(itemForecast)}</p>
+                                    <p class="text-[11px] text-emerald-600 font-semibold">Total Cost: ${formatPesoAmount(itemTotal)}</p>
                                 </div>
                             </div>
                         </div>
