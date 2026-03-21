@@ -328,19 +328,19 @@ class InventoryController extends BaseController
                 $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
                 $currentEnding = intval($existingItem['ending_stock'] ?? 0);
                 $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
-                $manualQty = max(0, $currentBeginning - $currentDistributionQty - $carryoverQty);
-                $newBeginning = $carryoverQty + $manualQty + $pieces;
+                $piecesToAdd = max(0, $pieces - $currentDistributionQty);
+                $newBeginning = $currentBeginning + $piecesToAdd;
                 $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
                 $this->dailyStockItemsModel->update($existingItem['item_id'], [
                     'beginning_stock' => $newBeginning,
                     'ending_stock' => $newEnding,
-                    'distribution_qty' => $pieces,
+                    'distribution_qty' => $currentDistributionQty + $piecesToAdd,
                     'is_enabled' => ($newBeginning > 0) ? 1 : 0,
                 ]);
                 $updated++;
                 log_message('info', 'LOAD FROM DISTRIBUTION: Updated Product {product} - added {pieces} pieces, new beginning: {new}', [
                     'product' => $productId,
-                    'pieces' => $pieces,
+                    'pieces' => $piecesToAdd,
                     'new' => $newBeginning
                 ]);
             } else {
@@ -526,9 +526,8 @@ class InventoryController extends BaseController
             $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
             $currentEnding = intval($existingItem['ending_stock'] ?? 0);
             $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
-            $manualQty = max(0, $currentBeginning - $currentDistQty - $carryoverQty);
-            $newDistQty = $quantity;
-            $newBeginning = $carryoverQty + $manualQty + $newDistQty;
+            $newDistQty = $currentDistQty + $quantity;
+            $newBeginning = $currentBeginning + $quantity;
             $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
             $existingNotes = trim($existingItem['notes'] ?? '');
             $updatedNotes = $existingNotes;
