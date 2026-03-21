@@ -1406,6 +1406,30 @@
         }, []);
     }
 
+    function getTodayDistributionPiecesForProduct(productId) {
+        const normalizedId = String(productId ?? '').trim();
+        if (!normalizedId) return 0;
+
+        return (Array.isArray(todayDistributionGroupedData) ? todayDistributionGroupedData : []).reduce(function(sum, group) {
+            const items = Array.isArray(group && group.items) ? group.items : [];
+            const groupTotal = items.reduce(function(itemSum, item) {
+                if (String(item && item.product_id) !== normalizedId) {
+                    return itemSum;
+                }
+
+                const pieces = parseInventoryNumericValue(item && item.pieces_calculated);
+                if (pieces > 0) {
+                    return itemSum + pieces;
+                }
+
+                const productData = getTodayDistProductData(item && item.product_id) || item || {};
+                return itemSum + getTodayDistPieces(item, productData);
+            }, 0);
+
+            return sum + groupTotal;
+        }, 0);
+    }
+
     async function accumulateTodayDistRawMaterialUsage(productId, yieldsNeeded, piecesNeeded, materialMap,
         visitedProducts = new Set(), productHint = null) {
         const key = String(productId || '').trim();
@@ -3410,7 +3434,8 @@
             $('#editNotes').val(item.notes || '');
 
             // Populate distribution and carryover info
-            const distQty = parseInt(item.distribution_qty) || 0;
+            const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
+            const distQty = distQtyFromDistribution > 0 ? distQtyFromDistribution : (parseInt(item.distribution_qty) || 0);
             const carryQty = parseInt(carryoverData[item.product_id]) || 0;
             $('#editDistributionQty').val(distQty);
             $('#editCarryoverQty').val(carryQty);
