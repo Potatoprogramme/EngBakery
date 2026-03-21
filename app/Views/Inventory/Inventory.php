@@ -659,8 +659,10 @@
                 <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
                 <select id="sendReportShiftSelect"
                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
-                    <option value="morning">Morning shift</option>
-                    <option value="afternoon">Afternoon shift</option>
+                    <option value="shift_a">Shift A</option>
+                    <option value="shift_b">Shift B</option>
+                    <option value="shift_c">Shift C</option>
+                    <option value="shift_d">Shift D</option>
                 </select>
                 <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
             </div>
@@ -1859,25 +1861,29 @@
             return `${hour12}:${minute} ${ampm}`;
         }
 
-        function mapShiftKeyToInventorySlot(shiftKey, index) {
+        function normalizeShiftKey(shiftKey, index) {
             const normalized = String(shiftKey || '').toLowerCase();
-            if (['shift_a', 'morning', 'am', 'first', 'first_shift'].includes(normalized)) {
-                return 'morning';
+            if (['shift_a', 'shift_b', 'shift_c', 'shift_d'].includes(normalized)) {
+                return normalized;
             }
 
-            if (['shift_c', 'weekend_morning', 'sat_sun_morning'].includes(normalized)) {
-                return 'morning';
+            if (['morning', 'am', 'first', 'first_shift'].includes(normalized)) {
+                return 'shift_a';
             }
 
-            if (['shift_b', 'afternoon', 'pm', 'second', 'second_shift'].includes(normalized)) {
-                return 'afternoon';
+            if (['afternoon', 'pm', 'second', 'second_shift'].includes(normalized)) {
+                return 'shift_b';
             }
 
-            if (['shift_d', 'weekend_afternoon', 'sat_sun_afternoon'].includes(normalized)) {
-                return 'afternoon';
+            if (['weekend_morning', 'sat_sun_morning'].includes(normalized)) {
+                return 'shift_c';
             }
 
-            return index === 0 ? 'morning' : 'afternoon';
+            if (['weekend_afternoon', 'sat_sun_afternoon'].includes(normalized)) {
+                return 'shift_d';
+            }
+
+            return index === 0 ? 'shift_a' : 'shift_b';
         }
 
         function buildSendReportShiftOptions(shifts) {
@@ -1888,21 +1894,17 @@
 
             if (!Array.isArray(shifts) || shifts.length === 0) {
                 select.html([
-                    '<option value="morning">Morning shift</option>',
-                    '<option value="afternoon">Afternoon shift</option>'
+                    '<option value="shift_a">Shift A</option>',
+                    '<option value="shift_b">Shift B</option>',
+                    '<option value="shift_c">Shift C</option>',
+                    '<option value="shift_d">Shift D</option>'
                 ].join(''));
                 return;
             }
 
-            const usedSlots = {};
             const optionsHtml = shifts.map(function(shift, index) {
-                const optionValue = mapShiftKeyToInventorySlot(shift.key, index);
-                if (usedSlots[optionValue]) {
-                    return '';
-                }
-
-                usedSlots[optionValue] = true;
-                const label = shift.label || (index === 0 ? 'Morning shift' : 'Afternoon shift');
+                const optionValue = normalizeShiftKey(shift.key, index);
+                const label = shift.label || `Shift ${String.fromCharCode(65 + index)}`;
                 const start = formatShiftTimeLabel(shift.start);
                 const end = formatShiftTimeLabel(shift.end);
 
@@ -1911,8 +1913,10 @@
 
             if (optionsHtml.trim() === '') {
                 select.html([
-                    '<option value="morning">Morning shift</option>',
-                    '<option value="afternoon">Afternoon shift</option>'
+                    '<option value="shift_a">Shift A</option>',
+                    '<option value="shift_b">Shift B</option>',
+                    '<option value="shift_c">Shift C</option>',
+                    '<option value="shift_d">Shift D</option>'
                 ].join(''));
                 return;
             }
@@ -1922,7 +1926,7 @@
 
         function getSuggestedInventorySlot(shifts) {
             if (!Array.isArray(shifts) || shifts.length === 0) {
-                return new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                return 'shift_a';
             }
 
             const now = new Date();
@@ -1933,11 +1937,11 @@
             for (let i = 0; i < shifts.length; i++) {
                 const shift = shifts[i];
                 if (shift.start && shift.end && currentTime >= shift.start && currentTime <= shift.end) {
-                    return mapShiftKeyToInventorySlot(shift.key, i);
+                    return normalizeShiftKey(shift.key, i);
                 }
             }
 
-            return mapShiftKeyToInventorySlot(shifts[0].key, 0);
+            return normalizeShiftKey(shifts[0].key, 0);
         }
 
         function loadSendReportShifts(callback) {
@@ -1975,7 +1979,7 @@
                     reportShiftConfig = [];
                     buildSendReportShiftOptions(reportShiftConfig);
 
-                    const fallbackShift = new Date().getHours() >= 12 ? 'afternoon' : 'morning';
+                    const fallbackShift = 'shift_a';
                     $('#sendReportShiftSelect').val(fallbackShift);
 
                     if (typeof callback === 'function') {
@@ -3241,7 +3245,7 @@
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.recipe && response.recipe.length > 0) {
-                    displayMaterialsUsed(response.recipe, totalUnits);
+                    displayMaterialsUsed(response.recipe, totalUnits, response);
                 } else {
                     $('#itemDetailsMaterialsList').html(
                         '<p class="text-sm text-gray-500 text-center py-4">No raw materials configured for this product</p>'
@@ -3261,9 +3265,24 @@
     /**
      * Display materials used with calculated quantities and costs
      */
-    function displayMaterialsUsed(recipe, totalUnits) {
+    function displayMaterialsUsed(recipe, totalUnits, productData) {
         let html = '';
         let totalMaterialsCost = 0;
+
+        const category = (productData && productData.category ? String(productData.category) : '').toLowerCase();
+        const traysPerYield = parseInt(productData && productData.trays_per_yield) || 0;
+        const piecesPerYield = parseInt(productData && productData.pieces_per_yield) || 0;
+        let piecesPerBatch = 1;
+
+        if (category === 'drinks' || category === 'grocery') {
+            piecesPerBatch = 1;
+        } else if (traysPerYield > 0 && piecesPerYield > 0) {
+            piecesPerBatch = traysPerYield * piecesPerYield;
+        } else if (piecesPerYield > 0) {
+            piecesPerBatch = piecesPerYield;
+        }
+
+        const yieldsNeeded = piecesPerBatch > 0 ? (totalUnits / piecesPerBatch) : totalUnits;
 
         if (!recipe || recipe.length === 0) {
             $('#itemDetailsMaterialsList').html(
@@ -3278,8 +3297,8 @@
             const materialName = material.material_name || 'Unknown Material';
             const costPerUnit = parseFloat(material.cost_per_unit) || 0;
 
-            // Calculate total quantity and cost (quantity per piece × total units)
-            const totalQuantity = quantityNeeded * totalUnits;
+            // Calculate total quantity and cost (quantity per yield × yields needed)
+            const totalQuantity = quantityNeeded * yieldsNeeded;
             const materialCost = (totalQuantity * costPerUnit).toFixed(2);
             totalMaterialsCost += parseFloat(materialCost);
 

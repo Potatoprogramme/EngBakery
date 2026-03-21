@@ -5,6 +5,7 @@ namespace App\Libraries;
 use App\Models\DailyStockModel;
 use App\Models\DailyStockItemsModel;
 use App\Models\UsersModel;
+use App\Libraries\ShiftSchedule;
 
 /**
  * AutoReportScheduler
@@ -183,16 +184,13 @@ class AutoReportScheduler
         }
 
         $ownerEmails = array_column($owners, 'email');
-        $slotLabelMap = [
-            'am' => 'Morning Shift',
-            'pm' => 'Afternoon Shift',
-        ];
-        $slotLabel = $slotLabelMap[$slot] ?? null;
+        $slotMeta = self::resolveSlotMeta($slot, $shiftReports, $date);
+        $slotLabel = $slotMeta['subject_label'] ?? null;
         $subject = $slotLabel
             ? ('📦 Inventory Report — ' . $slotLabel . ' — ' . date('F d, Y', strtotime($date)))
             : ('📦 Inventory Report — ' . date('F d, Y', strtotime($date)));
 
-        $emailBody = self::buildEmailBody($shiftReports, $slot, $date);
+        $emailBody = self::buildEmailBody($shiftReports, $slot, $date, $slotMeta);
 
         // ── 4. Send via the configured email service ─────────────────────────
         try {
@@ -225,24 +223,14 @@ class AutoReportScheduler
     /**
      * Assemble the complete HTML email body for a scheduled inventory report.
      */
-    private static function buildEmailBody(array $shiftReports, string $slot, string $date): string
+    private static function buildEmailBody(array $shiftReports, string $slot, string $date, array $slotMeta): string
     {
         $reportDate   = date('F d, Y', strtotime($date));
         $reportTime   = date('h:i A');
         $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
-        if ($slot === 'am') {
-            $slotTitle = 'Morning Shift Inventory Report';
-            $slotSubtitle = 'Morning Shift Snapshot';
-            $headerColor = '#fde047';
-        } elseif ($slot === 'pm') {
-            $slotTitle = 'Afternoon Shift Inventory Report';
-            $slotSubtitle = 'Afternoon Shift Snapshot';
-            $headerColor = '#facc15';
-        } else {
-            $slotTitle = 'Inventory Report';
-            $slotSubtitle = 'Manually Generated Snapshot';
-            $headerColor = '#fbbf24';
-        }
+        $slotTitle = $slotMeta['title'] ?? 'Inventory Report';
+        $slotSubtitle = $slotMeta['subtitle'] ?? 'Manually Generated Snapshot';
+        $headerColor = $slotMeta['header_color'] ?? '#fbbf24';
 
         $totalProducts = 0;
         $totalSales = 0.0;
@@ -425,6 +413,11 @@ class AutoReportScheduler
             }
         }
 
+        $slotKey = strtolower(trim($slot));
+        if (isset($byKey[$slotKey])) {
+            return [$byKey[$slotKey]];
+        }
+
         if ($slot === 'am') {
             return isset($byKey['shift_a']) ? [$byKey['shift_a']] : array_slice($all, 0, 1);
         }
@@ -553,14 +546,14 @@ class AutoReportScheduler
     private static function resolveDirectCostPerPiece(array $item): float
     {
         $directCost = floatval($item['direct_cost'] ?? 0);
-        $piecesPerYield = intval($item['pieces_per_yield'] ?? 0);
+        $piecesPerBatch = self::resolvePiecesPerBatch($item);
 
         if ($directCost <= 0) {
             return 0.0;
         }
 
-        if ($piecesPerYield > 0) {
-            return $directCost / $piecesPerYield;
+        if ($piecesPerBatch > 0) {
+            return $directCost / $piecesPerBatch;
         }
 
         return $directCost;
@@ -569,14 +562,14 @@ class AutoReportScheduler
     private static function resolveOverheadCostPerPiece(array $item): float
     {
         $overheadCostAmount = floatval($item['overhead_cost_amount'] ?? 0);
-        $piecesPerYield = intval($item['pieces_per_yield'] ?? 0);
+        $piecesPerBatch = self::resolvePiecesPerBatch($item);
 
         if ($overheadCostAmount <= 0) {
             return 0.0;
         }
 
-        if ($piecesPerYield > 0) {
-            return $overheadCostAmount / $piecesPerYield;
+        if ($piecesPerBatch > 0) {
+            return $overheadCostAmount / $piecesPerBatch;
         }
 
         return $overheadCostAmount;
@@ -720,7 +713,19 @@ class AutoReportScheduler
 
     private static function resolveManualSlotForNow(): string
     {
-        return ((int) date('G') >= self::SLOTS['pm']['start_h']) ? 'pm' : 'am';
+        $date = date('Y-m-d');
+        $now = date('H:i:s');
+        $windows = ShiftSchedule::getShiftWindowsForDate($date);
+
+        foreach ($windows as $window) {
+            $start = (string) ($window['start'] ?? '00:00:00');
+            $end = (string) ($window['end'] ?? '23:59:59');
+            if ($now >= $start && $now <= $end) {
+                return strtolower((string) ($window['key'] ?? 'shift_a'));
+            }
+        }
+
+        return 'shift_a';
     }
 
     private static function normalizeSlot(?string $slot): ?string
@@ -730,15 +735,62 @@ class AutoReportScheduler
         }
 
         $normalized = strtolower(trim($slot));
-        if (in_array($normalized, ['am', 'morning', 'first', 'first_shift', 'shift_a'], true)) {
-            return 'am';
+        if (in_array($normalized, ['shift_a', 'shift_b', 'shift_c', 'shift_d'], true)) {
+            return $normalized;
         }
 
-        if (in_array($normalized, ['pm', 'afternoon', 'second', 'second_shift', 'shift_b'], true)) {
-            return 'pm';
+        if (in_array($normalized, ['am', 'morning', 'first', 'first_shift'], true)) {
+            return 'shift_a';
+        }
+
+        if (in_array($normalized, ['pm', 'afternoon', 'second', 'second_shift'], true)) {
+            return 'shift_b';
         }
 
         return null;
+    }
+
+    private static function resolveSlotMeta(string $slot, array $shiftReports, string $date): array
+    {
+        if ($slot === 'am') {
+            return [
+                'title' => 'Morning Shift Inventory Report',
+                'subtitle' => 'Morning Shift Snapshot',
+                'header_color' => '#fde047',
+                'subject_label' => 'Morning Shift',
+            ];
+        }
+
+        if ($slot === 'pm') {
+            return [
+                'title' => 'Afternoon Shift Inventory Report',
+                'subtitle' => 'Afternoon Shift Snapshot',
+                'header_color' => '#facc15',
+                'subject_label' => 'Afternoon Shift',
+            ];
+        }
+
+        $label = '';
+        $windows = ShiftSchedule::getShiftWindowsForDate($date);
+        foreach ($windows as $window) {
+            if (strtolower((string) ($window['key'] ?? '')) === strtolower($slot)) {
+                $label = (string) ($window['label'] ?? '');
+                break;
+            }
+        }
+
+        if ($label === '' && !empty($shiftReports)) {
+            $label = (string) ($shiftReports[0]['label'] ?? 'Shift');
+        }
+
+        $label = $label !== '' ? $label : 'Inventory Report';
+
+        return [
+            'title' => $label . ' Inventory Report',
+            'subtitle' => $label . ' Snapshot',
+            'header_color' => '#fbbf24',
+            'subject_label' => $label,
+        ];
     }
 
     private static function getShiftFlagFilePath(string $date, string $slot): string
@@ -754,5 +806,26 @@ class AutoReportScheduler
     private static function markShiftReported(string $date, string $slot): void
     {
         @file_put_contents(self::getShiftFlagFilePath($date, $slot), date('Y-m-d H:i:s'));
+    }
+
+    private static function resolvePiecesPerBatch(array $item): int
+    {
+        $category = strtolower((string) ($item['category'] ?? ''));
+        if (in_array($category, ['drinks', 'grocery'], true)) {
+            return 1;
+        }
+
+        $traysPerYield = intval($item['trays_per_yield'] ?? 0);
+        $piecesPerYield = intval($item['pieces_per_yield'] ?? 0);
+
+        if ($traysPerYield > 0 && $piecesPerYield > 0) {
+            return $traysPerYield * $piecesPerYield;
+        }
+
+        if ($piecesPerYield > 0) {
+            return $piecesPerYield;
+        }
+
+        return 1;
     }
 }
