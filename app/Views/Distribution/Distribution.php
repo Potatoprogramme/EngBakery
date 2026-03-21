@@ -3897,7 +3897,9 @@
                         ' piece(s) total (pieces-only product)');
                 } else {
                     const batches = qty / batchPiecesPerYield;
-                    $('#conversionText').text(formatQuantityValue(qty) + ' pieces in total ');
+                    $('#conversionText').text(formatQuantityValue(qty) + ' pieces ÷ ' +
+                        formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
+                        formatQuantityValue(batches) + ' batch(es) of raw materials used');
                 }
                 $('#piecesConversionHint').removeClass('hidden');
             } else {
