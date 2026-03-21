@@ -118,6 +118,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                     Used</th>
@@ -135,6 +137,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="bakeryTotalQty">0
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -167,6 +170,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                     Used</th>
@@ -184,6 +189,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="drinksTotalQty">0
                                                 </td>
+                                                <td></td>
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="drinksTotalSales">₱0.00
                                                 </td>
@@ -223,6 +229,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                     Used</th>
@@ -240,6 +248,7 @@
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="groceryTotalQty">0
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -2936,6 +2945,15 @@
                 const ending_stock = parseInt(item.ending_stock) || 0;
                 const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
                 const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
+                const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                const traysPerYield = parseInt(item.trays_per_yield) || 0;
+                const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
+                const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
+                    traysPerYield * piecesPerYield :
+                    (piecesPerYield > 0 ? piecesPerYield : 1);
+                const overheadPerPiece = overheadUnit / piecesPerBatch;
+                const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
+                const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
                 const isEnabled = parseInt(item.is_enabled) === 1;
 
                 totalQty += qtySold;
@@ -2956,6 +2974,7 @@
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-center">';
                 rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -2998,6 +3017,15 @@
                 const qtySold = parseInt(item.quantity_sold) || 0;
                 const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
                 const formattedSales = '₱' + sales.toFixed(2);
+                const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                const traysPerYield = parseInt(item.trays_per_yield) || 0;
+                const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
+                const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
+                    traysPerYield * piecesPerYield :
+                    (piecesPerYield > 0 ? piecesPerYield : 1);
+                const overheadPerPiece = overheadUnit / piecesPerBatch;
+                const overheadTotal = (overheadPerPiece * qtySold).toFixed(2);
+                const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
                 const isEnabled = parseInt(item.is_enabled) === 1;
 
                 totalQty += qtySold;
@@ -3015,6 +3043,7 @@
                     ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-center">';
                 rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -3055,6 +3084,15 @@
                 const price = parseFloat(item.selling_price || 0);
                 const totalSales = (qtySold * price).toFixed(2);
                 const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
+                const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                const traysPerYield = parseInt(item.trays_per_yield) || 0;
+                const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
+                const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
+                    traysPerYield * piecesPerYield :
+                    (piecesPerYield > 0 ? piecesPerYield : 1);
+                const overheadPerPiece = overheadUnit / piecesPerBatch;
+                const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
+                const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
                 const isEnabled = parseInt(item.is_enabled) === 1;
 
                 totalQty += qtySold;
@@ -3075,6 +3113,7 @@
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-center">';
                 rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -3140,7 +3179,7 @@
         // Show loading state for materials
         $('#itemDetailsMaterialsList').html(
             '<p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Loading materials...</p>'
-            );
+        );
 
         // Store values for use in material calculations
         window.currentItemData = {
@@ -3182,7 +3221,7 @@
                 } else {
                     $('#itemDetailsMaterialsList').html(
                         '<p class="text-sm text-gray-500 text-center py-4">No raw materials configured for this product</p>'
-                        );
+                    );
                     updateProfitAnalysis(0);
                 }
             },
