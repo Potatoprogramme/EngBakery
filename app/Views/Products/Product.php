@@ -1789,8 +1789,8 @@
 
                 const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
                 const totalCost = directCost + combinedCost;
-                // Overhead is based on direct cost to avoid double counting combined recipes.
-                const overheadBaseCost = directCost;
+                // For bakery, overhead applies to total cost; other categories use direct cost.
+                const overheadBaseCost = currentCategory === 'bakery' ? totalCost : directCost;
                 const overheadCost = overheadBaseCost * (parseFloat($('#overheadCost').val()) / 100 || 0);
                 const overallAmount = totalCost + overheadCost;
                 const overallAmountForYield = directCost + overheadCost;

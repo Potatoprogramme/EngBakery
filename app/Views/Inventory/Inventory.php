@@ -267,7 +267,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
-                                <p class="text-xs text-gray-500">Groups, notes, and direct cost</p>
+                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
                             </div>
                             <button id="btnRefreshTodayDistribution" type="button"
                                 class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
@@ -304,7 +304,7 @@
                                     <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
                                 </div>
                                 <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg col-span-2">
-                                    <p class="text-[11px] text-gray-600">Direct Cost</p>
+                                    <p class="text-[11px] text-gray-600">Total Cost</p>
                                     <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">
                                         ₱0.00</p>
                                 </div>
@@ -1140,7 +1140,9 @@
 
         function calculateTodayDistItemDirectCost(item, product) {
             const productData = product || {};
-            const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
+            const directCostPerYield = parseInventoryNumericValue(
+                productData.total_cost || productData.direct_cost
+            );
             if (directCostPerYield <= 0) return 0;
 
             const yieldsNeeded = getTodayDistYieldUnits(item, productData);
@@ -1691,7 +1693,7 @@
                                 <p class="text-[11px] text-gray-500">${quantityLabel}${safeCategory}</p>
                             </div>
                             <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Direct Cost</p>
+                                <p class="text-[10px] text-gray-500">Total Cost</p>
                                 <p class="text-xs font-semibold text-emerald-600">${formatInventoryPeso(directCost)}</p>
                             </div>
                         </div>
@@ -1764,7 +1766,7 @@
                                 ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${safeNote}</p>` : ''}
                             </div>
                             <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Direct Cost</p>
+                                <p class="text-[10px] text-gray-500">Total Cost</p>
                                 <p class="text-xs font-semibold text-emerald-600">${directCost}</p>
                                 <span class="inline-flex items-center justify-center mt-1 w-5 h-5 rounded-full bg-gray-100 text-gray-500">
                                     <i class="fas fa-chevron-right text-[10px]"></i>
@@ -3066,15 +3068,19 @@
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
                     const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
@@ -3138,15 +3144,19 @@
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
                     const formattedSales = '₱' + sales.toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * qtySold).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * qtySold).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
@@ -3205,15 +3215,19 @@
                     const price = parseFloat(item.selling_price || 0);
                     const totalSales = (qtySold * price).toFixed(2);
                     const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
