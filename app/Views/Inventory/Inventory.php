@@ -51,12 +51,12 @@
                         </div>
 
                         <!-- Time Range Display -->
-                        <!-- <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2">
                             <label class="text-sm font-medium text-gray-700">Time:</label>
                             <span id="timeRange"
                                 class="text-sm font-semibold text-gray-900 px-3 py-2 bg-gray-50 rounded-md border border-gray-200">--:--
-                                - --:--</span>p
-                        </div> -->
+                                - --:--</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -973,6 +973,11 @@
     </div>
 
     <style>
+        .inventory-item-row {
+            transition: transform 220ms ease, opacity 220ms ease, background-color 220ms ease;
+            will-change: transform;
+        }
+
         @media (max-width: 640px) {
 
             .datatable-top,
@@ -2762,6 +2767,7 @@
                 dataType: 'json',
                 contentType: 'application/json',
                 success: function (response) {
+                    a
                     if (response.success) {
                         showToast('success', response.message, 3000);
                         // Refresh the distribution list modal
@@ -2903,10 +2909,70 @@
             });
         }
 
+        function captureRowPositions(tableBodyId) {
+            const positions = {};
+            $('#' + tableBodyId + ' .inventory-item-row').each(function () {
+                const itemId = $(this).data('item-id');
+                if (itemId != null) {
+                    positions[String(itemId)] = this.getBoundingClientRect().top;
+                }
+            });
+            return positions;
+        }
+
+        function animateRowReorder(tableBodyId, beforePositions) {
+            if (!beforePositions || Object.keys(beforePositions).length === 0) {
+                return;
+            }
+
+            requestAnimationFrame(function () {
+                $('#' + tableBodyId + ' .inventory-item-row').each(function () {
+                    const itemId = $(this).data('item-id');
+                    const beforeTop = beforePositions[String(itemId)];
+                    if (beforeTop == null) {
+                        return;
+                    }
+
+                    const afterTop = this.getBoundingClientRect().top;
+                    const delta = beforeTop - afterTop;
+                    if (delta === 0) {
+                        return;
+                    }
+
+                    this.style.transition = 'transform 0s';
+                    this.style.transform = 'translateY(' + delta + 'px)';
+                    requestAnimationFrame(() => {
+                        this.style.transition = 'transform 220ms ease';
+                        this.style.transform = '';
+                    });
+                });
+            });
+        }
+
         function loadInventory(items, options) {
             const opts = options || {};
+            const beforePositions = {
+                bakery: captureRowPositions('bakeryTableBody'),
+                drinks: captureRowPositions('drinksTableBody'),
+                grocery: captureRowPositions('groceryTableBody')
+            };
+            const normalizedItems = (items || []).slice().sort(function (a, b) {
+                const enabledA = parseInt(a.is_enabled) === 1 ? 1 : 0;
+                const enabledB = parseInt(b.is_enabled) === 1 ? 1 : 0;
+                if (enabledA !== enabledB) {
+                    return enabledB - enabledA;
+                }
+
+                const nameA = (a.product_name || a.item || '').toString().toLowerCase();
+                const nameB = (b.product_name || b.item || '').toString().toLowerCase();
+                if (nameA !== nameB) {
+                    return nameA.localeCompare(nameB);
+                }
+
+                return String(a.item_id || '').localeCompare(String(b.item_id || ''));
+            });
             // Store items for mobile pagination
-            allInventoryItems = items || [];
+            allInventoryItems = normalizedItems;
             filteredItems = [...allInventoryItems];
             currentPage = 1;
 
@@ -2916,17 +2982,21 @@
             }
 
             // Separate items by category
-            const bakeryItems = items ? items.filter(i => i.category === 'bakery') : [];
-            const drinksItems = items ? items.filter(i => i.category === 'drinks') : [];
-            const groceryItems = items ? items.filter(i => i.category === 'grocery') : [];
+            const bakeryItems = normalizedItems.filter(i => i.category === 'bakery');
+            const drinksItems = normalizedItems.filter(i => i.category === 'drinks');
+            const groceryItems = normalizedItems.filter(i => i.category === 'grocery');
 
             // Render each category table
             renderBakeryTable(bakeryItems);
             renderDrinksTable(drinksItems);
             renderGroceryTable(groceryItems);
 
+            animateRowReorder('bakeryTableBody', beforePositions.bakery);
+            animateRowReorder('drinksTableBody', beforePositions.drinks);
+            animateRowReorder('groceryTableBody', beforePositions.grocery);
+
             // Update totals
-            updateGrandTotals(items || []);
+            updateGrandTotals(normalizedItems);
 
             // Render mobile cards with pagination
             renderMobileCards();
