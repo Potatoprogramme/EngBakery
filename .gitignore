@@ -124,6 +124,7 @@ _modules/*
 
 # Visual Studio Code
 .vscode/
+/app/Config/Database.php
 
 /results/
 /phpunit*.xml
@@ -131,4 +132,4 @@ _modules/*
 
 *.flag
 *.lock
-app/Config/Database.php
+
