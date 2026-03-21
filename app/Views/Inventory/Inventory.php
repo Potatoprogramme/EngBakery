@@ -815,6 +815,7 @@
             <form id="loadSingleItemForm">
                 <input type="hidden" id="loadItemProductId" value="0">
                 <input type="hidden" id="loadItemExpectedPieces" value="0">
+                <input type="hidden" id="loadItemAlreadyLoaded" value="0">
 
                 <!-- Distribution Info Bar -->
                 <div id="loadItemDistInfo" class="mb-4 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1412,7 +1413,8 @@
         const normalizedId = String(productId ?? '').trim();
         if (!normalizedId) return 0;
 
-        return (Array.isArray(todayDistributionGroupedData) ? todayDistributionGroupedData : []).reduce(function(sum, group) {
+        return (Array.isArray(todayDistributionGroupedData) ? todayDistributionGroupedData : []).reduce(function(sum,
+            group) {
             const items = Array.isArray(group && group.items) ? group.items : [];
             const groupTotal = items.reduce(function(itemSum, item) {
                 if (String(item && item.product_id) !== normalizedId) {
@@ -2505,7 +2507,8 @@
                 .calculated_pieces + ' pcs' :
                 item.calculated_pieces + ' pcs';
 
-            const isLoaded = item.loaded && item.loaded_qty > 0;
+            const loadedQty = parseInt(item.loaded_qty) || 0;
+            const isLoaded = item.loaded && loadedQty > 0;
             if (!isLoaded) hasUnloaded = true;
 
             html += '<div class="border border-gray-200 rounded-lg p-3 mb-2 ' + (isLoaded ? 'bg-green-50/50' :
@@ -2529,7 +2532,7 @@
                 html += '      <div class="mt-1.5">';
                 html +=
                     '        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">';
-                html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + item.loaded_qty + ' pcs';
+                html += '          <i class="fas fa-check-circle mr-1"></i>Loaded: ' + loadedQty + ' pcs';
                 html += '        </span>';
                 html += '      </div>';
             }
@@ -2549,7 +2552,8 @@
             html += '        data-expected-pieces="' + item.calculated_pieces + '"';
             html += '        data-qty-mode="' + item.qty_mode + '"';
             html += '        data-product-qnty="' + item.product_qnty + '"';
-            html += '        data-loaded="' + (isLoaded ? '1' : '0') + '">';
+            html += '        data-loaded="' + (isLoaded ? '1' : '0') + '"';
+            html += '        data-loaded-qty="' + loadedQty + '">';
             html += '        <i class="fas fa-download mr-1"></i>' + (isLoaded ? 'Load More' : 'Load');
             html += '      </button>';
 
@@ -2578,12 +2582,15 @@
         const qtyMode = $(this).data('qty-mode');
         const productQnty = $(this).data('product-qnty');
         const alreadyLoaded = $(this).data('loaded') === 1 || $(this).data('loaded') === '1';
+        const alreadyLoadedQty = parseInt($(this).data('loaded-qty')) || 0;
+        const remaining = Math.max(0, expectedPieces - alreadyLoadedQty);
 
         // Populate modal
         $('#loadItemProductId').val(productId);
         $('#loadItemExpectedPieces').val(expectedPieces);
+        $('#loadItemAlreadyLoaded').val(alreadyLoadedQty);
         $('#loadItemProductName').text(productName);
-        $('#loadItemQuantity').val(expectedPieces);
+        $('#loadItemQuantity').val(remaining > 0 ? remaining : 1);
 
         // Info bar
         let infoText = 'Distribution: <strong>' + expectedPieces + '</strong> pcs';
@@ -2594,7 +2601,7 @@
         if (alreadyLoaded) {
             infoText += ' <span class="text-green-600">(previously loaded)</span>';
         }
-        $('#loadItemDistInfoText').html(infoText);
+        $('#loadItemDistInfoText').data('base-info', infoText).html(infoText);
 
         // Reset state
         resetLoadItemModalState();
@@ -2608,16 +2615,31 @@
      */
     function updateLoadQuantityDisplay() {
         const expected = parseInt($('#loadItemExpectedPieces').val()) || 0;
+        const alreadyLoaded = parseInt($('#loadItemAlreadyLoaded').val()) || 0;
         const current = parseInt($('#loadItemQuantity').val()) || 0;
+        const totalAfter = alreadyLoaded + current;
+        const remaining = expected - alreadyLoaded;
 
-        if (expected > 0 && current !== expected) {
-            const delta = current - expected;
-            let warningText = '';
-            if (delta > 0) {
-                warningText = 'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required';
+        const baseInfo = $('#loadItemDistInfoText').data('base-info') || '';
+        if (expected > 0) {
+            let trackerText = '';
+            if (remaining >= 0) {
+                trackerText = ' — Loaded: <strong>' + alreadyLoaded + '</strong> pcs, Remaining: <strong>' +
+                    remaining + '</strong> pcs';
             } else {
-                warningText = 'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
+                trackerText = ' — Loaded: <strong>' + alreadyLoaded + '</strong> pcs, Over by <strong>' +
+                    Math.abs(remaining) + '</strong> pcs';
             }
+            $('#loadItemDistInfoText').html(baseInfo + trackerText);
+        } else {
+            $('#loadItemDistInfoText').html(baseInfo);
+        }
+
+        if (expected > 0 && totalAfter !== expected) {
+            const delta = totalAfter - expected;
+            const warningText = delta > 0 ?
+                'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required' :
+                'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
             $('#loadItemDeviationText').html(warningText);
             $('#loadItemDeviationWarning').removeClass('hidden');
 
@@ -2673,8 +2695,9 @@
         }
 
         // Client-side note validation
-        if (expectedPieces > 0 && quantity !== expectedPieces && !note) {
-            showToast('warning', 'A note is required when quantity differs from distribution (' + expectedPieces +
+        const alreadyLoaded = parseInt($('#loadItemAlreadyLoaded').val()) || 0;
+        if (expectedPieces > 0 && (alreadyLoaded + quantity) !== expectedPieces && !note) {
+            showToast('warning', 'A note is required when total loaded differs from distribution (' + expectedPieces +
                 ' pcs).', 3000);
             $('#loadItemNote').focus();
             return;
@@ -3454,7 +3477,8 @@
 
             // Populate distribution and carryover info
             const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
-            const distQty = distQtyFromDistribution > 0 ? distQtyFromDistribution : (parseInt(item.distribution_qty) || 0);
+            const distQty = distQtyFromDistribution > 0 ? distQtyFromDistribution : (parseInt(item
+                .distribution_qty) || 0);
             const carryQty = parseInt(carryoverData[item.product_id]) || 0;
             $('#editDistributionQty').val(distQty);
             $('#editCarryoverQty').val(carryQty);
