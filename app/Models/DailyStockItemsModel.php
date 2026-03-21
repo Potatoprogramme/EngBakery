@@ -99,6 +99,35 @@ class DailyStockItemsModel extends Model
         return $this->insertBatch($insertData);
     }
 
+    /**
+     * Insert drink items that are not part of distribution inventory.
+     * Drinks are enabled by default to ensure they appear in inventory.
+     */
+    public function insertDrinkStockItems(int $dailyStockId, array $productIds, array $carryover = []): bool
+    {
+        if (empty($productIds)) {
+            return true;
+        }
+
+        $insertData = [];
+        foreach ($productIds as $productId) {
+            $productId = intval($productId);
+            $carryoverQty = intval($carryover[$productId] ?? 0);
+
+            $insertData[] = [
+                'daily_stock_id' => $dailyStockId,
+                'product_id' => $productId,
+                'beginning_stock' => $carryoverQty,
+                'pull_out_quantity' => 0,
+                'ending_stock' => $carryoverQty,
+                'distribution_qty' => 0,
+                'is_enabled' => 1,
+            ];
+        }
+
+        return $this->insertBatch($insertData) !== false;
+    }
+
     public function consolidateDuplicateProductRows(int $dailyStockId): int
     {
         $rows = $this->where('daily_stock_id', $dailyStockId)

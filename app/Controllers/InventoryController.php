@@ -220,6 +220,28 @@ class InventoryController extends BaseController
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $flatItems, $carryover)) {
+                $distributionProductIds = array_values(array_filter(array_unique(array_map(static function ($item) {
+                    return intval($item['product_id'] ?? 0);
+                }, $flatItems))));
+
+                $drinkProductIds = $this->productModel
+                    ->where('category', 'drinks')
+                    ->where('is_disabled', 0)
+                    ->where('deleted_at', null)
+                    ->findColumn('product_id') ?? [];
+
+                if (!empty($distributionProductIds) && !empty($drinkProductIds)) {
+                    $drinkProductIds = array_values(array_diff($drinkProductIds, $distributionProductIds));
+                }
+
+                if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds, $carryover)) {
+                    $this->dailyStockModel->delete($lastInsertId);
+                    return $this->response->setStatusCode(500)->setJSON([
+                        'success' => false,
+                        'message' => 'Failed to add drink items to inventory.',
+                    ]);
+                }
+
                 $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
                 $message = 'Today\'s inventory created from distribution data successfully.';
                 if ($carryoverCount > 0) {
