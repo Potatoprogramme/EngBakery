@@ -502,14 +502,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Require note when quantity differs from expected
-        if ($expectedPieces > 0 && $quantity !== $expectedPieces && empty($note)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'A note is required when the quantity differs from the distribution amount (' . $expectedPieces . ' pcs).'
-            ]);
-        }
-
         $dailyStockId = intval($dailyStock['daily_stock_id']);
         $this->dailyStockItemsModel->consolidateDuplicateProductRows($dailyStockId);
         $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
@@ -520,9 +512,17 @@ class InventoryController extends BaseController
             ->where('product_id', $productId)
             ->first();
 
+        $currentDistQty = $existingItem ? intval($existingItem['distribution_qty'] ?? 0) : 0;
+        $totalAfter = $currentDistQty + $quantity;
+        if ($expectedPieces > 0 && $totalAfter !== $expectedPieces && empty($note)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'A note is required when the total loaded differs from the distribution amount (' . $expectedPieces . ' pcs).'
+            ]);
+        }
+
         if ($existingItem) {
             $currentBeginning = intval($existingItem['beginning_stock'] ?? 0);
-            $currentDistQty = intval($existingItem['distribution_qty'] ?? 0);
             $pullOut = intval($existingItem['pull_out_quantity'] ?? 0);
             $currentEnding = intval($existingItem['ending_stock'] ?? 0);
             $quantitySold = max(0, $currentBeginning - $pullOut - $currentEnding);
