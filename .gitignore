@@ -131,3 +131,4 @@ _modules/*
 
 *.flag
 *.lock
+app/Config/Database.php

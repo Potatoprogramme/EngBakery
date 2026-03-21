@@ -164,8 +164,8 @@ class Database extends Config
      */
     public array $tests = [
         'DSN'         => '',
-        'hostname'    => '127.0.0.1',
-        'username'    => '',
+        'hostname'    => 'localhost',
+        'username'    => 'root',
         'password'    => '',
         'database'    => ':memory:',
         'DBDriver'    => 'SQLite3',
