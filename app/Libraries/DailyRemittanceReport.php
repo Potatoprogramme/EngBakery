@@ -89,6 +89,8 @@ class DailyRemittanceReport
         $totalCoffee     = 0;
         $totalGrocery    = 0;
         $totalCashOut    = 0;
+        $totalOnline    = 0;
+        $totalFoodpanda = 0;
         $totalVariance   = 0;
         $shortCount      = 0;
         $overCount       = 0;
@@ -100,6 +102,8 @@ class DailyRemittanceReport
             $totalCoffee   += floatval($r['coffee_sales']);
             $totalGrocery  += floatval($r['grocery_sales']);
             $totalCashOut  += floatval($r['cash_out']);
+            $totalOnline   += floatval($r['total_online_revenue'] ?? 0);
+            $totalFoodpanda += floatval($r['foodpanda_revenue'] ?? 0);
             $variance       = floatval($r['variance_amount']);
             if ($r['is_short']) {
                 $totalVariance -= $variance;
@@ -122,6 +126,8 @@ class DailyRemittanceReport
             $sales       = number_format(floatval($r['total_sales']), 2);
             $enclosed    = number_format(floatval($r['amount_enclosed']), 2);
             $cashOut     = number_format(floatval($r['cash_out']), 2);
+            $online      = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
+            $foodpanda   = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
             $variance    = floatval($r['variance_amount']);
             $isShort     = $r['is_short'];
 
@@ -190,6 +196,16 @@ class DailyRemittanceReport
                                 <div style='font-size:15px;font-weight:bold;color:{$varianceColor};margin-top:2px;'>{$varianceText}</div>
                             </td>
                         </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Online Sales</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$online}</div>
+                            </td>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Foodpanda</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$foodpanda}</div>
+                            </td>
+                        </tr>
                     </table>
                 </div>";
         }
@@ -201,6 +217,8 @@ class DailyRemittanceReport
         $fmtBakery        = number_format($totalBakery, 2);
         $fmtCoffee        = number_format($totalCoffee, 2);
         $fmtGrocery       = number_format($totalGrocery, 2);
+        $fmtOnline        = number_format($totalOnline, 2);
+        $fmtFoodpanda     = number_format($totalFoodpanda, 2);
 
         $netVarianceColor = $totalVariance < 0 ? '#dc3545' : ($totalVariance > 0 ? '#007bff' : '#28a745');
         $netVarianceText  = $totalVariance < 0
@@ -308,6 +326,21 @@ class DailyRemittanceReport
                         </tr>
                     </table>
 
+                    <!-- Online Sales -->
+                    <table style='margin:0 0 20px;'>
+                        <tr>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:50%;'>
+                                <div style='font-size:11px;color:#888;text-transform:uppercase;'>Online Sales</div>
+                                <div style='font-size:18px;font-weight:bold;color:#333;'>₱{$fmtOnline}</div>
+                            </td>
+                            <td style='width:8px;'></td>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:50%;'>
+                                <div style='font-size:11px;color:#888;text-transform:uppercase;'>Foodpanda</div>
+                                <div style='font-size:18px;font-weight:bold;color:#D70F64;'>₱{$fmtFoodpanda}</div>
+                            </td>
+                        </tr>
+                    </table>
+
                     <!-- Shift Details Cards -->
                     <h3 style='font-size:16px;color:#333;margin:25px 0 15px;'>Shift Breakdown</h3>
                     {$shiftCards}
@@ -334,6 +367,16 @@ class DailyRemittanceReport
                                 <td style='padding:6px 0;'>
                                     <div style='font-size:11px;color:#666;'>Net Variance</div>
                                     <div style='font-size:18px;font-weight:bold;color:{$netVarianceColor};'>{$netVarianceText}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style='padding:6px 0;'>
+                                    <div style='font-size:11px;color:#666;'>Total Online Sales</div>
+                                    <div style='font-size:16px;font-weight:bold;color:#333;'>₱{$fmtOnline}</div>
+                                </td>
+                                <td style='padding:6px 0;'>
+                                    <div style='font-size:11px;color:#666;'>Total Foodpanda</div>
+                                    <div style='font-size:16px;font-weight:bold;color:#D70F64;'>₱{$fmtFoodpanda}</div>
                                 </td>
                             </tr>
                         </table>
