@@ -126,8 +126,8 @@
                         <div class="bg-white rounded-lg shadow-sm border border-emerald-100 p-3">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs text-gray-500">Direct Cost (Day)</p>
-                                    <p id="ownerDirectCostTotalDesktop" class="text-sm font-bold text-emerald-600">₱0.00
+                                    <p class="text-xs text-gray-500">Total Cost (Day)</p>
+                                    <p id="ownerTotalCostTotalDesktop" class="text-sm font-bold text-emerald-600">₱0.00
                                     </p>
                                 </div>
                                 <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -266,9 +266,9 @@
                         </div>
 
                         <div class="rounded-lg border border-gray-100 p-3 bg-gray-50">
-                            <h4 id="ownerForecastDirectCostHeading"
+                            <h4 id="ownerForecastTotalCostHeading"
                                 class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Per-Group
-                                Forecast & Direct Cost</h4>
+                                Forecast & Total Cost</h4>
                             <div id="ownerGroupAnalyticsContainer"
                                 class="space-y-2 overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 pr-1">
                                 <p class="text-xs text-gray-400">No distribution groups yet.</p>
@@ -325,8 +325,8 @@
                 <?php if ($isOwnerView): ?>
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="bg-white rounded-lg p-3 border border-emerald-100 shadow-sm">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Direct Cost</p>
-                        <p id="ownerDirectCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Cost</p>
+                        <p id="ownerTotalCostTotalMobile" class="text-sm font-bold text-emerald-600">₱0.00</p>
                     </div>
                     <div class="bg-white rounded-lg p-3 border border-amber-100 shadow-sm">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wide">Overhead Cost</p>
@@ -794,7 +794,9 @@
                 success: function(response) {
                     if (response.success && response.data) {
                         productsData = response.data;
-                        mergeProductCostRecords(productsData);
+                        mergeProductCostRecords(productsData, {
+                            preserveExistingCostFields: true
+                        });
                     }
 
                     const selectedDate = ($('#selectedDate').val() || '').toString();
@@ -825,12 +827,50 @@
             });
         }
 
-        function mergeProductCostRecords(records) {
-            (Array.isArray(records) ? records : []).forEach(function(record) {
+        function mergeProductCostRecords(records, options = {}) {
+            const recordArray = Array.isArray(records) ? records : [];
+            const preserveExistingCostFields = Boolean(options && options.preserveExistingCostFields);
+            const protectedCostFields = [
+                'direct_cost',
+                'combined_recipe_cost',
+                'overhead_cost_percentage',
+                'overhead_cost_amount',
+                'total_cost',
+                'pieces_per_yield',
+                'trays_per_yield',
+                'selling_price',
+                'selling_price_per_piece'
+            ];
+
+            console.log('📦 [mergeProductCostRecords] received', recordArray.length, 'records');
+            if (recordArray.length > 0) {
+                console.log('   Sample product:', recordArray[0].product_id, recordArray[0].product_name, '| combined_recipe_cost:', recordArray[0].combined_recipe_cost);
+            }
+
+            recordArray.forEach(function(record) {
                 const productId = String(record.product_id || '').trim();
                 if (!productId) return;
 
-                productCostMap[productId] = Object.assign({}, productCostMap[productId] || {}, record);
+                const existingRecord = Object.assign({}, productCostMap[productId] || {});
+                const mergedRecord = Object.assign({}, record);
+
+                if (preserveExistingCostFields) {
+                    protectedCostFields.forEach(function(field) {
+                        const existingRaw = existingRecord[field];
+                        const incomingRaw = mergedRecord[field];
+                        const existingValue = parseNumericValue(existingRaw);
+                        const incomingValue = parseNumericValue(incomingRaw);
+
+                        const incomingLooksMissing = incomingRaw === undefined || incomingRaw === null || incomingRaw === '';
+                        const incomingLooksDefaulted = incomingValue <= 0 && existingValue > 0;
+
+                        if ((incomingLooksMissing || incomingLooksDefaulted) && existingRaw !== undefined) {
+                            mergedRecord[field] = existingRaw;
+                        }
+                    });
+                }
+
+                productCostMap[productId] = Object.assign({}, existingRecord, mergedRecord);
             });
         }
 
@@ -841,11 +881,30 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response && response.success && Array.isArray(response.data)) {
-                        mergeProductCostRecords(response.data);
-                        // Re-decorate existing items with new cost data instead of re-fetching
+                        console.log('\ud83d\udd04 [loadProductCostData] Merging', response.data.length, 'products with cost details');
+                        mergeProductCostRecords(response.data, {
+                            preserveExistingCostFields: false
+                        });
+                        // Re-decorate existing items with new cost data (including combined_recipe_cost) instead of re-fetching
                         if (currentDayDistributionItems.length > 0) {
+                            console.log('\ud83d\udd04 [loadProductCostData] Re-decorating', currentDayDistributionItems.length, 'items with enriched product costs');
                             currentDayDistributionItems = decorateDistributionItems(
                                 currentDayDistributionItems, currentSelectedDate);
+                            
+                            // Re-aggregate and re-render with updated costs
+                            const selectedDate = ($('#selectedDate').val() || '').toString();
+                            const displayState = getDisplayStateForSelectedGroup(
+                                selectedDate,
+                                currentDayDistributionItems,
+                                currentDayGroupedData,
+                                currentDaySummary
+                            );
+                            const daySummary = getDayScopedSummary(currentDaySummary);
+
+                            updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
+                            updateForecastedSales(currentDayDistributionItems, daySummary);
+                            renderOwnerDayMetrics(daySummary);
+                            renderOwnerAnalytics(displayState.groups, displayState.summary);
                         }
                     }
 
@@ -952,13 +1011,45 @@
             return quantity;
         }
 
-        function calculateItemDirectCost(item, product) {
-            const directCostPerYield = parseNumericValue(product && product.direct_cost);
-            if (directCostPerYield <= 0) return 0;
+        function resolveProductTotalCostPerYield(product) {
+            if (!product) {
+                console.warn('⚠️  [resolveProductTotalCostPerYield] product is null/undefined');
+                return 0;
+            }
+            const productId = product.product_id;
+            const productName = product.product_name || 'unknown';
+            const totalCostPerYield = parseNumericValue(product && product.total_cost);
+            if (totalCostPerYield > 0) {
+                console.log('✓ [resolveProductTotalCostPerYield] Product', productId, productName, 'has direct total_cost =', totalCostPerYield);
+                return totalCostPerYield;
+            }
 
+            const directCost = parseNumericValue(product && product.direct_cost);
+            const combinedRecipeCost = parseNumericValue(product && product.combined_recipe_cost);
+            let overheadCostAmount = parseNumericValue(product && product.overhead_cost_amount);
+
+            if (overheadCostAmount <= 0 && directCost > 0) {
+                const overheadCostPercentage = parseNumericValue(product && product.overhead_cost_percentage);
+                if (overheadCostPercentage > 0) {
+                    overheadCostAmount = directCost * (overheadCostPercentage / 100);
+                }
+            }
+
+            const resolvedFallbackTotal = directCost + combinedRecipeCost + overheadCostAmount;
+            console.log('⚠️  [resolveProductTotalCostPerYield] FALLBACK for Product', productId, productName, '{direct:', directCost, '+ combined:', combinedRecipeCost, '+ overhead:', overheadCostAmount, '} = TOTAL:', resolvedFallbackTotal);
+            return resolvedFallbackTotal > 0 ? resolvedFallbackTotal : 0;
+        }
+
+        function calculateItemTotalCost(item, product) {
+            const totalCostPerYield = resolveProductTotalCostPerYield(product);
+            if (totalCostPerYield <= 0) return 0;
+
+            const qty = parseNumericValue(item && item.product_qnty);
+            const qtyMode = (item && item.qty_mode) || 'batch';
             const yieldsNeeded = getDistributionYieldUnits(item, product);
-
-            return yieldsNeeded > 0 ? (yieldsNeeded * directCostPerYield) : 0;
+            const itemTotal = yieldsNeeded > 0 ? (yieldsNeeded * totalCostPerYield) : 0;
+            console.log('💰 [calculateItemTotalCost] id:', product && product.product_id, product && product.product_name, '| qty:', qty, qtyMode, '| costPerYield:', totalCostPerYield, '| yields:', yieldsNeeded, '=> itemTotal:', itemTotal);
+            return itemTotal;
         }
 
         function calculateItemOverheadCost(item, product) {
@@ -968,6 +1059,38 @@
             const yieldsNeeded = getDistributionYieldUnits(item, product);
 
             return yieldsNeeded > 0 ? (yieldsNeeded * overheadCostPerYield) : 0;
+        }
+
+        function resolveProductAdditionalCostPerYield(product) {
+            return parseNumericValue(product && product.combined_recipe_cost);
+        }
+
+        function resolveProductTotalCostPerPiece(product) {
+            const totalCostPerYield = resolveProductTotalCostPerYield(product);
+            const piecesPerYield = getProductPiecesPerYield(product);
+            return (totalCostPerYield > 0 && piecesPerYield > 0) ? (totalCostPerYield / piecesPerYield) : 0;
+        }
+
+        function resolveProductAdditionalCostPerPiece(product) {
+            const additionalCostPerYield = resolveProductAdditionalCostPerYield(product);
+            const piecesPerYield = getProductPiecesPerYield(product);
+            return (additionalCostPerYield > 0 && piecesPerYield > 0) ? (additionalCostPerYield / piecesPerYield) : 0;
+        }
+
+        function calculateItemAdditionalCost(item, product) {
+            const additionalCostPerYield = resolveProductAdditionalCostPerYield(product);
+            if (additionalCostPerYield <= 0) return 0;
+
+            const yieldsNeeded = getDistributionYieldUnits(item, product);
+            return yieldsNeeded > 0 ? (yieldsNeeded * additionalCostPerYield) : 0;
+        }
+
+        function calculateItemAdditionalCostPerPiece(item, product) {
+            const additionalCostTotal = calculateItemAdditionalCost(item, product);
+            if (additionalCostTotal <= 0) return 0;
+
+            const pieces = getDistributionPieces(item, product);
+            return pieces > 0 ? (additionalCostTotal / pieces) : 0;
         }
 
         function decorateDistributionItems(items, fallbackDate = '') {
@@ -989,25 +1112,25 @@
                     computedForecast;
 
                 // ─────────────────────────────────────────────────────────────
-                // Compute direct cost
-                // Priority: explicit value > product direct_cost > calculated
-                // Use product's direct_cost field (cost to produce one batch/piece/yield)
+                // Compute total cost
+                // Priority: explicit value > product total_cost > calculated
+                // Use product's total_cost field (cost to produce one batch/piece/yield)
                 // ─────────────────────────────────────────────────────────────
-                const explicitDirectCost = parseNumericValue(decoratedItem.direct_cost);
-                let computedDirectCost = 0;
+                const explicitTotalCost = parseNumericValue(decoratedItem.total_cost);
+                let computedTotalCost = 0;
 
-                if (explicitDirectCost > 0) {
+                if (explicitTotalCost > 0) {
                     // Use explicit value if available
-                    computedDirectCost = explicitDirectCost;
-                } else if (productData && parseNumericValue(productData.direct_cost) > 0) {
+                    computedTotalCost = explicitTotalCost;
+                } else if (productData && parseNumericValue(productData.total_cost) > 0) {
                     // Use tray-aware yield conversion so box and piece modes match backend costing.
-                    computedDirectCost = calculateItemDirectCost(decoratedItem, productData);
+                    computedTotalCost = calculateItemTotalCost(decoratedItem, productData);
                 } else {
                     // Fallback: calculate from product data
-                    computedDirectCost = calculateItemDirectCost(decoratedItem, productData);
+                    computedTotalCost = calculateItemTotalCost(decoratedItem, productData);
                 }
 
-                decoratedItem.direct_cost = computedDirectCost;
+                decoratedItem.total_cost = computedTotalCost;
 
                 // ─────────────────────────────────────────────────────────────
                 // Compute overhead cost
@@ -1028,6 +1151,29 @@
                 }
 
                 decoratedItem.overhead_cost = computedOverheadCost;
+
+                const explicitAdditionalCost = parseNumericValue(decoratedItem.additional_cost);
+                let computedAdditionalCost = calculateItemAdditionalCost(decoratedItem, productData);
+                if (computedAdditionalCost <= 0 && explicitAdditionalCost > 0) {
+                    computedAdditionalCost = explicitAdditionalCost;
+                }
+
+                decoratedItem.additional_cost = computedAdditionalCost;
+
+                const piecesPerYield = getProductPiecesPerYield(productData);
+                const unitCostPerPiece = resolveProductTotalCostPerPiece(productData);
+                const additionalCostPerPiece = resolveProductAdditionalCostPerPiece(productData);
+                const explicitAdditionalCostPerPiece = (explicitAdditionalCost > 0 && piecesPerYield > 0) ?
+                    (explicitAdditionalCost / piecesPerYield) : 0;
+
+                decoratedItem.unit_cost_per_piece = unitCostPerPiece;
+                decoratedItem.additional_cost_per_piece = additionalCostPerPiece > 0 ?
+                    additionalCostPerPiece :
+                    (explicitAdditionalCostPerPiece > 0 ? explicitAdditionalCostPerPiece :
+                        calculateItemAdditionalCostPerPiece(decoratedItem, productData));
+                decoratedItem.total_price_per_piece =
+                    parseNumericValue(decoratedItem.unit_cost_per_piece) +
+                    parseNumericValue(decoratedItem.additional_cost_per_piece);
 
                 if (!Array.isArray(decoratedItem.raw_material_usage)) {
                     decoratedItem.raw_material_usage = [];
@@ -1296,7 +1442,7 @@
                         total_batches: 0,
                         total_pieces: 0,
                         forecasted_sales: 0,
-                        direct_cost: 0,
+                        total_cost: 0,
                         raw_material_usage_total: [],
                         _raw_material_usage_map: {},
                         items: [],
@@ -1322,7 +1468,7 @@
                         'forecasted_sales') ?
                     parseNumericValue(item.forecasted_sales) :
                     fallbackForecast;
-                groupedMap[groupKey].direct_cost += parseNumericValue(item.direct_cost);
+                groupedMap[groupKey].total_cost += parseNumericValue(item.total_cost);
 
                 (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
                     function(material) {
@@ -1365,7 +1511,8 @@
 
             const forecastTotal = resolveGroupForecastedSales(group, groupItems);
 
-            const directCostTotal = resolveGroupDirectCost(group, groupItems);
+            const totalCostTotal = resolveGroupTotalCost(group, groupItems);
+            const additionalCostTotal = calculateAdditionalCostTotal(groupItems);
 
             const overheadCostTotal = resolveGroupOverheadCost(group, groupItems);
 
@@ -1375,7 +1522,8 @@
                 total_batches: totalBatches,
                 total_pieces: totalPieces,
                 forecasted_sales_total: forecastTotal,
-                direct_cost_total: directCostTotal,
+                total_cost_total: totalCostTotal,
+                additional_cost_total: additionalCostTotal,
                 overhead_cost_total: overheadCostTotal,
                 raw_material_usage_total: Array.isArray(group && group.raw_material_usage_total) ?
                     group.raw_material_usage_total : [],
@@ -1403,13 +1551,13 @@
             return calculateForecastedSalesTotal(items);
         }
 
-        function resolveGroupDirectCost(group, items) {
-            if (hasPersistedNumericValue(group, 'direct_cost')) {
-                return parseNumericValue(group.direct_cost);
+        function resolveGroupTotalCost(group, items) {
+            if (hasPersistedNumericValue(group, 'total_cost')) {
+                return parseNumericValue(group.total_cost);
             }
 
             return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
-                return sum + parseNumericValue(item.direct_cost);
+                return sum + parseNumericValue(item.total_cost);
             }, 0);
         }
 
@@ -1779,13 +1927,13 @@
         function renderOwnerDayMetrics(summary) {
             if (!isOwnerView) return;
 
-            const directCost = parseNumericValue(summary.direct_cost_total);
+            const totalCost = parseNumericValue(summary.total_cost_total);
             const overheadCost = parseNumericValue(summary.overhead_cost_total);
 
-            $('#ownerDirectCostTotalDesktop').text(formatPesoAmount(directCost));
-            $('#ownerDirectCostTotalMobile').text(formatPesoAmount(directCost));
-            $('#ownerOverheadCostTotalDesktop').text(formatPesoAmount(overheadCost));
-            $('#ownerOverheadCostTotalMobile').text(formatPesoAmount(overheadCost));
+            $('#ownerTotalCostTotalDesktop').text('₱ ' + totalCost.toFixed(5));
+            $('#ownerTotalCostTotalMobile').text('₱ ' + totalCost.toFixed(5));
+            $('#ownerOverheadCostTotalDesktop').text('₱ ' + overheadCost.toFixed(5));
+            $('#ownerOverheadCostTotalMobile').text('₱ ' + overheadCost.toFixed(5));
         }
 
         function renderOwnerAnalytics(groups, summary) {
@@ -1797,7 +1945,7 @@
             const groupContainer = $('#ownerGroupAnalyticsContainer');
             const materialsContainer = $('#ownerDayRawMaterialUsage');
             const rawUsageHeading = $('#ownerRawUsageHeading');
-            const forecastHeading = $('#ownerForecastDirectCostHeading');
+            const forecastHeading = $('#ownerForecastTotalCostHeading');
             const selectedDateValue = ($('#selectedDate').val() || '').toString().trim();
             const activeScopeDate = (selectedGroupFilter.date || '').toString().trim();
             const activeScopeKey = (selectedGroupFilter.key || '').toString().trim();
@@ -1815,8 +1963,8 @@
                 'Raw Material Usage (Entire Day)'
             );
             forecastHeading.text(isGroupScoped ?
-                `Forecast & Direct Cost (${scopedGroupName})` :
-                'Per-Group Forecast & Direct Cost'
+                `Forecast & Total Cost (${scopedGroupName})` :
+                'Per-Group Forecast & Total Cost'
             );
 
             const dayMaterials = Array.isArray(summary.raw_material_usage_total) ?
@@ -1845,7 +1993,7 @@
             const html = normalizedGroups.map(function(group) {
                 const groupItems = Array.isArray(group.items) ? group.items : [];
                 const groupForecast = parseNumericValue(group.forecasted_sales);
-                const groupDirect = parseNumericValue(group.direct_cost);
+                const groupTotal = parseNumericValue(group.total_cost);
                 const groupNote = (group.group_note || '').toString().trim();
 
                 const itemsHtml = groupItems.map(function(item) {
@@ -1856,7 +2004,10 @@
                             getProductAnalyticsData(item.product_id),
                             item.qty_mode || 'batch'
                         ));
-                    const itemDirect = parseNumericValue(item.direct_cost);
+                    const itemTotal = parseNumericValue(item.total_cost);
+                    const unitPerPiece = parseNumericValue(item.unit_cost_per_piece);
+                    const additionalPerPiece = parseNumericValue(item.additional_cost_per_piece);
+                    const totalPerPiece = parseNumericValue(item.total_price_per_piece);
 
                     return `
                             <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
@@ -1867,7 +2018,7 @@
                                     </div>
                                     <div class="text-right">
                                         <p class="text-[11px] text-primary font-semibold">${formatPesoAmount(itemForecast)}</p>
-                                        <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemDirect)}</p>
+                                        <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemTotal)}</p>
                                     </div>
                                 </div>
                                 <div class="mt-1.5 pl-1 border-l-2 border-primary/20">
@@ -1886,7 +2037,7 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(groupForecast)}</p>
-                                    <p class="text-[11px] font-semibold text-emerald-600">${formatPesoAmount(groupDirect)}</p>
+                                    <p class="text-[11px] font-semibold text-emerald-600">${formatPesoAmount(groupTotal)}</p>
                                 </div>
                             </div>
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mb-2"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
@@ -2027,7 +2178,7 @@
                                     group_title: group.title,
                                     group_forecasted_sales: group
                                         .forecasted_sales,
-                                    group_direct_cost: group.direct_cost,
+                                    group_total_cost: group.total_cost,
                                     distributed_to_note: group
                                         .distributed_to_note,
                                     // Trust backend-computed values; don't override
@@ -2047,8 +2198,9 @@
                                     parseNumericValue(item.product_qnty) : 0), 0),
                                 total_pieces: calculateTotalDistributionPieces(items),
                                 forecasted_sales_total: calculateForecastedSalesTotal(items),
-                                direct_cost_total: items.reduce((sum, item) => sum +
-                                    parseNumericValue(item.direct_cost), 0),
+                                total_cost_total: items.reduce((sum, item) => sum +
+                                    parseNumericValue(item.total_cost), 0),
+                                additional_cost_total: calculateAdditionalCostTotal(items),
                                 raw_material_usage_total: []
                             },
                             response.daily_summary || {}
@@ -2061,8 +2213,9 @@
                             .product_qnty) : 0), 0);
                         summary.total_pieces = calculateTotalDistributionPieces(items);
                         summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
-                        summary.direct_cost_total = items.reduce((sum, item) => sum +
-                            parseNumericValue(item.direct_cost), 0);
+                        summary.total_cost_total = items.reduce((sum, item) => sum +
+                            parseNumericValue(item.total_cost), 0);
+                        summary.additional_cost_total = calculateAdditionalCostTotal(items);
                         summary.overhead_cost_total = items.reduce((sum, item) => sum +
                             parseNumericValue(item.overhead_cost), 0);
 
@@ -2090,6 +2243,23 @@
                         if (isOwnerView) {
                             hydrateOwnerRawMaterialAnalytics(date, items, summary);
                         }
+
+                        setTimeout(function() {
+                            console.log('[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...');
+                            const freshItems = decorateDistributionItems(currentDayDistributionItems, date);
+                            const freshGrouped = groupDistributionsByGroup(freshItems, date);
+                            const freshSummary = Object.assign({}, currentDaySummary, {
+                                total_cost_total: freshItems.reduce((s,i) => s + parseNumericValue(i.total_cost), 0),
+                                additional_cost_total: calculateAdditionalCostTotal(freshItems),
+                                overhead_cost_total: freshItems.reduce((s,i) => s + parseNumericValue(i.overhead_cost), 0)
+                            });
+                            currentDayDistributionItems = freshItems;
+                            currentDayGroupedData = freshGrouped;
+                            currentDaySummary = freshSummary;
+                            const freshState = getDisplayStateForSelectedGroup(date, freshItems, freshGrouped, freshSummary);
+                            renderOwnerDayMetrics(getDayScopedSummary(freshSummary));
+                            renderOwnerAnalytics(freshState.groups, freshState.summary);
+                        }, 600);
 
                         if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal')
                             .data('selected-date') === date) {
@@ -2202,7 +2372,7 @@
                                 product_qnty: 0,
                                 qty_mode: 'batch',
                                 forecasted_sales: 0,
-                                direct_cost: 0,
+                                total_cost: 0,
                                 __empty_group_placeholder: true,
                             });
                         });
@@ -2535,7 +2705,7 @@
                                 group_name: (apiGroup.title || 'Default Group').toString(),
                                 group_note: (apiGroup.distributed_to_note || '').toString(),
                                 forecasted_sales: parseNumericValue(apiGroup.forecasted_sales),
-                                direct_cost: parseNumericValue(apiGroup.direct_cost),
+                                total_cost: parseNumericValue(apiGroup.total_cost),
                                 items: groupItems,
                                 _apiId: apiGroup.id
                             };
@@ -2631,7 +2801,7 @@
             const groupNote = escapeHtml((group && group.group_note ? group.group_note : '').toString().trim());
             const groupKey = escapeHtml((group && group.group_key ? group.group_key : '').toString());
             const totalForecast = parseNumericValue(groupSummary.forecasted_sales_total);
-            const totalDirectCost = parseNumericValue(groupSummary.direct_cost_total);
+            const totalCost = parseNumericValue(groupSummary.total_cost_total);
             const totalBatches = parseNumericValue(groupSummary.total_batches);
             const totalPieces = parseNumericValue(groupSummary.total_pieces);
             const isMaterialLoading = Boolean(options && options.materialLoading);
@@ -2663,7 +2833,10 @@
                         getProductAnalyticsData(item.product_id),
                         item.qty_mode || 'batch'
                     ));
-                const itemDirect = parseNumericValue(item.direct_cost);
+                const itemTotal = parseNumericValue(item.total_cost);
+                const unitPerPiece = parseNumericValue(item.unit_cost_per_piece);
+                const additionalPerPiece = parseNumericValue(item.additional_cost_per_piece);
+                const totalPerPiece = parseNumericValue(item.total_price_per_piece);
 
                 return `
                         <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
@@ -2674,7 +2847,7 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-[11px] text-primary font-semibold">${formatPesoAmount(itemForecast)}</p>
-                                    <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemDirect)}</p>
+                                    <p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(itemTotal)}</p>
                                 </div>
                             </div>
                         </div>
@@ -2707,8 +2880,8 @@
                                 <p class="text-sm font-semibold text-primary">${formatPesoAmount(totalForecast)}</p>
                             </div>
                             <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-                                <p class="text-[11px] text-gray-600">Group Direct Cost</p>
-                                <p class="text-sm font-semibold text-emerald-600">${formatPesoAmount(totalDirectCost)}</p>
+                                <p class="text-[11px] text-gray-600">Group Total Cost</p>
+                                <p class="text-sm font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</p>
                             </div>
                         </div>
 
@@ -2969,7 +3142,7 @@
                             distribution_group_note: group.distributed_to_note,
                             group_title: group.title,
                             group_forecasted_sales: group.forecasted_sales,
-                            group_direct_cost: group.direct_cost,
+                            group_total_cost: group.total_cost,
                             distributed_to_note: group.distributed_to_note
                         }));
                     });
@@ -3014,7 +3187,7 @@
                         total_batches: totalBatches,
                         total_pieces: totalPieces,
                         forecasted_sales: parseNumericValue(apiGroup.forecasted_sales),
-                        direct_cost: parseNumericValue(apiGroup.direct_cost),
+                        total_cost: parseNumericValue(apiGroup.total_cost),
                         items: groupItems,
                         // Keep original API data for reference
                         _apiId: apiGroup.id,
@@ -4868,6 +5041,14 @@
         });
     }
 
+    function formatPesoAmountPrecise(amount) {
+        const safeAmount = Number.isFinite(amount) ? amount : 0;
+        return '₱' + safeAmount.toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 5
+        });
+    }
+
     function formatQuantityValue(value) {
         const safeValue = parseNumericValue(value);
         if (!Number.isFinite(safeValue)) return '0';
@@ -4905,6 +5086,14 @@
         });
 
         return forecastedTotal;
+    }
+
+    function calculateAdditionalCostTotal(items) {
+        const distributionItems = Array.isArray(items) ? items : [];
+
+        return distributionItems.reduce(function(sum, item) {
+            return sum + parseNumericValue(item.additional_cost);
+        }, 0);
     }
 
     function updateModalForecastedSales(items, summary = null) {
