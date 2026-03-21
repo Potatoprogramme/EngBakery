@@ -1336,7 +1336,7 @@ class InventoryController extends BaseController
      * Owner-only. Used for verifying the email before the scheduled window fires.
      *
      * POST /Inventory/SendReport
-     * Body (JSON): { "slot": "am"|"pm", "force": true }
+    * Body (JSON): { "slot": "am"|"pm"|"shift_a"|"shift_b"|"shift_c"|"shift_d", "force": true }
      */
     public function sendInventoryReport()
     {
@@ -1351,7 +1351,17 @@ class InventoryController extends BaseController
         }
 
         $json  = $this->request->getJSON(true);
-        $slot  = in_array($json['slot'] ?? '', ['am', 'pm']) ? $json['slot'] : 'am';
+        $slotValue = $json['slot'] ?? ($json['shift'] ?? '');
+        $slotInput = strtolower(trim((string) $slotValue));
+        if (in_array($slotInput, ['morning', 'am', 'first', 'first_shift'], true)) {
+            $slotInput = 'am';
+        } elseif (in_array($slotInput, ['afternoon', 'pm', 'second', 'second_shift'], true)) {
+            $slotInput = 'pm';
+        }
+
+        $slot = in_array($slotInput, ['am', 'pm', 'shift_a', 'shift_b', 'shift_c', 'shift_d'], true)
+            ? $slotInput
+            : 'am';
         $force = !empty($json['force']);
 
         $today    = date('Y-m-d');
@@ -1407,8 +1417,8 @@ class InventoryController extends BaseController
      * Get product recipe with raw materials and quantities
      * GET /Inventory/GetProductRecipe/{productId}
      * 
-     * Returns all raw materials needed to produce one unit (piece) of the product
-     * with their quantities and units.
+    * Returns raw materials needed per yield of the product
+    * with their quantities and units.
      */
     public function GetProductRecipe($productId = null)
     {
@@ -1431,12 +1441,16 @@ class InventoryController extends BaseController
 
         $recipeModel = model('ProductRecipeModel');
         $recipe = $recipeModel->getRecipeWithMaterialDetails($productId);
+        $costModel = model('ProductCostModel');
+        $costData = $costModel->getCostByProductId($productId);
 
         return $this->response->setJSON([
             'success' => true,
             'product_id' => $productId,
             'product_name' => $product['product_name'] ?? '',
             'category' => $product['category'] ?? '',
+            'pieces_per_yield' => $costData['pieces_per_yield'] ?? null,
+            'trays_per_yield' => $costData['trays_per_yield'] ?? null,
             'recipe' => $recipe,
             'recipe_count' => count($recipe)
         ]);
