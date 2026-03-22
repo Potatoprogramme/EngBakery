@@ -21,8 +21,9 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                 <a href="<?= base_url("/Dashboard") ?>" class="flex items-center justify-center ms-4 md:me-24">
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-2"
                         alt="En'G Bakery Logo" />
-                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary">E n' G
-                        Bakery</span>
+                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary">
+                        E n' G Bakery - Karangahan
+                    </span>
                 </a>
             </div>
             <div class="flex items-center">

@@ -1,4 +1,5 @@
 <?php $isStaffView = session('employee_type') === 'staff'; ?>
+
 <body class="bg-gray-50">
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
@@ -22,10 +23,12 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Material Stock</h2>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" id="btnAddEntry"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Stock Entry
-                        </button>
+                        <?php if (!$isStaffView): ?>
+                            <button type="button" id="btnAddEntry"
+                                class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                                Add Stock Entry
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -206,7 +209,8 @@
                     <input type="number" name="remaining_qty" id="remaining_qty"
                         class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
                         placeholder="0" min="0" step="0.00001" value="0">
-                    <span id="remaining_error" class="text-red-500 text-xs mt-1 hidden">Remaining cannot exceed Stock On Hand.</span>
+                    <span id="remaining_error" class="text-red-500 text-xs mt-1 hidden">Remaining cannot exceed Stock On
+                        Hand.</span>
                 </div>
                 <!-- Dynamic Cost Breakdown (edit mode only) -->
                 <div id="cost_breakdown_wrapper" class="hidden mb-3">
@@ -307,7 +311,8 @@
                 <!-- Stock Health Bar -->
                 <div class="mt-2">
                     <div id="view_health_bar_track" class="h-2 rounded-full bg-emerald-100 overflow-hidden">
-                        <div id="view_health_bar" class="h-full rounded-full bg-emerald-400 transition-all" style="width:0%"></div>
+                        <div id="view_health_bar" class="h-full rounded-full bg-emerald-400 transition-all"
+                            style="width:0%"></div>
                     </div>
                     <p id="view_health_label" class="text-xs text-gray-500 mt-1 text-right">0%</p>
                 </div>

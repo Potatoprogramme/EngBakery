@@ -23,7 +23,7 @@
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
                         <button id="btnDistributions" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            class="items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
                         </button>
                         <button id="btnAddTodaysInventory" type="button"
@@ -118,11 +118,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -170,11 +174,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -229,11 +237,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -1766,8 +1778,6 @@
                                 ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${safeNote}</p>` : ''}
                             </div>
                             <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Total Cost</p>
-                                <p class="text-xs font-semibold text-emerald-600">${directCost}</p>
                                 <span class="inline-flex items-center justify-center mt-1 w-5 h-5 rounded-full bg-gray-100 text-gray-500">
                                     <i class="fas fa-chevron-right text-[10px]"></i>
                                 </span>
@@ -3101,13 +3111,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    }
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    }
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3174,13 +3188,17 @@
                             ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    }
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    }
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3248,13 +3266,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    }
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    if (window.isOwnerView) {
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    }
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3283,6 +3305,15 @@
          * Open the Item Details Modal and load data
          */
         function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes) {
+            if (!window.isOwnerView) {
+                $('#itemDetailsMaterialsList').closest('.bg-gradient-to-r').hide();
+                $("#itemDetailsTotalMaterialsCost").closest('.flex').hide();
+            } else {
+                $('#itemDetailsMaterialsList').closest('.bg-gradient-to-r').show();
+                $("#itemDetailsTotalMaterialsCost").closest('.flex').show();
+            }
+            // Set JS variable for owner view
+            window.isOwnerView = <?= $isOwnerView ? 'true' : 'false' ?>;
             const baseUrl = '<?= base_url() ?>';
 
             // Normalize values
