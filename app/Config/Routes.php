@@ -113,6 +113,7 @@ $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('GetTodaysSales', 'OrdersController::getTodaysSales');
     $routes->get('GetTodaysStockSummary', 'OrdersController::getTodaysStockSummary');
     $routes->post('VoidOrder/(:num)', 'OrdersController::voidOrder/$1');
+    $routes->post('DeleteOrder/(:num)', 'OrdersController::deleteOrder/$1');
     $routes->get('CheckStock', 'OrdersController::checkStock');
 });
 

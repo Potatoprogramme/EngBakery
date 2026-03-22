@@ -410,6 +410,59 @@ class OrdersController extends BaseController
         }
     }
 
+    public function deleteOrder($orderId = null)
+    {
+        if (!$orderId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Order ID required.'
+            ]);
+        }
+
+        $sessionData = $this->getSessionData();
+        $employeeType = strtolower((string) ($sessionData['employee_type'] ?? session()->get('employee_type') ?? ''));
+
+        if ($employeeType !== 'owner') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You do not have permission to delete orders.'
+            ]);
+        }
+
+        $this->db->transStart();
+
+        try {
+            $order = $this->orderModel->find($orderId);
+            if (!$order) {
+                throw new \Exception('Order not found.');
+            }
+
+            $this->transactionsModel->deleteByOrderId(intval($orderId));
+            $this->orderItemModel->deleteByOrderId(intval($orderId));
+
+            if ($this->orderModel->delete(intval($orderId)) === false) {
+                throw new \Exception('Failed to delete order.');
+            }
+
+            $this->db->transComplete();
+
+            if ($this->db->transStatus() === false) {
+                throw new \Exception('Failed to delete order.');
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Order deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
     private function normalizePersonName(?string $value): string
     {
         $normalized = preg_replace('/\s+/', ' ', trim((string) $value));
