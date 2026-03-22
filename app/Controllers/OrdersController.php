@@ -376,6 +376,9 @@ class OrdersController extends BaseController
                 }
             }
 
+            // Remove related sales transactions so inventory qty sold is refunded
+            $this->transactionsModel->deleteByOrderId(intval($orderId));
+
             // Soft delete: mark as voided instead of deleting
             $cashierName = $this->normalizePersonName(session()->get('name') ?? session()->get('username') ?? 'Unknown');
             $this->orderModel->update($orderId, [
