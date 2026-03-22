@@ -40,21 +40,21 @@
                 <div class="text-center mb-6">
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="E n' G Bakery"
                         class="mx-auto w-20 sm:w-24 mb-4" />
-                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery - Karangahan</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery - Deca Sentrio</h1>
                     <p class="text-sm text-gray-500 mt-1">Create your account</p>
                 </div>
 
                 <!-- Flash Messages -->
                 <?php if (session()->has('error_message')): ?>
-                    <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                        <span class="block sm:inline"><?= session('error_message') ?></span>
-                    </div>
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                            <span class="block sm:inline"><?= session('error_message') ?></span>
+                        </div>
                 <?php endif; ?>
 
                 <?php if (session()->has('success_message')): ?>
-                    <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                        <span class="block sm:inline"><?= session('success_message') ?></span>
-                    </div>
+                        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                            <span class="block sm:inline"><?= session('success_message') ?></span>
+                        </div>
                 <?php endif; ?>
 
                 <form action="" method="post" id="registrationForm">

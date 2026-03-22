@@ -25,8 +25,8 @@ class DailyRemittanceReport
             return false; // Already sent today
         }
 
-        $remittanceModel     = new RemittanceDetailsModel();
-        $denominationsModel  = new RemittanceDenominationsModel();
+        $remittanceModel = new RemittanceDetailsModel();
+        $denominationsModel = new RemittanceDenominationsModel();
 
         // Fetch all remittances for the date with cashier names
         $remittances = $remittanceModel->getRemittancesByDate($date);
@@ -43,19 +43,19 @@ class DailyRemittanceReport
         // Get owner emails
         $usersModel = new UsersModel();
         $owners = $usersModel->where('employee_type', 'owner')
-                             ->where('approved', 1)
-                             ->findAll();
+            ->where('approved', 1)
+            ->findAll();
 
         if (empty($owners)) {
             return false;
         }
 
         $ownerEmails = array_column($owners, 'email');
-        $emailBody   = self::buildEmailBody($remittances, $date);
+        $emailBody = self::buildEmailBody($remittances, $date);
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject('📋 Daily Remittance Report — ' . date('F d, Y', strtotime($date)));
             $emailService->setMessage($emailBody);
@@ -80,37 +80,38 @@ class DailyRemittanceReport
     {
         $reportDate = date('F d, Y', strtotime($date));
         $reportTime = date('h:i A');
-        $reportRef  = 'REM-' . date('Ymd-His');
+        $reportRef = 'REM-' . date('Ymd-His');
 
         // Aggregate totals
-        $totalSales      = 0;
-        $totalRemitted   = 0;
-        $totalBakery     = 0;
-        $totalCoffee     = 0;
-        $totalGrocery    = 0;
-        $totalCashOut    = 0;
-        $totalOnline    = 0;
+        $totalSales = 0;
+        $totalRemitted = 0;
+        $totalBakery = 0;
+        $totalCoffee = 0;
+        $totalGrocery = 0;
+        $totalCashOut = 0;
+        $totalOnline = 0;
         $totalFoodpanda = 0;
-        $totalVariance   = 0;
-        $shortCount      = 0;
-        $overCount       = 0;
+        $totalVariance = 0;
+        $shortCount = 0;
+        $overCount = 0;
 
         foreach ($remittances as $r) {
-            $totalSales    += floatval($r['total_sales']);
+            $totalSales += floatval($r['total_sales']);
             $totalRemitted += floatval($r['amount_enclosed']);
-            $totalBakery   += floatval($r['bakery_sales']);
-            $totalCoffee   += floatval($r['coffee_sales']);
-            $totalGrocery  += floatval($r['grocery_sales']);
-            $totalCashOut  += floatval($r['cash_out']);
-            $totalOnline   += floatval($r['total_online_revenue'] ?? 0);
+            $totalBakery += floatval($r['bakery_sales']);
+            $totalCoffee += floatval($r['coffee_sales']);
+            $totalGrocery += floatval($r['grocery_sales']);
+            $totalCashOut += floatval($r['cash_out']);
+            $totalOnline += floatval($r['total_online_revenue'] ?? 0);
             $totalFoodpanda += floatval($r['foodpanda_revenue'] ?? 0);
-            $variance       = floatval($r['variance_amount']);
+            $variance = floatval($r['variance_amount']);
             if ($r['is_short']) {
                 $totalVariance -= $variance;
                 $shortCount++;
             } else {
                 $totalVariance += $variance;
-                if ($variance > 0) $overCount++;
+                if ($variance > 0)
+                    $overCount++;
             }
         }
 
@@ -119,36 +120,36 @@ class DailyRemittanceReport
         // Build individual shift cards
         $shiftCards = '';
         foreach ($remittances as $i => $r) {
-            $shiftNum    = $i + 1;
-            $cashier     = $r['cashier_name'] ?? 'Unknown';
-            $outlet      = $r['outlet_name'] ?? '—';
-            $shiftTime   = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
-            $sales       = number_format(floatval($r['total_sales']), 2);
-            $enclosed    = number_format(floatval($r['amount_enclosed']), 2);
-            $cashOut     = number_format(floatval($r['cash_out']), 2);
-            $online      = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
-            $foodpanda   = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
-            $variance    = floatval($r['variance_amount']);
-            $isShort     = $r['is_short'];
+            $shiftNum = $i + 1;
+            $cashier = $r['cashier_name'] ?? 'Unknown';
+            $outlet = $r['outlet_name'] ?? '—';
+            $shiftTime = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
+            $sales = number_format(floatval($r['total_sales']), 2);
+            $enclosed = number_format(floatval($r['amount_enclosed']), 2);
+            $cashOut = number_format(floatval($r['cash_out']), 2);
+            $online = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
+            $foodpanda = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
+            $variance = floatval($r['variance_amount']);
+            $isShort = $r['is_short'];
 
-            $varianceText  = '₱' . number_format($variance, 2);
+            $varianceText = '₱' . number_format($variance, 2);
             $varianceColor = '#28a745';
             $varianceLabel = 'EXACT';
             if ($variance > 0 && $isShort) {
                 $varianceColor = '#dc3545';
                 $varianceLabel = 'SHORT';
-                $varianceText  = '-₱' . number_format($variance, 2);
+                $varianceText = '-₱' . number_format($variance, 2);
             } elseif ($variance > 0 && !$isShort) {
                 $varianceColor = '#007bff';
                 $varianceLabel = 'OVER';
-                $varianceText  = '+₱' . number_format($variance, 2);
+                $varianceText = '+₱' . number_format($variance, 2);
             }
 
             $cashOutDisplay = floatval($r['cash_out']) > 0
                 ? '₱' . $cashOut
                 : '₱0.00';
-            
-            $cashOutReason = !empty($r['cashout_reason']) 
+
+            $cashOutReason = !empty($r['cashout_reason'])
                 ? '<div style="font-size:10px;color:#888;margin-top:2px;">' . htmlspecialchars($r['cashout_reason']) . '</div>'
                 : '';
 
@@ -211,17 +212,17 @@ class DailyRemittanceReport
         }
 
         // Totals row
-        $fmtTotalSales    = number_format($totalSales, 2);
+        $fmtTotalSales = number_format($totalSales, 2);
         $fmtTotalRemitted = number_format($totalRemitted, 2);
-        $fmtTotalCashOut  = number_format($totalCashOut, 2);
-        $fmtBakery        = number_format($totalBakery, 2);
-        $fmtCoffee        = number_format($totalCoffee, 2);
-        $fmtGrocery       = number_format($totalGrocery, 2);
-        $fmtOnline        = number_format($totalOnline, 2);
-        $fmtFoodpanda     = number_format($totalFoodpanda, 2);
+        $fmtTotalCashOut = number_format($totalCashOut, 2);
+        $fmtBakery = number_format($totalBakery, 2);
+        $fmtCoffee = number_format($totalCoffee, 2);
+        $fmtGrocery = number_format($totalGrocery, 2);
+        $fmtOnline = number_format($totalOnline, 2);
+        $fmtFoodpanda = number_format($totalFoodpanda, 2);
 
         $netVarianceColor = $totalVariance < 0 ? '#dc3545' : ($totalVariance > 0 ? '#007bff' : '#28a745');
-        $netVarianceText  = $totalVariance < 0
+        $netVarianceText = $totalVariance < 0
             ? '-₱' . number_format(abs($totalVariance), 2)
             : ($totalVariance > 0 ? '+₱' . number_format($totalVariance, 2) : '₱0.00');
         $netVarianceLabel = $totalVariance < 0 ? 'NET SHORT' : ($totalVariance > 0 ? 'NET OVER' : 'BALANCED');
@@ -258,7 +259,7 @@ class DailyRemittanceReport
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;'>Daily Remittance Report</h1>
-                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery - Karangahan — End-of-Day Summary</p>
+                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery - Deca Sentrio — End-of-Day Summary</p>
                 </div>
                 <div class='content'>
                     <!-- Report Metadata -->
@@ -389,11 +390,11 @@ class DailyRemittanceReport
                     </p>
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery - Karangahan Sales System</strong>
+                        <strong>E n' G Bakery - Deca Sentrio Sales System</strong>
                     </p>
                 </div>
                 <div class='footer'>
-                    <p>&copy; {$year} E n' G Bakery - Karangahan. All rights reserved.</p>
+                    <p>&copy; {$year} E n' G Bakery - Deca Sentrio. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
             </div>

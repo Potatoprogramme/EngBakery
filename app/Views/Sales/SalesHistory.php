@@ -861,7 +861,7 @@
                         </head>
                         <body>
                             <div class="header">
-                                <h1>E n' G Bakery - Karangahan</h1>
+                                <h1>E n' G Bakery - Deca Sentrio</h1>
                                 <p>${outlet}</p>
                                 <p>Sales Details Report</p>
                             </div>
@@ -984,7 +984,7 @@
             // Header Info
             $('#detailDate').text(`${dateStr} at ${timeStr}`);
             $('#detailCashier').text(order.cashier_name || '-');
-            $('#detailOutlet').text('KARANGAHAN');
+            $('#detailOutlet').text('Deca Sentrio');
             $('#detailOrderCount').text('Order #' + orderNumber);
 
             // Order Type with badge styling
