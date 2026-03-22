@@ -23,7 +23,7 @@
                             <i class="fas fa-plus mr-2"></i> Add Product
                         </button>
                         <button id="btnDistributions" type="button"
-                            class="items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
                         </button>
                         <button id="btnAddTodaysInventory" type="button"
@@ -314,11 +314,6 @@
                                 <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
                                     <p class="text-[11px] text-gray-500">Pieces</p>
                                     <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg col-span-2">
-                                    <p class="text-[11px] text-gray-600">Total Cost</p>
-                                    <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">
-                                        ₱0.00</p>
                                 </div>
                             </div>
 
@@ -1703,10 +1698,6 @@
                             <div class="min-w-0">
                                 <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
                                 <p class="text-[11px] text-gray-500">${quantityLabel}${safeCategory}</p>
-                            </div>
-                            <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Total Cost</p>
-                                <p class="text-xs font-semibold text-emerald-600">${formatInventoryPeso(directCost)}</p>
                             </div>
                         </div>
                     </div>
@@ -3111,17 +3102,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
                             item.item_id + '" data-product-id="' + item.product_id +
                             '" title="View materials used"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3188,17 +3179,17 @@
                             ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
                             item.item_id + '" data-product-id="' + item.product_id +
                             '" title="View materials used"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3266,17 +3257,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    if (window.isOwnerView) {
+                    <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
                             item.item_id + '" data-product-id="' + item.product_id +
                             '" title="View materials used"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
-                    }
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3305,15 +3296,6 @@
          * Open the Item Details Modal and load data
          */
         function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes) {
-            if (!window.isOwnerView) {
-                $('#itemDetailsMaterialsList').closest('.bg-gradient-to-r').hide();
-                $("#itemDetailsTotalMaterialsCost").closest('.flex').hide();
-            } else {
-                $('#itemDetailsMaterialsList').closest('.bg-gradient-to-r').show();
-                $("#itemDetailsTotalMaterialsCost").closest('.flex').show();
-            }
-            // Set JS variable for owner view
-            window.isOwnerView = <?= $isOwnerView ? 'true' : 'false' ?>;
             const baseUrl = '<?= base_url() ?>';
 
             // Normalize values
