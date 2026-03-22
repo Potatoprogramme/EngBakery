@@ -342,7 +342,7 @@
                                             <p id="todayDistSelectedGroupName"
                                                 class="text-sm font-semibold text-gray-800">Selected Group</p>
                                             <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
-                                                batches • 0 pcs • ₱0.00</p>
+                                                batches • 0 pcs</p>
                                             <p id="todayDistSelectedGroupNote"
                                                 class="hidden text-[11px] text-amber-700 mt-1"></p>
                                         </div>
@@ -1574,7 +1574,7 @@
             $('#todayDistributionGroupList').html('<p class="text-xs text-gray-400">No distribution groups for today.</p>');
             $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
             $('#todayDistSelectedGroupName').text('Selected Group');
-            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
+            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs');
             $('#todayDistSelectedGroupNote').addClass('hidden').text('');
 
             $('#todayDistributionEmptyText').text(message);
@@ -1675,7 +1675,7 @@
             const groupDirectCost = formatInventoryPeso(selectedGroup.total_direct_cost);
 
             $('#todayDistSelectedGroupName').text(groupName);
-            $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs • ' + groupDirectCost);
+            $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs');
 
             if (groupNote) {
                 $('#todayDistSelectedGroupNote')
@@ -1740,7 +1740,7 @@
                     '<p class="text-xs text-gray-400">No distribution groups for today.</p>');
                 $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
                 $('#todayDistSelectedGroupName').text('Selected Group');
-                $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
+                $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs');
                 $('#todayDistSelectedGroupNote').addClass('hidden').text('');
 
                 setTodayDistributionRefreshLoadingState(false);
