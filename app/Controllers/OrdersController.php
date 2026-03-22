@@ -437,6 +437,32 @@ class OrdersController extends BaseController
                 throw new \Exception('Order not found.');
             }
 
+            // Restore stock and raw materials for each item (like void)
+            $orderItems = $this->orderItemModel->getOrderItems($orderId);
+            $dailyStock = $this->dailyStockModel->getTodaysInventory();
+
+            foreach ($orderItems as $item) {
+                $product = $this->productModel->find(intval($item['product_id']));
+                $category = $product['category'] ?? '';
+
+                // Drinks & groceries: restore raw materials via recipe
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $this->rawMaterialStockModel->restoreForProduction(
+                        intval($item['product_id']),
+                        intval($item['amount'])
+                    );
+                }
+
+                // Restore daily inventory stock if it exists (for all categories)
+                if ($dailyStock) {
+                    $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
+                    if ($stockItem) {
+                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amount']));
+                    }
+                }
+            }
+
+            // Remove related sales transactions and order items
             $this->transactionsModel->deleteByOrderId(intval($orderId));
             $this->orderItemModel->deleteByOrderId(intval($orderId));
 
