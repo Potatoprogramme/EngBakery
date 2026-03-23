@@ -18,10 +18,11 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                         </path>
                     </svg>
                 </button>
-                <a href="<?= base_url("/Dashboard") ?>" class="flex items-center justify-center ms-4 md:me-24">
-                    <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-2"
+                <a href="<?= base_url("/Dashboard") ?>" class="flex items-center justify-center ms-2 sm:ms-4 md:me-24 min-w-0">
+                    <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-1 sm:me-2 shrink-0"
                         alt="En'G Bakery Logo" />
-                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary">
+                    <span
+                        class="self-center text-base sm:text-xl lg:text-2xl leading-tight font-semibold whitespace-nowrap text-primary max-w-[170px] sm:max-w-none truncate">
                         E n' G Bakery - Karangahan
                     </span>
                 </a>
@@ -33,10 +34,10 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                     <!-- Profile Dropdown -->
                     <div>
                         <button type="button"
-                            class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300"
+                            class="flex items-center justify-center text-sm bg-gray-800 rounded-full shrink-0 focus:ring-4 focus:ring-gray-300"
                             aria-expanded="false" data-dropdown-toggle="dropdown-user">
                             <span class="sr-only">Open user menu</span>
-                            <img class="w-8 h-8 rounded-full"
+                            <img class="w-8 h-8 min-w-8 min-h-8 aspect-square rounded-full object-cover"
                                 src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="user photo">
                         </button>
                     </div>
@@ -260,12 +261,26 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                             class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'distribution') ? 'text-white' : '' ?>">Distribution</span>
                     </a>
                 </li>
+                <li class="pt-2 mt-2 border-t border-gray-100 sm:hidden">
+                    <a href="<?= base_url('ManageEmployee') ?>"
+                        class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'manageemployee') ? 'bg-primary' : '' ?>">
+                        <svg class="w-6 h-6 <?= ($current === 'manageemployee') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200"
+                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span
+                            class="flex-1 ms-3 whitespace-nowrap group-hover:text-gray-200 transition-colors duration-300 <?= ($current === 'manageemployee') ? 'text-white' : '' ?>">Manage
+                            Employee</span>
+                    </a>
+                </li>
             <?php endif; ?>
         </ul>
 
         <?php if (session('employee_type') === 'admin' || session('employee_type') === 'owner'): ?>
             <!-- Manage Employee at bottom -->
-            <div class="pt-2 mt-auto border-t border-gray-100">
+            <div class="hidden sm:block pt-2 mt-auto border-t border-gray-100">
                 <a href="<?= base_url('ManageEmployee') ?>"
                     class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-secondary group transition-colors duration-300 <?= ($current === 'manageemployee') ? 'bg-primary' : '' ?>">
                     <svg class="w-6 h-6 <?= ($current === 'manageemployee') ? 'text-white' : 'text-gray-900' ?> transition duration-300 group-hover:text-gray-200"
