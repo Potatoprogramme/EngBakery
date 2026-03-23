@@ -307,6 +307,11 @@
         let currentPage = 1;
         const itemsPerPage = 5;
 
+        function syncManageEmployeeBodyScrollLock() {
+            const hasOpenModal = !$('#changeRoleModal').hasClass('hidden') || !$('#viewEditModal').hasClass('hidden');
+            $('body').toggleClass('overflow-hidden', hasOpenModal);
+        }
+
         $(document).ready(function () {
             fetchEmployees();
             fetchPendingCount();
@@ -438,6 +443,7 @@
                             // Close the change role modal
                             $('#changeRoleModal').removeClass('flex').addClass('hidden');
                             $('#newRole').val('');
+                            syncManageEmployeeBodyScrollLock();
 
                             // Refresh employee list and pending count
                             fetchEmployees();
@@ -761,6 +767,7 @@
                     $('#viewJoined').text(formatDate(btn.data('joined')));
 
                     $('#viewEditModal').removeClass('hidden').addClass('flex');
+                    syncManageEmployeeBodyScrollLock();
                 });
 
                 // Edit (Change Role) button handler
@@ -805,6 +812,7 @@
 
                     // Show change role modal
                     $('#changeRoleModal').removeClass('hidden').addClass('flex');
+                    syncManageEmployeeBodyScrollLock();
 
                     setTimeout(() => {
                         $('#newRole').focus();
@@ -882,6 +890,7 @@
             $('#closeRoleModal, #cancelRoleChange').on('click', function () {
                 $('#changeRoleModal').removeClass('flex').addClass('hidden');
                 $('#newRole').val('');
+                syncManageEmployeeBodyScrollLock();
             });
 
             $('#confirmRoleChange').on('click', function () {
@@ -912,6 +921,7 @@
             // View/Edit Modal close handlers
             $('#closeViewEditModal, #closeViewBtn').on('click', function () {
                 $('#viewEditModal').removeClass('flex').addClass('hidden');
+                syncManageEmployeeBodyScrollLock();
             });
 
             // Prevent modal content click from closing

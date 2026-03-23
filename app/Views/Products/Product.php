@@ -1788,14 +1788,15 @@
                 }
 
                 const combinedCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost, 0);
-                const overheadCost = directCost * parseFloat($('#overheadCost').val()) / 100 || 0;
-                // Combined cost is NOT added to totalCost for per-unit pricing - it's calculated per piece separately
                 const totalCost = directCost + combinedCost;
-                // But for overall selling price calculation, we need to include combined cost
-                const totalCostWithCombined = totalCost + combinedCost;
+                // For bakery, overhead applies to total cost; other categories use direct cost.
+                const overheadBaseCost = currentCategory === 'bakery' ? totalCost : directCost;
+                const overheadCost = overheadBaseCost * (parseFloat($('#overheadCost').val()) / 100 || 0);
+                const overallAmount = totalCost + overheadCost;
+                const overallAmountForYield = directCost + overheadCost;
                 const markupPercentage = parseFloat($('#profitMargin').val()) || 0;
-                const sellingPrice = totalCostWithCombined * (markupPercentage / 100);
-                const profitAmount = sellingPrice - totalCostWithCombined;
+                const sellingPrice = overallAmount * (markupPercentage / 100);
+                const profitAmount = sellingPrice - overallAmount;
 
                 // Show yield computation section based on category (bakery or dough categories)
                 // Yield computation is only available for bakery and dough categories
@@ -1824,8 +1825,8 @@
                     let gramsPerPiece = parseFloat($('#gramsPerPiece').val()) || 0;
                     let gramsPerTray = parseFloat($('#gramsPerTray').val()) || 0;
 
-                    // Unit price per gram - includes overhead cost (5 decimal places)
-                    const unitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
+                    // Unit price per gram based on direct cost + overhead (combined recipes added separately).
+                    const unitPricePerGram = totalYieldGrams > 0 ? overallAmountForYield / totalYieldGrams : 0;
 
                     // Flexible Yield Computation Logic:
                     let unitPricePerPiece = 0;
@@ -1864,7 +1865,7 @@
 
                     // Calculate unit price per tray (only if gramsPerTray > 0)
                     if (traysPerYield > 0 && gramsPerTray > 0) {
-                        unitPricePerTray = totalCost / traysPerYield;
+                        unitPricePerTray = overallAmountForYield / traysPerYield;
                     }
 
                     // Handle PIECE calculations
@@ -1936,24 +1937,22 @@
                         if (category === 'dough') {
                             // For dough: multiply grams per piece by unit price per gram
                             // Use INPUT value to ensure consistency regardless of rounding
-                            // Use totalCost (includes overhead) for per-gram pricing
-                            const doughUnitPricePerGram = totalYieldGrams > 0 ? totalCost / totalYieldGrams : 0;
+                            // Use overall amount for per-gram pricing
+                            const doughUnitPricePerGram = totalYieldGrams > 0 ? overallAmountForYield / totalYieldGrams : 0;
                             unitPricePerPiece = inputGramsPerPiece * doughUnitPricePerGram;
                         } else if (traysPerYield > 0) {
                             piecesPerTray = piecesPerYield;
                             unitPricePerPiece = unitPricePerTray / piecesPerTray;
                         } else {
-                            unitPricePerPiece = totalCost / piecesPerYield;
+                            unitPricePerPiece = overallAmountForYield / piecesPerYield;
                         }
                     }
 
                     // Yield displays
                     $('#totalYieldGramsDisplay').text(totalYieldGrams.toFixed(2) + ' g');
                     $('#unitPricePerGramDisplay').text('₱ ' + unitPricePerGram.toFixed(5));
-                    $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(
-                        5) : '-');
-                    $('#unitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(5) :
-                        '-');
+                    $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(5) : '-');
+                    $('#unitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(5) : '-');
 
                     // Calculate additional price per piece (from combined recipes)
                     const additionalPricePerPiece = combinedRecipesList.reduce((sum, item) => {
@@ -1970,7 +1969,11 @@
                         additionalPricePerTray = 0;
                     }
 
-                    // Calculate total prices (unit price + additional)
+                    // Unit prices already exclude combined recipes; add additional separately for totals.
+                    $('#unitPricePerPieceDisplay').text(unitPricePerPiece > 0 ? '₱ ' + unitPricePerPiece.toFixed(5) : '-');
+                    $('#unitPricePerTrayDisplay').text(unitPricePerTray > 0 ? '₱ ' + unitPricePerTray.toFixed(5) : '-');
+
+                    // Calculate total prices (base unit price + additional)
                     const totalPricePerPiece = unitPricePerPiece + additionalPricePerPiece;
                     const totalPricePerTray = unitPricePerTray + additionalPricePerTray;
 
@@ -2049,7 +2052,7 @@
 
                 $('#totalCostDisplay').text('₱ ' + totalCost.toFixed(2));
                 $('#overheadCostAmountDisplay').text('₱ ' + overheadCost.toFixed(2));
-                $('#overallAmountDisplay').text('₱ ' + totalCostWithCombined.toFixed(2));
+                $('#overallAmountDisplay').text('₱ ' + overallAmount.toFixed(2));
                 $('#profitAmountDisplay').text('₱ ' + profitAmount.toFixed(2));
                 $('#recommendedPriceOverall').text('₱ ' + sellingPrice.toFixed(2));
             }
@@ -2720,12 +2723,14 @@
                 const combinedRecipeCost = combinedRecipesList.reduce((sum, item) => sum + item.totalCost,
                     0);
                 const overheadPercentage = parseFloat($('#overheadCost').val()) || 0;
-                const overheadCost = directCost * (overheadPercentage / 100);
                 // Combined cost is NOT added to totalCost - it's calculated per piece separately
                 const totalCost = directCost + combinedRecipeCost;
+                const overheadBaseCost = category === 'bakery' ? totalCost : directCost;
+                const overheadCost = overheadBaseCost * (overheadPercentage / 100);
+                const overallAmount = totalCost + overheadCost;
                 const markupPercentage = parseFloat($('#profitMargin').val()) || 0;
-                const sellingPriceCalc = totalCost * (markupPercentage / 100);
-                const profitAmount = sellingPriceCalc - totalCost;
+                const sellingPriceCalc = overallAmount * (markupPercentage / 100);
+                const profitAmount = sellingPriceCalc - overallAmount;
 
                 // Calculate yield info (not applicable for grocery)
                 let yieldGrams = 0;
@@ -3416,10 +3421,10 @@
                                 .toFixed(2));
                             $('#viewOverheadPercent').text('(' + parseFloat(product
                                 .overhead_cost_percentage || 0).toFixed(0) + '%)');
-                            $('#viewOverheadCost').text('₱ ' + parseFloat(product
-                                .overhead_cost_amount || 0).toFixed(2));
-                            $('#viewTotalCost').text('₱ ' + parseFloat(product.total_cost || 0).toFixed(
-                                2));
+                            const overheadCostAmount = parseFloat(product.overhead_cost_amount || 0);
+                            const totalCost = parseFloat(product.total_cost || 0);
+                            $('#viewOverheadCost').text('₱ ' + overheadCostAmount.toFixed(2));
+                            $('#viewTotalCost').text('₱ ' + (totalCost + overheadCostAmount).toFixed(2));
 
                             // Populate yield information with detailed computation
                             const computedYieldFromIngredients = (product.ingredients || []).reduce((
@@ -3433,8 +3438,9 @@
                                 computedYieldFromIngredients;
                             const traysPerYield = parseInt(product.trays_per_yield || 0);
                             const piecesPerYield = parseInt(product.pieces_per_yield || 0);
-                            const totalCost = parseFloat(product.total_cost || 0);
+                            const directCost = parseFloat(product.direct_cost || 0);
                             const combinedRecipeCost = parseFloat(product.combined_recipe_cost || 0);
+                            const overallAmountForYield = directCost + overheadCostAmount;
 
                             if (yieldGrams > 0 || traysPerYield > 0 || piecesPerYield > 0) {
                                 $('#viewYieldSection').removeClass('hidden');
@@ -3456,8 +3462,8 @@
                                 // Display total yield
                                 $('#viewYieldGrams').text(yieldGrams.toFixed(2) + ' g');
 
-                                // Calculate unit price per gram
-                                const unitPricePerGram = yieldGrams > 0 ? totalCost / yieldGrams : 0;
+                                // Calculate unit price per gram based on overall amount
+                                const unitPricePerGram = yieldGrams > 0 ? overallAmountForYield / yieldGrams : 0;
                                 $('#viewUnitPricePerGram').text('₱ ' + unitPricePerGram.toFixed(5));
 
                                 // Calculate and display per tray information
@@ -3468,7 +3474,7 @@
                                     // Use database value if available, otherwise calculate
                                     const gramsPerTray = parseFloat(product.grams_per_tray) || (
                                         yieldGrams / traysPerYield);
-                                    const unitPricePerTray = totalCost / traysPerYield;
+                                    const unitPricePerTray = overallAmountForYield / traysPerYield;
 
                                     $('#viewGramsPerTray').text(gramsPerTray.toFixed(2) + ' g');
                                     $('#viewUnitPricePerTray').text('₱ ' + unitPricePerTray.toFixed(5));
@@ -3490,6 +3496,8 @@
                                         $('#viewAdditionalPricePerTrayRow').removeClass('hidden');
                                         $('#viewAdditionalPricePerTray').text('₱ ' +
                                             additionalPricePerTray.toFixed(2));
+
+                                        $('#viewUnitPricePerTray').text('₱ ' + unitPricePerTray.toFixed(5));
 
                                         const totalPricePerTray = unitPricePerTray +
                                             additionalPricePerTray;
@@ -3518,13 +3526,12 @@
                                             yieldGrams / traysPerYield);
                                         const gramsPerPiece = parseFloat(product.grams_per_piece) || (
                                             gramsPerTray / piecesPerYield);
-                                        const unitPricePerTray = totalCost / traysPerYield;
+                                        const unitPricePerTray = overallAmountForYield / traysPerYield;
                                         let unitPricePerPiece = 0;
 
                                         // For dough category: use direct cost only (no overhead) divided by yield grams
                                         if (product.category === 'dough') {
-                                            const directCost = parseFloat(product.direct_cost) || 0;
-                                            const unitPricePerGramDough = yieldGrams > 0 ? directCost /
+                                            const unitPricePerGramDough = yieldGrams > 0 ? overallAmountForYield /
                                                 yieldGrams : 0;
                                             unitPricePerPiece = gramsPerPiece * unitPricePerGramDough;
                                         } else {
@@ -3545,12 +3552,11 @@
 
                                         // For dough category: use direct cost only (no overhead) divided by yield grams
                                         if (product.category === 'dough') {
-                                            const directCost = parseFloat(product.direct_cost) || 0;
-                                            const unitPricePerGramDough = yieldGrams > 0 ? directCost /
+                                            const unitPricePerGramDough = yieldGrams > 0 ? overallAmountForYield /
                                                 yieldGrams : 0;
                                             unitPricePerPiece = gramsPerPiece * unitPricePerGramDough;
                                         } else {
-                                            unitPricePerPiece = totalCost / piecesPerYield;
+                                            unitPricePerPiece = overallAmountForYield / piecesPerYield;
                                         }
 
                                         $('#viewGramsPerPiece').text(gramsPerPiece.toFixed(2) + ' g');
@@ -3576,11 +3582,13 @@
 
                                         let unitPricePerPiece = 0;
                                         if (traysPerYield > 0) {
-                                            const unitPricePerTray = totalCost / traysPerYield;
+                                            const unitPricePerTray = overallAmountForYield / traysPerYield;
                                             unitPricePerPiece = unitPricePerTray / piecesPerYield;
                                         } else {
-                                            unitPricePerPiece = totalCost / piecesPerYield;
+                                            unitPricePerPiece = overallAmountForYield / piecesPerYield;
                                         }
+
+                                        $('#viewUnitPricePerPiece').text('₱ ' + unitPricePerPiece.toFixed(5));
 
                                         const totalPricePerPiece = unitPricePerPiece +
                                             additionalPricePerPiece;

@@ -526,10 +526,34 @@ class ProductsController extends BaseController
 
         $products = array_merge($bakeryProducts, $doughProducts, $drinksProducts, $groceryProducts);
 
-        // Enrich each product with pieces_per_yield from product_costs
+        // Enrich each product with cost + yield metrics from product_costs.
         foreach ($products as &$product) {
             $costData = $this->productCostModel->getCostByProductId(intval($product['product_id']));
+
+            $directCost = floatval($costData['direct_cost'] ?? 0);
+            $combinedRecipeCost = floatval($costData['combined_recipe_cost'] ?? 0);
+            $overheadCostAmount = floatval($costData['overhead_cost_amount'] ?? 0);
+
+            if ($overheadCostAmount <= 0) {
+                $overheadCostPercentage = floatval($costData['overhead_cost_percentage'] ?? 0);
+                if ($directCost > 0 && $overheadCostPercentage > 0) {
+                    $overheadCostAmount = $directCost * ($overheadCostPercentage / 100);
+                }
+            }
+
+            $resolvedTotalCost = floatval($costData['total_cost'] ?? 0);
+            if ($resolvedTotalCost <= 0) {
+                $resolvedTotalCost = $directCost + $combinedRecipeCost + $overheadCostAmount;
+            }
+
+            $product['direct_cost'] = $directCost;
+            $product['combined_recipe_cost'] = $combinedRecipeCost;
+            $product['overhead_cost_amount'] = $overheadCostAmount;
+            $product['total_cost'] = $resolvedTotalCost;
             $product['pieces_per_yield'] = intval($costData['pieces_per_yield'] ?? 0);
+            $product['trays_per_yield'] = intval($costData['trays_per_yield'] ?? 0);
+            $product['selling_price'] = floatval($costData['selling_price'] ?? 0);
+            $product['selling_price_per_piece'] = floatval($costData['selling_price_per_piece'] ?? 0);
         }
         unset($product);
 

@@ -365,6 +365,11 @@
         let salesData = []; // Will be populated from API
         let todaysSales = null; // Today's sales before remittance
 
+        function syncSalesHistoryBodyScrollLock() {
+            const hasOpenModal = !$('#salesDetailsModal').hasClass('hidden');
+            $('body').toggleClass('overflow-hidden', hasOpenModal);
+        }
+
         $(document).ready(function () {
             initFilters();
             loadSalesHistory();
@@ -691,7 +696,10 @@
         }
 
         function initDetailsModal() {
-            $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#salesDetailsModal').addClass('hidden'));
+            $('#btnCloseDetailsModal, #btnCloseModal').on('click', function () {
+                $('#salesDetailsModal').addClass('hidden');
+                syncSalesHistoryBodyScrollLock();
+            });
 
             $('#btnPrintDetails').on('click', function () {
                 printOrderDetails();
@@ -861,7 +869,7 @@
                         </head>
                         <body>
                             <div class="header">
-                                <h1>E n' G Bakery</h1>
+                                <h1>E n' G Bakery - Karangahan</h1>
                                 <p>${outlet}</p>
                                 <p>Sales Details Report</p>
                             </div>
@@ -984,7 +992,7 @@
             // Header Info
             $('#detailDate').text(`${dateStr} at ${timeStr}`);
             $('#detailCashier').text(order.cashier_name || '-');
-            $('#detailOutlet').text('DECA SENTRIO');
+            $('#detailOutlet').text('KARANGAHAN');
             $('#detailOrderCount').text('Order #' + orderNumber);
 
             // Order Type with badge styling
@@ -1033,6 +1041,7 @@
             $('#detailVarianceContainer').hide();
 
             $('#salesDetailsModal').removeClass('hidden');
+            syncSalesHistoryBodyScrollLock();
         }
 
         function exportToCsv() {

@@ -796,21 +796,32 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $isAdjustmentMode = isset($json->adjustment_mode) && boolval($json->adjustment_mode);
-
-        if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Values cannot be negative'
-            ]);
-        }
-
         $item = $this->dailyStockItemsModel->find($item_id);
 
         if (!$item) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
                 'message' => 'Inventory item not found'
+            ]);
+        }
+
+        $rawAdjustmentMode = $json->adjustment_mode ?? null;
+        $clientAdjustmentMode = in_array($rawAdjustmentMode, [true, 1, '1', 'true', 'TRUE'], true);
+
+        $categoryAdjustmentMode = false;
+        if (isset($item['product_id'])) {
+            $product = $this->productModel->find(intval($item['product_id']));
+            $productCategory = strtolower(trim($product['category'] ?? ''));
+            $categoryAdjustmentMode = in_array($productCategory, ['bakery', 'grocery'], true);
+        }
+
+        // Prefer server-side category rules, and keep client flag as fallback for compatibility.
+        $isAdjustmentMode = $categoryAdjustmentMode || $clientAdjustmentMode;
+
+        if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Values cannot be negative'
             ]);
         }
 

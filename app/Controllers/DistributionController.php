@@ -92,7 +92,7 @@ class DistributionController extends BaseController
             'distribution_date'   => $data->distribution_date,
             'distributed_to_note' => $data->distributed_to_note ?? null,
             'forecasted_sales'    => $data->forecasted_sales    ?? 0,
-            'direct_cost'         => $data->direct_cost         ?? 0,
+            'total_cost'          => $data->total_cost          ?? 0,
         ];
 
         try {
@@ -135,7 +135,7 @@ class DistributionController extends BaseController
         if (isset($data->distribution_date))   $updateData['distribution_date']   = $data->distribution_date;
         if (isset($data->distributed_to_note)) $updateData['distributed_to_note'] = $data->distributed_to_note;
         if (isset($data->forecasted_sales))    $updateData['forecasted_sales']    = $data->forecasted_sales;
-        if (isset($data->direct_cost))         $updateData['direct_cost']         = $data->direct_cost;
+        if (isset($data->total_cost))          $updateData['total_cost']          = $data->total_cost;
 
         if (empty($updateData)) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'No updatable fields provided']);

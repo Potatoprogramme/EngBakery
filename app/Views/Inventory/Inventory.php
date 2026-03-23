@@ -118,11 +118,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -170,11 +174,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -229,11 +237,15 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
-                                                </th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
+                                                    </th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <?php if ($isOwnerView): ?>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
+                                                        Used</th>
+                                                <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
                                         </thead>
@@ -267,7 +279,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
-                                <p class="text-xs text-gray-500">Groups, notes, and direct cost</p>
+                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
                             </div>
                             <button id="btnRefreshTodayDistribution" type="button"
                                 class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
@@ -303,11 +315,6 @@
                                     <p class="text-[11px] text-gray-500">Pieces</p>
                                     <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
                                 </div>
-                                <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg col-span-2">
-                                    <p class="text-[11px] text-gray-600">Direct Cost</p>
-                                    <p id="todayDistSummaryDirectCost" class="text-base font-semibold text-primary">
-                                        ₱0.00</p>
-                                </div>
                             </div>
 
                             <div id="todayDistributionSlideViewport"
@@ -335,7 +342,7 @@
                                             <p id="todayDistSelectedGroupName"
                                                 class="text-sm font-semibold text-gray-800">Selected Group</p>
                                             <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
-                                                batches • 0 pcs • ₱0.00</p>
+                                                batches • 0 pcs</p>
                                             <p id="todayDistSelectedGroupNote"
                                                 class="hidden text-[11px] text-amber-700 mt-1"></p>
                                         </div>
@@ -1140,7 +1147,9 @@
 
         function calculateTodayDistItemDirectCost(item, product) {
             const productData = product || {};
-            const directCostPerYield = parseInventoryNumericValue(productData.direct_cost);
+            const directCostPerYield = parseInventoryNumericValue(
+                productData.total_cost || productData.direct_cost
+            );
             if (directCostPerYield <= 0) return 0;
 
             const yieldsNeeded = getTodayDistYieldUnits(item, productData);
@@ -1565,7 +1574,7 @@
             $('#todayDistributionGroupList').html('<p class="text-xs text-gray-400">No distribution groups for today.</p>');
             $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
             $('#todayDistSelectedGroupName').text('Selected Group');
-            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
+            $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs');
             $('#todayDistSelectedGroupNote').addClass('hidden').text('');
 
             $('#todayDistributionEmptyText').text(message);
@@ -1666,7 +1675,7 @@
             const groupDirectCost = formatInventoryPeso(selectedGroup.total_direct_cost);
 
             $('#todayDistSelectedGroupName').text(groupName);
-            $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs • ' + groupDirectCost);
+            $('#todayDistSelectedGroupMeta').text(groupBatches + ' batches • ' + groupPieces + ' pcs');
 
             if (groupNote) {
                 $('#todayDistSelectedGroupNote')
@@ -1689,10 +1698,6 @@
                             <div class="min-w-0">
                                 <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
                                 <p class="text-[11px] text-gray-500">${quantityLabel}${safeCategory}</p>
-                            </div>
-                            <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Direct Cost</p>
-                                <p class="text-xs font-semibold text-emerald-600">${formatInventoryPeso(directCost)}</p>
                             </div>
                         </div>
                     </div>
@@ -1735,7 +1740,7 @@
                     '<p class="text-xs text-gray-400">No distribution groups for today.</p>');
                 $('#todayDistributionGroupItems').html('<p class="text-xs text-gray-400">No distributed items.</p>');
                 $('#todayDistSelectedGroupName').text('Selected Group');
-                $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs • ₱0.00');
+                $('#todayDistSelectedGroupMeta').text('0 batches • 0 pcs');
                 $('#todayDistSelectedGroupNote').addClass('hidden').text('');
 
                 setTodayDistributionRefreshLoadingState(false);
@@ -1764,8 +1769,6 @@
                                 ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${safeNote}</p>` : ''}
                             </div>
                             <div class="text-right flex-shrink-0">
-                                <p class="text-[10px] text-gray-500">Direct Cost</p>
-                                <p class="text-xs font-semibold text-emerald-600">${directCost}</p>
                                 <span class="inline-flex items-center justify-center mt-1 w-5 h-5 rounded-full bg-gray-100 text-gray-500">
                                     <i class="fas fa-chevron-right text-[10px]"></i>
                                 </span>
@@ -2081,8 +2084,8 @@
                 checkIfDistributionExists(); // refreshes inventorySource + badge in background
                 fetchYesterdayRemaining(); // Load carryover preview
                 $('#timeInputModal').removeClass('hidden');
-                $('#time_start').val('08:00'); // 8:00 AM (morning)
-                $('#time_end').val('17:00'); // 5:00 PM (afternoon)
+                $('#time_start').val('06:00'); // 6:00 AM (morning)
+                $('#time_end').val('20:00'); // 8:00 PM (evening)
             });
 
             // Close Inventory Modal
@@ -3066,15 +3069,19 @@
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
                     const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
@@ -3095,13 +3102,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3138,15 +3149,19 @@
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const sales = parseFloat(item.sales ?? item.total_sales ?? 0) || 0;
                     const formattedSales = '₱' + sales.toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * qtySold).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * qtySold).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
@@ -3164,13 +3179,17 @@
                             ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
@@ -3205,15 +3224,19 @@
                     const price = parseFloat(item.selling_price || 0);
                     const totalSales = (qtySold * price).toFixed(2);
                     const formattedSales = '₱' + parseFloat(totalSales).toFixed(2);
-                    const overheadUnit = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
-                    const overheadPerPiece = overheadUnit / piecesPerBatch;
-                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(2);
-                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(2);
+                    const overheadPercentage = parseFloat(item.overhead_cost_percentage ?? 0) || 0;
+                    const overheadCostPerYield = parseFloat(item.overhead_cost_amount ?? 0) || 0;
+                    const overheadOnTotal = totalCostPerYield * (overheadPercentage / 100);
+                    const overheadPerYield = overheadCostPerYield > 0 ? overheadCostPerYield : overheadOnTotal;
+                    const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
+                    const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
+                    const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
                     const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
@@ -3234,13 +3257,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-center">';
-                    rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
-                        item.item_id + '" data-product-id="' + item.product_id +
-                        '" title="View materials used"><i class="fas fa-flask"></i></button>';
-                    rows += '</td>';
+                    <?php if ($isOwnerView): ?>
+                        rows += '<td class="px-6 py-2.5 text-sm text-center">';
+                        rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
+                            item.item_id + '" data-product-id="' + item.product_id +
+                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                        rows += '</td>';
+                    <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
                     rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
                         'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +

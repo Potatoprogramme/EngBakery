@@ -72,6 +72,7 @@ class ProductModel extends Model
                 pc.direct_cost,
                 pc.overhead_cost_percentage,
                 pc.overhead_cost_amount,
+                pc.combined_recipe_cost,
                 pc.total_cost,
                 pc.profit_margin_percentage,
                 pc.selling_price,

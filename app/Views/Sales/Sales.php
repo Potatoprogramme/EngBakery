@@ -26,7 +26,8 @@
             </div>
 
             <!-- Existing Remittance Warning Banner (Hidden by default) -->
-            <div id="existingRemittanceBanner" class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg shadow-md">
+            <div id="existingRemittanceBanner"
+                class="hidden mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg shadow-md">
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0">
                         <i class="fas fa-exclamation-triangle text-amber-500 text-xl"></i>
@@ -38,7 +39,7 @@
                         </p>
                         <div class="mt-2 text-xs text-amber-600" id="existingRemittanceDetails"></div>
                     </div>
-                    <a href="<?= base_url('Sales/RemittanceHistory') ?>" 
+                    <a href="<?= base_url('Sales/RemittanceHistory') ?>"
                         class="flex-shrink-0 inline-flex items-center px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition">
                         <i class="fas fa-eye mr-1"></i>View History
                     </a>
@@ -66,7 +67,8 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-medium text-gray-600 w-20">DATE:</label>
-                                <span id="remittanceDate" class="flex-1 px-2 py-1 text-sm font-semibold rounded text-gray-900 bg-gray-50 rounded"></span>
+                                <span id="remittanceDate"
+                                    class="flex-1 px-2 py-1 text-sm font-semibold rounded text-gray-900 bg-gray-50 rounded"></span>
                             </div>
                         </div>
                         <div class="space-y-3">
@@ -75,7 +77,7 @@
                                 <div class="flex-1 relative">
                                     <input type="text" id="outletName"
                                         class="w-full border-b border-gray-300 px-2 py-1 pr-7 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
-                                        placeholder="Enter outlet name" value="Deca Sentrio">
+                                        placeholder="Enter outlet name" value="Karangahan">
                                     <button type="button" id="btnClearOutlet"
                                         class="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition"
                                         title="Clear outlet name">
@@ -100,10 +102,12 @@
                 </div>
 
                 <!-- Shift Summary Preview Card -->
-                <div id="shiftSummaryCard" class="hidden mb-4 p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border border-primary/20">
+                <div id="shiftSummaryCard"
+                    class="hidden mb-4 p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border border-primary/20">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-bold text-gray-800">
-                            <i class="fas fa-clock mr-2 text-primary"></i>Shift Summary (<span id="shiftSummaryLabel">--</span>)
+                            <i class="fas fa-clock mr-2 text-primary"></i>Shift Summary (<span
+                                id="shiftSummaryLabel">--</span>)
                         </h4>
                         <span class="text-xs text-gray-500" id="shiftSummaryTimeRange">--</span>
                     </div>
@@ -141,156 +145,207 @@
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱1000</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill1000">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill1000">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill1000" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill1000">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill1000">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total1000">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total1000">₱0.00</span>
                             </div>
                             <!-- 500 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱500</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill500">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill500">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill500" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill500">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill500">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total500">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total500">₱0.00</span>
                             </div>
                             <!-- 200 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱200</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill200">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill200">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill200" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill200">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill200">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total200">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total200">₱0.00</span>
                             </div>
                             <!-- 100 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱100</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill100">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill100">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill100" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill100">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill100">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total100">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total100">₱0.00</span>
                             </div>
                             <!-- 50 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱50</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill50">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill50">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill50" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill50">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill50">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total50">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total50">₱0.00</span>
                             </div>
                             <!-- 20 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱20</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill20">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill20">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill20" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill20">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill20">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total20">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total20">₱0.00</span>
                             </div>
                             <!-- 10 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱10</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill10">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill10">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill10" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill10">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill10">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total10">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total10">₱0.00</span>
                             </div>
                             <!-- 5 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱5</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill5">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill5">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill5" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill5">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill5">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total5">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total5">₱0.00</span>
                             </div>
                             <!-- 1 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱1</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill1">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill1">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill1" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill1">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill1">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total1">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total1">₱0.00</span>
                             </div>
                             <!-- 0.25 -->
                             <div class="flex items-center justify-between">
                                 <span class="w-14 text-xs font-medium text-gray-700">₱0.25</span>
                                 <div class="flex items-center gap-1">
-                                    <button type="button" class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition" data-target="bill025">
+                                    <button type="button"
+                                        class="bill-minus w-7 h-7 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition"
+                                        data-target="bill025">
                                         <i class="fas fa-minus text-xs"></i>
                                     </button>
                                     <input type="number" id="bill025" min="0" value="0"
                                         class="bill-input w-12 text-center border border-gray-300 rounded py-1 text-sm focus:ring-1 focus:ring-primary focus:border-primary">
-                                    <button type="button" class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition" data-target="bill025">
+                                    <button type="button"
+                                        class="bill-plus w-7 h-7 flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition"
+                                        data-target="bill025">
                                         <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
-                                <span class="w-20 text-right text-sm font-semibold text-gray-800" id="total025">₱0.00</span>
+                                <span class="w-20 text-right text-sm font-semibold text-gray-800"
+                                    id="total025">₱0.00</span>
                             </div>
                         </div>
 
                         <!-- Amount Enclosed -->
-                        <div class="mt-3 pt-3 border-t-2 border-green-300 bg-green-50 -mx-4 px-4 -mb-4 pb-3 rounded-b-lg">
+                        <div
+                            class="mt-3 pt-3 border-t-2 border-green-300 bg-green-50 -mx-4 px-4 -mb-4 pb-3 rounded-b-lg">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm font-bold text-gray-700">AMOUNT ENCLOSED:</span>
                                 <span class="text-xl font-bold text-green-600" id="amountEnclosed">₱0.00</span>
@@ -307,16 +362,22 @@
                                     <i class="fas fa-mobile-alt text-blue-600 text-base"></i>
                                     <span class="text-sm font-medium text-gray-700">Online Payment:</span>
                                 </div>
-                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001" readonly
+                                <input type="number" id="totalOnlineRevenue" min="0" placeholder="0.00" step="0.00001"
+                                    readonly
                                     class="w-full sm:w-40 lg:w-48 text-right border border-blue-300 rounded-lg px-2 py-1.5 text-base font-bold text-blue-600 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <img src="<?= base_url('assets/pictures/food-panda.svg') ?>" class="w-4 h-4 flex-shrink-0" alt="FoodPanda">
+                                    <img src="<?= base_url('assets/pictures/food-panda.svg') ?>"
+                                        class="w-4 h-4 flex-shrink-0" alt="FoodPanda">
                                     <span class="text-sm font-medium text-gray-700">Food Panda:</span>
                                 </div>
-                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00" step="0.00001" readonly
-                                    class="w-full sm:w-40 lg:w-48 text-right border rounded-lg px-2 py-1.5 text-base font-bold focus:ring-2" style="border-color: #D70F64; color: #D70F64; background-color: rgba(215, 15, 100, 0.05);" onfocus="this.style.boxShadow='0 0 0 2px rgba(215,15,100,0.3)'" onblur="this.style.boxShadow='none'">
+                                <input type="number" id="totalFoodPandaRevenue" min="0" placeholder="0.00"
+                                    step="0.00001" readonly
+                                    class="w-full sm:w-40 lg:w-48 text-right border rounded-lg px-2 py-1.5 text-base font-bold focus:ring-2"
+                                    style="border-color: #D70F64; color: #D70F64; background-color: rgba(215, 15, 100, 0.05);"
+                                    onfocus="this.style.boxShadow='0 0 0 2px rgba(215,15,100,0.3)'"
+                                    onblur="this.style.boxShadow='none'">
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div class="flex items-center gap-2">
@@ -412,7 +473,8 @@
     </div>
 
     <!-- Hidden Print Frame -->
-    <iframe id="printFrame" name="printFrame" style="position:absolute;top:-9999px;left:-9999px;width:0;height:0;border:none;"></iframe>
+    <iframe id="printFrame" name="printFrame"
+        style="position:absolute;top:-9999px;left:-9999px;width:0;height:0;border:none;"></iframe>
 
     <style>
         /* Hide number input spinners */
@@ -446,7 +508,7 @@
             'bill025': 0.25
         };
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             initializeRemittance();
             console.log('Remittance Slip Initialized');
             loadShiftConfig();
@@ -485,17 +547,17 @@
                 type: 'GET',
                 data: { date: dateStr },
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         shiftConfig = response.shifts || [];
                         renderShiftButtons(shiftConfig);
                         // After rendering buttons, fetch occupied slots then auto-select
-                        fetchOccupiedSlots(function() {
+                        fetchOccupiedSlots(function () {
                             autoSelectShift();
                         });
                     }
                 },
-                error: function() {
+                error: function () {
                     console.error('Failed to load shift config');
                     $('#shiftButtonGroup').html('<span class="text-xs text-red-500">Failed to load shifts</span>');
                 }
@@ -514,7 +576,7 @@
                 return;
             }
 
-            shifts.forEach(function(shift) {
+            shifts.forEach(function (shift) {
                 const $btn = $(`
                     <button type="button"
                         class="shift-btn px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border-2 transition-all duration-200
@@ -530,7 +592,7 @@
             });
 
             // Bind click
-            $group.off('click', '.shift-btn').on('click', '.shift-btn', function() {
+            $group.off('click', '.shift-btn').on('click', '.shift-btn', function () {
                 selectShift($(this));
             });
         }
@@ -542,14 +604,14 @@
         function selectShift($btn) {
             // Visual toggle
             $('.shift-btn').removeClass('border-primary bg-primary/10 text-primary font-bold')
-                           .addClass('border-gray-300 text-gray-600 bg-white');
+                .addClass('border-gray-300 text-gray-600 bg-white');
             $btn.removeClass('border-gray-300 text-gray-600 bg-white')
                 .addClass('border-primary bg-primary/10 text-primary font-bold');
 
             // Set hidden values
             const shiftStart = $btn.data('start');
-            const shiftEnd   = $btn.data('end');
-            const shiftKey   = $btn.data('key');
+            const shiftEnd = $btn.data('end');
+            const shiftKey = $btn.data('key');
             const shiftLabel = $btn.data('label') || shiftKey;
 
             $('#shiftStart').val(shiftStart);
@@ -574,8 +636,8 @@
 
             const now = new Date();
             const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-                                String(now.getMinutes()).padStart(2, '0') + ':' +
-                                String(now.getSeconds()).padStart(2, '0');
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
 
             // Find which shift the current time falls into
             let matchedShift = null;
@@ -613,8 +675,8 @@
 
         function fetchOccupiedSlots(callback) {
             const today = new Date();
-            const dateStr = today.getFullYear() + '-' + 
-                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+            const dateStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
                 String(today.getDate()).padStart(2, '0');
             const outletName = $('#outletName').val();
 
@@ -626,16 +688,16 @@
                     outlet_name: outletName
                 },
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         occupiedSlots = response.occupied_slots || [];
                         requiredSlots = response.required_slots || [];
                         console.log('Occupied slots:', occupiedSlots);
                         console.log('Required slots:', requiredSlots);
-                        
+
                         // Mark occupied shift buttons
                         markOccupiedShiftButtons();
-                        
+
                         if (occupiedSlots.length > 0) {
                             showOccupiedSlotsInfo();
                         } else {
@@ -644,7 +706,7 @@
                     }
                     if (callback) callback();
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error fetching occupied slots:', error);
                     occupiedSlots = [];
                     if (callback) callback();
@@ -656,12 +718,12 @@
          * Add visual indicators to shift buttons that already have remittances.
          */
         function markOccupiedShiftButtons() {
-            $('.shift-btn').each(function() {
+            $('.shift-btn').each(function () {
                 const btnStart = $(this).data('start');
-                const btnEnd   = $(this).data('end');
+                const btnEnd = $(this).data('end');
                 // Normalize to HH:MM for comparison
                 const btnStartHM = String(btnStart).substring(0, 5);
-                const btnEndHM   = String(btnEnd).substring(0, 5);
+                const btnEndHM = String(btnEnd).substring(0, 5);
 
                 const isOccupied = occupiedSlots.some(occ =>
                     occ.start === btnStartHM && occ.end === btnEndHM
@@ -684,7 +746,7 @@
             let slotsText = occupiedSlots.map(slot => {
                 return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_name})`;
             }).join(', ');
-            
+
             showToast('warning', `Already submitted shifts today: ${slotsText}`, 0);
         }
 
@@ -725,23 +787,23 @@
             toggleClearButton();
 
             // Show/hide clear button on input
-            $('#outletName').on('input', function() {
+            $('#outletName').on('input', function () {
                 toggleClearButton();
             });
 
             // Clear button click
-            $('#btnClearOutlet').on('click', function() {
+            $('#btnClearOutlet').on('click', function () {
                 $('#outletName').val('').focus();
                 toggleClearButton();
-                fetchOccupiedSlots(function() {
+                fetchOccupiedSlots(function () {
                     markOccupiedShiftButtons();
                     checkExistingRemittance();
                 });
             });
 
             // Re-check existing remittance when outlet changes
-            $('#outletName').on('change blur', function() {
-                fetchOccupiedSlots(function() {
+            $('#outletName').on('change blur', function () {
+                fetchOccupiedSlots(function () {
                     markOccupiedShiftButtons();
                     checkExistingRemittance();
                 });
@@ -750,8 +812,8 @@
 
         function checkExistingRemittance() {
             const today = new Date();
-            const dateStr = today.getFullYear() + '-' + 
-                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+            const dateStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
                 String(today.getDate()).padStart(2, '0');
             const shiftStart = $('#shiftStart').val();
             const shiftEnd = $('#shiftEnd').val();
@@ -767,7 +829,7 @@
                     outlet_name: outletName
                 },
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.exists) {
                         remittanceExists = true;
                         existingRemittanceData = response.existing_remittance;
@@ -780,7 +842,7 @@
                         enableSaveButton();
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error checking existing remittance:', error);
                     // On error, allow save attempt (server will validate)
                     remittanceExists = false;
@@ -792,8 +854,8 @@
 
         function showExistingRemittanceBanner(data) {
             const message = `A remittance for this shift (${data.shift}) was already submitted by <strong>${data.cashier_name}</strong> at ${data.submitted_at}.`;
-            const details = `Total Sales: ₱${parseFloat(data.total_sales).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
-            
+            const details = `Total Sales: ₱${parseFloat(data.total_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
             $('#existingRemittanceMessage').html(message);
             $('#existingRemittanceDetails').html(details);
             $('#existingRemittanceBanner').removeClass('hidden').addClass('flex');
@@ -824,7 +886,7 @@
                 url: BASE_URL + 'User/GetCurrentUser',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         const user = response.data;
                         $('#cashierName').val(user.name || '');
@@ -832,7 +894,7 @@
                         console.log('Loaded user info:', user);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error loading user info:', error);
                 }
             });
@@ -849,8 +911,8 @@
             const requestData = {};
             if (shiftStart && shiftEnd) {
                 requestData.shift_start = shiftStart;
-                requestData.shift_end   = shiftEnd;
-                requestData.date        = dateStr;
+                requestData.shift_end = shiftEnd;
+                requestData.date = dateStr;
             }
 
             $.ajax({
@@ -858,12 +920,12 @@
                 type: 'GET',
                 data: requestData,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         console.log('Sales data response:', response.data);
 
                         allTransactions = response.data.transaction_ids || [];
-                        
+
                         // Extract sales data with default values
                         const breadSales = response.data.bread_sales || {};
                         const drinksSales = response.data.drinks_sales || {};
@@ -944,7 +1006,7 @@
                         calculateAllTotals();
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error loading sales data:', error);
                 }
             });
@@ -952,19 +1014,19 @@
 
         function bindBillInputEvents() {
             // Bind events to all bill inputs
-            $('.bill-input').on('input', function() {
+            $('.bill-input').on('input', function () {
                 updateBillTotal($(this).attr('id'));
             });
 
             // Also bind cash out amount
-            $('#cashOutAmount').on('input', function() {
+            $('#cashOutAmount').on('input', function () {
                 calculateVariance();
             });
         }
 
         function bindBillButtonEvents() {
             // Plus buttons
-            $('.bill-plus').on('click', function() {
+            $('.bill-plus').on('click', function () {
                 const targetId = $(this).data('target');
                 const input = $('#' + targetId);
                 const currentVal = parseInt(input.val()) || 0;
@@ -973,7 +1035,7 @@
             });
 
             // Minus buttons
-            $('.bill-minus').on('click', function() {
+            $('.bill-minus').on('click', function () {
                 const targetId = $(this).data('target');
                 const input = $('#' + targetId);
                 const currentVal = parseInt(input.val()) || 0;
@@ -998,10 +1060,10 @@
         }
 
         function bindGCashInputEvent() {
-            $('#totalOnlineRevenue').on('input', function() {
+            $('#totalOnlineRevenue').on('input', function () {
                 calculateVariance();
             });
-            $('#totalFoodPandaRevenue').on('input', function() {
+            $('#totalFoodPandaRevenue').on('input', function () {
                 calculateVariance();
             });
         }
@@ -1010,7 +1072,7 @@
             let totalEnclosed = 0;
 
             // Sum all bill totals
-            Object.keys(billDenominations).forEach(function(inputId) {
+            Object.keys(billDenominations).forEach(function (inputId) {
                 const quantity = parseInt($('#' + inputId).val()) || 0;
                 totalEnclosed += quantity * billDenominations[inputId];
             });
@@ -1095,7 +1157,7 @@
 
         function getDenominationsBreakdown() {
             const breakdown = {};
-            Object.keys(billDenominations).forEach(function(inputId) {
+            Object.keys(billDenominations).forEach(function (inputId) {
                 const count = parseInt($('#' + inputId).val()) || 0;
                 const denomination = billDenominations[inputId];
                 if (count > 0) {
@@ -1109,7 +1171,7 @@
         }
 
         // Reset form
-        $('#btnResetForm').on('click', function() {
+        $('#btnResetForm').on('click', function () {
             // Reset bill inputs
             $('.bill-input').val(0);
             $('.bill-total').text('₱0.00');
@@ -1128,10 +1190,10 @@
 
         // Print functionality - Opens dedicated print layout
         // Print functionality - Uses hidden iframe
-        $('#btnPrintRemittance').on('click', function() {
+        $('#btnPrintRemittance').on('click', function () {
             // Collect denominations data
             const denomsHtml = {};
-            Object.keys(billDenominations).forEach(function(inputId) {
+            Object.keys(billDenominations).forEach(function (inputId) {
                 const count = parseInt($('#' + inputId).val()) || 0;
                 const denomination = billDenominations[inputId];
                 const total = count * denomination;
@@ -1273,22 +1335,22 @@
             // Write to hidden iframe and print
             const printFrame = document.getElementById('printFrame');
             const frameDoc = printFrame.contentWindow || printFrame.contentDocument.document || printFrame.contentDocument;
-            
+
             frameDoc.document.open();
             frameDoc.document.write(printHtml);
             frameDoc.document.close();
 
             // Wait for content to load then print
-            setTimeout(function() {
+            setTimeout(function () {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             }, 250);
         });
 
         // Save remittance
-        $('#btnSaveRemittance').on('click', function() {
+        $('#btnSaveRemittance').on('click', function () {
             const btn = $(this);
-            
+
             // Prevent double submission
             if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
                 return;
@@ -1299,7 +1361,7 @@
                 showToast('warning', 'A remittance for this date and shift already exists. Please check the Remittance History.');
                 return;
             }
-            
+
             // Calculate variance properly with sign
             const amountEnclosed = parseCurrency($('#amountEnclosed').text());
             const totalOnlineRevenue = parseFloat($('#totalOnlineRevenue').val()) || 0;
@@ -1320,14 +1382,14 @@
 
             // Ensure time format includes seconds
             const shiftStartFull = shiftStart.length === 5 ? shiftStart + ':00' : shiftStart;
-            const shiftEndFull   = shiftEnd.length === 5 ? shiftEnd + ':00' : shiftEnd;
+            const shiftEndFull = shiftEnd.length === 5 ? shiftEnd + ':00' : shiftEnd;
 
             const remittanceData = {
                 // remittance_details table
                 // cashier_id: $('#cashierName').val(),
                 cashier_id: 1, // Temporary hardcoded for testing
                 outlet_name: $('#outletName').val(),
-                date: (function() {
+                date: (function () {
                     const d = new Date();
                     const p = n => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
@@ -1347,11 +1409,11 @@
                 //remittance_denomination table
                 denominations: getDenominationsBreakdown(),
                 // remittance_items table 
-                transaction_ids: allTransactions 
+                transaction_ids: allTransactions
             };
 
             console.log('Saving remittance data:', remittanceData);
-            
+
             if (typeof ButtonLoader !== 'undefined') {
                 ButtonLoader.start(btn, 'Saving...');
             }
@@ -1361,7 +1423,7 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(remittanceData),
-                success: function(response) {
+                success: function (response) {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }
@@ -1370,16 +1432,16 @@
                         // After successful save, update state to prevent duplicate submissions
                         remittanceExists = true;
                         disableSaveButton();
-                        
+
                         // Refresh the occupied slots and update shift buttons
-                        fetchOccupiedSlots(function() {
+                        fetchOccupiedSlots(function () {
                             markOccupiedShiftButtons();
                         });
                     } else {
                         showToast('danger', response.message || 'Failed to save remittance');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }

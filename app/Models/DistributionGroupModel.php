@@ -21,7 +21,7 @@ class DistributionGroupModel extends Model
         'distribution_date',
         'distributed_to_note',
         'forecasted_sales',
-        'direct_cost',
+        'total_cost',
     ];
 
     // -------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class DistributionGroupModel extends Model
     // -------------------------------------------------------------------------
 
     /**
-     * Recompute and persist forecasted_sales + direct_cost for a group
+     * Recompute and persist forecasted_sales + total_cost for a group
      * by calculating totals from product pricing data and item quantities.
      *
      * Call this after any item is added, updated, or deleted.
@@ -99,7 +99,7 @@ class DistributionGroupModel extends Model
         $items = $itemModel->getItemsByGroup($groupId);
 
         $forecastedSales = 0.0;
-        $directCost      = 0.0;
+        $totalCost       = 0.0;
 
         foreach ($items as $item) {
             $productId = (int) $item['product_id'];
@@ -123,18 +123,31 @@ class DistributionGroupModel extends Model
             $forecastedSales += $quantity * (float) $metrics['unit_price'];
             
             // ─────────────────────────────────────────────────────────────
-            // Calculate direct cost
-            // Use the product's direct_cost_per_yield multiplied by quantity
-            // direct_cost in product_costs is the cost to produce one yield
-            // For 'pieces' mode, convert pieces → yields first using pieces_per_yield
+            // Calculate total cost
+            // Use the product's total_cost_per_yield multiplied by yield units.
+            // For pieces/box modes, metrics already converts quantity to yield units.
             // ─────────────────────────────────────────────────────────────
-            $costPerYield = (float)($costData['direct_cost'] ?? 0);
-            $directCost += (float) $metrics['yield_units'] * $costPerYield;
+            $costPerYield = (float)($costData['total_cost'] ?? 0);
+            if ($costPerYield <= 0) {
+                $directCost = (float)($costData['direct_cost'] ?? 0);
+                $combinedRecipeCost = (float)($costData['combined_recipe_cost'] ?? 0);
+                $overheadCostAmount = (float)($costData['overhead_cost_amount'] ?? 0);
+
+                if ($overheadCostAmount <= 0) {
+                    $overheadCostPercentage = (float)($costData['overhead_cost_percentage'] ?? 0);
+                    if ($directCost > 0 && $overheadCostPercentage > 0) {
+                        $overheadCostAmount = $directCost * ($overheadCostPercentage / 100);
+                    }
+                }
+
+                $costPerYield = $directCost + $combinedRecipeCost + $overheadCostAmount;
+            }
+            $totalCost += (float) $metrics['yield_units'] * $costPerYield;
         }
 
         $this->update($groupId, [
             'forecasted_sales' => $forecastedSales,
-            'direct_cost'      => $directCost,
+            'total_cost'       => $totalCost,
         ]);
     }
 

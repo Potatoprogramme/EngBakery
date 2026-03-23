@@ -106,7 +106,7 @@ class LowStockNotifier
         // Send
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($emailSubject);
             $emailService->setMessage($emailBody);
@@ -262,7 +262,7 @@ class LowStockNotifier
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin: 0; font-size: 24px;'>Low Stock Alert</h1>
-                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery — Products and Raw Materials Report</p>
+                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery - Karangahan — Products and Raw Materials Report</p>
                 </div>
                 <div class='content'>
                     <!-- Report Details -->
@@ -353,11 +353,11 @@ class LowStockNotifier
                     </p>
                     <p style='font-size: 14px; margin-top: 20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery Inventory System</strong>
+                        <strong>E n' G Bakery - Karangahan Inventory System</strong>
                     </p>
                 </div>
                 <div class='footer'>
-                    <p>&copy; " . date('Y') . " E n' G Bakery. All rights reserved.</p>
+                    <p>&copy; " . date('Y') . " E n' G Bakery - Karangahan. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
             </div>
