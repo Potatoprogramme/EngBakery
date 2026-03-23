@@ -288,6 +288,11 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
         let dataTable = null;
         let currentOrderId = null;
 
+        function syncOrderHistoryBodyScrollLock() {
+            const hasOpenModal = !$('#orderDetailsModal').hasClass('hidden');
+            $('body').toggleClass('overflow-hidden', hasOpenModal);
+        }
+
         $(document).ready(function () {
             // Set date range: 1st of current month to today
             const today = new Date();
@@ -720,7 +725,10 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
         }
 
         function initOrderDetailsModal() {
-            $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
+            $('#btnCloseOrderDetails, #btnCloseModal').on('click', function () {
+                $('#orderDetailsModal').addClass('hidden');
+                syncOrderHistoryBodyScrollLock();
+            });
 
             $('#btnPrintReceipt').on('click', function () {
                 const content = $('#receiptContent').clone();
@@ -844,6 +852,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                         }
 
                         $('#orderDetailsModal').removeClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
                     } else {
                         Toast.error('Failed to load order details');
                     }
@@ -870,6 +879,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                     if (response.success) {
                         Toast.success('Order voided successfully');
                         $('#orderDetailsModal').addClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
                         const filters = getCurrentFilters();
                         loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
                     } else {
@@ -901,6 +911,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                     if (response.success) {
                         Toast.success('Order deleted successfully');
                         $('#orderDetailsModal').addClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
                         const filters = getCurrentFilters();
                         loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
                     } else {

@@ -365,6 +365,11 @@
         let salesData = []; // Will be populated from API
         let todaysSales = null; // Today's sales before remittance
 
+        function syncSalesHistoryBodyScrollLock() {
+            const hasOpenModal = !$('#salesDetailsModal').hasClass('hidden');
+            $('body').toggleClass('overflow-hidden', hasOpenModal);
+        }
+
         $(document).ready(function () {
             initFilters();
             loadSalesHistory();
@@ -691,7 +696,10 @@
         }
 
         function initDetailsModal() {
-            $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#salesDetailsModal').addClass('hidden'));
+            $('#btnCloseDetailsModal, #btnCloseModal').on('click', function () {
+                $('#salesDetailsModal').addClass('hidden');
+                syncSalesHistoryBodyScrollLock();
+            });
 
             $('#btnPrintDetails').on('click', function () {
                 printOrderDetails();
@@ -1033,6 +1041,7 @@
             $('#detailVarianceContainer').hide();
 
             $('#salesDetailsModal').removeClass('hidden');
+            syncSalesHistoryBodyScrollLock();
         }
 
         function exportToCsv() {
