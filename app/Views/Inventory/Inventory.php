@@ -2084,8 +2084,8 @@
                 checkIfDistributionExists(); // refreshes inventorySource + badge in background
                 fetchYesterdayRemaining(); // Load carryover preview
                 $('#timeInputModal').removeClass('hidden');
-                $('#time_start').val('08:00'); // 8:00 AM (morning)
-                $('#time_end').val('17:00'); // 5:00 PM (afternoon)
+                $('#time_start').val('06:00'); // 6:00 AM (morning)
+                $('#time_end').val('20:00'); // 8:00 PM (evening)
             });
 
             // Close Inventory Modal

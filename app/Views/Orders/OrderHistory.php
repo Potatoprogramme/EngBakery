@@ -1,4 +1,7 @@
-<?php $isStaffView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'staff'; ?>
+<?php
+$isStaffView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'staff';
+$isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'owner';
+?>
 <body class="bg-gray-50">
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
@@ -262,6 +265,12 @@
                     class="px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-600 hover:text-white transition-all">
                     <i class="fas fa-ban mr-2"></i>Void
                 </button>
+                <?php if ($isOwnerView): ?>
+                    <button type="button" id="btnDeleteOrder"
+                        class="px-4 py-3 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 transition-all">
+                        <i class="fas fa-trash mr-2"></i>Delete
+                    </button>
+                <?php endif; ?>
                 <button type="button" id="btnCloseModal"
                     class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">Close</button>
             </div>
@@ -275,8 +284,14 @@
     <script>
         window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
         window.ASSET_URL = '<?= base_url() ?>';
+        const isOwnerView = <?= $isOwnerView ? 'true' : 'false' ?>;
         let dataTable = null;
         let currentOrderId = null;
+
+        function syncOrderHistoryBodyScrollLock() {
+            const hasOpenModal = !$('#orderDetailsModal').hasClass('hidden');
+            $('body').toggleClass('overflow-hidden', hasOpenModal);
+        }
 
         $(document).ready(function () {
             // Set date range: 1st of current month to today
@@ -710,7 +725,10 @@
         }
 
         function initOrderDetailsModal() {
-            $('#btnCloseOrderDetails, #btnCloseModal').on('click', () => $('#orderDetailsModal').addClass('hidden'));
+            $('#btnCloseOrderDetails, #btnCloseModal').on('click', function () {
+                $('#orderDetailsModal').addClass('hidden');
+                syncOrderHistoryBodyScrollLock();
+            });
 
             $('#btnPrintReceipt').on('click', function () {
                 const content = $('#receiptContent').clone();
@@ -754,6 +772,21 @@
                     voidOrder(currentOrderId, btn);
                 });
             });
+
+            if (isOwnerView && $('#btnDeleteOrder').length) {
+                $('#btnDeleteOrder').on('click', function () {
+                    const btn = $(this);
+
+                    if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                        return;
+                    }
+
+                    if (!currentOrderId) return;
+                    Confirm.show('Delete this order permanently? This will also delete its transactions.', function () {
+                        deleteOrder(currentOrderId, btn);
+                    });
+                });
+            }
         }
 
         function openOrderDetails(orderId) {
@@ -819,6 +852,7 @@
                         }
 
                         $('#orderDetailsModal').removeClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
                     } else {
                         Toast.error('Failed to load order details');
                     }
@@ -845,6 +879,7 @@
                     if (response.success) {
                         Toast.success('Order voided successfully');
                         $('#orderDetailsModal').addClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
                         const filters = getCurrentFilters();
                         loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
                     } else {
@@ -856,6 +891,38 @@
                         ButtonLoader.stop(btn);
                     }
                     Toast.error('Error voiding order');
+                }
+            });
+        }
+
+        function deleteOrder(orderId, btn) {
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start(btn, 'Deleting...');
+            }
+
+            $.ajax({
+                url: BASE_URL + 'Order/DeleteOrder/' + orderId,
+                type: 'POST',
+                dataType: 'json',
+                success: function (response) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
+                    if (response.success) {
+                        Toast.success('Order deleted successfully');
+                        $('#orderDetailsModal').addClass('hidden');
+                        syncOrderHistoryBodyScrollLock();
+                        const filters = getCurrentFilters();
+                        loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
+                    } else {
+                        Toast.error(response.message || 'Failed to delete order');
+                    }
+                },
+                error: function () {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop(btn);
+                    }
+                    Toast.error('Error deleting order');
                 }
             });
         }

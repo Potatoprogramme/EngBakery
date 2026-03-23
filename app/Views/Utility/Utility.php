@@ -559,6 +559,11 @@
         const openExpenseModalBtns = [document.getElementById('btnAddExpense'), document.getElementById('btnAddExpenseMobile')];
         const closeExpenseModalBtns = [document.getElementById('btnCloseModal'), document.getElementById('btnCancelExpense')];
 
+        function syncUtilityBodyScrollLock() {
+            const hasOpenModal = !expenseModal.classList.contains('hidden');
+            document.body.classList.toggle('overflow-hidden', hasOpenModal);
+        }
+
         openExpenseModalBtns.forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
@@ -567,6 +572,7 @@
                     document.getElementById('expense_mode').value = 'add';
                     document.getElementById('btnSaveExpense').textContent = 'Save Expense';
                     expenseModal.classList.remove('hidden');
+                    syncUtilityBodyScrollLock();
                 });
             }
         });
@@ -575,6 +581,7 @@
             if (btn) {
                 btn.addEventListener('click', () => {
                     expenseModal.classList.add('hidden');
+                    syncUtilityBodyScrollLock();
                 });
             }
         });
@@ -623,6 +630,7 @@
 
                     if (response.success) {
                         expenseModal.classList.add('hidden');
+                        syncUtilityBodyScrollLock();
                         resetExpenseForm();
                         Toast.success(response.message);
                         getExpenses();
@@ -662,6 +670,7 @@
 
                     if (response.success) {
                         expenseModal.classList.add('hidden');
+                        syncUtilityBodyScrollLock();
                         resetExpenseForm();
                         Toast.success(response.message);
                         getExpenses();
@@ -1244,6 +1253,7 @@
                     document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
                     document.getElementById('btnSaveExpense').textContent = 'Update Expense';
                     expenseModal.classList.remove('hidden');
+                    syncUtilityBodyScrollLock();
                 });
             });
 

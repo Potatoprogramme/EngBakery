@@ -19,6 +19,14 @@ $(document).ready(function () {
     let isCompactRemaining = window.innerWidth < compactRemainingBreakpoint;
     let actionMenuCloseTimer = null;
     const actionMenuCloseDelay = 260;
+    const modalSelectorsForScrollLock = ['#stockInitialModal', '#deleteConfirmModal', '#viewStockModal'];
+
+    function syncModalBodyScrollLock() {
+        const hasOpenModal = modalSelectorsForScrollLock.some(function (selector) {
+            return !$(selector).hasClass('hidden');
+        });
+        $('body').toggleClass('overflow-hidden', hasOpenModal);
+    }
 
     function ensureActionModeStyles() {
         if (document.getElementById('stockInitialActionModeStyles')) return;
@@ -92,6 +100,7 @@ $(document).ready(function () {
     $('#btnAddEntry, #btnAddEntryMobile').on('click', function () {
         resetModal();
         $('#stockInitialModal').removeClass('hidden');
+        syncModalBodyScrollLock();
         loadMaterialsList();
     });
 
@@ -377,6 +386,7 @@ $(document).ready(function () {
                         $('#modalTitle').text('Edit Stock Entry');
                         $('#btnSaveEntry').text('Update');
                         $('#stockInitialModal').removeClass('hidden');
+                        syncModalBodyScrollLock();
                     });
                 } else {
                     showToast('error', res.message);
@@ -391,6 +401,7 @@ $(document).ready(function () {
     $(document).on('click', '.btn-delete-entry', function () {
         deleteEntryId = $(this).data('id');
         $('#deleteConfirmModal').removeClass('hidden');
+        syncModalBodyScrollLock();
     });
 
     // ──────────────────────────────
@@ -443,6 +454,7 @@ $(document).ready(function () {
     $('#btnCancelDelete').on('click', function () {
         deleteEntryId = null;
         $('#deleteConfirmModal').addClass('hidden');
+        syncModalBodyScrollLock();
     });
 
     $('#btnConfirmDelete').on('click', function () {
@@ -466,6 +478,7 @@ $(document).ready(function () {
             complete: function () {
                 deleteEntryId = null;
                 $('#deleteConfirmModal').addClass('hidden');
+                syncModalBodyScrollLock();
             }
         });
     });
@@ -942,6 +955,7 @@ $(document).ready(function () {
     function closeModal() {
         $('#stockInitialModal').addClass('hidden');
         resetModal();
+        syncModalBodyScrollLock();
     }
 
     function formatNumber(num) {
@@ -1016,7 +1030,7 @@ $(document).ready(function () {
 
                     // Show modal
                     $('#viewStockModal').removeClass('hidden');
-                    document.body.classList.add('overflow-hidden');
+                    syncModalBodyScrollLock();
                 } else {
                     showToast('error', res.message);
                 }
@@ -1029,7 +1043,7 @@ $(document).ready(function () {
 
     function closeViewModal() {
         $('#viewStockModal').addClass('hidden');
-        document.body.classList.remove('overflow-hidden');
+        syncModalBodyScrollLock();
         currentViewEntryId = null;
     }
 
@@ -1084,6 +1098,7 @@ $(document).ready(function () {
                                 $('#modalTitle').text('Edit Stock Entry');
                                 $('#btnSaveEntry').text('Update');
                                 $('#stockInitialModal').removeClass('hidden');
+                                syncModalBodyScrollLock();
                             });
                         }
                     }
@@ -1098,6 +1113,7 @@ $(document).ready(function () {
             closeViewModal();
             deleteEntryId = currentViewEntryId;
             $('#deleteConfirmModal').removeClass('hidden');
+            syncModalBodyScrollLock();
         }
     });
 });
