@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E n' G Bakery</title>
+    <title>E n' G Bakery - Karangahan</title>
     <link rel="icon" href="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" type="image/png">
 
     <!-- Font -->

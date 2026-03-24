@@ -195,7 +195,7 @@ class AutoReportScheduler
         // ── 4. Send via the configured email service ─────────────────────────
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($subject);
             $emailService->setMessage($emailBody);
@@ -301,7 +301,7 @@ class AutoReportScheduler
                 <!-- Header -->
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
-                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#991b1b;'>E n' G Bakery &mdash; {$slotSubtitle}</p>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#991b1b;'>E n' G Bakery - Karangahan &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
@@ -387,13 +387,13 @@ class AutoReportScheduler
 
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery Inventory System</strong>
+                        <strong>E n' G Bakery - Karangahan Inventory System</strong>
                     </p>
 
                 </div>
 
                 <div class='footer'>
-                    <p>&copy; {$year} E n' G Bakery. All rights reserved.</p>
+                    <p>&copy; {$year} E n' G Bakery - Karangahan. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
 

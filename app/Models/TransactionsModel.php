@@ -33,6 +33,11 @@ class TransactionsModel extends Model
         return $this->insert($data) !== false;
     }
 
+    public function deleteByOrderId(int $orderId): bool
+    {
+        return $this->where('order_id', $orderId)->delete() !== false;
+    }
+
     public function getSalesByDate(string $date): array
     {
         return $this->builder()

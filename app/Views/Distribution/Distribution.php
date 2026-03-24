@@ -2952,6 +2952,18 @@
 
             if (!matchedGroup) return;
 
+            const modalFormattedDate = ($('#calendarDayModal').data('formatted-date') || '')
+                .toString();
+            const modalGroupCountRaw = parseInt($('#calendarDayModal').data('day-group-count'), 10);
+            const modalGroupCount = Number.isFinite(modalGroupCountRaw) ? modalGroupCountRaw : groupedData.length;
+
+            $('#calendarDayModalTitle').text('Distribution Group');
+            $('#calendarDayModalDate').text(modalGroupCount > 0 ?
+                `${modalFormattedDate} • ${modalGroupCount} ${modalGroupCount === 1 ? 'group' : 'groups'}` :
+                modalFormattedDate
+            );
+            $('#calendarDaySummaryCards').removeClass('hidden');
+
             const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
             const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
             const needsHydration = groupItems.some(function(item) {
@@ -3034,8 +3046,9 @@
             renderOwnerDayMetrics(daySummary);
             renderOwnerAnalytics([matchedGroup], groupSummary);
 
-            showCalendarDayModal(normalizedDate, groupItems, {
+            showCalendarDayModal(normalizedDate, candidateItems, {
                 summary: groupSummary,
+                groupPicker: true,
                 scope: 'group',
                 groupKey: normalizedGroupKey
             });
@@ -3108,11 +3121,31 @@
                 .toString();
             const baseGroupKey = ($('#calendarDayModal').data('base-selected-group-key') || '')
                 .toString();
+            const isGroupPickerMode = Boolean($('#calendarDayModal').data('group-picker-mode'));
+            const formattedDate = ($('#calendarDayModal').data('formatted-date') || '').toString();
+            const groupCountRaw = parseInt($('#calendarDayModal').data('day-group-count'), 10);
+            const groupCount = Number.isFinite(groupCountRaw) ? groupCountRaw : 0;
 
             $('#calendarDayModal').data('day-summary', baseSummary);
             updateModalForecastedSales(dayItems, baseSummary);
             setCalendarDaySelectButtonScope(baseScope, baseGroupKey);
             setCalendarDayModalPane('list');
+
+            $('#calendarDayModalTitle').text(
+                isGroupPickerMode ?
+                'Select Distribution Group' :
+                (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+            );
+            $('#calendarDayModalDate').text(groupCount > 0 ?
+                `${formattedDate} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
+                formattedDate
+            );
+
+            if (isGroupPickerMode) {
+                $('#calendarDaySummaryCards').addClass('hidden');
+            } else {
+                $('#calendarDaySummaryCards').removeClass('hidden');
+            }
         });
 
         // Helper function to flatten grouped data from API into flat items array
@@ -3230,7 +3263,9 @@
                     .groupKey) ?
                 String(modalOptions.groupKey) :
                 '';
-            const selectionScope = isGroupPickerMode ? 'date' : requestedScope;
+            const shouldOpenSpecificGroup = requestedScope === 'group' && providedGroupKey !== '';
+            const selectionScope = shouldOpenSpecificGroup ? 'group' : 'date';
+            const baseSelectionScope = isGroupPickerMode ? 'date' : selectionScope;
             const shouldUseCurrentDaySummary = (selectedDate === dateStr) &&
                 Array.isArray(currentDayDistributionItems) &&
                 currentDayDistributionItems.length === flatItems.length;
@@ -3255,16 +3290,28 @@
             $('#calendarDayModal').data('selected-date', dateStr);
             $('#calendarDayModal').data('day-summary', modalSummary);
             $('#calendarDayModal').data('base-day-summary', modalSummary);
-            $('#calendarDayModal').data('base-selection-scope', selectionScope);
+            $('#calendarDayModal').data('base-selection-scope', baseSelectionScope);
             $('#calendarDayModal').data('base-selected-group-key', providedGroupKey);
+            $('#calendarDayModal').data('group-picker-mode', isGroupPickerMode);
+            $('#calendarDayModal').data('formatted-date', formatted);
+            $('#calendarDayModal').data('day-group-count', groupCount);
             $('#calendarDayGroupDetailContent').empty();
             setCalendarDaySelectButtonScope(selectionScope, providedGroupKey);
             setCalendarDayModalPane('list');
 
-            const batchTotal = flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ?
-                parseNumericValue(item.product_qnty) : 0), 0);
-            const piecesTotal = calculateTotalDistributionPieces(flatItems);
-            $('#modalItemCount').text(flatItems.length);
+            const hasSummaryCounts = modalSummary && typeof modalSummary === 'object';
+            const batchTotal = hasSummaryCounts && modalSummary.total_batches != null ?
+                parseNumericValue(modalSummary.total_batches) :
+                flatItems.reduce((sum, item) => sum + ((item.qty_mode || 'batch') !== 'pieces' ?
+                    parseNumericValue(item.product_qnty) : 0), 0);
+            const piecesTotal = hasSummaryCounts && modalSummary.total_pieces != null ?
+                parseNumericValue(modalSummary.total_pieces) :
+                calculateTotalDistributionPieces(flatItems);
+            const totalItems = hasSummaryCounts && modalSummary.total_items != null ?
+                parseNumericValue(modalSummary.total_items) :
+                flatItems.length;
+
+            $('#modalItemCount').text(formatQuantityValue(totalItems));
             $('#modalBatchesCount').text(formatQuantityValue(batchTotal));
             $('#modalPiecesCount').text(formatQuantityValue(piecesTotal));
             $('#calendarDayModal').data('day-items', flatItems);
@@ -3363,8 +3410,8 @@
                     });
                 }
 
-                if (!isGroupPickerMode && selectionScope === 'group' && providedGroupKey) {
-                    openCalendarModalGroupDetail(dateStr, providedGroupKey, items);
+                if (shouldOpenSpecificGroup) {
+                    openCalendarModalGroupDetail(dateStr, providedGroupKey, flatItems);
                 }
             }
 

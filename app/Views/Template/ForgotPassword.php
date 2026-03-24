@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E n' G Bakery - Forgot Password</title>
+    <title>E n' G Bakery - Karangahan - Forgot Password</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -34,6 +34,7 @@
             <div class="text-center p-8 pb-6">
                 <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="E n' G Bakery"
                     class="mx-auto w-20 mb-4" />
+                <img src="assets/images/logo.png" alt="E n' G Bakery - Karangahan Logo" class="logo">
                 <h1 class="text-2xl font-bold text-primary">Password Reset</h1>
                 <p class="text-sm text-gray-500 mt-1">Enter your email to receive a verification code</p>
             </div>
@@ -178,45 +179,45 @@
         let resendCountdownInterval;
         let otpExpiryTime;
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             initializeEventHandlers();
         });
 
         function initializeEventHandlers() {
             // Step 1: Request OTP
-            $('#requestOtpForm').on('submit', function(e) {
+            $('#requestOtpForm').on('submit', function (e) {
                 e.preventDefault();
                 requestOTP();
             });
 
             // Step 2: Verify OTP
-            $('#verifyOtpForm').on('submit', function(e) {
+            $('#verifyOtpForm').on('submit', function (e) {
                 e.preventDefault();
                 verifyOTP();
             });
 
             // Step 3: Reset Password
-            $('#resetPasswordForm').on('submit', function(e) {
+            $('#resetPasswordForm').on('submit', function (e) {
                 e.preventDefault();
                 resetPassword();
             });
 
             // Resend OTP
-            $('#resendOtp').on('click', function() {
+            $('#resendOtp').on('click', function () {
                 if (!$(this).prop('disabled')) {
                     requestOTP(true);
                 }
             });
 
             // Back to Step 1
-            $('#backToStep1').on('click', function() {
+            $('#backToStep1').on('click', function () {
                 clearInterval(countdownInterval);
                 clearInterval(resendCountdownInterval);
                 showStep(1);
             });
 
             // OTP input formatting
-            $('#otp').on('input', function() {
+            $('#otp').on('input', function () {
                 this.value = this.value.replace(/[^0-9]/g, '');
             });
         }
@@ -234,14 +235,14 @@
                 type: 'POST',
                 data: { email: email },
                 dataType: 'json',
-                beforeSend: function() {
+                beforeSend: function () {
                     if (isResend) {
                         $('#resendOtp').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Sending...');
                     } else {
                         $('#requestOtpForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Sending...');
                     }
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         $('#emailDisplay').text(email);
                         showStep(2);
@@ -251,11 +252,11 @@
                         showAlert('error', response.message || 'Failed to send verification code');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const errorMsg = xhr.responseJSON?.message || 'Failed to send verification code. Please try again.';
                     showAlert('error', errorMsg);
                 },
-                complete: function() {
+                complete: function () {
                     $('#requestOtpForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-paper-plane mr-2"></i>Send Verification Code');
                     $('#resendOtp').prop('disabled', false).html('<i class="fas fa-redo mr-1"></i>Resend Code');
                 }
@@ -274,15 +275,15 @@
             $.ajax({
                 url: BASE_URL + 'PasswordReset/VerifyOTP',
                 type: 'POST',
-                data: { 
+                data: {
                     email: email,
-                    otp: otp 
+                    otp: otp
                 },
                 dataType: 'json',
-                beforeSend: function() {
+                beforeSend: function () {
                     $('#verifyOtpForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         clearInterval(countdownInterval);
                         clearInterval(resendCountdownInterval);
@@ -292,12 +293,12 @@
                         $('#otp').val('').focus();
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const errorMsg = xhr.responseJSON?.message || 'Verification failed. Please try again.';
                     showAlert('error', errorMsg);
                     $('#otp').val('').focus();
                 },
-                complete: function() {
+                complete: function () {
                     $('#verifyOtpForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Verify Code');
                 }
             });
@@ -321,30 +322,30 @@
             $.ajax({
                 url: BASE_URL + 'PasswordReset/ResetPassword',
                 type: 'POST',
-                data: { 
+                data: {
                     email: email,
                     new_password: newPassword,
                     confirm_password: confirmPassword
                 },
                 dataType: 'json',
-                beforeSend: function() {
+                beforeSend: function () {
                     $('#resetPasswordForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Resetting...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showAlert('success', 'Password reset successfully! Redirecting to login...');
-                        setTimeout(function() {
+                        setTimeout(function () {
                             window.location.href = BASE_URL + 'login';
                         }, 2000);
                     } else {
                         showAlert('error', response.message || 'Failed to reset password');
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const errorMsg = xhr.responseJSON?.message || 'Failed to reset password. Please try again.';
                     showAlert('error', errorMsg);
                 },
-                complete: function() {
+                complete: function () {
                     $('#resetPasswordForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-key mr-2"></i>Reset Password');
                 }
             });
@@ -367,12 +368,12 @@
         function startCountdown() {
             // Set expiry time to 3 minutes from now
             otpExpiryTime = Date.now() + (3 * 60 * 1000);
-            
+
             // Disable resend button for 30 seconds
             let resendWait = 30;
             $('#resendOtp').prop('disabled', true);
-            
-            resendCountdownInterval = setInterval(function() {
+
+            resendCountdownInterval = setInterval(function () {
                 resendWait--;
                 if (resendWait > 0) {
                     $('#resendTimer').text('(' + resendWait + 's)');
@@ -384,9 +385,9 @@
             }, 1000);
 
             // Main countdown
-            countdownInterval = setInterval(function() {
+            countdownInterval = setInterval(function () {
                 const remaining = otpExpiryTime - Date.now();
-                
+
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
                     $('#countdown').text('0:00').addClass('text-red-600');
@@ -396,7 +397,7 @@
                     const minutes = Math.floor(remaining / 60000);
                     const seconds = Math.floor((remaining % 60000) / 1000);
                     $('#countdown').text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
-                    
+
                     // Change color when less than 1 minute remains
                     if (remaining < 60000) {
                         $('#countdown').addClass('text-red-600');
@@ -408,7 +409,7 @@
         function showAlert(type, message) {
             const alertClass = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
             const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-            
+
             const alertHtml = `
                 <div class="${alertClass} border px-4 py-3 rounded relative alert-message" role="alert">
                     <div class="flex items-center">
@@ -422,8 +423,8 @@
 
             // Auto-remove after 5 seconds (except for success messages on password reset)
             if (!(type === 'success' && message.includes('Redirecting'))) {
-                setTimeout(function() {
-                    $('.alert-message').fadeOut(function() {
+                setTimeout(function () {
+                    $('.alert-message').fadeOut(function () {
                         $(this).remove();
                     });
                 }, 5000);
