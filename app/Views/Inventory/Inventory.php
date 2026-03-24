@@ -12,12 +12,10 @@
                             class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
                             <i class="fas fa-history mr-2"></i> History
                         </a>
-                        <?php if ($isOwnerView): ?>
-                            <button id="btnSendInventoryReport" type="button"
-                                class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                                <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                            </button>
-                        <?php endif; ?>
+                        <button id="btnSendInventoryReport" type="button"
+                            class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
+                        </button>
                         <button id="btnAddProductToInventory" type="button"
                             class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
                             <i class="fas fa-plus mr-2"></i> Add Product
@@ -647,45 +645,32 @@
         </div>
     </div>
 
-    <?php if ($isOwnerView): ?>
-        <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
-            <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-                <button type="button" id="sendReportConfirmModalClose"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                    <i class="fas fa-xmark"></i>
+    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="sendReportConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
+                    emailed.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmSendInventoryReport"
+                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Send Report
                 </button>
-                <div class="text-center">
-                    <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
-                    <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
-                    <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
-                        emailed.</p>
-                </div>
-                <div class="mb-4">
-                    <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-                    <select id="sendReportShiftSelect"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
-                        <option value="shift_a">Shift A</option>
-                        <option value="shift_b">Shift B</option>
-                        <option value="shift_c">Shift C</option>
-                        <option value="shift_d">Shift D</option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" id="btnConfirmSendInventoryReport"
-                        class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                        Send Report
-                    </button>
-                    <button type="button" id="sendReportConfirmModalCancel"
-                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                        Cancel
-                    </button>
-                </div>
+                <button type="button" id="sendReportConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
             </div>
         </div>
-    <?php endif; ?>
+    </div>
 
     <script>
         // Track if inventory exists for today
@@ -1027,6 +1012,7 @@
         let todayDistProductDetailPromiseCache = {};
         let todayDistHydrationToken = 0;
         let todayDistributionGroupedData = [];
+        let inventoryId = null;
 
         function getTodayDateForApi() {
             const now = new Date();
@@ -2051,7 +2037,7 @@
                     dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        shift: $('#sendReportShiftSelect').val()
+                        inventory_id: inventoryId
                     }),
                     success: function (response) {
                         if (response && response.success) {
@@ -2845,7 +2831,6 @@
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
-                        console.log(response.message);
                     } else {
                         showToast('error', response.message, 2000);
                     }
@@ -2865,11 +2850,10 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
-                    console.log(response);
                     if (response.success) {
-                        // showToast('success', response.message, 2000);
                         loadInventory(response.data);
-                        console.log('Inventory data:', response.data);
+                        console.log('Inventory data:', response);
+                        inventoryId = response.inventory_id || null;
                     } else {
                         console.log("Error: " + response.error);
                     }

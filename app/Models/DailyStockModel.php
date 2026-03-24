@@ -14,6 +14,7 @@ class DailyStockModel extends Model
         'inventory_date',
         'time_start',
         'time_end',
+        'is_closed',
     ];
 
     // Dates

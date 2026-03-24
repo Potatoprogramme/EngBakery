@@ -61,11 +61,11 @@ class InventoryController extends BaseController
             $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
             $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
-
         if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $daily_stock_items,
+                'inventory_id' => $daily_stock['daily_stock_id'],
                 'message' => 'Inventory fetched successfully.'
             ]);
         } else {
@@ -159,7 +159,7 @@ class InventoryController extends BaseController
      * Add today's inventory using distribution data.
      * Strict flow: this may only run AFTER today's distribution is completed.
      * Only products from today's distribution records are added to inventory,
-    * with carryover from the latest earlier inventory merged into beginning stock.
+     * with carryover from the latest earlier inventory merged into beginning stock.
      */
     public function addInventoryFromDistribution()
     {
@@ -1347,7 +1347,7 @@ class InventoryController extends BaseController
      * Owner-only. Used for verifying the email before the scheduled window fires.
      *
      * POST /Inventory/SendReport
-    * Body (JSON): { "slot": "am"|"pm"|"shift_a"|"shift_b"|"shift_c"|"shift_d", "force": true }
+     * Body (JSON): { "slot": "am"|"pm"|"shift_a"|"shift_b"|"shift_c"|"shift_d", "force": true }
      */
     public function sendInventoryReport()
     {
@@ -1357,11 +1357,12 @@ class InventoryController extends BaseController
         if (($session['employee_type'] ?? '') !== 'owner') {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
-                'message'  => 'Unauthorized. Only owners can trigger inventory reports.',
+                'message' => 'Unauthorized. Only owners can trigger inventory reports.',
             ]);
         }
 
-        $json  = $this->request->getJSON(true);
+        $json = $this->request->getJSON(true);
+
         $slotValue = $json['slot'] ?? ($json['shift'] ?? '');
         $slotInput = strtolower(trim((string) $slotValue));
         if (in_array($slotInput, ['morning', 'am', 'first', 'first_shift'], true)) {
@@ -1428,8 +1429,8 @@ class InventoryController extends BaseController
      * Get product recipe with raw materials and quantities
      * GET /Inventory/GetProductRecipe/{productId}
      * 
-    * Returns raw materials needed per yield of the product
-    * with their quantities and units.
+     * Returns raw materials needed per yield of the product
+     * with their quantities and units.
      */
     public function GetProductRecipe($productId = null)
     {
