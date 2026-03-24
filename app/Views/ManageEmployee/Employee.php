@@ -492,7 +492,7 @@
             if (!users || users.length === 0) {
                 tbody.html(
                     '<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>'
-                    );
+                );
                 return;
             }
 
@@ -543,7 +543,7 @@
                     success: function(response) {
                         if (response.success) {
                             Toast.success(response.message ||
-                            'User restored successfully.');
+                                'User restored successfully.');
                             fetchEmployees();
                             fetchArchivedUsers();
                         } else {
@@ -741,7 +741,7 @@
                 paginatedUsers.forEach(function(user) {
                     const initials = getInitials(user.firstname, user.lastname);
                     const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`
-                    .trim();
+                        .trim();
                     const formattedDate = formatDate(user.created_at);
                     const role = capitalizeRole(user.employee_type);
                     const canDelete = canDeleteUser(user.employee_type);
@@ -1097,10 +1097,10 @@
         });
 
         $('#closeArchivedUsersModal, #closeArchivedUsersBtn, #archivedUsersModalBackdrop').on('click',
-        function() {
-            $('#archivedUsersModal').removeClass('flex').addClass('hidden');
-            syncManageEmployeeBodyScrollLock();
-        });
+            function() {
+                $('#archivedUsersModal').removeClass('flex').addClass('hidden');
+                syncManageEmployeeBodyScrollLock();
+            });
 
         $('#confirmRoleChange').on('click', function() {
             const btn = $(this);
