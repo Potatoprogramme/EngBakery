@@ -164,8 +164,11 @@ $routes->group('Approval', function (RouteCollection $routes) {
 $routes->group('ManageEmployee', function (RouteCollection $routes) {
     $routes->get('/', 'ManageEmployeeController::index');
     $routes->get('GetEmployees', 'ManageEmployeeController::getEmployees');
+    $routes->get('GetArchivedUsers', 'ManageEmployeeController::getArchivedUsers');
     $routes->get('Approval', 'ApprovalController::index');
     $routes->post('DeleteUser', 'ManageEmployeeController::deleteUser');
+    $routes->post('RestoreUser', 'ManageEmployeeController::restoreUser');
+    $routes->post('HardDeleteUser', 'ManageEmployeeController::hardDeleteUser');
     $routes->post('ChangeUserRole', 'ManageEmployeeController::changeUserRole');
 });
 

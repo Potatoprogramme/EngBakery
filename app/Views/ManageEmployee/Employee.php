@@ -25,6 +25,13 @@
                         <p class="text-sm text-gray-500 mt-0.5">Manage employees, roles, and approval requests</p>
                     </div>
                     <div class="flex items-center gap-2">
+                        <?php if (($employee_type ?? '') === 'owner'): ?>
+                        <button type="button" id="openArchivedUsers"
+                            class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-white hover:bg-gray-900 transition-colors">
+                            <i class="fas fa-box-archive mr-2"></i>
+                            Archived Users
+                        </button>
+                        <?php endif; ?>
                         <a href="<?= base_url('ManageEmployee/Approval') ?>"
                             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-secondary transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -176,6 +183,50 @@
         </div>
     </div>
 
+    <!-- Archived Users Modal -->
+    <div id="archivedUsersModal"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[60] justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="fixed inset-0 bg-black/50 transition-opacity" id="archivedUsersModalBackdrop"></div>
+        <div class="relative p-4 w-full max-w-3xl max-h-full mx-auto mt-20">
+            <div class="relative bg-white rounded-lg shadow-lg">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Archived Users</h3>
+                    <button type="button" id="closeArchivedUsersModal"
+                        class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4 md:p-5">
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deleted At</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archivedUsersTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-4 md:p-5 border-t border-gray-200">
+                    <button type="button" id="closeArchivedUsersBtn"
+                        class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg border border-gray-200 text-sm px-5 py-2.5 hover:text-gray-900">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Change Role Modal -->
     <div id="changeRoleModal"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[60] justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -304,11 +355,12 @@
 
         // Store all employees for filtering
         let allEmployees = [];
+        let archivedUsers = [];
         let currentPage = 1;
         const itemsPerPage = 5;
 
         function syncManageEmployeeBodyScrollLock() {
-            const hasOpenModal = !$('#changeRoleModal').hasClass('hidden') || !$('#viewEditModal').hasClass('hidden');
+            const hasOpenModal = !$('#changeRoleModal').hasClass('hidden') || !$('#viewEditModal').hasClass('hidden') || !$('#archivedUsersModal').hasClass('hidden');
             $('body').toggleClass('overflow-hidden', hasOpenModal);
         }
 
@@ -400,7 +452,7 @@
                             ButtonLoader.stop(btn);
                         }
                         if (response.success) {
-                            Toast.success('Employee deleted successfully.');
+                            Toast.success('Employee archived successfully.');
                             console.log('Deleted user ID:', response.data);
                             fetchEmployees();
                             fetchPendingCount();
@@ -414,6 +466,119 @@
                         }
                         console.error('Error deleting user:', xhr);
                         Toast.error('An error occurred while deleting the employee.');
+                    }
+                });
+            }
+
+            function renderArchivedUsers(users) {
+                const tbody = $('#archivedUsersTableBody');
+                tbody.empty();
+
+                if (!users || users.length === 0) {
+                    tbody.html('<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>');
+                    return;
+                }
+
+                users.forEach(function (user) {
+                    const fullName = `${user.firstname || ''} ${user.middlename || ''} ${user.lastname || ''}`.replace(/\s+/g, ' ').trim();
+                    const deletedAt = formatDate(user.deleted_at);
+
+                    const row = `
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-900">${fullName || 'N/A'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">${user.email || 'N/A'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">${deletedAt}</td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="inline-flex gap-2">
+                                    <button type="button" class="btn-restore-user text-green-700 bg-green-50 border border-green-200 rounded px-3 py-1.5 text-xs font-medium hover:bg-green-100" data-user-id="${user.user_id}" data-name="${fullName}">
+                                        Restore
+                                    </button>
+                                    <button type="button" class="btn-hard-delete-user text-red-700 bg-red-50 border border-red-200 rounded px-3 py-1.5 text-xs font-medium hover:bg-red-100" data-user-id="${user.user_id}" data-name="${fullName}">
+                                        Delete Permanently
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+
+                    tbody.append(row);
+                });
+
+                $('.btn-restore-user').off('click').on('click', function () {
+                    const btn = $(this);
+                    const userId = btn.data('user-id');
+                    const userName = btn.data('name') || 'this user';
+
+                    if (!confirm(`Restore ${userName}?`)) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: `${BASE_URL}/ManageEmployee/RestoreUser`,
+                        method: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ user_id: userId }),
+                        success: function (response) {
+                            if (response.success) {
+                                Toast.success(response.message || 'User restored successfully.');
+                                fetchEmployees();
+                                fetchArchivedUsers();
+                            } else {
+                                Toast.error(response.message || 'Failed to restore user.');
+                            }
+                        },
+                        error: function () {
+                            Toast.error('An error occurred while restoring the user.');
+                        }
+                    });
+                });
+
+                $('.btn-hard-delete-user').off('click').on('click', function () {
+                    const btn = $(this);
+                    const userId = btn.data('user-id');
+                    const userName = btn.data('name') || 'this user';
+
+                    if (!confirm(`Permanently delete ${userName}? This cannot be undone.`)) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: `${BASE_URL}/ManageEmployee/HardDeleteUser`,
+                        method: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ user_id: userId }),
+                        success: function (response) {
+                            if (response.success) {
+                                Toast.success(response.message || 'User permanently deleted.');
+                                fetchArchivedUsers();
+                            } else {
+                                Toast.error(response.message || 'Failed to permanently delete user.');
+                            }
+                        },
+                        error: function () {
+                            Toast.error('An error occurred while permanently deleting the user.');
+                        }
+                    });
+                });
+            }
+
+            function fetchArchivedUsers() {
+                $.ajax({
+                    url: `${BASE_URL}/ManageEmployee/GetArchivedUsers`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            archivedUsers = response.data || [];
+                            renderArchivedUsers(archivedUsers);
+                        } else {
+                            Toast.error(response.message || 'Failed to load archived users.');
+                        }
+                    },
+                    error: function () {
+                        Toast.error('An error occurred while loading archived users.');
                     }
                 });
             }
@@ -831,7 +996,7 @@
                     }
 
                     Confirm.delete(
-                        `Are you sure you want to delete ${employeeName}? This action cannot be undone.`,
+                        `Are you sure you want to archive ${employeeName}? You can keep historical records while hiding this user from active lists.`,
                         function () {
                             // User confirmed deletion
                             deleteUser(userId, employeeName, btn);
@@ -893,6 +1058,17 @@
                 syncManageEmployeeBodyScrollLock();
             });
 
+            $('#openArchivedUsers').on('click', function () {
+                fetchArchivedUsers();
+                $('#archivedUsersModal').removeClass('hidden').addClass('flex');
+                syncManageEmployeeBodyScrollLock();
+            });
+
+            $('#closeArchivedUsersModal, #closeArchivedUsersBtn, #archivedUsersModalBackdrop').on('click', function () {
+                $('#archivedUsersModal').removeClass('flex').addClass('hidden');
+                syncManageEmployeeBodyScrollLock();
+            });
+
             $('#confirmRoleChange').on('click', function () {
                 const btn = $(this);
                 const newRole = $('#newRole').val();
@@ -925,7 +1101,7 @@
             });
 
             // Prevent modal content click from closing
-            $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white').on('click', function (e) {
+            $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white').on('click', function (e) {
                 e.stopPropagation();
             });
         });
