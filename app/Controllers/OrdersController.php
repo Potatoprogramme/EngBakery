@@ -376,6 +376,9 @@ class OrdersController extends BaseController
                 }
             }
 
+            // Remove related sales transactions so inventory qty sold is refunded
+            $this->transactionsModel->deleteByOrderId(intval($orderId));
+
             // Soft delete: mark as voided instead of deleting
             $cashierName = $this->normalizePersonName(session()->get('name') ?? session()->get('username') ?? 'Unknown');
             $this->orderModel->update($orderId, [
@@ -398,6 +401,85 @@ class OrdersController extends BaseController
                 'message' => 'Order voided successfully.'
             ]);
 
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function deleteOrder($orderId = null)
+    {
+        if (!$orderId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Order ID required.'
+            ]);
+        }
+
+        $sessionData = $this->getSessionData();
+        $employeeType = strtolower((string) ($sessionData['employee_type'] ?? session()->get('employee_type') ?? ''));
+
+        if ($employeeType !== 'owner') {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You do not have permission to delete orders.'
+            ]);
+        }
+
+        $this->db->transStart();
+
+        try {
+            $order = $this->orderModel->find($orderId);
+            if (!$order) {
+                throw new \Exception('Order not found.');
+            }
+
+            // Restore stock and raw materials for each item (like void)
+            $orderItems = $this->orderItemModel->getOrderItems($orderId);
+            $dailyStock = $this->dailyStockModel->getTodaysInventory();
+
+            foreach ($orderItems as $item) {
+                $product = $this->productModel->find(intval($item['product_id']));
+                $category = $product['category'] ?? '';
+
+                // Drinks & groceries: restore raw materials via recipe
+                if (in_array($category, ['drinks', 'grocery'])) {
+                    $this->rawMaterialStockModel->restoreForProduction(
+                        intval($item['product_id']),
+                        intval($item['amount'])
+                    );
+                }
+
+                // Restore daily inventory stock if it exists (for all categories)
+                if ($dailyStock) {
+                    $stockItem = $this->dailyStockItemsModel->getStockItemByProduct($dailyStock['daily_stock_id'], $item['product_id']);
+                    if ($stockItem) {
+                        $this->dailyStockItemsModel->restoreStock($stockItem['item_id'], intval($item['amount']));
+                    }
+                }
+            }
+
+            // Remove related sales transactions and order items
+            $this->transactionsModel->deleteByOrderId(intval($orderId));
+            $this->orderItemModel->deleteByOrderId(intval($orderId));
+
+            if ($this->orderModel->delete(intval($orderId)) === false) {
+                throw new \Exception('Failed to delete order.');
+            }
+
+            $this->db->transComplete();
+
+            if ($this->db->transStatus() === false) {
+                throw new \Exception('Failed to delete order.');
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Order deleted successfully.'
+            ]);
         } catch (\Exception $e) {
             $this->db->transRollback();
             return $this->response->setJSON([

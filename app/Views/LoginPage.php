@@ -4,26 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E n' G Bakery</title>
+    <title>E n' G Bakery - Karangahan</title>
     <link rel="icon" href="<?= base_url("assets/pictures/En'G Bakery Logo.png") ?>" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary: '#007B4C',
-                    secondary: '#005A36',
-                },
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007B4C',
+                        secondary: '#005A36',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
                 }
             }
         }
-    }
     </script>
 </head>
 
@@ -34,8 +34,8 @@
                 <!-- Left panel: brand / illustration (hidden on small screens) -->
                 <div class="hidden md:flex md:w-1/2 bg-cover bg-center items-center justify-center p-8 bg-primary">
                     <div class="text-center">
-                        <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="E n' G Bakery"
-                            class="mx-auto w-40 md:w-48 mb-4" />
+                        <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>"
+                            alt="E n' G Bakery - Karangahan" class="mx-auto w-40 md:w-48 mb-4" />
                         <h2 class="text-2xl font-extrabold text-white">Welcome back!</h2>
                         <p class="mt-2 text-sm text-white">Sign in to manage orders and bakery settings.</p>
                     </div>
@@ -44,7 +44,8 @@
                 <!-- Right panel: form -->
                 <div class="w-full md:w-1/2 p-6 sm:p-8">
                     <div class="max-w-md mx-auto">
-                        <h1 class="text-center text-4xl font-bold text-primary mb-6 hidden md:block">E n' G Bakery</h1>
+                        <h1 class="text-center text-4xl font-bold text-primary mb-6 hidden md:block">E n' G Bakery -
+                            Karangahan</h1>
                         <a href="<?= base_url() ?>"
                             class="flex items-center mb-6 justify-center md:justify-start md:hidden">
                             <img class="w-36 md:w-40 mr-2"
@@ -55,15 +56,15 @@
 
                         <!-- Flash Messages -->
                         <?php if (session()->has('error_message')): ?>
-                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                            <span class="block sm:inline"><?= session('error_message') ?></span>
-                        </div>
+                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                                <span class="block sm:inline"><?= session('error_message') ?></span>
+                            </div>
                         <?php endif; ?>
 
                         <?php if (session()->has('success_message')): ?>
-                        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                            <span class="block sm:inline"><?= session('success_message') ?></span>
-                        </div>
+                            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                <span class="block sm:inline"><?= session('success_message') ?></span>
+                            </div>
                         <?php endif; ?>
 
                         <form class="space-y-4" action="<?= base_url('Login/Manual') ?>" method="post" novalidate>
@@ -130,23 +131,23 @@
 </body>
 
 <script>
-document.querySelectorAll('.toggle-password').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        const icon = this.querySelector('i');
+    document.querySelectorAll('.toggle-password').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
 
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
     });
-});
 </script>
 
 </html>

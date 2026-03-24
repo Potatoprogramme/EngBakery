@@ -32,7 +32,7 @@
 </head>
 
 <body>
-    
+
     <section class="min-h-screen flex items-center bg-[#b2d7c9] py-8">
         <div class="w-full max-w-3xl mx-auto px-4 sm:px-6">
             <div class="bg-white rounded-lg shadow-lg overflow-hidden p-6 sm:p-8">
@@ -40,7 +40,7 @@
                 <div class="text-center mb-6">
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="E n' G Bakery"
                         class="mx-auto w-20 sm:w-24 mb-4" />
-                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery - Karangahan</h1>
                     <p class="text-sm text-gray-500 mt-1">Create your account</p>
                 </div>
 
@@ -155,7 +155,9 @@
                                 <label for="password"
                                     class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Password
                                     <span class="text-red-500">*</span></label>
-                                <button type="button" class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700" data-target="password">
+                                <button type="button"
+                                    class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700"
+                                    data-target="password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
@@ -167,7 +169,9 @@
                                 <label for="confirm_password"
                                     class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Confirm
                                     Password <span class="text-red-500">*</span></label>
-                                <button type="button" class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700" data-target="confirm_password">
+                                <button type="button"
+                                    class="toggle-password absolute right-0 top-2.5 text-gray-500 hover:text-gray-700"
+                                    data-target="confirm_password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
@@ -195,12 +199,12 @@
 
 <script>
     // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    document.querySelectorAll('.toggle-password').forEach(function (btn) {
+        btn.addEventListener('click', function () {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
             const icon = this.querySelector('i');
-            
+
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.remove('fa-eye');
