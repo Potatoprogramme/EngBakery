@@ -19,7 +19,7 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                     </svg>
                 </button>
                 <a href="<?= base_url("/Dashboard") ?>"
-                    class="flex items-center justify-center ms-2 sm:ms-4 min-w-0 flex-1 overflow-hidden">
+                    class="flex items-center justify-start ms-2 sm:ms-4 min-w-0 flex-1 overflow-hidden">
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>"
                         class="h-6 me-1 sm:me-2 shrink-0" alt="En'G Bakery Logo" />
                     <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary truncate min-w-0">
