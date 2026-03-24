@@ -355,8 +355,8 @@ class AuthenticationController extends BaseController
                 'birthdate' => 'required|valid_date',
                 'gender' => 'required|in_list[male,female]',
                 'phone' => 'required|numeric|min_length[10]|max_length[15]',
-                'username' => 'required|alpha_numeric_punct|min_length[3]|max_length[50]|is_unique[users.username]',
-                'email' => 'required|valid_email|max_length[100]|is_unique[users.email]',
+                'username' => 'required|alpha_numeric_punct|min_length[3]|max_length[50]',
+                'email' => 'required|valid_email|max_length[100]',
                 'password' => 'required|min_length[6]|max_length[255]',
                 'confirm_password' => 'required|matches[password]',
             ])
@@ -368,6 +368,28 @@ class AuthenticationController extends BaseController
         }
 
         $postData = $this->validator->getValidated();
+
+        $usernameExists = $this->usersModel
+            ->where('username', $postData['username'])
+            ->first();
+
+        if ($usernameExists) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Username is already taken.',
+            ]);
+        }
+
+        $emailExists = $this->usersModel
+            ->where('email', $postData['email'])
+            ->first();
+
+        if ($emailExists) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Email is already taken.',
+            ]);
+        }
 
         // Prepare user data for insertion
         $userData = [
