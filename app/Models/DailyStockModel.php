@@ -15,6 +15,8 @@ class DailyStockModel extends Model
         'time_start',
         'time_end',
         'is_closed',
+        'report_sent',
+        'report_sent_at',
     ];
 
     // Dates
@@ -30,19 +32,25 @@ class DailyStockModel extends Model
 
     public function checkInventoryToday($date)
     {
-        return $this->where('inventory_date', $date)->first();
+        return $this->where('is_closed', 0)
+            ->where('report_sent', 0)
+            ->where('inventory_date', $date)
+            ->first();
     }
     public function checkInventoryExists($date)
     {
-        return $this->where('inventory_date', $date)->first();
+        return $this->where('is_closed', 0)
+            ->where('report_sent', 0)
+            ->where('inventory_date', $date)
+            ->first();
     }
     public function addTodaysInventory($data)
     {
         return $this->insert($data);
     }
-    public function deleteInventoryByDate($date)
+    public function deleteInventory(int $id)
     {
-        return $this->where('inventory_date', $date)->delete();
+        return $this->where('daily_stock_id', $id)->delete();
     }
 
     /**

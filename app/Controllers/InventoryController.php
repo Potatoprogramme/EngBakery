@@ -34,7 +34,7 @@ class InventoryController extends BaseController
     public function fetchTodaysInventory()
     {
         $today = date('Y-m-d');
-        $daily_stock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $daily_stock = $this->dailyStockModel->where('report_sent', 0)->where('inventory_date', $today)->first();
 
         // Check if daily_stock exists before accessing it
         if (!$daily_stock) {
@@ -729,12 +729,20 @@ class InventoryController extends BaseController
         }
     }
 
-    public function deleteTodaysInventory()
+    public function deleteInventory()
     {
         $today = date('Y-m-d');
+        $data = $this->request->getJSON(true);
+        $id = $data['inventory_id'] ?? null;
+
+        if (!$id) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory ID is required for deletion.'
+            ]);
+        }
 
         $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
-
         if (!$dailyStock) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
@@ -769,18 +777,18 @@ class InventoryController extends BaseController
         // at distribution time. Deleting inventory only removes the inventory
         // record — distribution deductions remain intact.
 
-        if ($this->dailyStockModel->deleteInventoryByDate($today)) {
+        if ($this->dailyStockModel->deleteInventory($id)) {
             // Immediate notification: inventory deleted
             $this->notify('notifyInventoryDeleted', $today);
 
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
-                'message' => 'Today\'s inventory deleted successfully.'
+                'message' => 'Inventory deleted successfully.'
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Failed to delete today\'s inventory.'
+                'message' => 'Failed to delete inventory.'
             ]);
         }
     }
@@ -1152,7 +1160,7 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $date)->first();
+        $dailyStock = $this->dailyStockModel->where('report_sent', 0)->where('inventory_date', $date)->first();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
@@ -1345,9 +1353,7 @@ class InventoryController extends BaseController
     /**
      * Manually trigger the scheduled inventory report for a given slot.
      * Owner-only. Used for verifying the email before the scheduled window fires.
-     *
-     * POST /Inventory/SendReport
-     * Body (JSON): { "slot": "am"|"pm"|"shift_a"|"shift_b"|"shift_c"|"shift_d", "force": true }
+     *  POST /Inventory/SendReport
      */
     public function sendInventoryReport()
     {
@@ -1361,70 +1367,58 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $json = $this->request->getJSON(true);
+        $data = $this->request->getJSON(true);
 
-        $slotValue = $json['slot'] ?? ($json['shift'] ?? '');
-        $slotInput = strtolower(trim((string) $slotValue));
-        if (in_array($slotInput, ['morning', 'am', 'first', 'first_shift'], true)) {
-            $slotInput = 'am';
-        } elseif (in_array($slotInput, ['afternoon', 'pm', 'second', 'second_shift'], true)) {
-            $slotInput = 'pm';
-        }
-
-        $slot = in_array($slotInput, ['am', 'pm', 'shift_a', 'shift_b', 'shift_c', 'shift_d'], true)
-            ? $slotInput
-            : 'am';
-        $force = !empty($json['force']);
-
-        $today    = date('Y-m-d');
-        $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
-
-        if (!$force && file_exists($flagFile)) {
-            return $this->response->setJSON([
+        $inventoryId = $data['inventory_id'] ?? null;
+        if (!$inventoryId) {
+            return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => "Report for the '{$slot}' slot was already sent today. Pass \"force\": true to resend.",
-                'flag'    => $flagFile,
+                'message' => 'Missing inventory_id.',
             ]);
-        }
-
-        // Delete flag so the sender is not blocked
-        if ($force && file_exists($flagFile)) {
-            @unlink($flagFile);
         }
 
         try {
-            // Use reflection to call private method for the force-test path
-            $scheduler = new \ReflectionClass(\App\Libraries\AutoReportScheduler::class);
-            $method    = $scheduler->getMethod('sendInventoryReport');
-            $method->setAccessible(true);
-            $sent      = $method->invoke(null, $slot, $today);
-
-            if ($sent) {
-                // Re-plant flag so the scheduler won't double-send
-                file_put_contents($flagFile, date('Y-m-d H:i:s') . ' (manual)');
-
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => "Inventory report for slot '{$slot}' sent successfully.",
-                    'slot'    => $slot,
-                    'date'    => $today,
-                ]);
-            }
-
-            return $this->response->setStatusCode(500)->setJSON([
-                'success' => false,
-                'message' => 'Report was not sent. Check writable/logs for details.',
+            $updateData = [
+                'report_sent' => 1,
+                'report_sent_at' => date('Y-m-d H:i:s'),
+            ];
+            $this->dailyStockModel->update($inventoryId, $updateData); // update the daily stock record
+            $this->resetInventory($inventoryId);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory report marked as sent.',
             ]);
-
-        } catch (\Throwable $e) {
-            log_message('error', 'Manual inventory report trigger failed: ' . $e->getMessage());
+        } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Exception: ' . $e->getMessage(),
+                'message' => $e->getMessage() ?: 'Failed to mark report as sent.',
             ]);
         }
     }
-
+    private function resetInventory(int $inventoryId)
+    {
+        $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
+        $insertData = [
+            'inventory_date' => date('Y-m-d'),
+            'time_start' => date('H:i:s'),
+            'time_end' => date('H:i:s'),
+        ];
+        if ($this->dailyStockModel->insert($insertData)) {
+            $this->dailyStockItemsModel->insertBatch(
+                array_map(function ($item) {
+                    return [
+                        'daily_stock_id' => $this->dailyStockModel->getInsertID(),
+                        'product_id' => $item['product_id'],
+                        'beginning_stock' => $item['ending_stock'], // carry over ending stock as new beginning
+                        'pull_out_quantity' => 0,
+                        'ending_stock' => $item['ending_stock'], // initial ending same as beginning
+                        'distribution_qty' => 0, // reset distribution for new day
+                        'is_enabled' => ($item['ending_stock'] > 0) ? 1 : 0 || $item['is_enabled'], // disable if no stock carried over
+                    ];
+                }, $duplicate_item)
+            );
+        }
+    }
     /**
      * Get product recipe with raw materials and quantities
      * GET /Inventory/GetProductRecipe/{productId}

@@ -5,34 +5,35 @@
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Inventory/History') ?>"
-                            class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            <i class="fas fa-history mr-2"></i> History
-                        </a>
-                        <button id="btnSendInventoryReport" type="button"
-                            class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                        </button>
-                        <button id="btnAddProductToInventory" type="button"
-                            class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
-                            <i class="fas fa-plus mr-2"></i> Add Product
-                        </button>
-                        <button id="btnDistributions" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
-                        </button>
-                        <button id="btnAddTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Today's Inventory
-                        </button>
-                        <button id="btnDeleteTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
-                            Delete Today's Inventory
-                        </button>
-                    </div>
+                <div class="flex flex-wrap gap-x-3 gap-y-2 justify-end items-center w-full">
+                    <a href="<?= base_url('Inventory/History') ?>"
+                        class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition">
+                        <i class="fas fa-history mr-2"></i> History
+                    </a>
+                    <button id="btnAddTodaysInventory" type="button"
+                        class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40 transition">
+                        <i class="fas fa-plus mr-2"></i> Add Inventory
+                    </button>
+                    <button id="btnAddProductToInventory" type="button"
+                        class="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition">
+                        <i class="fas fa-plus mr-2"></i> Add Product
+                    </button>
+                    <button id="btnDistributions" type="button"
+                        class="inline-flex items-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                        <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
+                    </button>
+                    <button id="btnSendInventoryReport" type="button"
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+                        <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
+                    </button>
+                    <button id="btnCloseInventory" type="button"
+                        class="inline-flex items-center rounded-lg bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition">
+                        <i class="fa-solid fa-lock mr-2"></i> Close Inventory
+                    </button>
+                    <button id="btnDeleteTodaysInventory" type="button"
+                        class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition">
+                        <i class="fas fa-trash mr-2"></i> Delete Inventory
+                    </button>
                 </div>
 
                 <!-- Divider line -->
@@ -695,7 +696,7 @@
             // Confirm Delete
             $('#btnConfirmDelete').on('click', function () {
                 $('#deleteConfirmModal').addClass('hidden');
-                deleteTodaysInventory(); // This calls your function
+                deleteInventory(); // This calls your function
             });
 
             // Distributions button click — open distribution list modal
@@ -2043,6 +2044,7 @@
                         if (response && response.success) {
                             showToast('success', response.message ||
                                 'Inventory report sent successfully.', 2500);
+                            fetchAllStockitems();
                         } else {
                             showToast('error', (response && response.message) ||
                                 'Failed to send inventory report.', 3000);
@@ -3302,7 +3304,7 @@
             $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
 
             // Set notes or placeholder
-            if (notes && notes.trim()) {
+            if (String(notes) && String(notes).trim()) {
                 $('#itemDetailsNotes').text(notes);
             } else {
                 $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
@@ -3988,17 +3990,15 @@
             });
         });
 
-        function deleteTodaysInventory() {
+        function deleteInventory() {
             const baseUrl = '<?= base_url() ?>';
-            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
             $.ajax({
-                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                url: baseUrl + 'Inventory/DeleteInventory',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    date: today
+                    inventory_id: inventoryId
                 }),
                 success: function (response) {
                     if (response.success) {

@@ -88,7 +88,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
     $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');
-    $routes->post('DeleteTodaysInventory', 'InventoryController::deleteTodaysInventory');
+    $routes->post('DeleteInventory', 'InventoryController::deleteInventory');
     $routes->post('UpdateStockItem/(:num)', 'InventoryController::updateStockItem/$1');
     $routes->post('Delete/(:num)', 'InventoryController::deleteStockItem/$1');
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
