@@ -32,14 +32,14 @@ class DailyStockModel extends Model
 
     public function checkInventoryToday($date)
     {
-        return $this->where('is_closed', 0)
+        return $this
             ->where('report_sent', 0)
             ->where('inventory_date', $date)
             ->first();
     }
     public function checkInventoryExists($date)
     {
-        return $this->where('is_closed', 0)
+        return $this
             ->where('report_sent', 0)
             ->where('inventory_date', $date)
             ->first();

@@ -5,36 +5,76 @@
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap gap-x-3 gap-y-2 justify-end items-center w-full">
-                    <a href="<?= base_url('Inventory/History') ?>"
-                        class="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition">
-                        <i class="fas fa-history mr-2"></i> History
-                    </a>
-                    <button id="btnAddTodaysInventory" type="button"
-                        class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40 transition">
-                        <i class="fas fa-plus mr-2"></i> Add Inventory
-                    </button>
-                    <button id="btnAddProductToInventory" type="button"
-                        class="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition">
-                        <i class="fas fa-plus mr-2"></i> Add Product
-                    </button>
-                    <button id="btnDistributions" type="button"
-                        class="inline-flex items-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
-                        <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
-                    </button>
-                    <button id="btnSendInventoryReport" type="button"
-                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-                        <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                    </button>
-                    <button id="btnCloseInventory" type="button"
-                        class="inline-flex items-center rounded-lg bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition">
-                        <i class="fa-solid fa-lock mr-2"></i> Close Inventory
-                    </button>
-                    <button id="btnDeleteTodaysInventory" type="button"
-                        class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition">
-                        <i class="fas fa-trash mr-2"></i> Delete Inventory
-                    </button>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+
+                    <!-- LEFT: Navigation -->
+                    <div class="flex flex-wrap gap-2">
+                        <a href="<?= base_url('Inventory/History') ?>"
+                            class="inline-flex h-10 items-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition">
+                            <i class="fas fa-clock-rotate-left mr-2 text-gray-500"></i>
+                            History
+                        </a>
+                    </div>
+
+                    <!-- RIGHT: Actions -->
+                    <div class="flex flex-wrap items-center gap-2">
+
+                        <!-- Primary Action -->
+                        <button id="btnAddTodaysInventory"
+                            class="hidden inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-white hover:bg-primary/90 focus:ring-2 focus:ring-primary/40 transition shadow">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Inventory
+                        </button>
+
+                        <!-- Secondary Actions -->
+                        <button id="btnAddProductToInventory"
+                            class="inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
+                            <i class="fas fa-box-open mr-2"></i>
+                            Add Product
+                        </button>
+
+                        <button id="btnDistributions"
+                            class="inline-flex h-10 items-center rounded-lg bg-blue-500 px-4 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition">
+                            <i class="fas fa-truck-loading mr-2"></i>
+                            Distributions
+                            <span id="distCount"
+                                class="ml-2 inline-flex items-center justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
+                                0
+                            </span>
+                        </button>
+
+                        <button id="btnSendInventoryReport"
+                            class="inline-flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 transition">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Report
+                        </button>
+
+                        <!-- Divider -->
+                        <div class="hidden sm:block h-6 w-px bg-gray-300 mx-1"></div>
+
+                        <!-- Destructive Actions -->
+                        <button id="btnCloseInventory" onclick="closeInventory()"
+                            class="hidden inline-flex h-10 items-center rounded-lg bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 transition">
+                            <i class="fas fa-lock mr-2"></i>
+                            Close
+                        </button>
+
+                        <button id="btnOpenInventory" onclick="openInventory()"
+                            class="hidden inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
+                            <i class="fas fa-lock-open mr-2"></i>
+                            Open
+                        </button>
+
+                        <button id="btnDeleteTodaysInventory"
+                            class="inline-flex h-10 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-400 transition">
+                            <i class="fas fa-trash mr-2"></i>
+                            Delete
+                        </button>
+
+                    </div>
                 </div>
+
 
                 <!-- Divider line -->
                 <div class="border-t border-gray-200 my-4"></div>
@@ -270,7 +310,15 @@
                             </div>
                         </div>
                     </div>
-
+                    <div id="inventoryDisabledOverlay"
+                        class="fixed inset-0 bg-gray-200 bg-opacity-60 z-[100] flex items-center justify-center hidden"
+                        style="pointer-events: all;">
+                        <div class="text-center">
+                            <i class="fas fa-lock text-4xl text-gray-500 mb-4"></i>
+                            <div class="text-lg font-semibold text-gray-700">Inventory is closed</div>
+                            <div class="text-sm text-gray-500">You cannot make changes until it is reopened.</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="xl:col-span-4 min-w-0">
@@ -2340,6 +2388,7 @@
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
+                        setInventoryState(response.is_closed);
                         // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
@@ -4499,6 +4548,65 @@
             // Use the deduction warning modal
             $('#deductionWarningContent').html(html);
             $('#deductionWarningModal').removeClass('hidden');
+        }
+
+        function closeInventory() {
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/CloseInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        setInventoryState(true);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error closing inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
+
+        function openInventory() {
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/OpenInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Refresh inventory data to reflect closed status
+                        setInventoryState(false);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error opening inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
+
+        function setInventoryState(isClosed) {
+            if (isClosed) {
+                $('#btnCloseInventory').addClass('hidden');
+                $('#btnOpenInventory').removeClass('hidden');
+            } else {
+                $('#btnCloseInventory').removeClass('hidden');
+                $('#btnOpenInventory').addClass('hidden');
+            }
         }
     </script>
 

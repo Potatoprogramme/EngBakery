@@ -66,6 +66,7 @@ class InventoryController extends BaseController
                 'success' => true,
                 'data' => $daily_stock_items,
                 'inventory_id' => $daily_stock['daily_stock_id'],
+                'is_closed' => $daily_stock['is_closed'] ?? 0,
                 'message' => 'Inventory fetched successfully.'
             ]);
         } else {
@@ -1370,6 +1371,13 @@ class InventoryController extends BaseController
         $data = $this->request->getJSON(true);
 
         $inventoryId = $data['inventory_id'] ?? null;
+        $state = $this->dailyStockModel->find($inventoryId);
+        if (!$state['is_closed']) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory must be closed first before sending a report.',
+            ]);
+        }
         if (!$inventoryId) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -1459,6 +1467,67 @@ class InventoryController extends BaseController
             'trays_per_yield' => $costData['trays_per_yield'] ?? null,
             'recipe' => $recipe,
             'recipe_count' => count($recipe)
+        ]);
+    }
+
+    public function closeInventory()
+    {
+        $data = $this->request->getJSON(true);
+        $today = date('Y-m-d');
+        $dailyStock = $this->dailyStockModel->where('daily_stock_id', $data['inventory_id'])->where('inventory_date', $today)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No inventory found for today.'
+            ]);
+        }
+
+        if ($dailyStock['is_closed']) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory is already closed.'
+            ]);
+        }
+
+        $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 1]);
+
+        // Immediate notification: inventory closed
+        $this->notify('notifyInventoryClosed', $today);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Inventory closed successfully.'
+        ]);
+    }
+    public function openInventory()
+    {
+        $data = $this->request->getJSON(true);
+        $today = date('Y-m-d');
+        $dailyStock = $this->dailyStockModel->where('daily_stock_id', $data['inventory_id'])->where('inventory_date', $today)->first();
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No inventory found for today.'
+            ]);
+        }
+
+        if (!$dailyStock['is_closed']) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory is already open.'
+            ]);
+        }
+
+        $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 0]);
+
+        // Immediate notification: inventory opened
+        $this->notify('notifyInventoryOpened', $today);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Inventory opened successfully.'
         ]);
     }
 }
