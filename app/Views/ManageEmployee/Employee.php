@@ -565,13 +565,18 @@
                             success: function(response) {
                                 if (response.success) {
                                     <<
-                                    << << < HEAD
+                                    <<
+                                    <<
+                                    < HEAD
                                     Toast.success('Employee archived successfully.');
                                     console.log('Deleted user ID:', response.data); ===
-                                    === =
+                                    ===
+                                    =
                                     Toast.success(response.message ||
                                         'User restored successfully.'); >>>
-                                    >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                    >>>
+                                    >
+                                    8 d8e191114c0d54964f08520cf90afd0a83b09b7
                                     fetchEmployees();
                                     fetchArchivedUsers();
                                 } else {
@@ -585,7 +590,9 @@
                     });
 
                     <<
-                    << << < HEAD
+                    <<
+                    <<
+                    < HEAD
 
                     function renderArchivedUsers(users) {
                         const tbody = $('#archivedUsersTableBody');
@@ -594,7 +601,7 @@
                         if (!users || users.length === 0) {
                             tbody.html(
                                 '<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>'
-                                );
+                            );
                             return;
                         }
 
@@ -688,7 +695,7 @@
                                 error: function() {
                                     Toast.error(
                                         'An error occurred while permanently deleting the user.'
-                                        );
+                                    );
                                 }
                             });
                         });
@@ -716,7 +723,8 @@
                     function changeUserRole(userId, newRole, btn) {
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.start(btn, 'Saving...'); ===
-                            === =
+                            ===
+                            =
                             $('.btn-hard-delete-user').off('click').on('click', function() {
                                 const btn = $(this);
                                 const userId = btn.data('user-id');
@@ -724,7 +732,9 @@
 
                                 if (!confirm(`Permanently delete ${userName}? This cannot be undone.`)) {
                                     return; >>>
-                                    >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                    >>>
+                                    >
+                                    8 d8e191114c0d54964f08520cf90afd0a83b09b7
                                 }
 
                                 $.ajax({
@@ -748,7 +758,7 @@
                                     error: function() {
                                         Toast.error(
                                             'An error occurred while permanently deleting the user.'
-                                            );
+                                        );
                                     }
                                 });
                             });
@@ -1100,7 +1110,9 @@
                                     if (currentPage > 1) {
                                         currentPage--;
                                         applyFilters(); <<
-                                        << << < HEAD
+                                        <<
+                                        <<
+                                        < HEAD
                                     });
 
                                 $('.btn-page-prev').off('click').on('click', function() {
@@ -1214,9 +1226,12 @@
                             // Search functionality (client-side filtering)
                             $('#searchInput').on('keyup', function() {
                                     applyFilters(); ===
-                                    === =
+                                    ===
+                                    =
                                 } >>>
-                                >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                >>>
+                                >
+                                8 d8e191114c0d54964f08520cf90afd0a83b09b7
                             });
 
                         $('.btn-page-next').off('click').on('click', function() {
@@ -1252,7 +1267,9 @@
                         });
 
                         <<
-                        << << < HEAD
+                        <<
+                        <<
+                        < HEAD
                         $('#openArchivedUsers').on('click', function() {
                             fetchArchivedUsers();
                             $('#archivedUsersModal').removeClass('hidden').addClass('flex');
@@ -1267,11 +1284,14 @@
 
                         $('#confirmRoleChange').on('click', function() {
                                     ===
-                                    === =
+                                    ===
+                                    =
                                     // Edit (Change Role) button handler
                                     $('.btn-edit-role').off('click').on('click', function() {
                                         >>>
-                                        >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                        >>>
+                                        >
+                                        8 d8e191114c0d54964f08520cf90afd0a83b09b7
                                         const btn = $(this);
                                         const userId = btn.data('user-id');
                                         const firstname = btn.data('firstname');
@@ -1327,7 +1347,7 @@
 
                                         // Prevent double click
                                         if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(
-                                            btn)) {
+                                                btn)) {
                                             return;
                                         }
 
@@ -1376,7 +1396,7 @@
                                             const username = (user.username || '').toLowerCase();
                                             const phone = (user.phone_number || '').toLowerCase();
                                             return fullName.includes(searchTerm) || email.includes(
-                                                searchTerm) ||
+                                                    searchTerm) ||
                                                 username.includes(searchTerm) || phone.includes(searchTerm);
                                         });
                                     }
@@ -1411,13 +1431,17 @@
                                     });
 
                                 <<
-                                << << < HEAD
+                                <<
+                                <<
+                                < HEAD
                                 // Prevent modal content click from closing
                                 $(
-                                    '#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white')
+                                    '#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white'
+                                )
                                 .on('click', function(e) {
                                     ===
-                                    === =
+                                    ===
+                                    =
                                     $('#confirmRoleChange').on('click', function() {
                                         const btn = $(this);
                                         const newRole = $('#newRole').val();
@@ -1454,7 +1478,9 @@
                                     $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white')
                                         .on('click', function(e) {
                                             >>>
-                                            >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                            >>>
+                                            >
+                                            8 d8e191114c0d54964f08520cf90afd0a83b09b7
                                             e.stopPropagation();
                                         });
                                 });
