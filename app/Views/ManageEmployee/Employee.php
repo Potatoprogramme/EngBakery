@@ -194,7 +194,12 @@
                     <button type="button" id="closeArchivedUsersModal"
                         class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <<<<<<< HEAD <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                            =======
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                            >>>>>>> 8d8e191114c0d54964f08520cf90afd0a83b09b7
                         </svg>
                     </button>
                 </div>
@@ -203,15 +208,42 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deleted At</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <<<<<<< HEAD <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Name</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Deleted At</th>
+                                        <th
+                                            class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions</th>
+                                        =======
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Name</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Deleted At</th>
+                                        <th
+                                            class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions</th>
+                                        >>>>>>> 8d8e191114c0d54964f08520cf90afd0a83b09b7
                                 </tr>
                             </thead>
                             <tbody id="archivedUsersTableBody" class="bg-white divide-y divide-gray-200">
                                 <tr>
-                                    <td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td>
+                                    <<<<<<< HEAD <td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No
+                                        archived users found.</td>
+                                        =======
+                                        <td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived
+                                            users found.</td>
+                                        >>>>>>> 8d8e191114c0d54964f08520cf90afd0a83b09b7
                                 </tr>
                             </tbody>
                         </table>
@@ -345,145 +377,154 @@
         </div>
     </div>
     <script>
-        window.BASE_URL = '<?= base_url() ?>';
+    window.BASE_URL = '<?= base_url() ?>';
 
-        // Current logged-in user info
-        const currentUser = {
-            id: '<?= $user_id ?>',
-            employeeType: '<?= $employee_type ?>'
-        };
+    // Current logged-in user info
+    const currentUser = {
+        id: '<?= $user_id ?>',
+        employeeType: '<?= $employee_type ?>'
+    };
 
-        // Store all employees for filtering
-        let allEmployees = [];
-        let archivedUsers = [];
-        let currentPage = 1;
-        const itemsPerPage = 5;
+    // Store all employees for filtering
+    let allEmployees = [];
+    let archivedUsers = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
 
-        function syncManageEmployeeBodyScrollLock() {
-            const hasOpenModal = !$('#changeRoleModal').hasClass('hidden') || !$('#viewEditModal').hasClass('hidden') || !$('#archivedUsersModal').hasClass('hidden');
-            $('body').toggleClass('overflow-hidden', hasOpenModal);
-        }
+    function syncManageEmployeeBodyScrollLock() {
+        const hasOpenModal = !$('#changeRoleModal').hasClass('hidden') || !$('#viewEditModal').hasClass('hidden');
+        $('body').toggleClass('overflow-hidden', hasOpenModal);
+    }
 
-        $(document).ready(function () {
-            fetchEmployees();
-            fetchPendingCount();
+    $(document).ready(function() {
+                fetchEmployees();
+                fetchPendingCount();
 
-            // Blame -> jc ... fetch pending approval accounts
-            function fetchPendingCount() {
-                $.ajax({
-                    url: `${BASE_URL}/Approval/GetPendingUsers`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            console.log('Pending users:', response.data);
-                            const pendingCount = response.data.filter(u => (u.status || 'pending').toLowerCase() === 'pending').length;
-                            $('#pendingBadge').text(pendingCount);
-                            $('#statPendingCount').text(pendingCount);
-                        } else {
+                // Blame -> jc ... fetch pending approval accounts
+                function fetchPendingCount() {
+                    $.ajax({
+                        url: `${BASE_URL}/Approval/GetPendingUsers`,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                console.log('Pending users:', response.data);
+                                const pendingCount = response.data.filter(u => (u.status || 'pending')
+                                    .toLowerCase() === 'pending').length;
+                                $('#pendingBadge').text(pendingCount);
+                                $('#statPendingCount').text(pendingCount);
+                            } else {
+                                $('#pendingBadge').text('0');
+                                $('#statPendingCount').text('0');
+                            }
+                        },
+                        error: function() {
                             $('#pendingBadge').text('0');
                             $('#statPendingCount').text('0');
                         }
-                    },
-                    error: function () {
-                        $('#pendingBadge').text('0');
-                        $('#statPendingCount').text('0');
+                    });
+                }
+
+                // Helper function to get initials from name
+                function getInitials(firstname, lastname) {
+                    const first = firstname ? firstname.charAt(0).toUpperCase() : '';
+                    const last = lastname ? lastname.charAt(0).toUpperCase() : '';
+                    return first + last;
+                }
+
+                // Helper function to format date
+                function formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    const options = {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    };
+                    return date.toLocaleDateString('en-US', options);
+                }
+
+                // Helper function to capitalize role
+                function capitalizeRole(role) {
+                    if (!role) return 'N/A';
+                    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+                }
+
+                // Helper function to check if current user can delete target user
+                function canDeleteUser(targetEmployeeType) {
+                    const targetType = targetEmployeeType ? targetEmployeeType.toLowerCase() : '';
+                    const currentType = currentUser.employeeType ? currentUser.employeeType.toLowerCase() : '';
+
+                    // Admin: cannot delete co-admin and owner, but can delete staff
+                    if (currentType === 'admin') {
+                        return targetType === 'staff' || targetType === 'cashier';
                     }
-                });
-            }
 
-            // Helper function to get initials from name
-            function getInitials(firstname, lastname) {
-                const first = firstname ? firstname.charAt(0).toUpperCase() : '';
-                const last = lastname ? lastname.charAt(0).toUpperCase() : '';
-                return first + last;
-            }
-
-            // Helper function to format date
-            function formatDate(dateString) {
-                if (!dateString) return 'N/A';
-                const date = new Date(dateString);
-                const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
-
-            // Helper function to capitalize role
-            function capitalizeRole(role) {
-                if (!role) return 'N/A';
-                return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
-            }
-
-            // Helper function to check if current user can delete target user
-            function canDeleteUser(targetEmployeeType) {
-                const targetType = targetEmployeeType ? targetEmployeeType.toLowerCase() : '';
-                const currentType = currentUser.employeeType ? currentUser.employeeType.toLowerCase() : '';
-
-                // Admin: cannot delete co-admin and owner, but can delete staff
-                if (currentType === 'admin') {
-                    return targetType === 'staff' || targetType === 'cashier';
-                }
-
-                // Owner: cannot delete co-owner, but can delete admin/staff
-                if (currentType === 'owner') {
-                    return targetType !== 'owner';
-                }
-
-                // Default: cannot delete anyone
-                return false;
-            }
-
-
-            function deleteUser(userId, employeeName, btn) {
-                if (typeof ButtonLoader !== 'undefined') {
-                    ButtonLoader.start(btn, '');
-                }
-                
-                $.ajax({
-                    url: `${BASE_URL}/ManageEmployee/DeleteUser`,
-                    method: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        user_id: userId,
-                        privilege_level: currentUser.employeeType
-                    }),
-                    success: function (response) {
-                        if (typeof ButtonLoader !== 'undefined') {
-                            ButtonLoader.stop(btn);
-                        }
-                        if (response.success) {
-                            Toast.success('Employee archived successfully.');
-                            console.log('Deleted user ID:', response.data);
-                            fetchEmployees();
-                            fetchPendingCount();
-                        } else {
-                            Toast.error(response.message || 'Failed to delete employee.');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        if (typeof ButtonLoader !== 'undefined') {
-                            ButtonLoader.stop(btn);
-                        }
-                        console.error('Error deleting user:', xhr);
-                        Toast.error('An error occurred while deleting the employee.');
+                    // Owner: cannot delete co-owner, but can delete admin/staff
+                    if (currentType === 'owner') {
+                        return targetType !== 'owner';
                     }
-                });
-            }
 
-            function renderArchivedUsers(users) {
-                const tbody = $('#archivedUsersTableBody');
-                tbody.empty();
-
-                if (!users || users.length === 0) {
-                    tbody.html('<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>');
-                    return;
+                    // Default: cannot delete anyone
+                    return false;
                 }
 
-                users.forEach(function (user) {
-                    const fullName = `${user.firstname || ''} ${user.middlename || ''} ${user.lastname || ''}`.replace(/\s+/g, ' ').trim();
-                    const deletedAt = formatDate(user.deleted_at);
 
-                    const row = `
+                function deleteUser(userId, employeeName, btn) {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.start(btn, '');
+                    }
+
+                    $.ajax({
+                        url: `${BASE_URL}/ManageEmployee/DeleteUser`,
+                        method: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            user_id: userId,
+                            privilege_level: currentUser.employeeType
+                        }),
+                        success: function(response) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
+                            if (response.success) {
+                                Toast.success('Employee archived successfully.');
+                                console.log('Deleted user ID:', response.data);
+                                fetchEmployees();
+                                fetchPendingCount();
+                            } else {
+                                Toast.error(response.message || 'Failed to delete employee.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.stop(btn);
+                            }
+                            console.error('Error deleting user:', xhr);
+                            Toast.error('An error occurred while deleting the employee.');
+                        }
+                    });
+                }
+
+                function renderArchivedUsers(users) {
+                    const tbody = $('#archivedUsersTableBody');
+                    tbody.empty();
+
+                    if (!users || users.length === 0) {
+                        tbody.html(
+                            '<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>'
+                        );
+                        return;
+                    }
+
+                    users.forEach(function(user) {
+                        const fullName =
+                            `${user.firstname || ''} ${user.middlename || ''} ${user.lastname || ''}`.replace(
+                                /\s+/g, ' ').trim();
+                        const deletedAt = formatDate(user.deleted_at);
+
+                        const row = `
                         <tr>
                             <td class="px-4 py-3 text-sm text-gray-900">${fullName || 'N/A'}</td>
                             <td class="px-4 py-3 text-sm text-gray-700">${user.email || 'N/A'}</td>
@@ -501,198 +542,353 @@
                         </tr>
                     `;
 
-                    tbody.append(row);
-                });
-
-                $('.btn-restore-user').off('click').on('click', function () {
-                    const btn = $(this);
-                    const userId = btn.data('user-id');
-                    const userName = btn.data('name') || 'this user';
-
-                    if (!confirm(`Restore ${userName}?`)) {
-                        return;
-                    }
-
-                    $.ajax({
-                        url: `${BASE_URL}/ManageEmployee/RestoreUser`,
-                        method: 'POST',
-                        dataType: 'json',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ user_id: userId }),
-                        success: function (response) {
-                            if (response.success) {
-                                Toast.success(response.message || 'User restored successfully.');
-                                fetchEmployees();
-                                fetchArchivedUsers();
-                            } else {
-                                Toast.error(response.message || 'Failed to restore user.');
-                            }
-                        },
-                        error: function () {
-                            Toast.error('An error occurred while restoring the user.');
-                        }
+                        tbody.append(row);
                     });
-                });
 
-                $('.btn-hard-delete-user').off('click').on('click', function () {
-                    const btn = $(this);
-                    const userId = btn.data('user-id');
-                    const userName = btn.data('name') || 'this user';
+                    $('.btn-restore-user').off('click').on('click', function() {
+                        const btn = $(this);
+                        const userId = btn.data('user-id');
+                        const userName = btn.data('name') || 'this user';
 
-                    if (!confirm(`Permanently delete ${userName}? This cannot be undone.`)) {
-                        return;
-                    }
-
-                    $.ajax({
-                        url: `${BASE_URL}/ManageEmployee/HardDeleteUser`,
-                        method: 'POST',
-                        dataType: 'json',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ user_id: userId }),
-                        success: function (response) {
-                            if (response.success) {
-                                Toast.success(response.message || 'User permanently deleted.');
-                                fetchArchivedUsers();
-                            } else {
-                                Toast.error(response.message || 'Failed to permanently delete user.');
-                            }
-                        },
-                        error: function () {
-                            Toast.error('An error occurred while permanently deleting the user.');
+                        if (!confirm(`Restore ${userName}?`)) {
+                            return;
                         }
+
+                        $.ajax({
+                            url: `${BASE_URL}/ManageEmployee/RestoreUser`,
+                            method: 'POST',
+                            dataType: 'json',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                user_id: userId
+                            }),
+                            success: function(response) {
+                                if (response.success) {
+                                    <<
+                                    << << < HEAD
+                                    Toast.success('Employee archived successfully.');
+                                    console.log('Deleted user ID:', response.data); ===
+                                    === =
+                                    Toast.success(response.message ||
+                                        'User restored successfully.'); >>>
+                                    >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                    fetchEmployees();
+                                    fetchArchivedUsers();
+                                } else {
+                                    Toast.error(response.message || 'Failed to restore user.');
+                                }
+                            },
+                            error: function() {
+                                Toast.error('An error occurred while restoring the user.');
+                            }
+                        });
                     });
-                });
-            }
 
-            function fetchArchivedUsers() {
-                $.ajax({
-                    url: `${BASE_URL}/ManageEmployee/GetArchivedUsers`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            archivedUsers = response.data || [];
-                            renderArchivedUsers(archivedUsers);
-                        } else {
-                            Toast.error(response.message || 'Failed to load archived users.');
+                    <<
+                    << << < HEAD
+
+                    function renderArchivedUsers(users) {
+                        const tbody = $('#archivedUsersTableBody');
+                        tbody.empty();
+
+                        if (!users || users.length === 0) {
+                            tbody.html(
+                                '<tr><td colspan="4" class="px-4 py-6 text-sm text-gray-500 text-center">No archived users found.</td></tr>'
+                                );
+                            return;
                         }
-                    },
-                    error: function () {
-                        Toast.error('An error occurred while loading archived users.');
-                    }
-                });
-            }
 
-            function changeUserRole(userId, newRole, btn) {
-                if (typeof ButtonLoader !== 'undefined') {
-                    ButtonLoader.start(btn, 'Saving...');
-                }
-                
-                $.ajax({
-                    url: `${BASE_URL}ManageEmployee/ChangeUserRole`,
-                    method: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        user_id: userId,
-                        new_role: newRole,
-                    }),
-                    success: function (response) {
-                        if (typeof ButtonLoader !== 'undefined') {
-                            ButtonLoader.stop(btn);
-                        }
-                        if (response.success) {
-                            Toast.success(response.message || 'Employee role changed successfully.');
-                            console.log(response.data);
+                        users.forEach(function(user) {
+                            const fullName =
+                                `${user.firstname || ''} ${user.middlename || ''} ${user.lastname || ''}`
+                                .replace(/\s+/g, ' ').trim();
+                            const deletedAt = formatDate(user.deleted_at);
 
-                            // Close the change role modal
-                            $('#changeRoleModal').removeClass('flex').addClass('hidden');
-                            $('#newRole').val('');
-                            syncManageEmployeeBodyScrollLock();
+                            const row = `
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-900">${fullName || 'N/A'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">${user.email || 'N/A'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-700">${deletedAt}</td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="inline-flex gap-2">
+                                    <button type="button" class="btn-restore-user text-green-700 bg-green-50 border border-green-200 rounded px-3 py-1.5 text-xs font-medium hover:bg-green-100" data-user-id="${user.user_id}" data-name="${fullName}">
+                                        Restore
+                                    </button>
+                                    <button type="button" class="btn-hard-delete-user text-red-700 bg-red-50 border border-red-200 rounded px-3 py-1.5 text-xs font-medium hover:bg-red-100" data-user-id="${user.user_id}" data-name="${fullName}">
+                                        Delete Permanently
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
 
-                            // Refresh employee list and pending count
-                            fetchEmployees();
-                            fetchPendingCount();
-                        } else {
-                            Toast.error(response.message || 'Failed to change employee role.');
-                            console.log(response.data);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        if (typeof ButtonLoader !== 'undefined') {
-                            ButtonLoader.stop(btn);
-                        }
-                        console.error(xhr);
-                        const errorMessage = xhr.responseJSON?.message || 'An error occurred while changing employee role.';
-                        Toast.error(errorMessage);
-                    }
-                });
-            }
+                            tbody.append(row);
+                        });
 
+                        $('.btn-restore-user').off('click').on('click', function() {
+                            const btn = $(this);
+                            const userId = btn.data('user-id');
+                            const userName = btn.data('name') || 'this user';
 
-            function fetchEmployees() {
-                $.ajax({
-                    url: `${BASE_URL}/ManageEmployee/GetEmployees`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            // Filter out the current logged-in user from the list
-                            // Also hide owners from admin view
-                            let users = response.data.filter(user => user.user_id != currentUser.id);
-
-                            if (currentUser.employeeType.toLowerCase() === 'admin') {
-                                users = users.filter(user => user.employee_type && user.employee_type.toLowerCase() !== 'owner');
+                            if (!confirm(`Restore ${userName}?`)) {
+                                return;
                             }
 
-                            // Store all employees for filtering
-                            allEmployees = users;
+                            $.ajax({
+                                url: `${BASE_URL}/ManageEmployee/RestoreUser`,
+                                method: 'POST',
+                                dataType: 'json',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    user_id: userId
+                                }),
+                                success: function(response) {
+                                    if (response.success) {
+                                        Toast.success(response.message ||
+                                            'User restored successfully.');
+                                        fetchEmployees();
+                                        fetchArchivedUsers();
+                                    } else {
+                                        Toast.error(response.message || 'Failed to restore user.');
+                                    }
+                                },
+                                error: function() {
+                                    Toast.error('An error occurred while restoring the user.');
+                                }
+                            });
+                        });
 
-                            // Update stats cards
-                            updateStatsCards(users);
+                        $('.btn-hard-delete-user').off('click').on('click', function() {
+                            const btn = $(this);
+                            const userId = btn.data('user-id');
+                            const userName = btn.data('name') || 'this user';
 
-                            // Apply filters (which will call renderEmployees)
-                            applyFilters();
-                        } else {
-                            Toast.error(response.message || 'Failed to load employees');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching employees:', error);
-                        Toast.error('Failed to load employees. Please try again.');
+                            if (!confirm(`Permanently delete ${userName}? This cannot be undone.`)) {
+                                return;
+                            }
+
+                            $.ajax({
+                                url: `${BASE_URL}/ManageEmployee/HardDeleteUser`,
+                                method: 'POST',
+                                dataType: 'json',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    user_id: userId
+                                }),
+                                success: function(response) {
+                                    if (response.success) {
+                                        Toast.success(response.message ||
+                                            'User permanently deleted.');
+                                        fetchArchivedUsers();
+                                    } else {
+                                        Toast.error(response.message ||
+                                            'Failed to permanently delete user.');
+                                    }
+                                },
+                                error: function() {
+                                    Toast.error(
+                                        'An error occurred while permanently deleting the user.'
+                                        );
+                                }
+                            });
+                        });
                     }
-                });
-            }
 
-            // Update stats cards with actual data
-            function updateStatsCards(users) {
-                const totalCount = users.length;
-                const activeCount = users.length; // All fetched users are active
-                const adminCount = users.filter(u => (u.employee_type || '').toLowerCase() === 'admin').length;
-                
-                // Update the stats cards using IDs
-                $('#statTotalEmployees').text(totalCount);
-                $('#statActiveEmployees').text(activeCount);
-                $('#statAdminCount').text(adminCount);
-            }
+                    function fetchArchivedUsers() {
+                        $.ajax({
+                            url: `${BASE_URL}/ManageEmployee/GetArchivedUsers`,
+                            method: 'GET',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    archivedUsers = response.data || [];
+                                    renderArchivedUsers(archivedUsers);
+                                } else {
+                                    Toast.error(response.message || 'Failed to load archived users.');
+                                }
+                            },
+                            error: function() {
+                                Toast.error('An error occurred while loading archived users.');
+                            }
+                        });
+                    }
 
-            // Render employees with pagination
-            function renderEmployees(users) {
-                // Calculate pagination
-                const totalItems = users.length;
-                const totalPages = Math.ceil(totalItems / itemsPerPage);
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-                const paginatedUsers = users.slice(startIndex, endIndex);
+                    function changeUserRole(userId, newRole, btn) {
+                        if (typeof ButtonLoader !== 'undefined') {
+                            ButtonLoader.start(btn, 'Saving...'); ===
+                            === =
+                            $('.btn-hard-delete-user').off('click').on('click', function() {
+                                const btn = $(this);
+                                const userId = btn.data('user-id');
+                                const userName = btn.data('name') || 'this user';
 
-                if (users.length === 0) {
-                    // Show empty state for both desktop and mobile
-                    $('#emptyState').removeClass('hidden');
-                    $('#employeeTableBody').empty();
-                    $('#paginationSection').addClass('hidden');
+                                if (!confirm(`Permanently delete ${userName}? This cannot be undone.`)) {
+                                    return; >>>
+                                    >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                }
 
-                    // Show mobile empty state
-                    $('#mobileCardsContainer').html(`
+                                $.ajax({
+                                    url: `${BASE_URL}/ManageEmployee/HardDeleteUser`,
+                                    method: 'POST',
+                                    dataType: 'json',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({
+                                        user_id: userId
+                                    }),
+                                    success: function(response) {
+                                        if (response.success) {
+                                            Toast.success(response.message ||
+                                                'User permanently deleted.');
+                                            fetchArchivedUsers();
+                                        } else {
+                                            Toast.error(response.message ||
+                                                'Failed to permanently delete user.');
+                                        }
+                                    },
+                                    error: function() {
+                                        Toast.error(
+                                            'An error occurred while permanently deleting the user.'
+                                            );
+                                    }
+                                });
+                            });
+                        }
+
+                        function fetchArchivedUsers() {
+                            $.ajax({
+                                url: `${BASE_URL}/ManageEmployee/GetArchivedUsers`,
+                                method: 'GET',
+                                dataType: 'json',
+                                success: function(response) {
+                                    if (response.success) {
+                                        archivedUsers = response.data || [];
+                                        renderArchivedUsers(archivedUsers);
+                                    } else {
+                                        Toast.error(response.message || 'Failed to load archived users.');
+                                    }
+                                },
+                                error: function() {
+                                    Toast.error('An error occurred while loading archived users.');
+                                }
+                            });
+                        }
+
+                        function changeUserRole(userId, newRole, btn) {
+                            if (typeof ButtonLoader !== 'undefined') {
+                                ButtonLoader.start(btn, 'Saving...');
+                            }
+
+                            $.ajax({
+                                url: `${BASE_URL}ManageEmployee/ChangeUserRole`,
+                                method: 'POST',
+                                dataType: 'json',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    user_id: userId,
+                                    new_role: newRole,
+                                }),
+                                success: function(response) {
+                                    if (typeof ButtonLoader !== 'undefined') {
+                                        ButtonLoader.stop(btn);
+                                    }
+                                    if (response.success) {
+                                        Toast.success(response.message ||
+                                            'Employee role changed successfully.');
+                                        console.log(response.data);
+
+                                        // Close the change role modal
+                                        $('#changeRoleModal').removeClass('flex').addClass('hidden');
+                                        $('#newRole').val('');
+                                        syncManageEmployeeBodyScrollLock();
+
+                                        // Refresh employee list and pending count
+                                        fetchEmployees();
+                                        fetchPendingCount();
+                                    } else {
+                                        Toast.error(response.message || 'Failed to change employee role.');
+                                        console.log(response.data);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    if (typeof ButtonLoader !== 'undefined') {
+                                        ButtonLoader.stop(btn);
+                                    }
+                                    console.error(xhr);
+                                    const errorMessage = xhr.responseJSON?.message ||
+                                        'An error occurred while changing employee role.';
+                                    Toast.error(errorMessage);
+                                }
+                            });
+                        }
+
+
+                        function fetchEmployees() {
+                            $.ajax({
+                                url: `${BASE_URL}/ManageEmployee/GetEmployees`,
+                                method: 'GET',
+                                dataType: 'json',
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Filter out the current logged-in user from the list
+                                        // Also hide owners from admin view
+                                        let users = response.data.filter(user => user.user_id != currentUser
+                                            .id);
+
+                                        if (currentUser.employeeType.toLowerCase() === 'admin') {
+                                            users = users.filter(user => user.employee_type && user
+                                                .employee_type
+                                                .toLowerCase() !== 'owner');
+                                        }
+
+                                        // Store all employees for filtering
+                                        allEmployees = users;
+
+                                        // Update stats cards
+                                        updateStatsCards(users);
+
+                                        // Apply filters (which will call renderEmployees)
+                                        applyFilters();
+                                    } else {
+                                        Toast.error(response.message || 'Failed to load employees');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error fetching employees:', error);
+                                    Toast.error('Failed to load employees. Please try again.');
+                                }
+                            });
+                        }
+
+                        // Update stats cards with actual data
+                        function updateStatsCards(users) {
+                            const totalCount = users.length;
+                            const activeCount = users.length; // All fetched users are active
+                            const adminCount = users.filter(u => (u.employee_type || '').toLowerCase() === 'admin')
+                                .length;
+
+                            // Update the stats cards using IDs
+                            $('#statTotalEmployees').text(totalCount);
+                            $('#statActiveEmployees').text(activeCount);
+                            $('#statAdminCount').text(adminCount);
+                        }
+
+                        // Render employees with pagination
+                        function renderEmployees(users) {
+                            // Calculate pagination
+                            const totalItems = users.length;
+                            const totalPages = Math.ceil(totalItems / itemsPerPage);
+                            const startIndex = (currentPage - 1) * itemsPerPage;
+                            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                            const paginatedUsers = users.slice(startIndex, endIndex);
+
+                            if (users.length === 0) {
+                                // Show empty state for both desktop and mobile
+                                $('#emptyState').removeClass('hidden');
+                                $('#employeeTableBody').empty();
+                                $('#paginationSection').addClass('hidden');
+
+                                // Show mobile empty state
+                                $('#mobileCardsContainer').html(`
                         <div class="p-8 text-center bg-white rounded-lg shadow-sm border border-gray-100">
                             <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-users text-2xl text-gray-300"></i>
@@ -701,24 +897,26 @@
                             <p class="text-gray-500 text-sm">There are no employees matching your criteria.</p>
                         </div>
                     `);
-                } else {
-                    // Hide empty state, show table body and pagination
-                    $('#emptyState').addClass('hidden');
-                    $('#paginationSection').removeClass('hidden');
-                    $('#employeeTableBody').empty();
+                            } else {
+                                // Hide empty state, show table body and pagination
+                                $('#emptyState').addClass('hidden');
+                                $('#paginationSection').removeClass('hidden');
+                                $('#employeeTableBody').empty();
 
-                    // Clear and populate mobile cards
-                    let mobileCardsHTML = '';
+                                // Clear and populate mobile cards
+                                let mobileCardsHTML = '';
 
-                    paginatedUsers.forEach(function (user) {
-                        const initials = getInitials(user.firstname, user.lastname);
-                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.trim();
-                        const formattedDate = formatDate(user.created_at);
-                        const role = capitalizeRole(user.employee_type);
-                        const canDelete = canDeleteUser(user.employee_type);
+                                paginatedUsers.forEach(function(user) {
+                                    const initials = getInitials(user.firstname, user.lastname);
+                                    const fullName =
+                                        `${user.firstname} ${user.middlename || ''} ${user.lastname}`
+                                        .trim();
+                                    const formattedDate = formatDate(user.created_at);
+                                    const role = capitalizeRole(user.employee_type);
+                                    const canDelete = canDeleteUser(user.employee_type);
 
-                        // Desktop table row
-                        const rowHTML = `
+                                    // Desktop table row
+                                    const rowHTML = `
                             <tr class="hover:bg-gray-50" data-user-id="${user.user_id}">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
@@ -776,10 +974,10 @@
                                 </td>
                             </tr>
                         `;
-                        $('#employeeTableBody').append(rowHTML);
+                                    $('#employeeTableBody').append(rowHTML);
 
-                        // Mobile card
-                        mobileCardsHTML += `
+                                    // Mobile card
+                                    mobileCardsHTML += `
                             <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                                 <div class="p-4">
                                     <div class="flex items-center gap-3 mb-3">
@@ -834,275 +1032,430 @@
                                 </div>
                             </div>
                         `;
-                    });
+                                });
 
-                    // Update mobile cards container
-                    $('#mobileCardsContainer').html(mobileCardsHTML);
+                                // Update mobile cards container
+                                $('#mobileCardsContainer').html(mobileCardsHTML);
 
-                    // Update pagination
-                    renderPagination(totalItems, totalPages, startIndex, endIndex);
+                                // Update pagination
+                                renderPagination(totalItems, totalPages, startIndex, endIndex);
 
-                    attachEventHandlers();
-                }
-            }
+                                attachEventHandlers();
+                            }
+                        }
 
-            // Render pagination controls
-            function renderPagination(totalItems, totalPages, startIndex, endIndex) {
-                let paginationHTML = `
+                        // Render pagination controls
+                        function renderPagination(totalItems, totalPages, startIndex, endIndex) {
+                            let paginationHTML = `
                     <div class="text-sm text-gray-500">
                         Showing <span class="font-medium">${startIndex + 1}</span> to <span class="font-medium">${endIndex}</span> of <span class="font-medium">${totalItems}</span> employees
                     </div>
                     <div class="flex gap-1" id="paginationButtons">
                 `;
 
-                // Previous button
-                paginationHTML += `
+                            // Previous button
+                            paginationHTML += `
                     <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 btn-page-prev" ${currentPage === 1 ? 'disabled' : ''}>
                         &laquo; Prev
                     </button>
                 `;
 
-                // Page numbers
-                const maxVisiblePages = 3;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                            // Page numbers
+                            const maxVisiblePages = 3;
+                            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
+                            if (endPage - startPage + 1 < maxVisiblePages) {
+                                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                            }
 
-                for (let i = startPage; i <= endPage; i++) {
-                    if (i === currentPage) {
-                        paginationHTML += `<button class="px-3 py-1 text-sm bg-primary text-white rounded">${i}</button>`;
-                    } else {
-                        paginationHTML += `<button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 btn-page" data-page="${i}">${i}</button>`;
-                    }
-                }
+                            for (let i = startPage; i <= endPage; i++) {
+                                if (i === currentPage) {
+                                    paginationHTML +=
+                                        `<button class="px-3 py-1 text-sm bg-primary text-white rounded">${i}</button>`;
+                                } else {
+                                    paginationHTML +=
+                                        `<button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 btn-page" data-page="${i}">${i}</button>`;
+                                }
+                            }
 
-                // Next button
-                paginationHTML += `
+                            // Next button
+                            paginationHTML += `
                     <button class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 btn-page-next" ${currentPage === totalPages ? 'disabled' : ''}>
                         Next &raquo;
                     </button>
                 `;
 
-                paginationHTML += '</div>';
+                            paginationHTML += '</div>';
 
-                $('#paginationSection').html(paginationHTML);
+                            $('#paginationSection').html(paginationHTML);
 
-                // Attach pagination handlers
-                $('.btn-page').off('click').on('click', function () {
-                    currentPage = parseInt($(this).data('page'));
-                    applyFilters();
-                });
+                            // Attach pagination handlers
+                            $('.btn-page').off('click').on('click', function() {
+                                currentPage = parseInt($(this).data('page'));
+                                applyFilters();
+                            });
 
-                $('.btn-page-prev').off('click').on('click', function () {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        applyFilters();
+                            $('.btn-page-prev').off('click').on('click', function() {
+                                    if (currentPage > 1) {
+                                        currentPage--;
+                                        applyFilters(); <<
+                                        << << < HEAD
+                                    });
+
+                                $('.btn-page-prev').off('click').on('click', function() {
+                                    if (currentPage > 1) {
+                                        currentPage--;
+                                        applyFilters();
+                                    }
+                                });
+
+                                $('.btn-page-next').off('click').on('click', function() {
+                                    if (currentPage < totalPages) {
+                                        currentPage++;
+                                        applyFilters();
+                                    }
+                                });
+                            }
+
+                            function attachEventHandlers() {
+                                // View button handler (read-only)
+                                $('.btn-view').off('click').on('click', function() {
+                                    const btn = $(this);
+                                    const firstname = btn.data('firstname');
+                                    const middlename = btn.data('middlename');
+                                    const lastname = btn.data('lastname');
+                                    const fullName = `${firstname} ${middlename || ''} ${lastname}`.trim();
+                                    const initials = getInitials(firstname, lastname);
+
+                                    $('#viewInitials').text(initials);
+                                    $('#viewName').text(fullName);
+                                    $('#viewEmail').text(btn.data('email') || 'N/A');
+                                    $('#viewUsername').text('@' + (btn.data('username') || 'N/A'));
+                                    $('#viewPhone').text(btn.data('phone') || 'N/A');
+                                    $('#viewRole').text(capitalizeRole(btn.data('role')));
+                                    $('#viewGender').text(btn.data('gender') || 'N/A');
+                                    $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
+                                    $('#viewJoined').text(formatDate(btn.data('joined')));
+
+                                    $('#viewEditModal').removeClass('hidden').addClass('flex');
+                                    syncManageEmployeeBodyScrollLock();
+                                });
+
+                                // Edit (Change Role) button handler
+                                $('.btn-edit-role').off('click').on('click', function() {
+                                    const btn = $(this);
+                                    const userId = btn.data('user-id');
+                                    const firstname = btn.data('firstname');
+                                    const lastname = btn.data('lastname');
+                                    const fullName = `${firstname} ${lastname}`.trim();
+                                    const initials = getInitials(firstname, lastname);
+                                    const userEmail = btn.data('email') || 'N/A';
+                                    const userRole = btn.data('role');
+
+                                    // Populate the change role modal
+                                    $('#roleModalInitials').text(initials);
+                                    $('#roleModalName').text(fullName);
+                                    $('#roleModalEmail').text(userEmail);
+
+                                    // Store user data in the modal
+                                    $('#changeRoleModal').data('user-id', userId);
+                                    $('#changeRoleModal').data('current-role', userRole);
+
+                                    // Populate role dropdown based on current user's privilege level
+                                    const currentEmployeeType = currentUser.employeeType.toLowerCase();
+                                    let roleOptions = '<option value="">Select a role...</option>';
+
+                                    if (currentEmployeeType === 'owner') {
+                                        roleOptions += '<option value="owner">Owner</option>';
+                                        roleOptions += '<option value="admin">Admin</option>';
+                                        roleOptions += '<option value="staff">Staff</option>';
+                                    } else if (currentEmployeeType === 'admin') {
+                                        roleOptions += '<option value="admin">Admin</option>';
+                                        roleOptions += '<option value="staff">Staff</option>';
+                                    }
+
+                                    $('#newRole').html(roleOptions);
+
+                                    // Pre-select current role
+                                    if (userRole) {
+                                        $('#newRole').val(userRole.toLowerCase());
+                                    }
+
+                                    // Show change role modal
+                                    $('#changeRoleModal').removeClass('hidden').addClass('flex');
+                                    syncManageEmployeeBodyScrollLock();
+
+                                    setTimeout(() => {
+                                        $('#newRole').focus();
+                                    }, 100);
+                                });
+
+                                // Delete button handler
+                                $('.btn-delete').off('click').on('click', function() {
+                                    const btn = $(this);
+                                    const userId = btn.data('user-id');
+                                    const employeeName = btn.data('name');
+
+                                    // Prevent double click
+                                    if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                                        return;
+                                    }
+
+                                    Confirm.delete(
+                                        `Are you sure you want to archive ${employeeName}? You can keep historical records while hiding this user from active lists.`,
+                                        function() {
+                                            // User confirmed deletion
+                                            deleteUser(userId, employeeName, btn);
+                                        }
+                                    );
+                                });
+                            }
+                            // Search functionality (client-side filtering)
+                            $('#searchInput').on('keyup', function() {
+                                    applyFilters(); ===
+                                    === =
+                                } >>>
+                                >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                            });
+
+                        $('.btn-page-next').off('click').on('click', function() {
+                            if (currentPage < totalPages) {
+                                currentPage++;
+                                applyFilters();
+                            }
+                        });
                     }
-                });
 
-                $('.btn-page-next').off('click').on('click', function () {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        applyFilters();
-                    }
-                });
-            }
+                    function attachEventHandlers() {
+                        // View button handler (read-only)
+                        $('.btn-view').off('click').on('click', function() {
+                            const btn = $(this);
+                            const firstname = btn.data('firstname');
+                            const middlename = btn.data('middlename');
+                            const lastname = btn.data('lastname');
+                            const fullName = `${firstname} ${middlename || ''} ${lastname}`.trim();
+                            const initials = getInitials(firstname, lastname);
 
-            function attachEventHandlers() {
-                // View button handler (read-only)
-                $('.btn-view').off('click').on('click', function () {
-                    const btn = $(this);
-                    const firstname = btn.data('firstname');
-                    const middlename = btn.data('middlename');
-                    const lastname = btn.data('lastname');
-                    const fullName = `${firstname} ${middlename || ''} ${lastname}`.trim();
-                    const initials = getInitials(firstname, lastname);
+                            $('#viewInitials').text(initials);
+                            $('#viewName').text(fullName);
+                            $('#viewEmail').text(btn.data('email') || 'N/A');
+                            $('#viewUsername').text('@' + (btn.data('username') || 'N/A'));
+                            $('#viewPhone').text(btn.data('phone') || 'N/A');
+                            $('#viewRole').text(capitalizeRole(btn.data('role')));
+                            $('#viewGender').text(btn.data('gender') || 'N/A');
+                            $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
+                            $('#viewJoined').text(formatDate(btn.data('joined')));
 
-                    $('#viewInitials').text(initials);
-                    $('#viewName').text(fullName);
-                    $('#viewEmail').text(btn.data('email') || 'N/A');
-                    $('#viewUsername').text('@' + (btn.data('username') || 'N/A'));
-                    $('#viewPhone').text(btn.data('phone') || 'N/A');
-                    $('#viewRole').text(capitalizeRole(btn.data('role')));
-                    $('#viewGender').text(btn.data('gender') || 'N/A');
-                    $('#viewBirthdate').text(formatDate(btn.data('birthdate')));
-                    $('#viewJoined').text(formatDate(btn.data('joined')));
+                            $('#viewEditModal').removeClass('hidden').addClass('flex');
+                            syncManageEmployeeBodyScrollLock();
+                        });
 
-                    $('#viewEditModal').removeClass('hidden').addClass('flex');
-                    syncManageEmployeeBodyScrollLock();
-                });
+                        <<
+                        << << < HEAD
+                        $('#openArchivedUsers').on('click', function() {
+                            fetchArchivedUsers();
+                            $('#archivedUsersModal').removeClass('hidden').addClass('flex');
+                            syncManageEmployeeBodyScrollLock();
+                        });
 
-                // Edit (Change Role) button handler
-                $('.btn-edit-role').off('click').on('click', function () {
-                    const btn = $(this);
-                    const userId = btn.data('user-id');
-                    const firstname = btn.data('firstname');
-                    const lastname = btn.data('lastname');
-                    const fullName = `${firstname} ${lastname}`.trim();
-                    const initials = getInitials(firstname, lastname);
-                    const userEmail = btn.data('email') || 'N/A';
-                    const userRole = btn.data('role');
+                        $('#closeArchivedUsersModal, #closeArchivedUsersBtn, #archivedUsersModalBackdrop').on('click',
+                            function() {
+                                $('#archivedUsersModal').removeClass('flex').addClass('hidden');
+                                syncManageEmployeeBodyScrollLock();
+                            });
 
-                    // Populate the change role modal
-                    $('#roleModalInitials').text(initials);
-                    $('#roleModalName').text(fullName);
-                    $('#roleModalEmail').text(userEmail);
+                        $('#confirmRoleChange').on('click', function() {
+                                    ===
+                                    === =
+                                    // Edit (Change Role) button handler
+                                    $('.btn-edit-role').off('click').on('click', function() {
+                                        >>>
+                                        >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                        const btn = $(this);
+                                        const userId = btn.data('user-id');
+                                        const firstname = btn.data('firstname');
+                                        const lastname = btn.data('lastname');
+                                        const fullName = `${firstname} ${lastname}`.trim();
+                                        const initials = getInitials(firstname, lastname);
+                                        const userEmail = btn.data('email') || 'N/A';
+                                        const userRole = btn.data('role');
 
-                    // Store user data in the modal
-                    $('#changeRoleModal').data('user-id', userId);
-                    $('#changeRoleModal').data('current-role', userRole);
+                                        // Populate the change role modal
+                                        $('#roleModalInitials').text(initials);
+                                        $('#roleModalName').text(fullName);
+                                        $('#roleModalEmail').text(userEmail);
 
-                    // Populate role dropdown based on current user's privilege level
-                    const currentEmployeeType = currentUser.employeeType.toLowerCase();
-                    let roleOptions = '<option value="">Select a role...</option>';
+                                        // Store user data in the modal
+                                        $('#changeRoleModal').data('user-id', userId);
+                                        $('#changeRoleModal').data('current-role', userRole);
 
-                    if (currentEmployeeType === 'owner') {
-                        roleOptions += '<option value="owner">Owner</option>';
-                        roleOptions += '<option value="admin">Admin</option>';
-                        roleOptions += '<option value="staff">Staff</option>';
-                    } else if (currentEmployeeType === 'admin') {
-                        roleOptions += '<option value="admin">Admin</option>';
-                        roleOptions += '<option value="staff">Staff</option>';
-                    }
+                                        // Populate role dropdown based on current user's privilege level
+                                        const currentEmployeeType = currentUser.employeeType.toLowerCase();
+                                        let roleOptions = '<option value="">Select a role...</option>';
 
-                    $('#newRole').html(roleOptions);
+                                        if (currentEmployeeType === 'owner') {
+                                            roleOptions += '<option value="owner">Owner</option>';
+                                            roleOptions += '<option value="admin">Admin</option>';
+                                            roleOptions += '<option value="staff">Staff</option>';
+                                        } else if (currentEmployeeType === 'admin') {
+                                            roleOptions += '<option value="admin">Admin</option>';
+                                            roleOptions += '<option value="staff">Staff</option>';
+                                        }
 
-                    // Pre-select current role
-                    if (userRole) {
-                        $('#newRole').val(userRole.toLowerCase());
-                    }
+                                        $('#newRole').html(roleOptions);
 
-                    // Show change role modal
-                    $('#changeRoleModal').removeClass('hidden').addClass('flex');
-                    syncManageEmployeeBodyScrollLock();
+                                        // Pre-select current role
+                                        if (userRole) {
+                                            $('#newRole').val(userRole.toLowerCase());
+                                        }
 
-                    setTimeout(() => {
-                        $('#newRole').focus();
-                    }, 100);
-                });
+                                        // Show change role modal
+                                        $('#changeRoleModal').removeClass('hidden').addClass('flex');
+                                        syncManageEmployeeBodyScrollLock();
 
-                // Delete button handler
-                $('.btn-delete').off('click').on('click', function () {
-                    const btn = $(this);
-                    const userId = btn.data('user-id');
-                    const employeeName = btn.data('name');
-                    
-                    // Prevent double click
-                    if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
-                        return;
-                    }
+                                        setTimeout(() => {
+                                            $('#newRole').focus();
+                                        }, 100);
+                                    });
 
-                    Confirm.delete(
-                        `Are you sure you want to archive ${employeeName}? You can keep historical records while hiding this user from active lists.`,
-                        function () {
-                            // User confirmed deletion
-                            deleteUser(userId, employeeName, btn);
-                        }
-                    );
-                });
-            }
-            // Search functionality (client-side filtering)
-            $('#searchInput').on('keyup', function () {
-                applyFilters();
-            });
+                                    // Delete button handler
+                                    $('.btn-delete').off('click').on('click', function() {
+                                        const btn = $(this);
+                                        const userId = btn.data('user-id');
+                                        const employeeName = btn.data('name');
 
-            // Filter functionality
-            $('#roleFilter').on('change', function () {
-                currentPage = 1; // Reset to first page on filter change
-                applyFilters();
-            });
+                                        // Prevent double click
+                                        if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(
+                                            btn)) {
+                                            return;
+                                        }
 
-            // Apply filters and re-render
-            function applyFilters() {
-                const searchTerm = $('#searchInput').val().toLowerCase().trim();
-                const roleFilter = $('#roleFilter').val();
+                                        Confirm.delete(
+                                            `Are you sure you want to archive ${employeeName}? You can keep historical records while hiding this user from active lists.`,
+                                            function() {
+                                                // User confirmed deletion
+                                                deleteUser(userId, employeeName, btn);
+                                            }
+                                        );
+                                    });
+                                }
+                                // Search functionality (client-side filtering)
+                                $('#searchInput').on('keyup', function() {
+                                    applyFilters();
+                                });
 
-                let filteredUsers = allEmployees;
+                                // Filter functionality
+                                $('#roleFilter').on('change', function() {
+                                    currentPage = 1; // Reset to first page on filter change
+                                    applyFilters();
+                                });
 
-                // Filter by role
-                if (roleFilter !== 'all') {
-                    filteredUsers = filteredUsers.filter(user => {
-                        const userRole = (user.employee_type || '').toLowerCase();
-                        return userRole === roleFilter;
-                    });
-                }
+                                // Apply filters and re-render
+                                function applyFilters() {
+                                    const searchTerm = $('#searchInput').val().toLowerCase().trim();
+                                    const roleFilter = $('#roleFilter').val();
 
-                // Filter by search term
-                if (searchTerm) {
-                    filteredUsers = filteredUsers.filter(user => {
-                        const fullName = `${user.firstname} ${user.middlename || ''} ${user.lastname}`.toLowerCase();
-                        const email = (user.email || '').toLowerCase();
-                        const username = (user.username || '').toLowerCase();
-                        const phone = (user.phone_number || '').toLowerCase();
-                        return fullName.includes(searchTerm) || email.includes(searchTerm) || 
-                               username.includes(searchTerm) || phone.includes(searchTerm);
-                    });
-                }
+                                    let filteredUsers = allEmployees;
 
-                // Reset to page 1 if current page exceeds total pages
-                const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-                if (currentPage > totalPages && totalPages > 0) {
-                    currentPage = 1;
-                }
+                                    // Filter by role
+                                    if (roleFilter !== 'all') {
+                                        filteredUsers = filteredUsers.filter(user => {
+                                            const userRole = (user.employee_type || '').toLowerCase();
+                                            return userRole === roleFilter;
+                                        });
+                                    }
 
-                renderEmployees(filteredUsers);
-            }
+                                    // Filter by search term
+                                    if (searchTerm) {
+                                        filteredUsers = filteredUsers.filter(user => {
+                                            const fullName =
+                                                `${user.firstname} ${user.middlename || ''} ${user.lastname}`
+                                                .toLowerCase();
+                                            const email = (user.email || '').toLowerCase();
+                                            const username = (user.username || '').toLowerCase();
+                                            const phone = (user.phone_number || '').toLowerCase();
+                                            return fullName.includes(searchTerm) || email.includes(
+                                                searchTerm) ||
+                                                username.includes(searchTerm) || phone.includes(searchTerm);
+                                        });
+                                    }
 
-            // Change Role Modal handlers
-            $('#closeRoleModal, #cancelRoleChange').on('click', function () {
-                $('#changeRoleModal').removeClass('flex').addClass('hidden');
-                $('#newRole').val('');
-                syncManageEmployeeBodyScrollLock();
-            });
+                                    // Reset to page 1 if current page exceeds total pages
+                                    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+                                    if (currentPage > totalPages && totalPages > 0) {
+                                        currentPage = 1;
+                                    }
 
-            $('#openArchivedUsers').on('click', function () {
-                fetchArchivedUsers();
-                $('#archivedUsersModal').removeClass('hidden').addClass('flex');
-                syncManageEmployeeBodyScrollLock();
-            });
+                                    renderEmployees(filteredUsers);
+                                }
 
-            $('#closeArchivedUsersModal, #closeArchivedUsersBtn, #archivedUsersModalBackdrop').on('click', function () {
-                $('#archivedUsersModal').removeClass('flex').addClass('hidden');
-                syncManageEmployeeBodyScrollLock();
-            });
+                                // Change Role Modal handlers
+                                $('#closeRoleModal, #cancelRoleChange').on('click', function() {
+                                    $('#changeRoleModal').removeClass('flex').addClass('hidden');
+                                    $('#newRole').val('');
+                                    syncManageEmployeeBodyScrollLock();
+                                });
 
-            $('#confirmRoleChange').on('click', function () {
-                const btn = $(this);
-                const newRole = $('#newRole').val();
-                const userId = $('#changeRoleModal').data('user-id');
-                const currentRole = $('#changeRoleModal').data('current-role');
-                
-                // Prevent double submission
-                if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
-                    return;
-                }
+                                $('#openArchivedUsers').on('click', function() {
+                                    fetchArchivedUsers();
+                                    $('#archivedUsersModal').removeClass('hidden').addClass('flex');
+                                    syncManageEmployeeBodyScrollLock();
+                                });
 
-                if (!newRole) {
-                    Toast.warning('Please select a role');
-                    return;
-                }
+                                $('#closeArchivedUsersModal, #closeArchivedUsersBtn, #archivedUsersModalBackdrop').on(
+                                    'click',
+                                    function() {
+                                        $('#archivedUsersModal').removeClass('flex').addClass('hidden');
+                                        syncManageEmployeeBodyScrollLock();
+                                    });
 
-                if (newRole.toLowerCase() === currentRole.toLowerCase()) {
-                    Toast.info('Employee already has this role');
-                    return;
-                }
+                                <<
+                                << << < HEAD
+                                // Prevent modal content click from closing
+                                $(
+                                    '#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white')
+                                .on('click', function(e) {
+                                    ===
+                                    === =
+                                    $('#confirmRoleChange').on('click', function() {
+                                        const btn = $(this);
+                                        const newRole = $('#newRole').val();
+                                        const userId = $('#changeRoleModal').data('user-id');
+                                        const currentRole = $('#changeRoleModal').data('current-role');
 
-                // Call the change user role function
-                changeUserRole(userId, newRole, btn);
-            });
+                                        // Prevent double submission
+                                        if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(
+                                                btn)) {
+                                            return;
+                                        }
 
-            // View/Edit Modal close handlers
-            $('#closeViewEditModal, #closeViewBtn').on('click', function () {
-                $('#viewEditModal').removeClass('flex').addClass('hidden');
-                syncManageEmployeeBodyScrollLock();
-            });
+                                        if (!newRole) {
+                                            Toast.warning('Please select a role');
+                                            return;
+                                        }
 
-            // Prevent modal content click from closing
-            $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white').on('click', function (e) {
-                e.stopPropagation();
-            });
-        });
+                                        if (newRole.toLowerCase() === currentRole.toLowerCase()) {
+                                            Toast.info('Employee already has this role');
+                                            return;
+                                        }
+
+                                        // Call the change user role function
+                                        changeUserRole(userId, newRole, btn);
+                                    });
+
+                                    // View/Edit Modal close handlers
+                                    $('#closeViewEditModal, #closeViewBtn').on('click', function() {
+                                        $('#viewEditModal').removeClass('flex').addClass('hidden');
+                                        syncManageEmployeeBodyScrollLock();
+                                    });
+
+                                    // Prevent modal content click from closing
+                                    $('#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white')
+                                        .on('click', function(e) {
+                                            >>>
+                                            >>> > 8 d8e191114c0d54964f08520cf90afd0a83b09b7
+                                            e.stopPropagation();
+                                        });
+                                });
     </script>

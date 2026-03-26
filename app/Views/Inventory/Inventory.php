@@ -5,37 +5,76 @@
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+
+                    <!-- LEFT: Navigation -->
                     <div class="flex flex-wrap gap-2">
                         <a href="<?= base_url('Inventory/History') ?>"
-                            class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            <i class="fas fa-history mr-2"></i> History
+                            class="inline-flex h-10 items-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition">
+                            <i class="fas fa-clock-rotate-left mr-2 text-gray-500"></i>
+                            History
                         </a>
-                        <?php if ($isOwnerView): ?>
-                            <button id="btnSendInventoryReport" type="button"
-                                class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                                <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                            </button>
-                        <?php endif; ?>
-                        <button id="btnAddProductToInventory" type="button"
-                            class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
-                            <i class="fas fa-plus mr-2"></i> Add Product
+                    </div>
+
+                    <!-- RIGHT: Actions -->
+                    <div class="flex flex-wrap items-center gap-2">
+
+                        <!-- Primary Action -->
+                        <button id="btnAddTodaysInventory"
+                            class="hidden inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-white hover:bg-primary/90 focus:ring-2 focus:ring-primary/40 transition shadow">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Inventory
                         </button>
-                        <button id="btnDistributions" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
+
+                        <!-- Secondary Actions -->
+                        <button id="btnAddProductToInventory"
+                            class="inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
+                            <i class="fas fa-box-open mr-2"></i>
+                            Add Product
                         </button>
-                        <button id="btnAddTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Today's Inventory
+
+                        <button id="btnDistributions"
+                            class="inline-flex h-10 items-center rounded-lg bg-blue-500 px-4 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition">
+                            <i class="fas fa-truck-loading mr-2"></i>
+                            Distributions
+                            <span id="distCount"
+                                class="ml-2 inline-flex items-center justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
+                                0
+                            </span>
                         </button>
-                        <button id="btnDeleteTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
-                            Delete Today's Inventory
+
+                        <button id="btnSendInventoryReport"
+                            class="inline-flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 transition">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Report
                         </button>
+
+                        <!-- Divider -->
+                        <div class="hidden sm:block h-6 w-px bg-gray-300 mx-1"></div>
+
+                        <!-- Destructive Actions -->
+                        <button id="btnCloseInventory" onclick="closeInventory()"
+                            class="inline-flex h-10 items-center rounded-lg bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 transition">
+                            <i class="fas fa-lock mr-2"></i>
+                            Close
+                        </button>
+
+                        <button id="btnOpenInventory" onclick="openInventory()"
+                            class="inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
+                            <i class="fas fa-lock-open mr-2"></i>
+                            Open
+                        </button>
+
+                        <button id="btnDeleteTodaysInventory"
+                            class="inline-flex h-10 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-400 transition">
+                            <i class="fas fa-trash mr-2"></i>
+                            Delete
+                        </button>
+
                     </div>
                 </div>
+
 
                 <!-- Divider line -->
                 <div class="border-t border-gray-200 my-4"></div>
@@ -271,7 +310,15 @@
                             </div>
                         </div>
                     </div>
-
+                    <div id="inventoryDisabledOverlay"
+                        class="fixed inset-0 bg-gray-200 bg-opacity-60 z-[100] flex items-center justify-center hidden"
+                        style="pointer-events: all;">
+                        <div class="text-center">
+                            <i class="fas fa-lock text-4xl text-gray-500 mb-4"></i>
+                            <div class="text-lg font-semibold text-gray-700">Inventory is closed</div>
+                            <div class="text-sm text-gray-500">You cannot make changes until it is reopened.</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="xl:col-span-4 min-w-0">
@@ -647,45 +694,32 @@
         </div>
     </div>
 
-    <?php if ($isOwnerView): ?>
-        <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
-            <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-                <button type="button" id="sendReportConfirmModalClose"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                    <i class="fas fa-xmark"></i>
+    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="sendReportConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
+                    emailed.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmSendInventoryReport"
+                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Send Report
                 </button>
-                <div class="text-center">
-                    <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
-                    <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
-                    <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
-                        emailed.</p>
-                </div>
-                <div class="mb-4">
-                    <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-                    <select id="sendReportShiftSelect"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
-                        <option value="shift_a">Shift A</option>
-                        <option value="shift_b">Shift B</option>
-                        <option value="shift_c">Shift C</option>
-                        <option value="shift_d">Shift D</option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" id="btnConfirmSendInventoryReport"
-                        class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                        Send Report
-                    </button>
-                    <button type="button" id="sendReportConfirmModalCancel"
-                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                        Cancel
-                    </button>
-                </div>
+                <button type="button" id="sendReportConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
             </div>
         </div>
-    <?php endif; ?>
+    </div>
 
     <script>
         // Track if inventory exists for today
@@ -710,7 +744,7 @@
             // Confirm Delete
             $('#btnConfirmDelete').on('click', function () {
                 $('#deleteConfirmModal').addClass('hidden');
-                deleteTodaysInventory(); // This calls your function
+                deleteInventory(); // This calls your function
             });
 
             // Distributions button click — open distribution list modal
@@ -1027,6 +1061,7 @@
         let todayDistProductDetailPromiseCache = {};
         let todayDistHydrationToken = 0;
         let todayDistributionGroupedData = [];
+        let inventoryId = null;
 
         function getTodayDateForApi() {
             const now = new Date();
@@ -2051,12 +2086,13 @@
                     dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        shift: $('#sendReportShiftSelect').val()
+                        inventory_id: inventoryId
                     }),
                     success: function (response) {
                         if (response && response.success) {
                             showToast('success', response.message ||
                                 'Inventory report sent successfully.', 2500);
+                            fetchAllStockitems();
                         } else {
                             showToast('error', (response && response.message) ||
                                 'Failed to send inventory report.', 3000);
@@ -2352,7 +2388,6 @@
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
-                        // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
                         if ($('#btnSendInventoryReport').length) {
@@ -2367,6 +2402,8 @@
                         // Hide add inventory buttons
                         $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        console.log('Closed? ' + response.data.is_closed);
+                        setInventoryState(response.data.is_closed);
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
@@ -2845,7 +2882,6 @@
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
-                        console.log(response.message);
                     } else {
                         showToast('error', response.message, 2000);
                     }
@@ -2865,11 +2901,10 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
-                    console.log(response);
                     if (response.success) {
-                        // showToast('success', response.message, 2000);
                         loadInventory(response.data);
-                        console.log('Inventory data:', response.data);
+                        console.log('Inventory data:', response);
+                        inventoryId = response.inventory_id || null;
                     } else {
                         console.log("Error: " + response.error);
                     }
@@ -3318,7 +3353,7 @@
             $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
 
             // Set notes or placeholder
-            if (notes && notes.trim()) {
+            if (String(notes) && String(notes).trim()) {
                 $('#itemDetailsNotes').text(notes);
             } else {
                 $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
@@ -4004,17 +4039,15 @@
             });
         });
 
-        function deleteTodaysInventory() {
+        function deleteInventory() {
             const baseUrl = '<?= base_url() ?>';
-            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
             $.ajax({
-                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                url: baseUrl + 'Inventory/DeleteInventory',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    date: today
+                    inventory_id: inventoryId
                 }),
                 success: function (response) {
                     if (response.success) {
@@ -4515,6 +4548,66 @@
             // Use the deduction warning modal
             $('#deductionWarningContent').html(html);
             $('#deductionWarningModal').removeClass('hidden');
+        }
+
+        function closeInventory() {
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/CloseInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        setInventoryState(true);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error closing inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
+
+        function openInventory() {
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/OpenInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Refresh inventory data to reflect closed status
+                        setInventoryState(false);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error opening inventory: ' + (xhr.responseJSON?.message || error), 2000);
+                    console.log(xhr);
+                }
+            });
+        }
+
+        function setInventoryState(isClosed) {
+            isClosed = isClosed === true || isClosed === 1 || isClosed === '1'; // force boolean
+            if (isClosed) {
+                $('#btnCloseInventory').addClass('hidden');
+                $('#btnOpenInventory').removeClass('hidden');
+            } else {
+                $('#btnCloseInventory').removeClass('hidden');
+                $('#btnOpenInventory').addClass('hidden');
+            }
         }
     </script>
 
