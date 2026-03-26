@@ -55,13 +55,13 @@
 
                         <!-- Destructive Actions -->
                         <button id="btnCloseInventory" onclick="closeInventory()"
-                            class="hidden inline-flex h-10 items-center rounded-lg bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 transition">
+                            class="inline-flex h-10 items-center rounded-lg bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 transition">
                             <i class="fas fa-lock mr-2"></i>
                             Close
                         </button>
 
                         <button id="btnOpenInventory" onclick="openInventory()"
-                            class="hidden inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
+                            class="inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 transition">
                             <i class="fas fa-lock-open mr-2"></i>
                             Open
                         </button>
@@ -2388,8 +2388,6 @@
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
-                        setInventoryState(response.is_closed);
-                        // showToast('info', response.message, 2000);
                         updateDateTime(response.data);
                         fetchAllStockitems();
                         if ($('#btnSendInventoryReport').length) {
@@ -2404,6 +2402,8 @@
                         // Hide add inventory buttons
                         $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        console.log('Closed? ' + response.data.is_closed);
+                        setInventoryState(response.data.is_closed);
                     } else {
                         inventoryExistsToday = false;
                         showToast('warning', response.message, 2000);
@@ -4600,6 +4600,7 @@
         }
 
         function setInventoryState(isClosed) {
+            isClosed = isClosed === true || isClosed === 1 || isClosed === '1'; // force boolean
             if (isClosed) {
                 $('#btnCloseInventory').addClass('hidden');
                 $('#btnOpenInventory').removeClass('hidden');

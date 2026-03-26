@@ -1491,12 +1491,14 @@ class InventoryController extends BaseController
         }
 
         $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 1]);
+        $new_data = $this->dailyStockModel->find($dailyStock['daily_stock_id']);
 
         // Immediate notification: inventory closed
         $this->notify('notifyInventoryClosed', $today);
 
         return $this->response->setJSON([
             'success' => true,
+            'inventory_state' => $new_data['is_closed'],
             'message' => 'Inventory closed successfully.'
         ]);
     }
@@ -1521,12 +1523,14 @@ class InventoryController extends BaseController
         }
 
         $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 0]);
+        $new_data = $this->dailyStockModel->find($dailyStock['daily_stock_id']);
 
         // Immediate notification: inventory opened
         $this->notify('notifyInventoryOpened', $today);
 
         return $this->response->setJSON([
             'success' => true,
+            'inventory_state' => $new_data['is_closed'],
             'message' => 'Inventory opened successfully.'
         ]);
     }
