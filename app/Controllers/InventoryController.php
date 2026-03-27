@@ -1358,30 +1358,23 @@ class InventoryController extends BaseController
      */
     public function sendInventoryReport()
     {
-        $session = $this->getSessionData();
-
-        // Only owners may trigger this
-        if (($session['employee_type'] ?? '') !== 'owner') {
-            return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Unauthorized. Only owners can trigger inventory reports.',
-            ]);
-        }
-
         $data = $this->request->getJSON(true);
 
         $inventoryId = $data['inventory_id'] ?? null;
+
+        if ($inventoryId === null) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Missing inventory_id.',
+            ]);
+        }
+
         $state = $this->dailyStockModel->find($inventoryId);
+
         if (!$state['is_closed']) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
                 'message' => 'Inventory must be closed first before sending a report.',
-            ]);
-        }
-        if (!$inventoryId) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Missing inventory_id.',
             ]);
         }
 
@@ -1391,7 +1384,6 @@ class InventoryController extends BaseController
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];
             $this->dailyStockModel->update($inventoryId, $updateData); // update the daily stock record
-            $this->resetInventory($inventoryId);
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory report marked as sent.',
@@ -1403,7 +1395,7 @@ class InventoryController extends BaseController
             ]);
         }
     }
-    private function resetInventory(int $inventoryId)
+    public function resetInventory(int $inventoryId)
     {
         $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
         $insertData = [
