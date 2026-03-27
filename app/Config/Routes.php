@@ -98,9 +98,10 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
     $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
     $routes->get('GetProductRecipe/(:num)', 'InventoryController::getProductRecipe/$1');
-    $routes->post('SendReport', 'InventoryController::sendInventoryReport'); // Owner: send manual auto-generated inventory email
-    $routes->post('CloseInventory', 'InventoryController::closeInventory'); // Owner: close inventory to prevent further edits and trigger report generation if needed
-    $routes->post('OpenInventory', 'InventoryController::openInventory'); // Owner: open inventory to allow further edits
+    $routes->post('SendReport', 'InventoryController::sendReport');
+    $routes->post('CloseInventory', 'InventoryController::closeInventory');
+    $routes->post('OpenInventory', 'InventoryController::openInventory');
+    $routes->post('ResetInventory/(:num)', 'InventoryController::resetInventory/$1');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {

@@ -1356,42 +1356,35 @@ class InventoryController extends BaseController
      * Owner-only. Used for verifying the email before the scheduled window fires.
      *  POST /Inventory/SendReport
      */
-    public function sendInventoryReport()
+    public function sendReport()
     {
-        $session = $this->getSessionData();
-
-        // Only owners may trigger this
-        if (($session['employee_type'] ?? '') !== 'owner') {
-            return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Unauthorized. Only owners can trigger inventory reports.',
-            ]);
-        }
-
         $data = $this->request->getJSON(true);
 
         $inventoryId = $data['inventory_id'] ?? null;
-        $state = $this->dailyStockModel->find($inventoryId);
-        if (!$state['is_closed']) {
-            return $this->response->setStatusCode(404)->setJSON([
-                'success' => false,
-                'message' => 'Inventory must be closed first before sending a report.',
-            ]);
-        }
-        if (!$inventoryId) {
+
+        if ($inventoryId === null) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Missing inventory_id.',
             ]);
         }
 
+        $state = $this->dailyStockModel->find($inventoryId);
+
+        if (!$state['is_closed']) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory must be closed first before sending a report.',
+            ]);
+        }
+
         try {
             $updateData = [
+                'time_end' => date('H:i:s'),
                 'report_sent' => 1,
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];
             $this->dailyStockModel->update($inventoryId, $updateData); // update the daily stock record
-            $this->resetInventory($inventoryId);
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory report marked as sent.',
@@ -1403,8 +1396,14 @@ class InventoryController extends BaseController
             ]);
         }
     }
-    private function resetInventory(int $inventoryId)
+    public function resetInventory(int $inventoryId)
     {
+        if (!$inventoryId) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Oops, Inventory not found!'
+            ]);
+        }
         $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
         $insertData = [
             'inventory_date' => date('Y-m-d'),
@@ -1425,7 +1424,13 @@ class InventoryController extends BaseController
                     ];
                 }, $duplicate_item)
             );
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory reset successfully with carryover stock.'
+            ]);
         }
+
+
     }
     /**
      * Get product recipe with raw materials and quantities
