@@ -1356,7 +1356,7 @@ class InventoryController extends BaseController
      * Owner-only. Used for verifying the email before the scheduled window fires.
      *  POST /Inventory/SendReport
      */
-    public function sendInventoryReport()
+    public function sendReport()
     {
         $data = $this->request->getJSON(true);
 
@@ -1380,6 +1380,7 @@ class InventoryController extends BaseController
 
         try {
             $updateData = [
+                'time_end' => date('H:i:s'),
                 'report_sent' => 1,
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];
@@ -1397,6 +1398,12 @@ class InventoryController extends BaseController
     }
     public function resetInventory(int $inventoryId)
     {
+        if (!$inventoryId) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Oops, Inventory not found!'
+            ]);
+        }
         $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
         $insertData = [
             'inventory_date' => date('Y-m-d'),
@@ -1417,7 +1424,13 @@ class InventoryController extends BaseController
                     ];
                 }, $duplicate_item)
             );
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Inventory reset successfully with carryover stock.'
+            ]);
         }
+
+
     }
     /**
      * Get product recipe with raw materials and quantities
