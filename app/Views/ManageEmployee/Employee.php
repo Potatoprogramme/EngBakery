@@ -567,7 +567,8 @@
                                     <<
                                     <<
                                     <<
-                                    < HEAD
+                                    <
+                                    HEAD
                                     Toast.success('Employee archived successfully.');
                                     console.log('Deleted user ID:', response.data); ===
                                     ===
@@ -592,7 +593,8 @@
                     <<
                     <<
                     <<
-                    < HEAD
+                    <
+                    HEAD
 
                     function renderArchivedUsers(users) {
                         const tbody = $('#archivedUsersTableBody');
@@ -1112,7 +1114,8 @@
                                         applyFilters(); <<
                                         <<
                                         <<
-                                        < HEAD
+                                        <
+                                        HEAD
                                     });
 
                                 $('.btn-page-prev').off('click').on('click', function() {
@@ -1269,7 +1272,8 @@
                         <<
                         <<
                         <<
-                        < HEAD
+                        <
+                        HEAD
                         $('#openArchivedUsers').on('click', function() {
                             fetchArchivedUsers();
                             $('#archivedUsersModal').removeClass('hidden').addClass('flex');
@@ -1433,7 +1437,8 @@
                                 <<
                                 <<
                                 <<
-                                < HEAD
+                                <
+                                HEAD
                                 // Prevent modal content click from closing
                                 $(
                                     '#changeRoleModal .relative.bg-white, #viewEditModal .relative.bg-white, #archivedUsersModal .relative.bg-white'
