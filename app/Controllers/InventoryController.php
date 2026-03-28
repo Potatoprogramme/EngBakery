@@ -6,6 +6,28 @@ use App\Libraries\DistributionQuantityCalculator;
 
 class InventoryController extends BaseController
 {
+    /**
+     * Keep open-shift semantics as NULL when the schema allows it.
+     * Fallback to a safe placeholder for legacy schemas where time_end is NOT NULL.
+     */
+    private function getOpenShiftTimeEndValue()
+    {
+        try {
+            $db = db_connect();
+            $fields = $db->getFieldData('daily_stock');
+            foreach ($fields as $field) {
+                if (($field->name ?? '') === 'time_end') {
+                    $isNullable = property_exists($field, 'nullable') ? (bool) $field->nullable : false;
+                    return $isNullable ? null : '00:00:00';
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall through to legacy-safe value below.
+        }
+
+        return '00:00:00';
+    }
+
     public function inventory()
     {
         $data = $this->getSessionData();
@@ -34,7 +56,10 @@ class InventoryController extends BaseController
     public function fetchTodaysInventory()
     {
         $today = date('Y-m-d');
-        $daily_stock = $this->dailyStockModel->where('report_sent', 0)->where('inventory_date', $today)->first();
+        $daily_stock = $this->dailyStockModel
+            ->where('inventory_date', $today)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
 
         // Check if daily_stock exists before accessing it
         if (!$daily_stock) {
@@ -99,13 +124,11 @@ class InventoryController extends BaseController
 
     public function addTodaysInventory()
     {
-        // Implementation for adding today's inventory
-        $data = $this->request->getJSON(true);
         $today = date('Y-m-d');
         $insertData = [
             'inventory_date' => $today,
-            'time_start' => $data['time_start'],
-            'time_end' => $data['time_end'],
+            'time_start' => date('H:i:s'),
+            'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
 
 
@@ -164,15 +187,7 @@ class InventoryController extends BaseController
      */
     public function addInventoryFromDistribution()
     {
-        $data = $this->request->getJSON(true);
         $today = date('Y-m-d');
-
-        if (empty($data['time_start']) || empty($data['time_end'])) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Start time and end time are required.'
-            ]);
-        }
 
         if ($this->dailyStockModel->checkInventoryExists($today)) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -210,8 +225,8 @@ class InventoryController extends BaseController
         // Raw materials are already deducted at distribution time
         $insertData = [
             'inventory_date' => $today,
-            'time_start' => $data['time_start'],
-            'time_end' => $data['time_end'],
+            'time_start' => date('H:i:s'),
+            'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
 
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
@@ -283,7 +298,7 @@ class InventoryController extends BaseController
     {
         $today = date('Y-m-d');
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
         if (!$dailyStock) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -378,7 +393,7 @@ class InventoryController extends BaseController
     {
         $today = date('Y-m-d');
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
         $dailyStockId = $dailyStock ? intval($dailyStock['daily_stock_id']) : 0;
 
         $distributionGroups = $this->distributionGroupModel->getGroupsByDate($today);
@@ -482,7 +497,7 @@ class InventoryController extends BaseController
     {
         $today = date('Y-m-d');
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
         if (!$dailyStock) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -635,7 +650,7 @@ class InventoryController extends BaseController
     public function getAvailableProducts()
     {
         $today = date('Y-m-d');
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
@@ -668,7 +683,7 @@ class InventoryController extends BaseController
         }
 
         $today = date('Y-m-d');
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
 
         if (!$dailyStock) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -743,7 +758,7 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->first();
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
         if (!$dailyStock) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
@@ -1161,7 +1176,11 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $dailyStock = $this->dailyStockModel->where('report_sent', 0)->where('inventory_date', $date)->first();
+        $dailyStock = $this->dailyStockModel
+            ->where('report_sent', 0)
+            ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
@@ -1378,6 +1397,13 @@ class InventoryController extends BaseController
             ]);
         }
 
+        if ($state['report_sent'] == 1) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => false,
+                'message' => 'Report has already been sent for this inventory.',
+            ]);
+        }
+
         try {
             $updateData = [
                 'time_end' => date('H:i:s'),
@@ -1404,17 +1430,41 @@ class InventoryController extends BaseController
                 'message' => 'Oops, Inventory not found!'
             ]);
         }
+
+        $sourceInventory = $this->dailyStockModel->find($inventoryId);
+        if (!$sourceInventory) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Source inventory record not found.'
+            ]);
+        }
+
+        if (intval($sourceInventory['is_closed'] ?? 0) !== 1) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Close the current inventory first before creating a new shift.'
+            ]);
+        }
+
+        if ($sourceInventory['report_sent'] == 0) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => false,
+                'message' => 'Oops! please send the inventory report first before resetting.'
+            ]);
+        }
+
         $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
         $insertData = [
             'inventory_date' => date('Y-m-d'),
             'time_start' => date('H:i:s'),
-            'time_end' => date('H:i:s'),
+            'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
         if ($this->dailyStockModel->insert($insertData)) {
+            $newInventoryId = (int) $this->dailyStockModel->getInsertID();
             $this->dailyStockItemsModel->insertBatch(
-                array_map(function ($item) {
+                array_map(function ($item) use ($newInventoryId) {
                     return [
-                        'daily_stock_id' => $this->dailyStockModel->getInsertID(),
+                        'daily_stock_id' => $newInventoryId,
                         'product_id' => $item['product_id'],
                         'beginning_stock' => $item['ending_stock'], // carry over ending stock as new beginning
                         'pull_out_quantity' => 0,
@@ -1426,11 +1476,15 @@ class InventoryController extends BaseController
             );
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Inventory reset successfully with carryover stock.'
+                'message' => 'Inventory reset successfully with carryover stock.',
+                'new_inventory_id' => $newInventoryId,
             ]);
         }
 
-
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to reset inventory.'
+        ]);
     }
     /**
      * Get product recipe with raw materials and quantities
