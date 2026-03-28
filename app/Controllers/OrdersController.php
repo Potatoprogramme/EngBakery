@@ -382,7 +382,10 @@ class OrdersController extends BaseController
             }
 
             // Remove related sales transactions so inventory qty sold is refunded
-            $this->transactionsModel->deleteByOrderId(intval($orderId));
+            $this->transactionsModel
+                ->where('order_id', intval($orderId))
+                ->set(['deleted_at' => date('Y-m-d H:i:s')])
+                ->update();
 
             // Soft delete: mark as voided instead of deleting
             $cashierName = $this->normalizePersonName(session()->get('name') ?? session()->get('username') ?? 'Unknown');
@@ -410,7 +413,10 @@ class OrdersController extends BaseController
             $this->db->transRollback();
             return $this->response->setJSON([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'data' => [
+                    'order_id' => $orderId
+                ]
             ]);
         }
     }

@@ -2,6 +2,7 @@
 $isStaffView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'staff';
 $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?? '')) === 'owner';
 ?>
+
 <body class="bg-gray-50">
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
@@ -877,20 +878,22 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                         ButtonLoader.stop(btn);
                     }
                     if (response.success) {
+                        console.log(response);
                         Toast.success('Order voided successfully');
                         $('#orderDetailsModal').addClass('hidden');
                         syncOrderHistoryBodyScrollLock();
                         const filters = getCurrentFilters();
                         loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
                     } else {
-                        Toast.error(response.message || 'Failed to void order');
+                        console.error(response);
                     }
                 },
-                error: function () {
+                error: function (xhr) {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.stop(btn);
                     }
                     Toast.error('Error voiding order');
+                    console.error(xhr);
                 }
             });
         }
