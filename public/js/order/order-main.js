@@ -262,7 +262,8 @@ function attachProductCardHandlers() {
       currentProductId = productId;
       currentProductPrice = price;
       currentProductCategory = category;
-      currentProductStock = parseInt(this.getAttribute("data-product-stock")) || 0;
+      currentProductStock =
+        parseInt(this.getAttribute("data-product-stock")) || 0;
       document.getElementById("productModalTitle").textContent = productName;
       document.getElementById("productPrice").textContent =
         "P" + price.toFixed(2);
@@ -397,7 +398,9 @@ function initProductModal() {
     if (currentProductCategory === "bakery") {
       const maxQty = getBakeryMaxQuantity(currentProductId);
       if (maxQty <= 0) {
-        Toast.error("Order cannot be completed: this bakery item is out of stock.");
+        Toast.error(
+          "Order cannot be completed: this bakery item is out of stock.",
+        );
         return;
       }
       if (quantity > maxQty) {
@@ -643,9 +646,14 @@ function initEditOrderModal() {
     const orderCart = CartManager.getCart();
 
     if (currentEditCategory === "bakery") {
-      currentEditMaxQty = getBakeryMaxQuantity(currentEditProductId, currentEditIndex);
+      currentEditMaxQty = getBakeryMaxQuantity(
+        currentEditProductId,
+        currentEditIndex,
+      );
       if (currentEditMaxQty <= 0) {
-        Toast.error("Order cannot be completed: this bakery item is out of stock.");
+        Toast.error(
+          "Order cannot be completed: this bakery item is out of stock.",
+        );
         return;
       }
       if (newQuantity > currentEditMaxQty) {
@@ -789,7 +797,6 @@ function initCheckoutModal() {
       exitConfirmModal.classList.add("hidden");
       closeCheckoutModal();
     });
-
 }
 
 function openCheckoutModal() {
@@ -918,8 +925,8 @@ function resetStepProgress() {
   document.getElementById("checkoutOrderType").value = "walk-in";
   document.getElementById("checkoutPaymentMethod").value = "cash";
   // Reset payment method card buttons back to cash
-  if (typeof selectPaymentMethod === 'function') {
-    selectPaymentMethod('cash');
+  if (typeof selectPaymentMethod === "function") {
+    selectPaymentMethod("cash");
   }
   // Reset distributed note
   const distributedNote = document.getElementById("distributedNote");
@@ -1160,7 +1167,10 @@ async function completeCheckout() {
 
       Toast.success("Order saved successfully!");
     } else {
-      if (result.insufficient_materials && result.insufficient_materials.length) {
+      if (
+        result.insufficient_materials &&
+        result.insufficient_materials.length
+      ) {
         showInsufficientStockModal(result.insufficient_materials);
       }
       Toast.error(result.message || "Failed to process order");
