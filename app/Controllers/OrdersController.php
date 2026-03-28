@@ -81,7 +81,7 @@ class OrdersController extends BaseController
         }
 
         // Check for today's inventory using model method
-        $dailyStock = $this->dailyStockModel->getTodaysInventory();
+        $dailyStock = $this->dailyStockModel->getActiveTodaysInventory();
 
         if (!$dailyStock && $needsInventory) {
             return $this->response->setJSON([
@@ -352,7 +352,7 @@ class OrdersController extends BaseController
             $orderItems = $this->orderItemModel->getOrderItems($orderId);
 
             // Get today's inventory (optional - only restore stock if same day)
-            $dailyStock = $this->dailyStockModel->getTodaysInventory();
+            $dailyStock = $this->dailyStockModel->getActiveTodaysInventory();
 
             // Restore stock for each item
             foreach ($orderItems as $item) {
@@ -439,7 +439,7 @@ class OrdersController extends BaseController
 
             // Restore stock and raw materials for each item (like void)
             $orderItems = $this->orderItemModel->getOrderItems($orderId);
-            $dailyStock = $this->dailyStockModel->getTodaysInventory();
+            $dailyStock = $this->dailyStockModel->getActiveTodaysInventory();
 
             foreach ($orderItems as $item) {
                 $product = $this->productModel->find(intval($item['product_id']));
@@ -607,7 +607,7 @@ class OrdersController extends BaseController
             }
         }
 
-        $dailyStock = $this->dailyStockModel->getTodaysInventory();
+        $dailyStock = $this->dailyStockModel->getActiveTodaysInventory();
         if (!$dailyStock && $needsInventory) {
             return $this->response->setJSON([
                 'success' => false,

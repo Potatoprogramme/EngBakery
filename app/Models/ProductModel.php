@@ -48,17 +48,29 @@ class ProductModel extends Model
                 SELECT ds1.daily_stock_id
                 FROM daily_stock ds1
                 WHERE ds1.inventory_date = ?
+                    AND COALESCE(ds1.is_closed, 0) = 0
                     AND COALESCE(ds1.report_sent, 0) = 0
                 ORDER BY ds1.daily_stock_id DESC
                 LIMIT 1
             ) latest_ds ON 1 = 1
-            LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
+            LEFT JOIN (
+                SELECT dsi1.daily_stock_id,
+                       dsi1.product_id,
+                       SUM(COALESCE(dsi1.ending_stock, 0)) AS ending_stock,
+                       MAX(COALESCE(dsi1.is_enabled, 0)) AS is_enabled
+                FROM daily_stock_items dsi1
+                GROUP BY dsi1.daily_stock_id, dsi1.product_id
+            ) dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
                         WHERE p.is_disabled = 0
                             AND p.deleted_at IS NULL
                             AND (
-                                (p.category = 'drinks' AND dsi.is_enabled = 1)
+                                (p.category = 'drinks')
                                 OR (p.category = 'grocery')
-                                OR (p.category NOT IN ('drinks', 'grocery') AND (dsi.item_id IS NULL OR dsi.is_enabled = 1))
+                                OR (p.category NOT IN ('drinks', 'grocery') AND (
+                                    dsi.product_id IS NULL
+                                    OR dsi.is_enabled = 1
+                                    OR COALESCE(dsi.ending_stock, 0) > 0
+                                ))
                             )
             ORDER BY p.category, p.product_name
         ", [$today])->getResultArray();

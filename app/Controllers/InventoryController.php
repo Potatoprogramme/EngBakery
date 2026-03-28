@@ -1470,7 +1470,7 @@ class InventoryController extends BaseController
                         'beginning_stock' => $item['ending_stock'], // carry over ending stock as new beginning
                         'pull_out_quantity' => 0,
                         'ending_stock' => $item['ending_stock'], // initial ending same as beginning
-                        'distribution_qty' => 0, // reset distribution for new day
+                        'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
                         'is_enabled' => ($item['ending_stock'] > 0) ? 1 : 0 || $item['is_enabled'], // disable if no stock carried over
                     ];
                 }, $duplicate_item)
