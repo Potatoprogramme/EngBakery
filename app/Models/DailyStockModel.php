@@ -68,6 +68,20 @@ class DailyStockModel extends Model
     }
 
     /**
+     * Get today's active inventory record used by Orders flow.
+     * Active means the shift is not closed and report is not sent yet.
+     */
+    public function getActiveTodaysInventory(): ?array
+    {
+        return $this
+            ->where('inventory_date', date('Y-m-d'))
+            ->where('COALESCE(is_closed, 0)', 0)
+            ->where('COALESCE(report_sent, 0)', 0)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
+    }
+
+    /**
      * Get inventory history with optional date filters
      */
     public function getInventoryHistory(?string $dateFrom = null, ?string $dateTo = null): array

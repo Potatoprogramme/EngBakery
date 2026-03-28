@@ -122,10 +122,10 @@
 
             <div id="inventoryInteractionArea" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
                 <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0">
-                    <div id="inventoryLockOverlay"
-                        class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
+                    <div id="inventoryLockOverlay" class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
                         <div class="h-full w-full flex items-center justify-center p-3">
-                            <div class="bg-gray-900/55 text-white text-sm font-medium rounded-lg px-4 py-2 shadow text-center">
+                            <div
+                                class="bg-gray-900/55 text-white text-sm font-medium rounded-lg px-4 py-2 shadow text-center">
                                 Inventory is closed. Click Open to enable editing.
                             </div>
                         </div>
@@ -4124,33 +4124,12 @@
             }),
             success: function(response) {
                 if (response.success) {
-                    inventoryExistsToday = false;
-                    inventoryIsClosed = false;
-                    syncInventoryInteractionLock();
                     showToast('success', response.message, 2000);
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                     }
-                    // Clear the table
-                    $('#materialsTableBody').html(
-                        '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
-                    );
-                    // Reset date/time display
-                    $('#timeRange').text('--:-- - --:--');
-                    // Show add inventory buttons since no inventory exists
-                    $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                    $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                    // Hide delete and add product buttons
-                    $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                    $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                    $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
-                    // Re-check distribution status for next inventory creation
+                    checkIfInventoryExists();
                     checkIfDistributionExists();
-                    // Hide distribution button
-                    $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
-                    // Reload the table
-                    fetchAllStockitems();
                 } else {
                     showToast('error', response.message, 2000);
                 }
