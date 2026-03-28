@@ -84,7 +84,7 @@ class DailyStockModel extends Model
      */
     public function getInventoryHistory(?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $builder = $this->orderBy('inventory_date', 'DESC');
+        $builder = $this->orderBy('daily_stock_id', 'DESC');
 
         if ($dateFrom) {
             $builder->where('inventory_date >=', $dateFrom);
