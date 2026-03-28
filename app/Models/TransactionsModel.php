@@ -15,7 +15,8 @@ class TransactionsModel extends Model
         'quantity_sold',
         'total_sales',
         'date_created',
-        'time_created'
+        'time_created',
+        'deleted_at',
     ];
     protected $useTimestamps = false;
 
