@@ -44,8 +44,15 @@ class ProductModel extends Model
                    COALESCE(dsi.ending_stock, 0) as available_stock
             FROM products p
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
-            LEFT JOIN daily_stock ds ON ds.inventory_date = ?
-            LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id AND dsi.product_id = p.product_id
+            LEFT JOIN (
+                SELECT ds1.daily_stock_id
+                FROM daily_stock ds1
+                WHERE ds1.inventory_date = ?
+                    AND COALESCE(ds1.report_sent, 0) = 0
+                ORDER BY ds1.daily_stock_id DESC
+                LIMIT 1
+            ) latest_ds ON 1 = 1
+            LEFT JOIN daily_stock_items dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
                         WHERE p.is_disabled = 0
                             AND p.deleted_at IS NULL
                             AND (
