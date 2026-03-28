@@ -74,9 +74,7 @@ class DailyStockModel extends Model
     public function getActiveTodaysInventory(): ?array
     {
         return $this
-            ->where('inventory_date', date('Y-m-d'))
-            ->where('COALESCE(is_closed, 0)', 0)
-            ->where('COALESCE(report_sent, 0)', 0)
+            ->orderBy('inventory_date', 'DESC')
             ->orderBy('daily_stock_id', 'DESC')
             ->first();
     }
