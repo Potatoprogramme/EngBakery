@@ -4717,7 +4717,7 @@
                     checkIfInventoryExists();
                     fetchAllStockitems();
                 } else {
-                    showToast('error', response.message, 2000);
+                    showToast('warning', response.message, 2000);
                 }
             },
             error: function(xhr, status, error) {

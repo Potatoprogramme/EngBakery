@@ -25,18 +25,17 @@ class DailyStockModel extends Model
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
 
-    public function checkInventoryExistsToday($date)
-    {
-        return $this
-            ->where('inventory_date', $date)
-            ->orderBy('daily_stock_id', 'DESC')
-            ->first();
-    }
+    // public function checkInventoryExistsToday($date)
+    // {
+    //     return $this
+    //         ->where('inventory_date', $date)
+    //         ->orderBy('daily_stock_id', 'DESC')
+    //         ->first();
+    // }
 
     public function checkInventoryToday($date)
     {
         return $this
-            ->where('report_sent', 0)
             ->where('inventory_date', $date)
             ->orderBy('daily_stock_id', 'DESC')
             ->first();
@@ -44,7 +43,6 @@ class DailyStockModel extends Model
     public function checkInventoryExists($date)
     {
         return $this
-            ->where('report_sent', 0)
             ->where('inventory_date', $date)
             ->orderBy('daily_stock_id', 'DESC')
             ->first();

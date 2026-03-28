@@ -57,7 +57,6 @@ class InventoryController extends BaseController
     {
         $today = date('Y-m-d');
         $daily_stock = $this->dailyStockModel
-            ->where('report_sent', 0)
             ->where('inventory_date', $today)
             ->orderBy('daily_stock_id', 'DESC')
             ->first();
@@ -1398,6 +1397,13 @@ class InventoryController extends BaseController
             ]);
         }
 
+        if ($state['report_sent'] == 1) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => false,
+                'message' => 'Report has already been sent for this inventory.',
+            ]);
+        }
+
         try {
             $updateData = [
                 'time_end' => date('H:i:s'),
@@ -1437,6 +1443,13 @@ class InventoryController extends BaseController
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Close the current inventory first before creating a new shift.'
+            ]);
+        }
+
+        if ($sourceInventory['report_sent'] == 0) {
+            return $this->response->setStatusCode(200)->setJSON([
+                'success' => false,
+                'message' => 'Oops! please send the inventory report first before resetting.'
             ]);
         }
 
