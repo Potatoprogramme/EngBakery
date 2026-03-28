@@ -779,8 +779,9 @@ class InventoryController extends BaseController
         }
 
         // Check if there are any transactions for today
-        $hasTransactions = $this->transactionsModel
-            ->where('DATE(date_created)', $today)
+        $hasTransactions = $this->transactionsModel->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id')
+            ->where('DATE(transactions.date_created)', $today)
+            ->where('dsi.daily_stock_id', $id)
             ->countAllResults() > 0;
 
         if ($hasTransactions) {
