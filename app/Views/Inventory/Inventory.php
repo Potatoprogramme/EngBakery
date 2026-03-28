@@ -123,9 +123,9 @@
             <div id="inventoryInteractionArea" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
                 <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0">
                     <div id="inventoryLockOverlay"
-                        class="hidden absolute inset-0 z-20 bg-white/65 backdrop-blur-[1px] rounded-lg pointer-events-auto">
-                        <div class="h-full w-full flex items-center justify-center p-4">
-                            <div class="bg-gray-900 text-white text-sm font-medium rounded-lg px-4 py-2 shadow">
+                        class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
+                        <div class="h-full w-full flex items-center justify-center p-3">
+                            <div class="bg-gray-900/55 text-white text-sm font-medium rounded-lg px-4 py-2 shadow text-center">
                                 Inventory is closed. Click Open to enable editing.
                             </div>
                         </div>
@@ -428,7 +428,7 @@
                         <i class="fas fa-times text-lg"></i>
                     </button>
                     <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-2">Set the operating hours for today.</p>
+                    <p class="text-xs text-gray-500 mb-2">Create inventory now and start tracking this shift.</p>
 
                     <!-- Inventory Source Badge -->
                     <div id="inventoryModeBadge"
@@ -460,19 +460,11 @@
                     </div>
 
                     <form id="timeInputForm">
-                        <div class="mb-4">
-                            <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start
-                                Time</label>
-                            <input type="time" id="time_start" name="time_start" required
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <p class="text-xs text-gray-400 mt-1">Morning (AM)</p>
-                        </div>
-                        <div class="mb-6">
-                            <label for="time_end" class="block mb-1.5 text-sm font-medium text-gray-700">End
-                                Time</label>
-                            <input type="time" id="time_end" name="time_end" required
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <p class="text-xs text-gray-400 mt-1">Afternoon/Evening (PM)</p>
+                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-xs text-gray-600">
+                                <i class="fas fa-clock mr-1"></i>
+                                Start time will be recorded automatically when you create inventory.
+                            </p>
                         </div>
                         <div class="flex gap-3">
                             <button type="submit"
@@ -753,6 +745,22 @@
         return false;
     }
 
+    function syncNewShiftButtonState() {
+        const shouldDisable = inventoryExistsToday && !inventoryIsClosed;
+        const $btn = $('#btnResetInventoryForNextShift');
+
+        $btn
+            .prop('disabled', shouldDisable)
+            .attr('aria-disabled', shouldDisable ? 'true' : 'false')
+            .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', shouldDisable);
+
+        if (shouldDisable) {
+            $btn.attr('title', 'Close inventory first before creating a new shift.');
+        } else {
+            $btn.removeAttr('title');
+        }
+    }
+
     function syncInventoryInteractionLock() {
         const blocked = isInventoryInteractionBlocked();
         $('#inventoryLockOverlay').toggleClass('hidden', !blocked);
@@ -761,6 +769,8 @@
         $(lockButtons)
             .prop('disabled', blocked)
             .toggleClass('opacity-50 cursor-not-allowed', blocked);
+
+        syncNewShiftButtonState();
     }
 
     $(document).ready(function() {
@@ -2161,8 +2171,6 @@
             checkIfDistributionExists(); // refreshes inventorySource + badge in background
             fetchYesterdayRemaining(); // Load carryover preview
             $('#timeInputModal').removeClass('hidden');
-            $('#time_start').val('06:00'); // 6:00 AM (morning)
-            $('#time_end').val('20:00'); // 8:00 PM (evening)
         });
 
         // Close Inventory Modal
@@ -2180,22 +2188,14 @@
         // Submit Time Input Form
         $('#timeInputForm').on('submit', function(e) {
             e.preventDefault();
-            const timeStart = $('#time_start').val();
-            const timeEnd = $('#time_end').val();
-
-            // Validate time range
-            if (timeStart >= timeEnd) {
-                showToast('warning', 'End time must be after start time');
-                return;
-            }
 
             $('#timeInputModal').addClass('hidden');
 
             // Route to the correct endpoint based on whether distribution exists today
             if (inventorySource === 'distribution') {
-                addTodaysInventoryFromDistribution(timeStart, timeEnd);
+                addTodaysInventoryFromDistribution();
             } else {
-                addTodaysInventory(timeStart, timeEnd);
+                addTodaysInventory();
             }
 
             $('#timeInputForm')[0].reset();
@@ -2510,8 +2510,11 @@
             $('#todayDate').text(dateString);
         }
 
+        const hasStart = !!data.time_start;
+        const hasRealEnd = !!data.time_end && data.time_end !== '00:00:00';
+
         // Update time range display
-        if (data.time_start && data.time_end) {
+        if (hasStart && hasRealEnd) {
             // Format time to 12-hour format with AM/PM
             const formatTime = (time) => {
                 const [hours, minutes] = time.split(':');
@@ -2524,6 +2527,14 @@
             const timeStart = formatTime(data.time_start);
             const timeEnd = formatTime(data.time_end);
             $('#timeRange').text(`${timeStart} - ${timeEnd}`);
+        } else if (hasStart) {
+            const [hours, minutes] = data.time_start.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            $('#timeRange').text(`Started ${displayHour}:${minutes} ${ampm}`);
+        } else {
+            $('#timeRange').text('-');
         }
     }
 
@@ -2890,17 +2901,14 @@
         });
     }
 
-    function addTodaysInventoryFromDistribution(time_start, time_end) {
+    function addTodaysInventoryFromDistribution() {
         const baseUrl = '<?= base_url() ?>';
         $.ajax({
             url: baseUrl + 'Inventory/AddInventoryFromDistribution',
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json',
-            data: JSON.stringify({
-                time_start: time_start,
-                time_end: time_end
-            }),
+            data: JSON.stringify({}),
             success: function(response) {
                 if (response.success) {
                     let msg = response.message;
@@ -2924,17 +2932,14 @@
     }
 
     // If no inventory, show button for creating inventory
-    function addTodaysInventory(time_start, time_end) {
+    function addTodaysInventory() {
         const baseUrl = '<?= base_url() ?>';
         $.ajax({
             url: baseUrl + 'Inventory/AddTodaysInventory',
             type: 'POST',
             dataType: 'json',
             contentType: 'application/json',
-            data: JSON.stringify({
-                time_start: time_start,
-                time_end: time_end
-            }),
+            data: JSON.stringify({}),
             success: function(response) {
                 if (response.success) {
                     showToast('success', response.message, 2000);
@@ -4708,8 +4713,9 @@
                 if (response.success) {
                     showToast('success', response.message, 2000);
                     // Refresh inventory data to reflect new inventory
-                    inventoryId = response.new_inventory_id; // update to new inventory ID
-                    fetchAllStockitems(); // reload table with new inventory data
+                    inventoryId = response.new_inventory_id || null;
+                    checkIfInventoryExists();
+                    fetchAllStockitems();
                 } else {
                     showToast('error', response.message, 2000);
                 }
@@ -4725,6 +4731,16 @@
     }
 
     function openResetModal() {
+        if (!inventoryExistsToday) {
+            showToast('warning', 'No inventory exists for today.', 2000);
+            return;
+        }
+
+        if (!inventoryIsClosed) {
+            showToast('warning', 'Close inventory first before creating a new shift.', 2200);
+            return;
+        }
+
         document.getElementById('resetInventoryModal').classList.remove('hidden');
     }
 

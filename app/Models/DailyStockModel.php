@@ -27,7 +27,10 @@ class DailyStockModel extends Model
 
     public function checkInventoryExistsToday($date)
     {
-        return $this->where('inventory_date', $date)->first();
+        return $this
+            ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
     }
 
     public function checkInventoryToday($date)
@@ -35,6 +38,7 @@ class DailyStockModel extends Model
         return $this
             ->where('report_sent', 0)
             ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
             ->first();
     }
     public function checkInventoryExists($date)
@@ -42,6 +46,7 @@ class DailyStockModel extends Model
         return $this
             ->where('report_sent', 0)
             ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
             ->first();
     }
     public function addTodaysInventory($data)
@@ -58,7 +63,10 @@ class DailyStockModel extends Model
      */
     public function getTodaysInventory(): ?array
     {
-        return $this->where('inventory_date', date('Y-m-d'))->first();
+        return $this
+            ->where('inventory_date', date('Y-m-d'))
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
     }
 
     /**
