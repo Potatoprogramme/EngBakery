@@ -24,14 +24,19 @@ class OrderModel extends Model
     ];
     protected $useTimestamps = false;
 
-    public function generateOrderNumber(): string
+    public function generateOrderNumber(?int $orderId = null, ?string $orderDate = null): string
     {
-        $today = date('Y-m-d');
+        $resolvedDate = $orderDate ?? date('Y-m-d');
 
-        $todayCount = $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
+        if ($orderId !== null) {
+            return "{$resolvedDate}-{$orderId}";
+        }
+
+        // Fallback for legacy callers when order ID is not available yet.
+        $todayCount = $this->where('date_created', $resolvedDate)->where('voided_at IS NULL')->countAllResults();
         $sequence = $todayCount + 1;
 
-        return "{$today} -{$sequence}";
+        return "{$resolvedDate}-{$sequence}";
     }
 
     public function createOrder(array $data): int|false
@@ -58,8 +63,7 @@ class OrderModel extends Model
     {
         $builder = $this->builder();
         $builder->select("orders.*, orders.voided_at, orders.voided_by,
-            CONCAT(orders.date_created, ' -', 
-            (SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id)) as order_number", false);
+            CONCAT(orders.date_created, '-', orders.order_id) as order_number", false);
 
         if ($dateFrom) {
             $builder->where('date_created >=', $dateFrom);
@@ -85,10 +89,7 @@ class OrderModel extends Model
     {
         $order = $this->find($orderId);
         if ($order) {
-            $sequence = $this->where('date_created', $order['date_created'])
-                ->where('order_id <=', $orderId)
-                ->countAllResults();
-            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . " -{$sequence}";
+            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . "-{$orderId}";
         }
         return $order;
     }
@@ -268,7 +269,7 @@ class OrderModel extends Model
 
         return [
             'order_id' => $orderId,
-            'order_number' => $this->generateOrderNumber(),
+            'order_number' => $this->generateOrderNumber($orderId),
             'order' => $this->getOrderById($orderId),
             'items' => $orderItemModel->getOrderItems($orderId)
         ];

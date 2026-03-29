@@ -139,7 +139,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                                 <option value="walk-in">Walk-in</option>
                                 <option value="foodpanda">Foodpanda</option>
                                 <?php if (!$isStaffView): ?>
-                                    <option value="distributed">Distributed</option>
+                                <option value="distributed">Distributed</option>
                                 <?php endif; ?>
                             </select>
                         </div>
@@ -267,10 +267,10 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                     <i class="fas fa-ban mr-2"></i>Void
                 </button>
                 <?php if ($isOwnerView): ?>
-                    <button type="button" id="btnDeleteOrder"
-                        class="px-4 py-3 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 transition-all">
-                        <i class="fas fa-trash mr-2"></i>Delete
-                    </button>
+                <button type="button" id="btnDeleteOrder"
+                    class="px-4 py-3 text-sm font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 transition-all">
+                    <i class="fas fa-trash mr-2"></i>Delete
+                </button>
                 <?php endif; ?>
                 <button type="button" id="btnCloseModal"
                     class="flex-1 px-4 py-3 text-sm font-medium text-white bg-primary rounded-lg hover:bg-secondary transition-all">Close</button>
@@ -283,80 +283,81 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
 
     <script>
-        window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
-        window.ASSET_URL = '<?= base_url() ?>';
-        const isOwnerView = <?= $isOwnerView ? 'true' : 'false' ?>;
-        let dataTable = null;
-        let currentOrderId = null;
+    window.BASE_URL = '<?= rtrim(site_url(), '/') ?>/';
+    window.ASSET_URL = '<?= base_url() ?>';
+    const isOwnerView = <?= $isOwnerView ? 'true' : 'false' ?>;
+    let dataTable = null;
+    let currentOrderId = null;
 
-        function syncOrderHistoryBodyScrollLock() {
-            const hasOpenModal = !$('#orderDetailsModal').hasClass('hidden');
-            $('body').toggleClass('overflow-hidden', hasOpenModal);
-        }
+    function syncOrderHistoryBodyScrollLock() {
+        const hasOpenModal = !$('#orderDetailsModal').hasClass('hidden');
+        $('body').toggleClass('overflow-hidden', hasOpenModal);
+    }
 
-        $(document).ready(function () {
-            // Set date range: 1st of current month to today
-            const today = new Date();
-            const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const todayStr = today.toISOString().split('T')[0];
-            const firstStr = firstOfMonth.toISOString().split('T')[0];
-            $('#filterDateFrom').val(firstStr);
-            $('#filterDateTo').val(todayStr);
+    $(document).ready(function() {
+        // Set date range: 1st of current month to today
+        const today = new Date();
+        const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const todayStr = today.toISOString().split('T')[0];
+        const firstStr = firstOfMonth.toISOString().split('T')[0];
+        $('#filterDateFrom').val(firstStr);
+        $('#filterDateTo').val(todayStr);
 
-            loadOrders(firstStr, todayStr); // Load this month's orders by default
-            initFilters();
-            initOrderDetailsModal();
-            initStockSummaryToggle();
-        });
+        loadOrders(firstStr, todayStr); // Load this month's orders by default
+        initFilters();
+        initOrderDetailsModal();
+        initStockSummaryToggle();
+    });
 
-        // Load summary cards using current order history filters
-        function loadFilteredSummary(dateFrom = null, dateTo = null, orderType = null) {
-            const params = [];
-            if (dateFrom) params.push('date_from=' + encodeURIComponent(dateFrom));
-            if (dateTo) params.push('date_to=' + encodeURIComponent(dateTo));
-            if (orderType) params.push('order_type=' + encodeURIComponent(orderType));
+    // Load summary cards using current order history filters
+    function loadFilteredSummary(dateFrom = null, dateTo = null, orderType = null) {
+        const params = [];
+        if (dateFrom) params.push('date_from=' + encodeURIComponent(dateFrom));
+        if (dateTo) params.push('date_to=' + encodeURIComponent(dateTo));
+        if (orderType) params.push('order_type=' + encodeURIComponent(orderType));
 
-            let url = BASE_URL + 'Order/GetOrderHistorySummary';
-            if (params.length) url += '?' + params.join('&');
+        let url = BASE_URL + 'Order/GetOrderHistorySummary';
+        if (params.length) url += '?' + params.join('&');
 
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        $('#todayTotalOrders').text(response.data.total_orders || 0);
-                        $('#todayTotalRevenue').text('₱' + parseFloat(response.data.total_revenue || 0).toFixed(2));
-                        $('#todayItemsSold').text(response.data.total_items_sold || 0);
-                    }
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $('#todayTotalOrders').text(response.data.total_orders || 0);
+                    $('#todayTotalRevenue').text('₱' + parseFloat(response.data.total_revenue || 0).toFixed(
+                        2));
+                    $('#todayItemsSold').text(response.data.total_items_sold || 0);
                 }
-            });
+            }
+        });
+    }
+
+    // Load Stock Summary
+    function loadStockSummary(dateForStock = null) {
+        let url = BASE_URL + 'Order/GetTodaysStockSummary';
+        if (dateForStock) {
+            url += '?date=' + encodeURIComponent(dateForStock);
         }
 
-        // Load Stock Summary
-        function loadStockSummary(dateForStock = null) {
-            let url = BASE_URL + 'Order/GetTodaysStockSummary';
-            if (dateForStock) {
-                url += '?date=' + encodeURIComponent(dateForStock);
-            }
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data && response.data.length > 0) {
+                    // Separate bakery, drinks, and grocery
+                    const breadItems = response.data.filter(item => item.category === 'bakery');
+                    const drinkItems = response.data.filter(item => item.category === 'drinks');
+                    const groceryItems = response.data.filter(item => item.category === 'grocery');
 
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success && response.data && response.data.length > 0) {
-                        // Separate bakery, drinks, and grocery
-                        const breadItems = response.data.filter(item => item.category === 'bakery');
-                        const drinkItems = response.data.filter(item => item.category === 'drinks');
-                        const groceryItems = response.data.filter(item => item.category === 'grocery');
+                    let html = '';
+                    let totalProducts = response.data.length;
 
-                        let html = '';
-                        let totalProducts = response.data.length;
-
-                        // Render Bakery Section
-                        if (breadItems.length > 0) {
-                            html += `
+                    // Render Bakery Section
+                    if (breadItems.length > 0) {
+                        html += `
                                 <div class="mb-4">
                                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                         <i class="fas fa-bread-slice text-amber-500"></i> Bakery (${breadItems.length})
@@ -364,17 +365,21 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                             `;
 
-                            breadItems.forEach(item => {
-                                const beginning = parseInt(item.beginning_stock) || 0;
-                                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                                const remaining = parseInt(item.ending_stock) || 0;
-                                const sold = beginning - remaining - pullOut;
+                        breadItems.forEach(item => {
+                            const beginning = parseInt(item.beginning_stock) || 0;
+                            const pullOut = parseInt(item.pull_out_quantity) || 0;
+                            const remaining = parseInt(item.ending_stock) || 0;
+                            const sold = beginning - remaining - pullOut;
 
-                                const remainingClass = remaining <= 5 ? 'text-red-600' : remaining <= 10 ? 'text-orange-500' : 'text-gray-700';
-                                const stockStatus = remaining <= 5 ? 'Low Stock' : remaining <= 10 ? 'Running Low' : 'In Stock';
-                                const statusClass = remaining <= 5 ? 'bg-red-50 text-red-700' : remaining <= 10 ? 'bg-orange-50 text-orange-700' : 'bg-green-50 text-green-700';
+                            const remainingClass = remaining <= 5 ? 'text-red-600' : remaining <=
+                                10 ? 'text-orange-500' : 'text-gray-700';
+                            const stockStatus = remaining <= 5 ? 'Low Stock' : remaining <= 10 ?
+                                'Running Low' : 'In Stock';
+                            const statusClass = remaining <= 5 ? 'bg-red-50 text-red-700' :
+                                remaining <= 10 ? 'bg-orange-50 text-orange-700' :
+                                'bg-green-50 text-green-700';
 
-                                html += `
+                            html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
                                         <div class="flex items-start justify-between mb-2">
                                             <div class="flex-1">
@@ -402,17 +407,17 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                                         </div>
                                     </div>
                                 `;
-                            });
+                        });
 
-                            html += `
+                        html += `
                                     </div>
                                 </div>
                             `;
-                        }
+                    }
 
-                        // Render Drinks Section
-                        if (drinkItems.length > 0) {
-                            html += `
+                    // Render Drinks Section
+                    if (drinkItems.length > 0) {
+                        html += `
                                 <div>
                                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                         <i class="fas fa-mug-hot text-blue-500"></i> Drinks (${drinkItems.length})
@@ -420,28 +425,28 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             `;
 
-                            drinkItems.forEach(item => {
-                                // For drinks, use quantity_sold from transactions (not stock calculation)
-                                const sold = parseInt(item.quantity_sold) || 0;
+                        drinkItems.forEach(item => {
+                            // For drinks, use quantity_sold from transactions (not stock calculation)
+                            const sold = parseInt(item.quantity_sold) || 0;
 
-                                html += `
+                            html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
                                         <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
                                         <div class="text-xs text-gray-500 mb-1">Sold</div>
                                         <div class="text-2xl font-bold text-green-600">${sold}</div>
                                     </div>
                                 `;
-                            });
+                        });
 
-                            html += `
+                        html += `
                                     </div>
                                 </div>
                             `;
-                        }
+                    }
 
-                        // Render Grocery Section
-                        if (groceryItems.length > 0) {
-                            html += `
+                    // Render Grocery Section
+                    if (groceryItems.length > 0) {
+                        html += `
                                 <div>
                                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                         <i class="fas fa-shopping-basket text-green-500"></i> Grocery (${groceryItems.length})
@@ -449,142 +454,167 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             `;
 
-                            groceryItems.forEach(item => {
-                                const beginning = parseInt(item.beginning_stock) || 0;
-                                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                                const remaining = parseInt(item.ending_stock) || 0;
-                                const sold = beginning - remaining - pullOut;
+                        groceryItems.forEach(item => {
+                            const beginning = parseInt(item.beginning_stock) || 0;
+                            const pullOut = parseInt(item.pull_out_quantity) || 0;
+                            const remaining = parseInt(item.ending_stock) || 0;
+                            const sold = beginning - remaining - pullOut;
 
-                                html += `
+                            html += `
                                     <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors text-center">
                                         <div class="font-medium text-gray-900 text-sm mb-2">${item.product_name}</div>
                                         <div class="text-xs text-gray-500 mb-1">Sold</div>
                                         <div class="text-2xl font-bold text-green-600">${sold > 0 ? sold : 0}</div>
                                     </div>
                                 `;
-                            });
+                        });
 
-                            html += `
+                        html += `
                                     </div>
                                 </div>
                             `;
-                        }
-
-                        $('#stockSummaryBody').html(html);
-                        $('#todayStockCount').text(totalProducts);
-                        $('#stockSummaryBadge').text(totalProducts + ' items');
-                    } else {
-                        $('#stockSummaryBody').html('<div class="text-center text-gray-500 py-8">No inventory data for selected date. <a href="' + BASE_URL + 'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>');
-                        $('#todayStockCount').text('0');
-                        $('#stockSummaryBadge').text('No inventory');
                     }
-                },
-                error: function () {
-                    $('#stockSummaryBody').html('<div class="text-center text-red-500 py-8">Error loading stock data</div>');
+
+                    $('#stockSummaryBody').html(html);
+                    $('#todayStockCount').text(totalProducts);
+                    $('#stockSummaryBadge').text(totalProducts + ' items');
+                } else {
+                    $('#stockSummaryBody').html(
+                        '<div class="text-center text-gray-500 py-8">No inventory data for selected date. <a href="' +
+                        BASE_URL +
+                        'Inventory" class="text-primary hover:underline font-medium">Create inventory first</a>.</div>'
+                        );
+                    $('#todayStockCount').text('0');
+                    $('#stockSummaryBadge').text('No inventory');
                 }
-            });
-        }
+            },
+            error: function() {
+                $('#stockSummaryBody').html(
+                    '<div class="text-center text-red-500 py-8">Error loading stock data</div>');
+            }
+        });
+    }
 
-        // Toggle Stock Summary Section
-        function initStockSummaryToggle() {
-            // Keep stock summary collapsed by default
-            $('#stockSummaryContent').addClass('hidden');
-            $('#stockChevron').removeClass('rotate-180');
+    // Toggle Stock Summary Section
+    function initStockSummaryToggle() {
+        // Keep stock summary collapsed by default
+        $('#stockSummaryContent').addClass('hidden');
+        $('#stockChevron').removeClass('rotate-180');
 
-            $('#toggleStockSummary').on('click', function () {
-                $('#stockSummaryContent').toggleClass('hidden');
-                $('#stockChevron').toggleClass('rotate-180');
-            });
-        }
+        $('#toggleStockSummary').on('click', function() {
+            $('#stockSummaryContent').toggleClass('hidden');
+            $('#stockChevron').toggleClass('rotate-180');
+        });
+    }
 
-        function loadOrders(dateFrom = null, dateTo = null, orderType = null) {
-            let url = BASE_URL + 'Order/GetOrderHistory';
-            const params = [];
-            if (dateFrom) params.push('date_from=' + dateFrom);
-            if (dateTo) params.push('date_to=' + dateTo);
-            if (orderType) params.push('order_type=' + orderType);
-            if (params.length) url += '?' + params.join('&');
+    function loadOrders(dateFrom = null, dateTo = null, orderType = null) {
+        let url = BASE_URL + 'Order/GetOrderHistory';
+        const params = [];
+        if (dateFrom) params.push('date_from=' + dateFrom);
+        if (dateTo) params.push('date_to=' + dateTo);
+        if (orderType) params.push('order_type=' + orderType);
+        if (params.length) url += '?' + params.join('&');
 
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        renderOrders(response.data);
-                        // Keep summary cards in sync with selected filters
-                        loadFilteredSummary(dateFrom, dateTo, orderType);
-                        // Show stock snapshot based on end date (or start date if end is empty)
-                        loadStockSummary(dateTo || dateFrom || null);
-                    } else {
-                        $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>');
-                    }
-                },
-                error: function () {
-                    $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    renderOrders(response.data);
+                    // Keep summary cards in sync with selected filters
+                    loadFilteredSummary(dateFrom, dateTo, orderType);
+                    // Show stock snapshot based on end date (or start date if end is empty)
+                    loadStockSummary(dateTo || dateFrom || null);
+                } else {
+                    $('#ordersTableBody').html(
+                        '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Failed to load orders</td></tr>'
+                        );
                 }
-            });
-        }
-
-        function renderOrders(orders) {
-            renderDesktopTable(orders);
-            renderMobileCards(orders);
-        }
-
-        function formatTime(timeStr) {
-            if (!timeStr) return '--:--';
-            const [hours, minutes] = timeStr.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const hour12 = hour % 12 || 12;
-            return `${hour12}:${minutes || '00'} ${ampm}`;
-        }
-
-        function getOrderMeta(order) {
-            const orderDate = new Date(order.date_created);
-            const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const timeStr = formatTime(order.time_created);
-            let typeClass, typeIcon, typeName;
-            if (order.order_type === 'foodpanda') {
-                typeClass = 'bg-pink-100 text-pink-800';
-                typeIcon = `<img src="${ASSET_URL}assets/pictures/food-panda.svg" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`;
-                typeName = 'Foodpanda';
-            } else if (order.order_type === 'distributed') {
-                typeClass = 'bg-purple-100 text-purple-800';
-                typeIcon = '<i class="fas fa-truck mr-1"></i>';
-                typeName = 'Distributed';
-            } else {
-                typeClass = 'bg-blue-100 text-blue-800';
-                typeIcon = '<i class="fas fa-walking mr-1"></i>';
-                typeName = 'Walk-in';
+            },
+            error: function() {
+                $('#ordersTableBody').html(
+                    '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">Error loading orders</td></tr>'
+                    );
             }
-            const cashierName = order.cashier_name || 'Unknown';
-            const isVoided = order.voided_at !== null && order.voided_at !== undefined;
-            const orderNumber = `${order.date_created}-${order.order_id}`;
-            return { dateStr, timeStr, typeClass, typeIcon, typeName, cashierName, isVoided, orderNumber };
+        });
+    }
+
+    function renderOrders(orders) {
+        renderDesktopTable(orders);
+        renderMobileCards(orders);
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '--:--';
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes || '00'} ${ampm}`;
+    }
+
+    function getOrderMeta(order) {
+        const orderDate = new Date(order.date_created);
+        const dateStr = orderDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const timeStr = formatTime(order.time_created);
+        let typeClass, typeIcon, typeName;
+        if (order.order_type === 'foodpanda') {
+            typeClass = 'bg-pink-100 text-pink-800';
+            typeIcon =
+                `<img src="${ASSET_URL}assets/pictures/food-panda.svg" class="w-4 h-4 inline-block mr-1" alt="FoodPanda">`;
+            typeName = 'Foodpanda';
+        } else if (order.order_type === 'distributed') {
+            typeClass = 'bg-purple-100 text-purple-800';
+            typeIcon = '<i class="fas fa-truck mr-1"></i>';
+            typeName = 'Distributed';
+        } else {
+            typeClass = 'bg-blue-100 text-blue-800';
+            typeIcon = '<i class="fas fa-walking mr-1"></i>';
+            typeName = 'Walk-in';
+        }
+        const cashierName = order.cashier_name || 'Unknown';
+        const isVoided = order.voided_at !== null && order.voided_at !== undefined;
+        const orderNumber = `${order.date_created}-${order.order_id}`;
+        return {
+            dateStr,
+            timeStr,
+            typeClass,
+            typeIcon,
+            typeName,
+            cashierName,
+            isVoided,
+            orderNumber
+        };
+    }
+
+    function renderDesktopTable(orders) {
+        if (dataTable) {
+            dataTable.destroy();
+            dataTable = null;
         }
 
-        function renderDesktopTable(orders) {
-            if (dataTable) {
-                dataTable.destroy();
-                dataTable = null;
-            }
+        if (!orders || orders.length === 0) {
+            $('#ordersTableBody').html(
+                '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>'
+                );
+            return;
+        }
 
-            if (!orders || orders.length === 0) {
-                $('#ordersTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No orders found</p></td></tr>');
-                return;
-            }
+        let html = '';
+        orders.forEach(order => {
+            const m = getOrderMeta(order);
+            const rowClass = m.isVoided ? 'border-b bg-red-50/50 hover:bg-red-50' : 'border-b hover:bg-gray-50';
+            const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary font-bold';
+            const statusBadge = m.isVoided ?
+                '<span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 inline-flex items-center"><i class="fas fa-ban mr-1"></i>Voided</span>' :
+                '<span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 inline-flex items-center"><i class="fas fa-check mr-1"></i>Completed</span>';
 
-            let html = '';
-            orders.forEach(order => {
-                const m = getOrderMeta(order);
-                const rowClass = m.isVoided ? 'border-b bg-red-50/50 hover:bg-red-50' : 'border-b hover:bg-gray-50';
-                const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary font-bold';
-                const statusBadge = m.isVoided
-                    ? '<span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 inline-flex items-center"><i class="fas fa-ban mr-1"></i>Voided</span>'
-                    : '<span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 inline-flex items-center"><i class="fas fa-check mr-1"></i>Completed</span>';
-
-                html += `
+            html += `
                     <tr class="${rowClass}">
                         <td class="px-6 py-4 whitespace-nowrap font-medium ${m.isVoided ? 'text-gray-400' : 'text-gray-900'}">${m.orderNumber}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">${m.dateStr}</td>
@@ -601,48 +631,48 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                         </td>
                     </tr>
                 `;
-            });
+        });
 
-            $('#ordersTableBody').html(html);
+        $('#ordersTableBody').html(html);
 
-            dataTable = new simpleDatatables.DataTable("#ordersTable", {
-                searchable: true,
-                sortable: true,
-                perPage: 10,
-                perPageSelect: [5, 10, 25, 50],
-                labels: {
-                    placeholder: "Search orders...",
-                    noRows: "No orders found",
-                    info: "Showing {start} to {end} of {rows} orders"
-                }
-            });
+        dataTable = new simpleDatatables.DataTable("#ordersTable", {
+            searchable: true,
+            sortable: true,
+            perPage: 10,
+            perPageSelect: [5, 10, 25, 50],
+            labels: {
+                placeholder: "Search orders...",
+                noRows: "No orders found",
+                info: "Showing {start} to {end} of {rows} orders"
+            }
+        });
 
-            $('#ordersTable').on('click', '.btn-view-order', function () {
-                openOrderDetails($(this).data('order-id'));
-            });
-        }
+        $('#ordersTable').on('click', '.btn-view-order', function() {
+            openOrderDetails($(this).data('order-id'));
+        });
+    }
 
-        function renderMobileCards(orders) {
-            if (!orders || orders.length === 0) {
-                $('#ordersCards').html(`
+    function renderMobileCards(orders) {
+        if (!orders || orders.length === 0) {
+            $('#ordersCards').html(`
                     <div class="p-8 bg-white rounded-lg shadow-md text-center text-gray-500">
                         <i class="fas fa-receipt text-4xl mb-3"></i>
                         <p>No orders found</p>
                     </div>
                 `);
-                return;
-            }
+            return;
+        }
 
-            let html = '';
-            orders.forEach(order => {
-                const m = getOrderMeta(order);
-                const headerBg = m.isVoided ? 'bg-red-500/90' : 'bg-primary/90';
-                const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary';
-                const statusBadge = m.isVoided
-                    ? '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><i class="fas fa-ban mr-1"></i>Voided</span>'
-                    : '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>Completed</span>';
+        let html = '';
+        orders.forEach(order => {
+            const m = getOrderMeta(order);
+            const headerBg = m.isVoided ? 'bg-red-500/90' : 'bg-primary/90';
+            const amountClass = m.isVoided ? 'line-through text-gray-400' : 'text-primary';
+            const statusBadge = m.isVoided ?
+                '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"><i class="fas fa-ban mr-1"></i>Voided</span>' :
+                '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>Completed</span>';
 
-                html += `
+            html += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-300">
                         <!-- Card Header -->
                         <div class="${headerBg} px-4 py-3 border-b border-gray-300">
@@ -688,53 +718,53 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                         </div>
                     </div>
                 `;
-            });
+        });
 
-            $('#ordersCards').html(html);
+        $('#ordersCards').html(html);
 
-            $('.btn-view-order-mobile').on('click', function () {
-                openOrderDetails($(this).data('order-id'));
-            });
-        }
+        $('.btn-view-order-mobile').on('click', function() {
+            openOrderDetails($(this).data('order-id'));
+        });
+    }
 
-        function initFilters() {
-            $('#btnApplyFilters').on('click', function () {
-                const dateFrom = $('#filterDateFrom').val();
-                const dateTo = $('#filterDateTo').val();
-                const orderType = $('#filterOrderType').val();
-                loadOrders(dateFrom, dateTo, orderType);
-            });
+    function initFilters() {
+        $('#btnApplyFilters').on('click', function() {
+            const dateFrom = $('#filterDateFrom').val();
+            const dateTo = $('#filterDateTo').val();
+            const orderType = $('#filterOrderType').val();
+            loadOrders(dateFrom, dateTo, orderType);
+        });
 
-            $('#btnResetFilters').on('click', function () {
-                const today = new Date();
-                const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const todayStr = today.toISOString().split('T')[0];
-                const firstStr = firstOfMonth.toISOString().split('T')[0];
-                $('#filterDateFrom').val(firstStr);
-                $('#filterDateTo').val(todayStr);
-                $('#filterOrderType').val('');
-                loadOrders(firstStr, todayStr);
-            });
-        }
+        $('#btnResetFilters').on('click', function() {
+            const today = new Date();
+            const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const todayStr = today.toISOString().split('T')[0];
+            const firstStr = firstOfMonth.toISOString().split('T')[0];
+            $('#filterDateFrom').val(firstStr);
+            $('#filterDateTo').val(todayStr);
+            $('#filterOrderType').val('');
+            loadOrders(firstStr, todayStr);
+        });
+    }
 
-        function getCurrentFilters() {
-            return {
-                dateFrom: $('#filterDateFrom').val() || null,
-                dateTo: $('#filterDateTo').val() || null,
-                orderType: $('#filterOrderType').val() || null
-            };
-        }
+    function getCurrentFilters() {
+        return {
+            dateFrom: $('#filterDateFrom').val() || null,
+            dateTo: $('#filterDateTo').val() || null,
+            orderType: $('#filterOrderType').val() || null
+        };
+    }
 
-        function initOrderDetailsModal() {
-            $('#btnCloseOrderDetails, #btnCloseModal').on('click', function () {
-                $('#orderDetailsModal').addClass('hidden');
-                syncOrderHistoryBodyScrollLock();
-            });
+    function initOrderDetailsModal() {
+        $('#btnCloseOrderDetails, #btnCloseModal').on('click', function() {
+            $('#orderDetailsModal').addClass('hidden');
+            syncOrderHistoryBodyScrollLock();
+        });
 
-            $('#btnPrintReceipt').on('click', function () {
-                const content = $('#receiptContent').clone();
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
+        $('#btnPrintReceipt').on('click', function() {
+            const content = $('#receiptContent').clone();
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
                     <html>
                     <head>
                         <title>Receipt - EngBakery</title>
@@ -756,177 +786,202 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
                     <body>${content.html()}</body>
                     </html>
                 `);
-                printWindow.document.close();
-                printWindow.print();
-            });
+            printWindow.document.close();
+            printWindow.print();
+        });
 
-            $('#btnVoidOrder').on('click', function () {
+        $('#btnVoidOrder').on('click', function() {
+            const btn = $(this);
+
+            // Prevent double submission
+            if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
+                return;
+            }
+
+            if (!currentOrderId) return;
+            Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function() {
+                voidOrder(currentOrderId, btn);
+            });
+        });
+
+        if (isOwnerView && $('#btnDeleteOrder').length) {
+            $('#btnDeleteOrder').on('click', function() {
                 const btn = $(this);
 
-                // Prevent double submission
                 if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
                     return;
                 }
 
                 if (!currentOrderId) return;
-                Confirm.show('Are you sure you want to void this order? This action cannot be undone.', function () {
-                    voidOrder(currentOrderId, btn);
+                Confirm.show('Delete this order permanently? This will also delete its transactions.',
+                function() {
+                    deleteOrder(currentOrderId, btn);
                 });
             });
+        }
+    }
 
-            if (isOwnerView && $('#btnDeleteOrder').length) {
-                $('#btnDeleteOrder').on('click', function () {
-                    const btn = $(this);
+    function openOrderDetails(orderId) {
+        currentOrderId = orderId;
+        $.ajax({
+            url: BASE_URL + 'Order/GetOrderDetails/' + orderId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    const order = response.data.order;
+                    const items = response.data.items;
+                    const orderDate = new Date(order.date_created + ' ' + order.time_created);
 
-                    if (typeof ButtonLoader !== 'undefined' && ButtonLoader.isLoading(btn)) {
-                        return;
+                    $('#detailOrderNumber').text(order.order_number);
+                    $('#detailOrderDate').text(orderDate.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }));
+                    $('#detailOrderTime').text(orderDate.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    }));
+
+                    // Set order type with icon
+                    if (order.order_type === 'foodpanda') {
+                        $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' +
+                            ASSET_URL +
+                            'assets/pictures/food-panda.svg" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>'
+                            );
+                    } else if (order.order_type === 'distributed') {
+                        $('#detailOrderType').html(
+                            '<span class="inline-flex items-center text-purple-700"><i class="fas fa-truck mr-1"></i>Distributed</span>'
+                            );
+                    } else {
+                        $('#detailOrderType').html(
+                            '<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>'
+                            );
                     }
 
-                    if (!currentOrderId) return;
-                    Confirm.show('Delete this order permanently? This will also delete its transactions.', function () {
-                        deleteOrder(currentOrderId, btn);
-                    });
-                });
-            }
-        }
+                    // Show distributed note if applicable
+                    if (order.order_type === 'distributed' && order.distributed_note) {
+                        $('#detailDistributedNote').text(order.distributed_note);
+                        $('#distributedNoteSection').removeClass('hidden');
+                    } else {
+                        $('#distributedNoteSection').addClass('hidden');
+                    }
 
-        function openOrderDetails(orderId) {
-            currentOrderId = orderId;
-            $.ajax({
-                url: BASE_URL + 'Order/GetOrderDetails/' + orderId,
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        const order = response.data.order;
-                        const items = response.data.items;
-                        const orderDate = new Date(order.date_created + ' ' + order.time_created);
+                    $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order
+                        .payment_method.slice(1));
 
-                        $('#detailOrderNumber').text(order.order_number);
-                        $('#detailOrderDate').text(orderDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
-                        $('#detailOrderTime').text(orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
-
-                        // Set order type with icon
-                        if (order.order_type === 'foodpanda') {
-                            $('#detailOrderType').html('<span class="inline-flex items-center"><img src="' + ASSET_URL + 'assets/pictures/food-panda.svg" class="w-4 h-4 mr-1" alt="FoodPanda">Foodpanda</span>');
-                        } else if (order.order_type === 'distributed') {
-                            $('#detailOrderType').html('<span class="inline-flex items-center text-purple-700"><i class="fas fa-truck mr-1"></i>Distributed</span>');
-                        } else {
-                            $('#detailOrderType').html('<span class="inline-flex items-center"><i class="fas fa-walking mr-1"></i>Walk-in</span>');
-                        }
-
-                        // Show distributed note if applicable
-                        if (order.order_type === 'distributed' && order.distributed_note) {
-                            $('#detailDistributedNote').text(order.distributed_note);
-                            $('#distributedNoteSection').removeClass('hidden');
-                        } else {
-                            $('#distributedNoteSection').addClass('hidden');
-                        }
-
-                        $('#detailPaymentMethod').text(order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1));
-
-                        let itemsHtml = '';
-                        items.forEach(item => {
-                            itemsHtml += `
+                    let itemsHtml = '';
+                    items.forEach(item => {
+                        itemsHtml += `
                                 <div class="flex justify-between">
                                     <span>${item.product_name} x${item.amount}</span>
                                     <span>₱${parseFloat(item.total_cost_of_item).toFixed(2)}</span>
                                 </div>
                             `;
-                        });
-                        $('#orderItemsList').html(itemsHtml);
+                    });
+                    $('#orderItemsList').html(itemsHtml);
 
-                        $('#detailTotalAmount').text('₱' + parseFloat(order.total_payment_due).toFixed(2));
-                        $('#detailAmountReceived').text('₱' + parseFloat(order.amount_received).toFixed(2));
-                        $('#detailChange').text('₱' + parseFloat(order.amount_change).toFixed(2));
+                    $('#detailTotalAmount').text('₱' + parseFloat(order.total_payment_due).toFixed(2));
+                    $('#detailAmountReceived').text('₱' + parseFloat(order.amount_received).toFixed(2));
+                    $('#detailChange').text('₱' + parseFloat(order.amount_change).toFixed(2));
 
-                        // Show/hide voided info
-                        if (order.voided_at) {
-                            const voidedDate = new Date(order.voided_at);
-                            $('#detailVoidedBy').text(order.voided_by || 'Unknown');
-                            $('#detailVoidedAt').text(voidedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' at ' + voidedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
-                            $('#voidedInfoSection').removeClass('hidden');
-                            $('#btnVoidOrder').addClass('hidden');
-                        } else {
-                            $('#voidedInfoSection').addClass('hidden');
-                            $('#btnVoidOrder').removeClass('hidden');
-                        }
-
-                        $('#orderDetailsModal').removeClass('hidden');
-                        syncOrderHistoryBodyScrollLock();
+                    // Show/hide voided info
+                    if (order.voided_at) {
+                        const voidedDate = new Date(order.voided_at);
+                        $('#detailVoidedBy').text(order.voided_by || 'Unknown');
+                        $('#detailVoidedAt').text(voidedDate.toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        }) + ' at ' + voidedDate.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        }));
+                        $('#voidedInfoSection').removeClass('hidden');
+                        $('#btnVoidOrder').addClass('hidden');
                     } else {
-                        Toast.error('Failed to load order details');
+                        $('#voidedInfoSection').addClass('hidden');
+                        $('#btnVoidOrder').removeClass('hidden');
                     }
-                },
-                error: function () {
-                    Toast.error('Error loading order details');
-                }
-            });
-        }
 
-        function voidOrder(orderId, btn) {
-            if (typeof ButtonLoader !== 'undefined') {
-                ButtonLoader.start(btn, 'Voiding...');
+                    $('#orderDetailsModal').removeClass('hidden');
+                    syncOrderHistoryBodyScrollLock();
+                } else {
+                    Toast.error('Failed to load order details');
+                }
+            },
+            error: function() {
+                Toast.error('Error loading order details');
             }
+        });
+    }
 
-            $.ajax({
-                url: BASE_URL + 'Order/VoidOrder/' + orderId,
-                type: 'POST',
-                dataType: 'json',
-                success: function (response) {
-                    if (typeof ButtonLoader !== 'undefined') {
-                        ButtonLoader.stop(btn);
-                    }
-                    if (response.success) {
-                        console.log(response);
-                        Toast.success('Order voided successfully');
-                        $('#orderDetailsModal').addClass('hidden');
-                        syncOrderHistoryBodyScrollLock();
-                        const filters = getCurrentFilters();
-                        loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
-                    } else {
-                        console.error(response);
-                    }
-                },
-                error: function (xhr) {
-                    if (typeof ButtonLoader !== 'undefined') {
-                        ButtonLoader.stop(btn);
-                    }
-                    Toast.error('Error voiding order');
-                    console.error(xhr);
-                }
-            });
+    function voidOrder(orderId, btn) {
+        if (typeof ButtonLoader !== 'undefined') {
+            ButtonLoader.start(btn, 'Voiding...');
         }
 
-        function deleteOrder(orderId, btn) {
-            if (typeof ButtonLoader !== 'undefined') {
-                ButtonLoader.start(btn, 'Deleting...');
+        $.ajax({
+            url: BASE_URL + 'Order/VoidOrder/' + orderId,
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(btn);
+                }
+                if (response.success) {
+                    console.log(response);
+                    Toast.success('Order voided successfully');
+                    $('#orderDetailsModal').addClass('hidden');
+                    syncOrderHistoryBodyScrollLock();
+                    const filters = getCurrentFilters();
+                    loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
+                } else {
+                    console.error(response);
+                }
+            },
+            error: function(xhr) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(btn);
+                }
+                Toast.error('Error voiding order');
+                console.error(xhr);
             }
+        });
+    }
 
-            $.ajax({
-                url: BASE_URL + 'Order/DeleteOrder/' + orderId,
-                type: 'POST',
-                dataType: 'json',
-                success: function (response) {
-                    if (typeof ButtonLoader !== 'undefined') {
-                        ButtonLoader.stop(btn);
-                    }
-                    if (response.success) {
-                        Toast.success('Order deleted successfully');
-                        $('#orderDetailsModal').addClass('hidden');
-                        syncOrderHistoryBodyScrollLock();
-                        const filters = getCurrentFilters();
-                        loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
-                    } else {
-                        Toast.error(response.message || 'Failed to delete order');
-                    }
-                },
-                error: function () {
-                    if (typeof ButtonLoader !== 'undefined') {
-                        ButtonLoader.stop(btn);
-                    }
-                    Toast.error('Error deleting order');
-                }
-            });
+    function deleteOrder(orderId, btn) {
+        if (typeof ButtonLoader !== 'undefined') {
+            ButtonLoader.start(btn, 'Deleting...');
         }
+
+        $.ajax({
+            url: BASE_URL + 'Order/DeleteOrder/' + orderId,
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(btn);
+                }
+                if (response.success) {
+                    Toast.success('Order deleted successfully');
+                    $('#orderDetailsModal').addClass('hidden');
+                    syncOrderHistoryBodyScrollLock();
+                    const filters = getCurrentFilters();
+                    loadOrders(filters.dateFrom, filters.dateTo, filters.orderType);
+                } else {
+                    Toast.error(response.message || 'Failed to delete order');
+                }
+            },
+            error: function() {
+                if (typeof ButtonLoader !== 'undefined') {
+                    ButtonLoader.stop(btn);
+                }
+                Toast.error('Error deleting order');
+            }
+        });
+    }
     </script>
