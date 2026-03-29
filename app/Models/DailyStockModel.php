@@ -74,6 +74,7 @@ class DailyStockModel extends Model
     public function getActiveTodaysInventory(): ?array
     {
         return $this
+            ->where('inventory_date', date('Y-m-d'))
             ->orderBy('inventory_date', 'DESC')
             ->orderBy('daily_stock_id', 'DESC')
             ->first();

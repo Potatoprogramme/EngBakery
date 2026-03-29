@@ -73,7 +73,7 @@ class OrdersController extends BaseController
         // Drinks and groceries don't need inventory — they deduct raw materials directly
         $needsInventory = false;
         foreach ($data['items'] as $item) {
-            $product = $this->productModel->find(intval($item['product_id']));
+            $product = $this->productModel->findActiveForOrdering(intval($item['product_id']));
             if ($product && !in_array($product['category'], ['drinks', 'grocery'])) {
                 $needsInventory = true;
                 break;
@@ -141,7 +141,11 @@ class OrdersController extends BaseController
 
             // Update stock and record sales for each item
             foreach ($data['items'] as $item) {
-                $product = $this->productModel->find(intval($item['product_id']));
+                $product = $this->productModel->findActiveForOrdering(intval($item['product_id']));
+                if (!$product) {
+                    throw new \Exception('Order cannot be completed: one or more products are disabled or unavailable.');
+                }
+
                 $category = $product['category'] ?? '';
                 $productId = intval($item['product_id']);
                 $quantity = intval($item['quantity']);
@@ -222,8 +226,8 @@ class OrdersController extends BaseController
                 }
             }
 
-            // Prepare result - format order number as yyyy-mm-dd - order_id
-            $formattedOrderNumber = date('Y-m-d') . ' - ' . $orderId;
+            // Keep one consistent order number format across table, receipt, and API.
+            $formattedOrderNumber = $this->orderModel->generateOrderNumber($orderId);
             $result = [
                 'order_id' => $orderId,
                 'order_number' => $formattedOrderNumber,
@@ -561,8 +565,15 @@ class OrdersController extends BaseController
             return $this->response->setJSON(['success' => true]); // nothing to check
         }
 
-        $product = $this->productModel->find($productId);
-        if (!$product || !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
+        $product = $this->productModel->findActiveForOrdering($productId);
+        if (!$product) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Product is disabled or unavailable.'
+            ]);
+        }
+
+        if (!in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
             return $this->response->setJSON(['success' => true]); // only check drinks/grocery
         }
 
@@ -611,7 +622,7 @@ class OrdersController extends BaseController
 
         $needsInventory = false;
         foreach ($items as $item) {
-            $product = $this->productModel->find(intval($item['product_id'] ?? 0));
+            $product = $this->productModel->findActiveForOrdering(intval($item['product_id'] ?? 0));
             if ($product && !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
                 $needsInventory = true;
                 break;
@@ -672,11 +683,11 @@ class OrdersController extends BaseController
             $productId = $normalized['product_id'];
             $quantity = $normalized['quantity'];
 
-            $product = $this->productModel->find($productId);
+            $product = $this->productModel->findActiveForOrdering($productId);
             if (!$product) {
                 return [
                     'success' => false,
-                    'message' => 'Order cannot be completed: one or more products are invalid.'
+                    'message' => 'Order cannot be completed: one or more products are disabled or unavailable.'
                 ];
             }
 

@@ -800,7 +800,7 @@ class InventoryController extends BaseController
 
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
-                'message' => 'Inventory deleted successfully.'
+                'message' => 'Inventory deleted successfully. Product catalog and historical orders were not changed.'
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
@@ -1063,7 +1063,7 @@ class InventoryController extends BaseController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Inventory item deleted successfully'
+                'message' => 'Inventory item deleted successfully. Product catalog and historical order quantities remain unchanged.'
             ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
