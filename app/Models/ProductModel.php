@@ -60,16 +60,11 @@ class ProductModel extends Model
         ) dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
         WHERE p.is_disabled = 0
             AND p.deleted_at IS NULL
+            AND latest_ds.daily_stock_id IS NOT NULL
+            AND dsi.product_id IS NOT NULL
             AND (
-                (p.category = 'drinks')
-                OR (p.category = 'grocery')
-                OR (p.category NOT IN ('drinks', 'grocery') AND (
-                    dsi.product_id IS NOT NULL
-                    AND (
-                        dsi.is_enabled = 1
-                        OR COALESCE(dsi.ending_stock, 0) > 0
-                    )
-                ))
+                dsi.is_enabled = 1
+                OR COALESCE(dsi.ending_stock, 0) > 0
             )
         ORDER BY p.category, p.product_name
         ")->getResultArray();
