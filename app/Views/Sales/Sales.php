@@ -744,7 +744,7 @@
 
         function showOccupiedSlotsInfo() {
             let slotsText = occupiedSlots.map(slot => {
-                return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_name})`;
+                return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_display_name})`;
             }).join(', ');
 
             showToast('warning', `Already submitted shifts today: ${slotsText}`, 0);
@@ -853,7 +853,7 @@
         }
 
         function showExistingRemittanceBanner(data) {
-            const message = `A remittance for this shift (${data.shift}) was already submitted by <strong>${data.cashier_name}</strong> at ${data.submitted_at}.`;
+            const message = `A remittance for this shift (${data.shift}) was already submitted by <strong>${data.cashier_display_name}</strong> at ${data.submitted_at}.`;
             const details = `Total Sales: ₱${parseFloat(data.total_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 
             $('#existingRemittanceMessage').html(message);

@@ -29,6 +29,15 @@ class UsersModel extends Model
         'deleted_at',
     ];
 
+    public function getFullName($user_id)
+    {
+        $user = $this->find($user_id);
+        if ($user) {
+            return trim($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname']);
+        }
+        return null;
+    }
+
     public function getAllEmployees()
     {
         return $this->select('user_id, email, firstname, middlename, lastname, employee_type, username, gender, birthdate, phone_number, approved, created_at')

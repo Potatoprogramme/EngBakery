@@ -577,7 +577,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
             typeIcon = '<i class="fas fa-walking mr-1"></i>';
             typeName = 'Walk-in';
         }
-        const cashierName = order.cashier_name || 'Unknown';
+        const cashierName = order.cashier_display_name || 'Unknown';
         const isVoided = order.voided_at !== null && order.voided_at !== undefined;
         const orderNumber = `${order.date_created}-${order.order_id}`;
         return {

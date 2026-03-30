@@ -112,10 +112,10 @@ class OrdersController extends BaseController
         try {
             // Prepare order data with cashier info from session
             $sessionData = $this->getSessionData();
-            $cashierName = $this->normalizePersonName($sessionData['name'] ?? session()->get('name') ?? 'Unknown');
 
-            // Log the cashier name for debugging
-            log_message('info', 'Processing payment - Cashier: ' . $cashierName . ' | Session data: ' . print_r($sessionData, true));
+            // Get cashier user ID from session
+            $cashierUserId = intval($sessionData['user_id'] ?? session()->get('user_id') ?? 0);
+            log_message('info', 'Processing payment - Cashier User ID: ' . $cashierUserId . ' | Session data: ' . print_r($sessionData, true));
 
             $orderData = [
                 'total_payment_due' => $data['total_payment_due'],
@@ -124,7 +124,7 @@ class OrdersController extends BaseController
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'order_type' => $orderType,
                 'distributed_note' => $orderType === 'distributed' ? trim($data['distributed_note'] ?? '') : null,
-                'cashier_name' => $cashierName
+                'cashier_id' => $cashierUserId // Now stores user_id
             ];
 
             // Create the order
@@ -267,6 +267,12 @@ class OrdersController extends BaseController
 
         $orders = $this->orderModel->getOrderHistory($dateFrom, $dateTo, $orderType);
 
+        // Replace cashier_id (user_id) with actual name for each order
+        foreach ($orders as &$order) {
+            $order['cashier_display_name'] = $this->usersModel->getFullName($order['cashier_id'] ?? null);
+        }
+        unset($order);
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $orders
@@ -290,6 +296,9 @@ class OrdersController extends BaseController
                 'message' => 'Order not found.'
             ]);
         }
+
+        // Replace cashier_id (user_id) with actual name for display
+        $order['cashier_display_name'] = $this->usersModel->getFullName($order['cashier_id'] ?? null);
 
         $items = $this->orderItemModel->getOrderItems($orderId);
 
@@ -392,10 +401,10 @@ class OrdersController extends BaseController
                 ->update();
 
             // Soft delete: mark as voided instead of deleting
-            $cashierName = $this->normalizePersonName(session()->get('name') ?? session()->get('username') ?? 'Unknown');
+            $cashierUserId = intval(session()->get('user_id') ?? 0);
             $this->orderModel->update($orderId, [
                 'voided_at' => date('Y-m-d H:i:s'),
-                'voided_by' => $cashierName
+                'voided_by' => $cashierUserId
             ]);
 
             $this->db->transComplete();
@@ -504,10 +513,16 @@ class OrdersController extends BaseController
         }
     }
 
-    private function normalizePersonName(?string $value): string
+
+    /**
+     * Helper: Get user name by user_id (for displaying cashier name)
+     */
+    private function getUserNameById($userId)
     {
-        $normalized = preg_replace('/\s+/', ' ', trim((string) $value));
-        return $normalized !== '' ? $normalized : 'Unknown';
+        if (!$userId) return 'Unknown';
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        return $user['name'] ?? $user['username'] ?? 'Unknown';
     }
 
     /**

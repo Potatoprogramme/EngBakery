@@ -16,7 +16,7 @@ class OrderModel extends Model
         'payment_method',
         'order_type',
         'distributed_note',
-        'cashier_name',
+        'cashier_id',
         'date_created',
         'time_created',
         'voided_at',
@@ -48,7 +48,7 @@ class OrderModel extends Model
             'payment_method' => $data['payment_method'],
             'order_type' => $data['order_type'],
             'distributed_note' => $data['distributed_note'] ?? null,
-            'cashier_name' => $data['cashier_name'] ?? 'Unknown',
+            'cashier_id' => $data['cashier_id'] ?? '0',
             'date_created' => date('Y-m-d'),
             'time_created' => date('H:i:s')
         ];
