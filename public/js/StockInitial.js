@@ -505,6 +505,7 @@ $(document).ready(function () {
             (e.category_name || '').toLowerCase().includes(query) ||
             e.unit.toLowerCase().includes(query)
         );
+        updateCostSummaryCards(filteredEntries);
         currentPage = 1;
         renderMobileCards();
     });
@@ -518,6 +519,8 @@ $(document).ready(function () {
             dataTable.destroy();
             dataTable = null;
         }
+
+        updateCostSummaryCards([]);
 
         const columnCount = isStaffView ? 6 : 11;
         $('#stockInitialTableBody').html(
@@ -571,6 +574,7 @@ $(document).ready(function () {
                 if (res.success) {
                     allEntries = res.data;
                     filteredEntries = [...allEntries];
+                    updateCostSummaryCards(filteredEntries);
                     renderDesktopTable(allEntries);
                     renderMobileCards();
                 } else {
@@ -726,6 +730,26 @@ $(document).ready(function () {
         }
 
         requestAnimationFrame(updateActionsModeByContainer);
+    }
+
+    function updateCostSummaryCards(entries) {
+        if (isStaffView) return;
+
+        const totals = (entries || []).reduce(function (sum, entry) {
+            const initial = parseFloat(entry.initial_qty) || 0;
+            const used = parseFloat(entry.qty_used) || 0;
+            const remaining = Math.max(0, initial - used);
+            const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
+
+            sum.initial += initial * costPerUnit;
+            sum.used += used * costPerUnit;
+            sum.remaining += remaining * costPerUnit;
+            return sum;
+        }, { initial: 0, used: 0, remaining: 0 });
+
+        $('#totalInitialCostCard').text(formatCurrency(totals.initial));
+        $('#totalUsedCostCard').text(formatCurrency(totals.used));
+        $('#totalRemainingCostCard').text(formatCurrency(totals.remaining));
     }
 
     function renderMobileCards() {
@@ -927,6 +951,7 @@ $(document).ready(function () {
             filteredEntries = allEntries.filter(e => String(e.category_id) === String(categoryId));
         }
 
+        updateCostSummaryCards(filteredEntries);
         renderDesktopTable(filteredEntries);
         currentPage = 1;
         renderMobileCards();

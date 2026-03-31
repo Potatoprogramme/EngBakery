@@ -62,10 +62,7 @@ class ProductModel extends Model
             AND p.deleted_at IS NULL
             AND latest_ds.daily_stock_id IS NOT NULL
             AND dsi.product_id IS NOT NULL
-            AND (
-                dsi.is_enabled = 1
-                OR COALESCE(dsi.ending_stock, 0) > 0
-            )
+            AND dsi.is_enabled = 1
         ORDER BY p.category, p.product_name
         ")->getResultArray();
     }
