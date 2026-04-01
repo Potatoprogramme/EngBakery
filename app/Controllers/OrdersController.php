@@ -124,7 +124,8 @@ class OrdersController extends BaseController
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'order_type' => $orderType,
                 'distributed_note' => $orderType === 'distributed' ? trim($data['distributed_note'] ?? '') : null,
-                'cashier_id' => $cashierUserId // Now stores user_id
+                'cashier_id' => $cashierUserId, // For schema with cashier_id
+                'cashier_name' => trim((string) ($sessionData['name'] ?? session()->get('name') ?? 'Unknown')) // For schema with cashier_name
             ];
 
             // Create the order

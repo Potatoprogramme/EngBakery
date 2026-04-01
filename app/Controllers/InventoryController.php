@@ -1381,6 +1381,7 @@ class InventoryController extends BaseController
         $data = $this->request->getJSON(true);
 
         $inventoryId = $data['inventory_id'] ?? null;
+        $resendReason = isset($data['resend_reason']) ? trim((string) $data['resend_reason']) : null;
 
         if ($inventoryId === null) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -1390,11 +1391,26 @@ class InventoryController extends BaseController
         }
 
         $state = $this->dailyStockModel->find($inventoryId);
-
-        if (!$state['is_closed']) {
+        if (!$state) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
+                'message' => 'Inventory record not found.',
+            ]);
+        }
+
+        if (!$state['is_closed']) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
                 'message' => 'Inventory must be closed first before sending a report.',
+            ]);
+        }
+
+        $shiftStart = trim((string) ($state['time_start'] ?? ''));
+        $shiftEnd = trim((string) ($state['time_end'] ?? ''));
+        if ($shiftStart === '' || $shiftEnd === '' || $shiftEnd === '00:00:00') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Shift end time is missing. Close the shift first before sending.',
             ]);
         }
 
@@ -1406,20 +1422,36 @@ class InventoryController extends BaseController
         }
 
         try {
+            $sessionData = $this->getSessionData();
+            $cashierUserId = intval($sessionData['user_id'] ?? 0);
+            $sendResult = \App\Libraries\AutoReportScheduler::sendManualReportForInventory(
+                (int) $inventoryId,
+                $resendReason,
+                $cashierUserId > 0 ? $cashierUserId : null
+            );
+            if (empty($sendResult['success'])) {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => $sendResult['message'] ?? 'Failed to send inventory report.',
+                ]);
+            }
+
             $updateData = [
-                'time_end' => date('H:i:s'),
                 'report_sent' => 1,
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];
-            $this->dailyStockModel->update($inventoryId, $updateData); // update the daily stock record
+            $this->dailyStockModel->update($inventoryId, $updateData);
+
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Inventory report marked as sent.',
+                'resent' => !empty($sendResult['resent']),
+                'recipients' => $sendResult['recipients'] ?? [],
+                'message' => $sendResult['message'] ?? 'Inventory report sent successfully.',
             ]);
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => $e->getMessage() ?: 'Failed to mark report as sent.',
+                'message' => $e->getMessage() ?: 'Failed to send report.',
             ]);
         }
     }
@@ -1550,7 +1582,10 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 1]);
+        $this->dailyStockModel->update($dailyStock['daily_stock_id'], [
+            'is_closed' => 1,
+            'time_end' => date('H:i:s'),
+        ]);
         $new_data = $this->dailyStockModel->find($dailyStock['daily_stock_id']);
 
         // Immediate notification: inventory closed
@@ -1582,7 +1617,13 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $this->dailyStockModel->update($dailyStock['daily_stock_id'], ['is_closed' => 0]);
+        $updateData = [
+            'is_closed' => 0,
+            'time_end' => $this->getOpenShiftTimeEndValue(),
+            'report_sent' => 0,
+        ];
+
+        $this->dailyStockModel->update($dailyStock['daily_stock_id'], $updateData);
         $new_data = $this->dailyStockModel->find($dailyStock['daily_stock_id']);
 
         // Immediate notification: inventory opened

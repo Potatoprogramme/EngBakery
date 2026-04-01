@@ -17,6 +17,7 @@ class OrderModel extends Model
         'order_type',
         'distributed_note',
         'cashier_id',
+        'cashier_name',
         'date_created',
         'time_created',
         'voided_at',
@@ -48,10 +49,17 @@ class OrderModel extends Model
             'payment_method' => $data['payment_method'],
             'order_type' => $data['order_type'],
             'distributed_note' => $data['distributed_note'] ?? null,
-            'cashier_id' => $data['cashier_id'] ?? '0',
             'date_created' => date('Y-m-d'),
             'time_created' => date('H:i:s')
         ];
+
+        // Backward-compatible cashier field mapping:
+        // older schema uses `cashier_name`, newer schema may use `cashier_id`.
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $orderData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        } elseif ($this->db->fieldExists('cashier_name', $this->table)) {
+            $orderData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'Unknown'));
+        }
 
         if ($this->insert($orderData)) {
             return $this->insertID();

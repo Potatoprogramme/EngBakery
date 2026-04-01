@@ -6,6 +6,7 @@ use App\Models\DailyStockModel;
 use App\Models\DailyStockItemsModel;
 use App\Models\UsersModel;
 use App\Libraries\ShiftSchedule;
+use App\Libraries\OwnerNotificationPreferences;
 
 /**
  * AutoReportScheduler
@@ -39,6 +40,14 @@ use App\Libraries\ShiftSchedule;
  */
 class AutoReportScheduler
 {
+    /**
+     * Temporary test override: when set, inventory reports are sent only to these addresses.
+     * Clear this list after testing to restore normal owner recipient behavior.
+     *
+     * @var array<int, string>
+     */
+    private const TEST_ONLY_RECIPIENTS = [];
+
     /**
      * Scheduled time windows.
      * Each slot fires during [ start_h, end_h ) — i.e. the entire named hour.
@@ -129,13 +138,149 @@ class AutoReportScheduler
         $manualSlot = self::normalizeSlot($slot) ?? self::resolveManualSlotForNow();
 
         $sent = self::sendInventoryReport($manualSlot, $targetDate);
-        if (!$sent) {
-            return false;
+        return $sent;
+    }
+
+    /**
+     * Manual trigger for a specific inventory shift row.
+     * Uses the row's time_start/time_end as the authoritative sales window.
+     */
+    public static function sendManualReportForInventory(int $inventoryId, ?string $resendReason = null, ?int $cashierUserId = null): array
+    {
+        $dailyStockModel = new DailyStockModel();
+        $dailyStock = $dailyStockModel->find($inventoryId);
+
+        if (empty($dailyStock)) {
+            return [
+                'success' => false,
+                'message' => 'Inventory record not found.',
+            ];
         }
 
-        self::markShiftReported($targetDate, $manualSlot);
+        $date = (string) ($dailyStock['inventory_date'] ?? '');
+        $shiftStart = trim((string) ($dailyStock['time_start'] ?? ''));
+        $shiftEnd = trim((string) ($dailyStock['time_end'] ?? ''));
 
-        return true;
+        if ($date === '' || $shiftStart === '' || $shiftEnd === '' || $shiftEnd === '00:00:00') {
+            return [
+                'success' => false,
+                'message' => 'Shift time window is incomplete. Close the inventory before sending.',
+            ];
+        }
+
+        $itemsModel = new DailyStockItemsModel();
+        $allItems = $itemsModel->fetchAllStockItems($inventoryId);
+        if (empty($allItems)) {
+            return [
+                'success' => false,
+                'message' => 'No inventory products found for this shift.',
+            ];
+        }
+
+        $shiftLabel = 'Shift (' . self::formatShiftTimeRange($shiftStart, $shiftEnd) . ')';
+        $shiftReports = self::buildShiftReports($allItems, $date, [[
+            'key' => 'inventory_' . $inventoryId,
+            'label' => $shiftLabel,
+            'start' => $shiftStart,
+            'end' => $shiftEnd,
+        ]], $cashierUserId);
+
+        if (empty($shiftReports)) {
+            return [
+                'success' => false,
+                'message' => 'No shift data available for inventory report.',
+            ];
+        }
+
+        $usersModel = new UsersModel();
+        $owners = $usersModel
+            ->where('employee_type', 'owner')
+            ->where('approved', 1)
+            ->findAll();
+
+        if (empty($owners)) {
+            return [
+                'success' => false,
+                'message' => 'No approved owner recipients found.',
+            ];
+        }
+
+        $isResend = !empty($dailyStock['report_sent_at']);
+        $reason = trim((string) $resendReason);
+        if ($reason === '') {
+            $reason = 'inventory was reopened and corrected after the previous report.';
+        }
+
+        $ownerEmails = self::resolveInventoryRecipients($owners);
+        log_message('info', 'AutoReportScheduler: Manual inventory send requested for inventory_id=' . $inventoryId
+            . ' date=' . $date
+            . ' cashier_user_id=' . intval($cashierUserId ?? 0)
+            . ' recipients=' . implode(', ', $ownerEmails));
+
+        $cashierMeta = self::resolveCashierMeta($cashierUserId);
+
+        $slotMeta = [
+            'title' => 'Inventory Shift Report',
+            'subtitle' => 'Manual Shift Snapshot',
+            'header_color' => '#fbbf24',
+            'subject_label' => $shiftLabel,
+            'cashier' => $cashierMeta,
+        ];
+
+        $subject = 'Inventory Report - ' . date('F d, Y', strtotime($date)) . ' - ' . self::formatShiftTimeRange($shiftStart, $shiftEnd);
+        if ($isResend) {
+            $subject .= ' [RESENT]';
+        }
+
+        $resendMeta = null;
+        if ($isResend) {
+            $resendMeta = [
+                'reason' => $reason,
+                'previous_sent_at' => (string) ($dailyStock['report_sent_at'] ?? ''),
+            ];
+        }
+
+        $emailBody = self::buildEmailBody($shiftReports, 'manual', $date, $slotMeta, $resendMeta);
+
+        try {
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
+            $emailService->setTo($ownerEmails);
+            $emailService->setSubject($subject);
+            $emailService->setMessage($emailBody);
+            $emailService->setMailType('html');
+
+            if (!$emailService->send()) {
+                log_message('error', 'AutoReportScheduler: sendManualReportForInventory failed. Debug: '
+                    . $emailService->printDebugger(['headers']));
+
+                return [
+                    'success' => false,
+                    'message' => 'Email delivery failed. Please check email configuration.',
+                    'recipients' => $ownerEmails,
+                ];
+            }
+
+            log_message('info', 'AutoReportScheduler: Manual inventory email dispatched for inventory_id=' . $inventoryId
+                . ' recipients=' . implode(', ', $ownerEmails));
+
+            return [
+                'success' => true,
+                'resent' => $isResend,
+                'recipients' => $ownerEmails,
+                'message' => $isResend
+                    ? 'Resent inventory report successfully. This version supersedes the previous email.'
+                    : 'Inventory report sent successfully.',
+            ];
+        } catch (\Throwable $e) {
+            log_message('error', 'AutoReportScheduler: sendManualReportForInventory exception: ' . $e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Unexpected error while sending report.',
+                'recipients' => $ownerEmails,
+            ];
+        }
     }
 
     // =========================================================================
@@ -183,7 +328,7 @@ class AutoReportScheduler
             return false;
         }
 
-        $ownerEmails = array_column($owners, 'email');
+        $ownerEmails = self::resolveInventoryRecipients($owners);
         $slotMeta = self::resolveSlotMeta($slot, $shiftReports, $date);
         $slotLabel = $slotMeta['subject_label'] ?? null;
         $subject = $slotLabel
@@ -223,7 +368,7 @@ class AutoReportScheduler
     /**
      * Assemble the complete HTML email body for a scheduled inventory report.
      */
-    private static function buildEmailBody(array $shiftReports, string $slot, string $date, array $slotMeta): string
+    private static function buildEmailBody(array $shiftReports, string $slot, string $date, array $slotMeta, ?array $resendMeta = null): string
     {
         $reportDate   = date('F d, Y', strtotime($date));
         $reportTime   = date('h:i A');
@@ -252,6 +397,11 @@ class AutoReportScheduler
         $shiftCoverage = implode(' • ', array_filter($shiftCoverageParts));
         $shiftCoverageEscaped = htmlspecialchars($shiftCoverage !== '' ? $shiftCoverage : '—');
 
+        $cashierMeta = is_array($slotMeta['cashier'] ?? null) ? $slotMeta['cashier'] : [];
+        $cashierName = trim((string) ($cashierMeta['name'] ?? ''));
+        $cashierDisplay = $cashierName !== '' ? $cashierName : 'Unknown';
+        $cashierDisplayEscaped = htmlspecialchars($cashierDisplay);
+
         $showOverheadColumn = true;
 
         $shiftBlocks = '';
@@ -277,6 +427,24 @@ class AutoReportScheduler
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>DRINKS</div>
                     " . self::buildCategoryTable($drinksRows, false, $showOverheadColumn) . "
+                </div>";
+        }
+
+        $resendBanner = '';
+        if ($resendMeta !== null) {
+            $reasonEscaped = htmlspecialchars((string) ($resendMeta['reason'] ?? 'inventory correction'));
+            $previousSentAtRaw = trim((string) ($resendMeta['previous_sent_at'] ?? ''));
+            $previousSentAt = $previousSentAtRaw;
+            if ($previousSentAtRaw !== '' && strtotime($previousSentAtRaw) !== false) {
+                $previousSentAt = date('M d, Y h:i A', strtotime($previousSentAtRaw));
+            }
+            $previousSentAtEscaped = htmlspecialchars($previousSentAt !== '' ? $previousSentAt : 'N/A');
+
+            $resendBanner = "
+                <div style='margin:8px 0 14px;background:#fff7ed;color:#9a3412;border:1px solid #fdba74;border-radius:10px;padding:12px;font-size:13px;'>
+                    <strong>RESENT VERSION:</strong> This email supersedes the previous inventory report.<br>
+                    <strong>Reason:</strong> {$reasonEscaped}<br>
+                    <strong>Previous Sent At:</strong> {$previousSentAtEscaped}
                 </div>";
         }
 
@@ -351,6 +519,10 @@ class AutoReportScheduler
                             <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$shiftCoverageEscaped}</td>
                         </tr>
                         <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Cashier:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$cashierDisplayEscaped}</td>
+                        </tr>
+                        <tr>
                             <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Product Rows:</strong></td>
                             <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$totalProducts}</td>
                         </tr>
@@ -371,6 +543,8 @@ class AutoReportScheduler
                         Below is your <strong>{$slotSubtitle}</strong> inventory snapshot for <strong>{$reportDate}</strong>.
                         Sales and raw materials used are computed per shift and per product using the required formulas.
                     </p>
+
+                    {$resendBanner}
 
                     {$shiftBlocks}
 
@@ -437,7 +611,7 @@ class AutoReportScheduler
         return !empty($windows) ? $windows : $all;
     }
 
-    private static function buildShiftReports(array $allItems, string $date, array $shiftWindows): array
+    private static function buildShiftReports(array $allItems, string $date, array $shiftWindows, ?int $cashierUserId = null): array
     {
         $reports = [];
         foreach ($shiftWindows as $window) {
@@ -445,7 +619,7 @@ class AutoReportScheduler
             $end = (string) ($window['end'] ?? '23:59:59');
             $label = (string) ($window['label'] ?? 'Shift');
 
-            $soldByProduct = self::getQtySoldByProductForShift($date, $start, $end);
+            $soldByProduct = self::getQtySoldByProductForShift($date, $start, $end, $cashierUserId);
 
             $bakery = [];
             $grocery = [];
@@ -506,21 +680,28 @@ class AutoReportScheduler
         return $reports;
     }
 
-    private static function getQtySoldByProductForShift(string $date, string $start, string $end): array
+    private static function getQtySoldByProductForShift(string $date, string $start, string $end, ?int $cashierUserId = null): array
     {
         $db = \Config\Database::connect();
-        $rows = $db->query(
-            "SELECT dsi.product_id, SUM(t.quantity_sold) AS qty_sold
+        $sql = "SELECT dsi.product_id, SUM(t.quantity_sold) AS qty_sold
              FROM transactions t
              JOIN orders o ON o.order_id = t.order_id
              JOIN daily_stock_items dsi ON dsi.item_id = t.item_id
              WHERE t.date_created = ?
                AND o.time_created >= ?
                AND o.time_created <= ?
-               AND o.voided_at IS NULL
-             GROUP BY dsi.product_id",
-            [$date, $start, $end]
-        )->getResultArray();
+               AND o.voided_at IS NULL";
+
+        $params = [$date, $start, $end];
+
+        if (!empty($cashierUserId) && $db->fieldExists('cashier_id', 'orders')) {
+            $sql .= " AND o.cashier_id = ?";
+            $params[] = intval($cashierUserId);
+        }
+
+        $sql .= " GROUP BY dsi.product_id";
+
+        $rows = $db->query($sql, $params)->getResultArray();
 
         $map = [];
         foreach ($rows as $row) {
@@ -827,5 +1008,53 @@ class AutoReportScheduler
         }
 
         return 1;
+    }
+
+    /**
+     * Resolve recipient list, honoring temporary test-only override.
+     *
+     * @param array<int, array<string, mixed>> $owners
+     * @return array<int, string>
+     */
+    private static function resolveInventoryRecipients(array $owners): array
+    {
+        if (!empty(self::TEST_ONLY_RECIPIENTS)) {
+            return self::TEST_ONLY_RECIPIENTS;
+        }
+
+        return OwnerNotificationPreferences::resolveEmailsForType($owners, OwnerNotificationPreferences::TYPE_INVENTORY);
+    }
+
+    /**
+     * Resolve cashier metadata for report header labeling.
+     */
+    private static function resolveCashierMeta(?int $cashierUserId): array
+    {
+        $cashierId = intval($cashierUserId ?? 0);
+        if ($cashierId <= 0) {
+            return [
+                'user_id' => null,
+                'name' => 'Unknown',
+            ];
+        }
+
+        $usersModel = new UsersModel();
+        $cashier = $usersModel->find($cashierId);
+        if (empty($cashier)) {
+            return [
+                'user_id' => $cashierId,
+                'name' => 'Unknown',
+            ];
+        }
+
+        $first = trim((string) ($cashier['firstname'] ?? ''));
+        $middle = trim((string) ($cashier['middlename'] ?? ''));
+        $last = trim((string) ($cashier['lastname'] ?? ''));
+        $fullName = trim($first . ' ' . $middle . ' ' . $last);
+
+        return [
+            'user_id' => $cashierId,
+            'name' => $fullName !== '' ? $fullName : 'Unknown',
+        ];
     }
 }

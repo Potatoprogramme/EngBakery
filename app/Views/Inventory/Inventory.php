@@ -2138,7 +2138,8 @@
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    inventory_id: inventoryId
+                    inventory_id: inventoryId,
+                    shift_key: ($('#sendReportShiftSelect').val() || '').trim()
                 }),
                 success: function(response) {
                     if (response && response.success) {
