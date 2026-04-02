@@ -1433,7 +1433,7 @@ class InventoryController extends BaseController
             ]);
         }
 
-        if ($state['report_sent'] == 1) {
+        if ($state['report_sent'] == 1 || $state['report_sent'] === true) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => false,
                 'message' => 'Report has already been sent for this inventory.',
