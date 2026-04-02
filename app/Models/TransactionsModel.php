@@ -108,6 +108,7 @@ class TransactionsModel extends Model
         return $this->builder()
             ->select('item_id, SUM(total_sales) as total_sales, SUM(quantity_sold) as quantity_sold')
             ->where('date_created', $date)
+            ->where('deleted_at IS NULL')
             ->groupBy('item_id')
             ->get()
             ->getResultArray();

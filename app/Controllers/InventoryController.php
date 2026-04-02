@@ -86,6 +86,7 @@ class InventoryController extends BaseController
             $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
             $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
         }
+
         if ($daily_stock_items) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
@@ -1432,7 +1433,7 @@ class InventoryController extends BaseController
             ]);
         }
 
-        if ($state['report_sent'] == 1) {
+        if ($state['report_sent'] == 1 || $state['report_sent'] === true) {
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => false,
                 'message' => 'Report has already been sent for this inventory.',
