@@ -729,9 +729,10 @@
     </div>
 
     <script>
-        // Track if inventory exists for today
-        let inventoryExistsToday = false;
-        let inventoryIsClosed = false;
+    // Track if inventory exists for today
+    let inventoryExistsToday = false;
+    let inventoryIsClosed = false;
+    let inventoryReportSent = false;
 
         function isInventoryInteractionBlocked() {
             return inventoryExistsToday && inventoryIsClosed;
@@ -745,21 +746,25 @@
             return false;
         }
 
-        function syncNewShiftButtonState() {
-            const shouldDisable = inventoryExistsToday && !inventoryIsClosed;
-            const $btn = $('#btnResetInventoryForNextShift');
+    function syncNewShiftButtonState() {
+        const shouldDisable = inventoryExistsToday && (!inventoryIsClosed || !inventoryReportSent);
+        const $btn = $('#btnResetInventoryForNextShift');
 
             $btn
                 .prop('disabled', shouldDisable)
                 .attr('aria-disabled', shouldDisable ? 'true' : 'false')
                 .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', shouldDisable);
 
-            if (shouldDisable) {
-                $btn.attr('title', 'Close inventory first before creating a new shift.');
-            } else {
-                $btn.removeAttr('title');
+        if (shouldDisable) {
+            if (!inventoryIsClosed) {
+                $btn.attr('title', 'Close inventory first before creating a new inventory.');
+            } else if (!inventoryReportSent) {
+                $btn.attr('title', 'Send inventory report first before creating a new inventory.');
             }
+        } else {
+            $btn.removeAttr('title');
         }
+    }
 
         function syncInventoryInteractionLock() {
             const blocked = isInventoryInteractionBlocked();
@@ -2132,37 +2137,39 @@
                     .addClass('opacity-70 cursor-not-allowed')
                     .html('<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
 
-                $.ajax({
-                    url: baseUrl + '/Inventory/SendReport',
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        inventory_id: inventoryId
-                    }),
-                    success: function (response) {
-                        if (response && response.success) {
-                            showToast('success', response.message ||
-                                'Inventory report sent successfully.', 2500);
-                        } else {
-                            showToast('error', (response && response.message) ||
-                                'Failed to send inventory report.', 3000);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
-                            xhr.responseJSON.message :
-                            ('Error sending report: ' + error);
-                        showToast('danger', message, 3000);
-                    },
-                    complete: function () {
-                        btn.prop('disabled', false)
-                            .removeClass('opacity-70 cursor-not-allowed')
-                            .html(originalHtml);
-                        closeSendReportConfirmModal();
+            $.ajax({
+                url: baseUrl + '/Inventory/SendReport',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId,
+                    shift_key: ($('#sendReportShiftSelect').val() || '').trim()
+                }),
+                success: function(response) {
+                    if (response && response.success) {
+                        const redirectUrl = (response && response.redirect_url) ? response.redirect_url :
+                            (baseUrl + '/Sales?daily_stock_id=' + encodeURIComponent(inventoryId));
+                        window.location.href = redirectUrl;
+                    } else {
+                        showToast('error', (response && response.message) ||
+                            'Failed to send inventory report.', 3000);
                     }
-                });
+                },
+                error: function(xhr, status, error) {
+                    const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
+                        xhr.responseJSON.message :
+                        ('Error sending report: ' + error);
+                    showToast('danger', message, 3000);
+                },
+                complete: function() {
+                    btn.prop('disabled', false)
+                        .removeClass('opacity-70 cursor-not-allowed')
+                        .html(originalHtml);
+                    closeSendReportConfirmModal();
+                }
             });
+        });
 
             // Open Add Inventory Modal (Desktop & Mobile)
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
@@ -2412,79 +2419,102 @@
             });
         }
 
-        function updateInventoryModeBadge(source) {
-            if (source === 'distribution') {
-                $('#inventoryModeBadge').removeClass('hidden');
-                $('#noDistributionModeBadge').addClass('hidden');
-            } else {
-                $('#inventoryModeBadge').addClass('hidden');
-                $('#noDistributionModeBadge').removeClass('hidden');
-            }
+    function updateInventoryModeBadge(source) {
+        if (source === 'distribution') {
+            $('#inventoryModeBadge').removeClass('hidden');
+            $('#noDistributionModeBadge').addClass('hidden');
+        } else {
+            $('#inventoryModeBadge').addClass('hidden');
+            $('#noDistributionModeBadge').removeClass('hidden');
         }
+    }
 
-        function checkIfInventoryExists() {
-            const baseUrl = '<?= base_url() ?>';
-            $.ajax({
-                url: baseUrl + 'Inventory/CheckInventoryToday',
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    // Destroy existing DataTable first
-                    if (response.success) {
-                        inventoryExistsToday = true;
-                        inventoryIsClosed = response.data && (response.data.is_closed === true || response.data
-                            .is_closed === 1 || response.data.is_closed === '1');
-                        syncInventoryInteractionLock();
-                        updateDateTime(response.data);
-                        fetchAllStockitems();
-                        if ($('#btnSendInventoryReport').length) {
-                            $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
-                        }
-                        // Show delete buttons and add product button when inventory exists
-                        $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                        $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                        $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
-                        $('#btnResetInventoryForNextShift').removeClass('hidden').addClass('sm:inline-flex');
-                        // Only show Load from Distribution if distribution exists for today
-                        checkDistributionAndToggleButton();
-                        // Hide add inventory buttons
-                        $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                        console.log('Closed? ' + response.data.is_closed);
-                        setInventoryState(response.data.is_closed);
-                    } else {
-                        inventoryExistsToday = false;
-                        inventoryIsClosed = false;
-                        syncInventoryInteractionLock();
-                        showToast('warning', response.message, 2000);
-                        loadInventory([]);
-                        $('#btnCloseInventory').addClass('hidden');
-                        $('#btnOpenInventory').addClass('hidden');
-                        if ($('#btnSendInventoryReport').length) {
-                            $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
-                        }
-                        // Show add inventory buttons when no inventory
-                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                        // Hide delete and add product buttons
-                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+    function checkActiveInventoriesAndDisableButtons() {
+        const baseUrl = '<?= base_url() ?>';
+        $.ajax({
+            url: baseUrl + 'Inventory/CheckActiveInventories',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                const hasInventoryToProcess = inventoryExistsToday && !inventoryReportSent;
+
+                // Keep existing endpoint check as a fallback signal for availability.
+                const hasActiveInventory = response.success && response.has_active;
+                const noActionableInventory = !hasInventoryToProcess && !hasActiveInventory;
+
+                // Send Report must stay disabled while inventory is still open.
+                const disableSendReport = noActionableInventory || inventoryIsOpen || inventoryReportSent;
+                $('#btnSendInventoryReport')
+                    .prop('disabled', disableSendReport)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+
+                // Open button should remain available for closed, unsent inventory.
+                const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+                $('#btnOpenInventory')
+                    .prop('disabled', disableOpenButton)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+            },
+            error: function() {
+                const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                const disableSendReport = !inventoryExistsToday || inventoryIsOpen || inventoryReportSent;
+                const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+
+                $('#btnSendInventoryReport')
+                    .prop('disabled', disableSendReport)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+                $('#btnOpenInventory')
+                    .prop('disabled', disableOpenButton)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+            }
+        });
+    }
+
+    function checkIfInventoryExists() {
+        const baseUrl = '<?= base_url() ?>';
+        $.ajax({
+            url: baseUrl + 'Inventory/CheckInventoryToday',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                // Destroy existing DataTable first
+                if (response.success) {
+                    inventoryExistsToday = true;
+                    inventoryIsClosed = response.data && (response.data.is_closed === true || response.data
+                        .is_closed === 1 || response.data.is_closed === '1');
+                    inventoryReportSent = response.data && (response.data.report_sent === true || response.data
+                        .report_sent === 1 || response.data.report_sent === '1');
+                    syncInventoryInteractionLock();
+                    updateDateTime(response.data);
+                    fetchAllStockitems();
+                    if ($('#btnSendInventoryReport').length) {
+                        $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
                     }
-                },
-                error: function (xhr, status, error) {
+                    // Show delete buttons and add product button when inventory exists
+                    $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                    $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                    $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
+                    $('#btnResetInventoryForNextShift').removeClass('hidden').addClass('sm:inline-flex');
+                    // Only show Load from Distribution if distribution exists for today
+                    checkDistributionAndToggleButton();
+                    // Hide add inventory buttons
+                    $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                    console.log('Closed? ' + response.data.is_closed);
+                    setInventoryState(response.data.is_closed);
+                } else {
                     inventoryExistsToday = false;
                     inventoryIsClosed = false;
+                    inventoryReportSent = false;
                     syncInventoryInteractionLock();
-                    console.log('Error checking inventory: ' + error);
+                    showToast('warning', response.message, 2000);
+                    loadInventory([]);
                     $('#btnCloseInventory').addClass('hidden');
                     $('#btnOpenInventory').addClass('hidden');
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                     }
-                    // Show add inventory buttons on error (safe default)
+                    // Show add inventory buttons when no inventory
                     $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
                     // Hide delete and add product buttons
@@ -2493,9 +2523,32 @@
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    checkActiveInventoriesAndDisableButtons();
                 }
-            });
-        }
+            },
+            error: function(xhr, status, error) {
+                inventoryExistsToday = false;
+                inventoryIsClosed = false;
+                inventoryReportSent = false;
+                syncInventoryInteractionLock();
+                console.log('Error checking inventory: ' + error);
+                $('#btnCloseInventory').addClass('hidden');
+                $('#btnOpenInventory').addClass('hidden');
+                if ($('#btnSendInventoryReport').length) {
+                    $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
+                }
+                // Show add inventory buttons on error (safe default)
+                $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
+                $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
+                // Hide delete and add product buttons
+                $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
+                $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
+                $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+            }
+        });
+    }
 
         function updateDateTime(data) {
             // Update date display
@@ -4674,8 +4727,9 @@
                 $('#btnOpenInventory').addClass('hidden');
             }
 
-            syncInventoryInteractionLock();
-        }
+        syncInventoryInteractionLock();
+        checkActiveInventoriesAndDisableButtons();
+    }
 
         function resetInventory() {
             if (!inventoryId) {

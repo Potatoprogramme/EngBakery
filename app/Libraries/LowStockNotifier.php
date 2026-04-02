@@ -6,6 +6,7 @@ use App\Models\DailyStockModel;
 use App\Models\DailyStockItemsModel;
 use App\Models\RawMaterialStockModel;
 use App\Models\UsersModel;
+use App\Libraries\OwnerNotificationPreferences;
 
 class LowStockNotifier
 {
@@ -94,7 +95,11 @@ class LowStockNotifier
             return;
         }
 
-        $ownerEmails = array_column($owners, 'email');
+        $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType($owners, OwnerNotificationPreferences::TYPE_LOW_STOCK);
+        if (empty($ownerEmails)) {
+            log_message('info', 'Combined low stock alert: All owner recipients have low-stock email notifications turned off.');
+            return;
+        }
         log_message('info', 'Sending combined low stock alert to ' . count($ownerEmails) . ' owner(s): ' . implode(', ', $ownerEmails));
 
         // Build the email

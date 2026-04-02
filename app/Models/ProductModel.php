@@ -46,7 +46,8 @@ class ProductModel extends Model
         LEFT JOIN (
             SELECT ds1.daily_stock_id
             FROM daily_stock ds1
-            ORDER BY ds1.inventory_date DESC, ds1.daily_stock_id DESC
+            WHERE ds1.inventory_date = CURDATE()
+            ORDER BY ds1.daily_stock_id DESC
             LIMIT 1
         ) latest_ds ON 1 = 1
         LEFT JOIN (
@@ -59,15 +60,9 @@ class ProductModel extends Model
         ) dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
         WHERE p.is_disabled = 0
             AND p.deleted_at IS NULL
-            AND (
-                (p.category = 'drinks')
-                OR (p.category = 'grocery')
-                OR (p.category NOT IN ('drinks', 'grocery') AND (
-                    dsi.product_id IS NULL
-                    OR dsi.is_enabled = 1
-                    OR COALESCE(dsi.ending_stock, 0) > 0
-                ))
-            )
+            AND latest_ds.daily_stock_id IS NOT NULL
+            AND dsi.product_id IS NOT NULL
+            AND dsi.is_enabled = 1
         ORDER BY p.category, p.product_name
         ")->getResultArray();
     }
@@ -138,6 +133,19 @@ class ProductModel extends Model
             LEFT JOIN product_costs pc ON p.product_id = pc.product_id
             WHERE p.product_id = ?
         ", [$id])->getRowArray();
+    }
+
+    /**
+     * Returns a product that is currently valid for selling.
+     */
+    public function findActiveForOrdering(int $id): ?array
+    {
+        return $this->builder()
+            ->where('product_id', $id)
+            ->where('is_disabled', 0)
+            ->where('deleted_at', null)
+            ->get()
+            ->getRowArray();
     }
 
     /**

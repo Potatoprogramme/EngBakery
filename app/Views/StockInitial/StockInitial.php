@@ -31,6 +31,26 @@
                         <?php endif; ?>
                     </div>
                 </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-gray-200 my-4"></div>
+
+                <?php if (!$isStaffView): ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
+                        <div class="bg-white rounded-lg shadow-md border border-green-100 p-4">
+                            <p class="text-xs uppercase tracking-wide text-green-700 font-semibold">Grand Total Initial Cost</p>
+                            <p id="totalInitialCostCard" class="mt-1 text-2xl font-bold text-green-700 tabular-nums">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md border border-orange-100 p-4">
+                            <p class="text-xs uppercase tracking-wide text-orange-700 font-semibold">Grand Total Used Cost</p>
+                            <p id="totalUsedCostCard" class="mt-1 text-2xl font-bold text-orange-700 tabular-nums">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md border border-blue-100 p-4 sm:col-span-2 xl:col-span-1">
+                            <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Grand Total Remaining Cost</p>
+                            <p id="totalRemainingCostCard" class="mt-1 text-2xl font-bold text-blue-700 tabular-nums">₱0.00</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Divider -->
                 <div class="border-t border-gray-200 my-4"></div>

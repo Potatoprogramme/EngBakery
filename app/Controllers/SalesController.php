@@ -2,8 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Libraries\ShiftSchedule;
-
 class SalesController extends BaseController
 {
     public function index()
@@ -175,68 +173,57 @@ class SalesController extends BaseController
 
     public function getTodaysSummary()
     {
-        // Accept optional shift parameters for time-scoped summary
-        $shiftStart = $this->request->getGet('shift_start');
-        $shiftEnd = $this->request->getGet('shift_end');
-        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $dailyStockId = (int) ($this->request->getGet('daily_stock_id') ?? $this->request->getGet('inventory_id') ?? 0);
 
-        // If shift params provided, use time-scoped queries
-        if (!empty($shiftStart) && !empty($shiftEnd)) {
-            // Ensure time format includes seconds
-            if (strlen($shiftStart) === 5)
-                $shiftStart .= ':00';
-            if (strlen($shiftEnd) === 5)
-                $shiftEnd .= ':00';
-
-            $breadSales = $this->transactionsModel->getSalesByCategoryForShift('bakery', $date, $shiftStart, $shiftEnd);
-            $drinksSales = $this->transactionsModel->getSalesByCategoryForShift('drinks', $date, $shiftStart, $shiftEnd);
-            $doughSales = $this->transactionsModel->getSalesByCategoryForShift('dough', $date, $shiftStart, $shiftEnd);
-            $grocerySales = $this->transactionsModel->getSalesByCategoryForShift('grocery', $date, $shiftStart, $shiftEnd);
-
-            $gCashSales = $this->orderModel->getSalesByPaymentMethodForShift('gcash', $date, $shiftStart, $shiftEnd);
-            $mayaSales = $this->orderModel->getSalesByPaymentMethodForShift('maya', $date, $shiftStart, $shiftEnd);
-            $creditCardSales = $this->orderModel->getSalesByPaymentMethodForShift('credit card', $date, $shiftStart, $shiftEnd);
-            $debitCardSales = $this->orderModel->getSalesByPaymentMethodForShift('debit card', $date, $shiftStart, $shiftEnd);
-            $pandaSales = $this->orderModel->getSalesByPaymentMethodForShift('panda', $date, $shiftStart, $shiftEnd);
-            $todaysTotalOrders = $this->orderModel->getOrderCountForShift($date, $shiftStart, $shiftEnd);
-            $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForShift($date, $shiftStart, $shiftEnd);
-            $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForShift($date, $shiftStart, $shiftEnd);
-
-            // Payment method results are already floats from the ForShift methods
-            $gCashSalesArr = ['total_revenue' => $gCashSales];
-            $mayaSalesArr = ['total_revenue' => $mayaSales];
-            $creditCardSalesArr = ['total_revenue' => $creditCardSales];
-            $debitCardSalesArr = ['total_revenue' => $debitCardSales];
-            $pandaSalesArr = ['total_revenue' => $pandaSales];
-        } else {
-            // Fallback: original whole-day logic
-            $breadSales = $this->transactionsModel->getTodaysSaleByCategory('bakery');
-            $drinksSales = $this->transactionsModel->getTodaysSaleByCategory('drinks');
-            $doughSales = $this->transactionsModel->getTodaysSaleByCategory('dough');
-            $grocerySales = $this->transactionsModel->getTodaysSaleByCategory('grocery');
-
-            $gCashSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('gcash');
-            $mayaSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('maya');
-            $creditCardSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('credit card');
-            $debitCardSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('debit card');
-            $pandaSalesArr = $this->orderModel->getTotalSalesByPaymentMethod('panda');
-            $todaysTotalOrders = $this->orderModel->getTodaysOrderCount();
-            $todaysTotalItemsSold = $this->transactionsModel->getTodaysTotalItemsSold();
-            $todaysTransactionIds = $this->transactionsModel->getTodaysTransactionsIds();
+        if ($dailyStockId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'daily_stock_id is required.'
+            ]);
         }
 
-        echo json_encode([
+        $dailyStock = $this->dailyStockModel->getInventoryById($dailyStockId);
+        if (empty($dailyStock)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory not found.'
+            ]);
+        }
+
+        if (intval($dailyStock['is_closed'] ?? 0) !== 1 || intval($dailyStock['report_sent'] ?? 0) !== 1) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory must be closed and report-sent before remittance totals can be loaded.'
+            ]);
+        }
+
+        $breadSales = $this->transactionsModel->getSalesByCategoryForInventory('bakery', $dailyStockId);
+        $drinksSales = $this->transactionsModel->getSalesByCategoryForInventory('drinks', $dailyStockId);
+        $doughSales = $this->transactionsModel->getSalesByCategoryForInventory('dough', $dailyStockId);
+        $grocerySales = $this->transactionsModel->getSalesByCategoryForInventory('grocery', $dailyStockId);
+
+        $gCashSales = $this->orderModel->getSalesByPaymentMethodForInventory('gcash', $dailyStockId);
+        $mayaSales = $this->orderModel->getSalesByPaymentMethodForInventory('maya', $dailyStockId);
+        $creditCardSales = $this->orderModel->getSalesByPaymentMethodForInventory('credit card', $dailyStockId);
+        $debitCardSales = $this->orderModel->getSalesByPaymentMethodForInventory('debit card', $dailyStockId);
+        $pandaSales = $this->orderModel->getSalesByPaymentMethodForInventory('panda', $dailyStockId);
+        $todaysTotalOrders = $this->orderModel->getOrderCountForInventory($dailyStockId);
+        $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForInventory($dailyStockId);
+        $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
+
+        return $this->response->setJSON([
             'success' => true,
             'data' => [
+                'inventory' => $dailyStock,
                 'bread_sales' => $breadSales,
                 'drinks_sales' => $drinksSales,
                 'dough_sales' => $doughSales,
                 'grocery_sales' => $grocerySales,
-                'gcash_sales' => $gCashSalesArr ?? $gCashSales,
-                'maya_sales' => $mayaSalesArr ?? $mayaSales,
-                'credit_card_sales' => $creditCardSalesArr ?? $creditCardSales,
-                'debit_card_sales' => $debitCardSalesArr ?? $debitCardSales,
-                'panda_sales' => $pandaSalesArr ?? $pandaSales,
+                'gcash_sales' => ['total_revenue' => $gCashSales],
+                'maya_sales' => ['total_revenue' => $mayaSales],
+                'credit_card_sales' => ['total_revenue' => $creditCardSales],
+                'debit_card_sales' => ['total_revenue' => $debitCardSales],
+                'panda_sales' => ['total_revenue' => $pandaSales],
                 'total_orders' => $todaysTotalOrders,
                 'total_items_sold' => $todaysTotalItemsSold,
                 'transaction_ids' => $todaysTransactionIds
@@ -250,38 +237,27 @@ class SalesController extends BaseController
      */
     public function checkExistingRemittance()
     {
-        $date = $this->request->getGet('date') ?? date('Y-m-d');
-        $defaultShift = ShiftSchedule::getShiftWindowsForDate($date)[0] ?? ['start' => '06:00:00', 'end' => '14:59:59'];
-        $shiftStart = $this->request->getGet('shift_start') ?? $defaultShift['start'];
-        $shiftEnd = $this->request->getGet('shift_end') ?? $defaultShift['end'];
+        $dailyStockId = (int) ($this->request->getGet('daily_stock_id') ?? $this->request->getGet('inventory_id') ?? 0);
         $outletName = $this->request->getGet('outlet_name') ?? '';
 
-        // Ensure time format includes seconds
-        if (strlen($shiftStart) === 5) {
-            $shiftStart .= ':00';
-        }
-        if (strlen($shiftEnd) === 5) {
-            $shiftEnd .= ':00';
-        }
-
-        if (!ShiftSchedule::isValidShiftWindow($date, $shiftStart, $shiftEnd)) {
+        if ($dailyStockId <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'exists' => false,
-                'message' => 'Invalid shift window for the selected date.'
+                'message' => 'daily_stock_id is required.'
             ]);
         }
 
-        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(
-            $date,
-            $shiftStart,
-            $shiftEnd,
+        $dailyStock = $this->dailyStockModel->getInventoryById($dailyStockId);
+        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByInventory(
+            $dailyStockId,
             !empty($outletName) ? $outletName : null
         );
 
         if ($existingRemittance) {
             $cashierName = $existingRemittance['cashier_name'] ?? 'Unknown';
             $existingTime = date('h:i A', strtotime($existingRemittance['remittance_date']));
+            $inventoryDate = $dailyStock['inventory_date'] ?? date('Y-m-d', strtotime($existingRemittance['remittance_date']));
 
             return $this->response->setJSON([
                 'success' => true,
@@ -290,8 +266,9 @@ class SalesController extends BaseController
                     'id' => $existingRemittance['remittance_id'],
                     'cashier_name' => $cashierName,
                     'submitted_at' => $existingTime,
-                    'date' => $date,
-                    'shift' => date('h:i A', strtotime($shiftStart)) . ' - ' . date('h:i A', strtotime($shiftEnd)),
+                    'inventory_id' => $dailyStockId,
+                    'date' => $inventoryDate,
+                    'shift' => trim((string) ($dailyStock['time_start'] ?? '')) . ' - ' . trim((string) ($dailyStock['time_end'] ?? '')),
                     'total_sales' => $existingRemittance['total_sales'] ?? 0
                 ]
             ]);
@@ -310,34 +287,24 @@ class SalesController extends BaseController
     public function getRemittancesForDate()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
-        $outletName = $this->request->getGet('outlet_name') ?? '';
-
-        $remittances = $this->remittanceDetailsModel->getRemittancesByDate(
-            $date,
-            !empty($outletName) ? $outletName : null
-        );
-
-        // Extract just the shift times
-        $occupiedSlots = [];
-        foreach ($remittances as $remittance) {
-            $occupiedSlots[] = [
-                'start' => substr($remittance['shift_start'], 0, 5), // HH:MM format
-                'end' => substr($remittance['shift_end'], 0, 5),
-                'cashier_name' => $remittance['cashier_name'] ?? 'Unknown'
-            ];
-        }
+        $inventories = $this->dailyStockModel->getInventoriesByDate($date);
+        $eligibleInventories = $this->dailyStockModel->getRemittanceEligibleInventories($date);
 
         return $this->response->setJSON([
             'success' => true,
-            'occupied_slots' => $occupiedSlots,
-            'required_slots' => array_map(static function (array $window): array {
+            'inventories' => $inventories,
+            'eligible_inventories' => $eligibleInventories,
+            'required_slots' => array_map(static function (array $inventory): array {
                 return [
-                    'key' => $window['key'],
-                    'label' => $window['label'],
-                    'start' => substr($window['start'], 0, 5),
-                    'end' => substr($window['end'], 0, 5),
+                    'daily_stock_id' => $inventory['daily_stock_id'],
+                    'inventory_date' => $inventory['inventory_date'],
+                    'time_start' => $inventory['time_start'] ?? null,
+                    'time_end' => $inventory['time_end'] ?? null,
+                    'is_closed' => intval($inventory['is_closed'] ?? 0),
+                    'report_sent' => intval($inventory['report_sent'] ?? 0),
+                    'is_remitted' => intval($inventory['is_remitted'] ?? 0),
                 ];
-            }, ShiftSchedule::getShiftWindowsForDate($date))
+            }, $inventories)
         ]);
     }
 
@@ -349,13 +316,14 @@ class SalesController extends BaseController
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
         $dayOfWeek = date('l', strtotime($date)); // 'Sunday', 'Monday', etc.
-        $shifts = ShiftSchedule::getShiftWindowsForDate($date);
+        $inventories = $this->dailyStockModel->getInventoriesByDate($date);
 
         return $this->response->setJSON([
             'success' => true,
             'day' => $dayOfWeek,
             'date' => $date,
-            'shifts' => $shifts,
+            'inventories' => $inventories,
+            'eligible_inventories' => $this->dailyStockModel->getRemittanceEligibleInventories($date),
         ]);
     }
 
@@ -369,41 +337,65 @@ class SalesController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Invalid remittance data']);
         }
 
-        // Extract date and shift information for duplicate check
-        $remittanceDate = $data['date'] ?? date('Y-m-d H:i:s');
-        $dateOnly = date('Y-m-d', strtotime($remittanceDate));
-        $shiftStart = $data['shift_start'] ?? '00:00:00';
-        $shiftEnd = $data['shift_end'] ?? '00:00:00';
+        $dailyStockId = (int) ($data['daily_stock_id'] ?? $data['inventory_id'] ?? 0);
         $outletName = $data['outlet_name'] ?? '';
 
-        if (!ShiftSchedule::isValidShiftWindow($dateOnly, $shiftStart, $shiftEnd)) {
+        if ($dailyStockId <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'Invalid shift window. Use the configured shift schedule for the selected date.'
+                'message' => 'daily_stock_id is required.'
             ]);
         }
 
-        // Check for existing remittance with same date, shift, and outlet
-        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByDateAndShift(
-            $dateOnly,
-            $shiftStart,
-            $shiftEnd,
+        $dailyStock = $this->dailyStockModel->getInventoryById($dailyStockId);
+        if (empty($dailyStock)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory not found.'
+            ]);
+        }
+
+        if (intval($dailyStock['is_closed'] ?? 0) !== 1) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory must be closed before remittance can be saved.'
+            ]);
+        }
+
+        if (intval($dailyStock['report_sent'] ?? 0) !== 1) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Inventory report must be sent before remittance can be saved.'
+            ]);
+        }
+
+        if (intval($dailyStock['is_remitted'] ?? 0) === 1) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'This inventory has already been remitted.'
+            ]);
+        }
+
+        // Check for existing remittance with same inventory and outlet
+        $existingRemittance = $this->remittanceDetailsModel->getExistingRemittanceByInventory(
+            $dailyStockId,
             $outletName
         );
 
         if ($existingRemittance) {
             $cashierName = $existingRemittance['cashier_name'] ?? 'Unknown';
             $existingTime = date('h:i A', strtotime($existingRemittance['remittance_date']));
-            log_message('info', 'Duplicate remittance attempt blocked for date: ' . $dateOnly . ', shift: ' . $shiftStart . ' - ' . $shiftEnd);
+            log_message('info', 'Duplicate remittance attempt blocked for inventory: ' . $dailyStockId);
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
-                'message' => 'A remittance for this date and shift already exists.',
+                'message' => 'A remittance for this inventory already exists.',
                 'existing_remittance' => [
                     'id' => $existingRemittance['remittance_id'],
                     'cashier_name' => $cashierName,
                     'submitted_at' => $existingTime,
-                    'date' => $dateOnly,
-                    'shift' => date('h:i A', strtotime($shiftStart)) . ' - ' . date('h:i A', strtotime($shiftEnd))
+                    'inventory_id' => $dailyStockId,
+                    'date' => $dailyStock['inventory_date'] ?? date('Y-m-d'),
+                    'shift' => trim((string) ($dailyStock['time_start'] ?? '')) . ' - ' . trim((string) ($dailyStock['time_end'] ?? ''))
                 ]
             ]);
         }
@@ -448,11 +440,12 @@ class SalesController extends BaseController
         $isShort = $variance < 0 ? 1 : 0;
 
         $remittanceDetails = [
+            'daily_stock_id' => $dailyStockId,
             'cashier' => (int) $cashierId,
             'outlet_name' => $data['outlet_name'] ?? '',
-            'remittance_date' => $data['date'] ?? date('Y-m-d'),
-            'shift_start' => $data['shift_start'] ?? '00:00:00',
-            'shift_end' => $data['shift_end'] ?? '00:00:00',
+            'remittance_date' => date('Y-m-d H:i:s'),
+            'shift_start' => $dailyStock['time_start'] ?? '00:00:00',
+            'shift_end' => $dailyStock['time_end'] ?? '00:00:00',
             'amount_enclosed' => $data['amount_enclosed'] ?? 0,
             'total_online_revenue' => $data['total_online_revenue'] ?? 0,
             'foodpanda_revenue' => $data['foodpanda_revenue'] ?? 0,
@@ -466,9 +459,12 @@ class SalesController extends BaseController
             'is_short' => $isShort
         ];
 
+        $this->db->transBegin();
+
         $remittanceId = $this->remittanceDetailsModel->insert($remittanceDetails);
 
         if (!$remittanceId) {
+            $this->db->transRollback();
             log_message('error', 'Failed to insert remittance details: ' . json_encode($remittanceDetails));
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to save remittance']);
         }
@@ -496,7 +492,10 @@ class SalesController extends BaseController
                         'quantity' => $countValue,
                         'created_at' => date('Y-m-d H:i:s')
                     ];
-                    $this->remittanceDenominationsModel->insert($remittanceDenom);
+                    if (! $this->remittanceDenominationsModel->insert($remittanceDenom)) {
+                        $this->db->transRollback();
+                        return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to save remittance denominations']);
+                    }
                     log_message('info', 'Remittance denomination saved: ' . json_encode($remittanceDenom));
                 }
             }
@@ -515,11 +514,21 @@ class SalesController extends BaseController
                         'created_at' => date('Y-m-d H:i:s')
                     ];
 
-                    $this->remittanceItemsModel->insert($remittanceItem);
+                    if (! $this->remittanceItemsModel->insert($remittanceItem)) {
+                        $this->db->transRollback();
+                        return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to save remittance items']);
+                    }
                     log_message('info', 'Remittance item saved: ' . json_encode($remittanceItem));
                 }
             }
         }
+
+        if (! $this->dailyStockModel->update($dailyStockId, ['is_remitted' => 1])) {
+            $this->db->transRollback();
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to mark inventory as remitted']);
+        }
+
+        $this->db->transCommit();
 
         // Send daily remittance report email whenever a remittance is saved
         \App\Libraries\DailyRemittanceReport::sendReport();
@@ -528,14 +537,14 @@ class SalesController extends BaseController
         if ($isShort) {
             $cashierUser = $this->usersModel->find((int) $cashierId);
             $cashierName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . ($cashierUser['middlename'] ?? '') . ' ' . $cashierUser['lastname']) : 'Unknown';
-            $this->notify('notifyShortRemittance', (int) $remittanceId, -abs($variance), $cashierName, $dateOnly);
+            $this->notify('notifyShortRemittance', (int) $remittanceId, -abs($variance), $cashierName, $dailyStock['inventory_date'] ?? date('Y-m-d'));
         }
 
         // Immediate notification: remittance filed
         $cashierUser = $cashierUser ?? $this->usersModel->find((int) $cashierId);
         $cashierDisplayName = $cashierUser ? trim($cashierUser['firstname'] . ' ' . $cashierUser['lastname']) : 'Unknown';
         $totalSales = floatval($remittanceDetails['total_sales'] ?? 0);
-        $this->notify('notifyRemittanceFiled', (int) $remittanceId, $cashierDisplayName, $totalSales, $dateOnly);
+        $this->notify('notifyRemittanceFiled', (int) $remittanceId, $cashierDisplayName, $totalSales, $dailyStock['inventory_date'] ?? date('Y-m-d'));
 
         return $this->response->setJSON(['success' => true, 'message' => 'Remittance saved successfully.']);
     }

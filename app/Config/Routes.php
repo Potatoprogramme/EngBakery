@@ -31,8 +31,10 @@ $routes->group('PasswordReset', function (RouteCollection $routes) {
 $routes->group('User', function (RouteCollection $routes) {
     $routes->get('Profile', 'UserController::index');
     $routes->get('GetUserData', 'UserController::getCurrentUserData');
+    $routes->get('GetNotificationSettings', 'UserController::getNotificationSettings');
     $routes->post('UpdateProfile', 'UserController::updateProfile');
     $routes->post('ChangePassword', 'UserController::changePassword');
+    $routes->post('UpdateNotificationSettings', 'UserController::updateNotificationSettings');
     $routes->get('GetCurrentUser', 'AuthenticationController::getCurrentUser');
 });
 
@@ -80,6 +82,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
     $routes->get('History', 'InventoryController::inventoryHistory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
+    $routes->get('CheckActiveInventories', 'InventoryController::checkActiveInventories');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
     $routes->post('LoadFromDistribution', 'InventoryController::loadFromDistribution');

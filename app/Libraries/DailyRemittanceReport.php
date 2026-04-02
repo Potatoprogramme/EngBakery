@@ -5,6 +5,7 @@ namespace App\Libraries;
 use App\Models\RemittanceDetailsModel;
 use App\Models\RemittanceDenominationsModel;
 use App\Models\UsersModel;
+use App\Libraries\OwnerNotificationPreferences;
 
 class DailyRemittanceReport
 {
@@ -50,7 +51,11 @@ class DailyRemittanceReport
             return false;
         }
 
-        $ownerEmails = array_column($owners, 'email');
+        $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType($owners, OwnerNotificationPreferences::TYPE_REMITTANCE);
+        if (empty($ownerEmails)) {
+            log_message('info', 'DailyRemittanceReport: All owner recipients have remittance email notifications turned off.');
+            return false;
+        }
         $emailBody   = self::buildEmailBody($remittances, $date);
 
         try {

@@ -991,7 +991,7 @@
 
             // Header Info
             $('#detailDate').text(`${dateStr} at ${timeStr}`);
-            $('#detailCashier').text(order.cashier_name || '-');
+            $('#detailCashier').text(order.cashier_display_name || '-');
             $('#detailOutlet').text('KARANGAHAN');
             $('#detailOrderCount').text('Order #' + orderNumber);
 
@@ -1054,7 +1054,7 @@
             const rows = salesData.map(sale => [
                 sale.date,
                 (sale.shift_start || '') + ' - ' + (sale.shift_end || ''),
-                sale.cashier_name || '',
+                sale.cashier_display_name || '',
                 sale.bakery_sales || 0,
                 sale.coffee_sales || 0,
                 sale.gcash_total || 0,

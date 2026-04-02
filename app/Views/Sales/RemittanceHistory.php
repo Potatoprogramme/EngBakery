@@ -323,7 +323,7 @@
             $('#filterDateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
 
             // Populate cashier filter
-            const cashiers = [...new Set(remittanceData.map(r => r.cashier_name))];
+            const cashiers = [...new Set(remittanceData.map(r => r.cashier_display_name))];
             cashiers.forEach(cashier => {
                 $('#filterCashier').append(`<option value="${cashier}">${cashier}</option>`);
             });
@@ -336,7 +336,7 @@
                 const filtered = remittanceData.filter(remittance => {
                     const remittanceDate = new Date(remittance.date);
                     const dateMatch = remittanceDate >= dateFrom && remittanceDate <= dateTo;
-                    const cashierMatch = !cashier || remittance.cashier_name === cashier;
+                    const cashierMatch = !cashier || remittance.cashier_display_name === cashier;
                     return dateMatch && cashierMatch;
                 });
 
@@ -377,7 +377,7 @@
                 day: 'numeric',
                 year: 'numeric'
             }));
-            $('#detailCashier').text(details.cashier_name || '-');
+            $('#detailCashier').text(details.cashier_display_name || '-');
             $('#detailCashierEmail').text(details.cashier_email || '-');
             $('#detailOutlet').text(details.outlet_name || '-');
             $('#detailShift').text(`${formatTime(details.shift_start)} - ${formatTime(details.shift_end)}`);
@@ -493,7 +493,7 @@
                 html += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${remittance.cashier_name || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${remittance.cashier_display_name || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-semibold">${formatCurrency(remittance.total_sales || 0)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-primary font-bold">${formatCurrency(Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0))}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -588,7 +588,7 @@
                             </div>
                             <div class="flex items-center gap-2 mt-1 text-xs text-gray-300">
                                 <i class="fas fa-user text-xs"></i>
-                                <span>${remittance.cashier_name}</span>
+                                <span>${remittance.cashier_display_name}</span>
                                 <span class="text-gray-300">|</span>
                                 <i class="fas fa-clock text-xs"></i>
                                 <span>${formatTime(remittance.shift_start)} - ${formatTime(remittance.shift_end)}</span>
@@ -1010,7 +1010,7 @@
                 const variance = isShort ? -varianceAmount : varianceAmount;
                 return [
                     remittance.remittance_date,
-                    remittance.cashier_name || '',
+                    remittance.cashier_display_name || '',
                     remittance.cashier_email || '',
                     (remittance.shift_start || '') + ' - ' + (remittance.shift_end || ''),
                     remittance.amount_enclosed || 0,
