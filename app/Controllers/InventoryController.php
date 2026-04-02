@@ -122,6 +122,25 @@ class InventoryController extends BaseController
         }
     }
 
+    public function checkActiveInventories()
+    {
+        $today = date('Y-m-d');
+        $db = db_connect();
+        $activeInventory = $db->table('daily_stock')
+            ->where('inventory_date', $today)
+            ->where('time_end IS NULL', null, false)
+            ->where('is_closed', 0)
+            ->where('report_sent', 0)
+            ->where('is_remitted', 0)
+            ->get()->getFirstRow();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'has_active' => !empty($activeInventory),
+            'data' => $activeInventory ?? null
+        ]);
+    }
+
     public function addTodaysInventory()
     {
         $today = date('Y-m-d');
@@ -1406,11 +1425,10 @@ class InventoryController extends BaseController
         }
 
         $shiftStart = trim((string) ($state['time_start'] ?? ''));
-        $shiftEnd = trim((string) ($state['time_end'] ?? ''));
-        if ($shiftStart === '' || $shiftEnd === '' || $shiftEnd === '00:00:00') {
+        if ($shiftStart === '') {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'Shift end time is missing. Close the shift first before sending.',
+                'message' => 'Shift start time is missing.',
             ]);
         }
 
@@ -1437,6 +1455,7 @@ class InventoryController extends BaseController
             }
 
             $updateData = [
+                'time_end' => date('H:i:s'),
                 'report_sent' => 1,
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];
@@ -1446,6 +1465,8 @@ class InventoryController extends BaseController
                 'success' => true,
                 'resent' => !empty($sendResult['resent']),
                 'recipients' => $sendResult['recipients'] ?? [],
+                'inventory_id' => (int) $inventoryId,
+                'redirect_url' => base_url('Sales?daily_stock_id=' . (int) $inventoryId),
                 'message' => $sendResult['message'] ?? 'Inventory report sent successfully.',
             ]);
         } catch (\Exception $e) {

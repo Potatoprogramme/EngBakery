@@ -82,6 +82,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
     $routes->get('History', 'InventoryController::inventoryHistory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
+    $routes->get('CheckActiveInventories', 'InventoryController::checkActiveInventories');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
     $routes->post('LoadFromDistribution', 'InventoryController::loadFromDistribution');

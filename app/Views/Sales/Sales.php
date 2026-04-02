@@ -35,7 +35,7 @@
                     <div class="flex-1">
                         <h4 class="text-sm font-bold text-amber-800 mb-1">Remittance Already Submitted</h4>
                         <p class="text-sm text-amber-700" id="existingRemittanceMessage">
-                            A remittance for this date and shift has already been submitted.
+                            A remittance for this inventory has already been submitted.
                         </p>
                         <div class="mt-2 text-xs text-amber-600" id="existingRemittanceDetails"></div>
                     </div>
@@ -85,28 +85,25 @@
                                     </button>
                                 </div>
                             </div>
-                            <div id="shiftSection" class="flex items-center gap-2">
-                                <label class="text-sm font-medium text-gray-600 w-20">SHIFT:</label>
-                                <div class="flex-1 flex items-center gap-2 flex-wrap" id="shiftButtonGroup">
-                                    <!-- Shift buttons populated dynamically by loadShiftConfig() -->
-                                    <span class="text-xs text-gray-400">Loading shifts…</span>
+                            <div id="inventorySection" class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-600 w-20">INVENTORY:</label>
+                                <div class="flex-1 relative">
+                                    <select id="dailyStockId"
+                                        class="w-full border-b border-gray-300 px-2 py-1 pr-7 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary bg-white">
+                                        <option value="">Loading inventories…</option>
+                                    </select>
                                 </div>
-                                <!-- Hidden inputs for the currently selected shift times -->
-                                <input type="hidden" id="shiftStart" value="">
-                                <input type="hidden" id="shiftEnd" value="">
-                                <input type="hidden" id="selectedShiftKey" value="">
-                                <input type="hidden" id="selectedShiftLabel" value="">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Shift Summary Preview Card -->
+                <!-- Inventory Summary Preview Card -->
                 <div id="shiftSummaryCard"
                     class="hidden mb-4 p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border border-primary/20">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-bold text-gray-800">
-                            <i class="fas fa-clock mr-2 text-primary"></i>Shift Summary (<span
+                            <i class="fas fa-warehouse mr-2 text-primary"></i>Inventory Summary (<span
                                 id="shiftSummaryLabel">--</span>)
                         </h4>
                         <span class="text-xs text-gray-500" id="shiftSummaryTimeRange">--</span>
@@ -511,8 +508,8 @@
         $(document).ready(function () {
             initializeRemittance();
             console.log('Remittance Slip Initialized');
-            loadShiftConfig();
-            console.log('Shift Config Loading...');
+            loadInventoryOptions();
+            console.log('Inventory Config Loading...');
             loadUserInfo();
             console.log('Loaded User Info');
             bindBillInputEvents();
@@ -525,16 +522,36 @@
             console.log('Bound Outlet Change Event');
         });
 
-        // Track if remittance already exists for current date/shift
+        // Track if remittance already exists for current inventory
         var remittanceExists = false;
         var existingRemittanceData = null;
-        var occupiedSlots = []; // Stores existing remittance time ranges
-        var requiredSlots = []; // Required schedule slots for selected date
-        var shiftConfig = [];   // Available shift definitions from server
+        var inventories = []; // Available inventories for current day
+        var eligibleInventories = []; // Inventories eligible for remittance
+
+        function getRequestedInventoryId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('daily_stock_id') || params.get('inventory_id') || '';
+        }
+
+        function formatInventoryLabel(inventory) {
+            const inventoryDate = inventory.inventory_date ? new Date(inventory.inventory_date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            }) : 'Unknown date';
+            const timeStart = inventory.time_start ? formatTimeLabel(inventory.time_start) : '--';
+            const timeEnd = inventory.time_end ? formatTimeLabel(inventory.time_end) : '--';
+
+            return `${inventoryDate} (${timeStart} - ${timeEnd})`;
+        }
+
+        function loadInventoryOptions() {
+            loadShiftConfig();
+        }
 
         /**
-         * Load shift configuration from the server.
-         * Calls getShiftConfig, renders buttons, then auto-selects the appropriate shift.
+         * Load inventory options from the server.
+         * Calls getShiftConfig, renders the inventory dropdown, then auto-selects a usable record.
          */
         function loadShiftConfig() {
             const today = new Date();
@@ -549,205 +566,137 @@
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        shiftConfig = response.shifts || [];
-                        renderShiftButtons(shiftConfig);
-                        // After rendering buttons, fetch occupied slots then auto-select
-                        fetchOccupiedSlots(function () {
-                            autoSelectShift();
-                        });
+                        inventories = response.inventories || [];
+                        eligibleInventories = response.eligible_inventories || [];
+                        renderShiftButtons(inventories);
+                        autoSelectShift(getRequestedInventoryId());
                     }
                 },
                 error: function () {
-                    console.error('Failed to load shift config');
-                    $('#shiftButtonGroup').html('<span class="text-xs text-red-500">Failed to load shifts</span>');
+                    console.error('Failed to load inventory config');
+                    $('#dailyStockId').html('<option value="">Failed to load inventories</option>');
                 }
             });
         }
 
         /**
-         * Render shift selector buttons inside #shiftButtonGroup.
+         * Render inventory selector options inside #dailyStockId.
          */
-        function renderShiftButtons(shifts) {
-            const $group = $('#shiftButtonGroup');
-            $group.empty();
+        function renderShiftButtons(allInventories) {
+            const $select = $('#dailyStockId');
+            $select.empty();
 
-            if (shifts.length === 0) {
-                $group.html('<span class="text-xs text-gray-400">No shifts available</span>');
+            if (allInventories.length === 0) {
+                $select.append('<option value="">No inventories available</option>');
                 return;
             }
 
-            shifts.forEach(function (shift) {
-                const $btn = $(`
-                    <button type="button"
-                        class="shift-btn px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border-2 transition-all duration-200
-                               border-gray-300 text-gray-600 bg-white hover:border-primary hover:text-primary"
-                        data-key="${shift.key}"
-                        data-label="${shift.label}"
-                        data-start="${shift.start}"
-                        data-end="${shift.end}">
-                        ${shift.label}
-                    </button>
-                `);
-                $group.append($btn);
+            $select.append('<option value="">Select an inventory</option>');
+
+            allInventories.forEach(function (inventory) {
+                const isEligible = eligibleInventories.some(function (eligible) {
+                    return String(eligible.daily_stock_id) === String(inventory.daily_stock_id);
+                });
+                const label = `${formatInventoryLabel(inventory)}${isEligible ? '' : ' (Unavailable)'}`;
+                const $option = $('<option></option>')
+                    .val(inventory.daily_stock_id)
+                    .text(label)
+                    .attr('data-label', label)
+                    .attr('data-time-start', inventory.time_start || '')
+                    .attr('data-time-end', inventory.time_end || '')
+                    .attr('data-inventory-date', inventory.inventory_date || '')
+                    .attr('data-is-closed', inventory.is_closed || 0)
+                    .attr('data-report-sent', inventory.report_sent || 0)
+                    .attr('data-is-remitted', inventory.is_remitted || 0)
+                    .prop('disabled', !isEligible);
+
+                $select.append($option);
             });
 
-            // Bind click
-            $group.off('click', '.shift-btn').on('click', '.shift-btn', function () {
+            $select.off('change').on('change', function () {
                 selectShift($(this));
             });
         }
 
         /**
-         * Handle shift button selection.
-         * Sets hidden inputs, highlights button, then fetches scoped sales data.
+         * Handle inventory selection.
+         * Sets the hidden inventory id, then fetches inventory-scoped sales data.
          */
-        function selectShift($btn) {
-            // Visual toggle
-            $('.shift-btn').removeClass('border-primary bg-primary/10 text-primary font-bold')
-                .addClass('border-gray-300 text-gray-600 bg-white');
-            $btn.removeClass('border-gray-300 text-gray-600 bg-white')
-                .addClass('border-primary bg-primary/10 text-primary font-bold');
+        function selectShift($select) {
+            const inventoryId = $select.val();
+            const $option = $select.find('option:selected');
 
-            // Set hidden values
-            const shiftStart = $btn.data('start');
-            const shiftEnd = $btn.data('end');
-            const shiftKey = $btn.data('key');
-            const shiftLabel = $btn.data('label') || shiftKey;
+            $('#dailyStockId').val(inventoryId);
 
-            $('#shiftStart').val(shiftStart);
-            $('#shiftEnd').val(shiftEnd);
-            $('#selectedShiftKey').val(shiftKey);
-            $('#selectedShiftLabel').val(shiftLabel);
+            if (!inventoryId) {
+                $('#shiftSummaryCard').addClass('hidden');
+                hideExistingRemittanceBanner();
+                disableSaveButton();
+                return;
+            }
 
-            console.log('Selected shift:', shiftKey, shiftStart, '-', shiftEnd);
+            const inventoryLabel = $option.data('label') || $option.text() || '--';
+            const timeStart = $option.data('time-start') || '';
+            const timeEnd = $option.data('time-end') || '';
 
-            // Check if this shift already has a remittance
+            $('#shiftSummaryLabel').text(inventoryLabel);
+            $('#shiftSummaryTimeRange').text((timeStart ? formatTimeLabel(timeStart) : '--') + ' – ' + (timeEnd ? formatTimeLabel(timeEnd) : '--'));
+
+            console.log('Selected inventory:', inventoryId, inventoryLabel);
+
+            // Check if this inventory already has a remittance
             checkExistingRemittance();
 
-            // Load sales data scoped to this shift
-            loadTodaysSalesData(shiftStart, shiftEnd);
+            // Load sales data scoped to this inventory
+            loadTodaysSalesData(inventoryId);
         }
 
         /**
-         * Auto-select the best shift based on current time and what's already occupied.
+         * Auto-select the first eligible inventory.
          */
-        function autoSelectShift() {
-            if (shiftConfig.length === 0) return;
+        function autoSelectShift(preferredInventoryId) {
+            if (inventories.length === 0) {
+                return;
+            }
 
-            const now = new Date();
-            const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-                String(now.getMinutes()).padStart(2, '0') + ':' +
-                String(now.getSeconds()).padStart(2, '0');
-
-            // Find which shift the current time falls into
-            let matchedShift = null;
-            for (const shift of shiftConfig) {
-                if (currentTime >= shift.start && currentTime <= shift.end) {
-                    matchedShift = shift;
-                    break;
+            if (preferredInventoryId) {
+                const $preferredOption = $('#dailyStockId option[value="' + preferredInventoryId + '"]');
+                if ($preferredOption.length && !$preferredOption.prop('disabled')) {
+                    $('#dailyStockId').val(preferredInventoryId);
+                    selectShift($('#dailyStockId'));
+                    return;
                 }
             }
 
-            // If no match, try to find a shift that hasn't been remitted yet
-            if (!matchedShift) {
-                for (const shift of shiftConfig) {
-                    const isOccupied = occupiedSlots.some(occ =>
-                        occ.start === shift.start.substring(0, 5) && occ.end === shift.end.substring(0, 5)
-                    );
-                    if (!isOccupied) {
-                        matchedShift = shift;
-                        break;
-                    }
-                }
-            }
+            const $option = $('#dailyStockId option:not(:disabled)').filter(function () {
+                return $(this).val() !== '';
+            }).first();
 
-            // Fallback to first shift
-            if (!matchedShift) {
-                matchedShift = shiftConfig[0];
-            }
-
-            // Click the matching button
-            const $btn = $(`.shift-btn[data-key="${matchedShift.key}"]`);
-            if ($btn.length) {
-                selectShift($btn);
+            if ($option.length) {
+                $('#dailyStockId').val($option.val());
+                selectShift($('#dailyStockId'));
             }
         }
 
         function fetchOccupiedSlots(callback) {
-            const today = new Date();
-            const dateStr = today.getFullYear() + '-' +
-                String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                String(today.getDate()).padStart(2, '0');
-            const outletName = $('#outletName').val();
-
-            $.ajax({
-                url: BASE_URL + 'Sales/getRemittancesForDate',
-                type: 'GET',
-                data: {
-                    date: dateStr,
-                    outlet_name: outletName
-                },
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        occupiedSlots = response.occupied_slots || [];
-                        requiredSlots = response.required_slots || [];
-                        console.log('Occupied slots:', occupiedSlots);
-                        console.log('Required slots:', requiredSlots);
-
-                        // Mark occupied shift buttons
-                        markOccupiedShiftButtons();
-
-                        if (occupiedSlots.length > 0) {
-                            showOccupiedSlotsInfo();
-                        } else {
-                            hideOccupiedSlotsInfo();
-                        }
-                    }
-                    if (callback) callback();
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error fetching occupied slots:', error);
-                    occupiedSlots = [];
-                    if (callback) callback();
-                }
-            });
+            if (callback) callback();
         }
 
         /**
-         * Add visual indicators to shift buttons that already have remittances.
+         * Add visual indicators to inventory options that are not eligible.
          */
         function markOccupiedShiftButtons() {
-            $('.shift-btn').each(function () {
-                const btnStart = $(this).data('start');
-                const btnEnd = $(this).data('end');
-                // Normalize to HH:MM for comparison
-                const btnStartHM = String(btnStart).substring(0, 5);
-                const btnEndHM = String(btnEnd).substring(0, 5);
-
-                const isOccupied = occupiedSlots.some(occ =>
-                    occ.start === btnStartHM && occ.end === btnEndHM
-                );
-
-                if (isOccupied) {
-                    $(this).addClass('opacity-60 line-through');
-                    // Add a small check icon
-                    if (!$(this).find('.occupied-icon').length) {
-                        $(this).append(' <i class="occupied-icon fas fa-check-circle text-green-500 text-xs ml-1"></i>');
-                    }
-                } else {
-                    $(this).removeClass('opacity-60 line-through');
-                    $(this).find('.occupied-icon').remove();
-                }
+            $('#dailyStockId option').each(function () {
+                const isEligible = $(this).prop('disabled') === false && $(this).val() !== '';
+                $(this).toggleClass('text-gray-400', !isEligible);
             });
         }
 
         function showOccupiedSlotsInfo() {
-            let slotsText = occupiedSlots.map(slot => {
-                return `${formatTimeLabel(slot.start)} - ${formatTimeLabel(slot.end)} (${slot.cashier_display_name})`;
-            }).join(', ');
-
-            showToast('warning', `Already submitted shifts today: ${slotsText}`, 0);
+            const inventoryText = eligibleInventories.map(inventory => formatInventoryLabel(inventory)).join(', ');
+            if (inventoryText) {
+                showToast('warning', `Eligible inventories: ${inventoryText}`, 0);
+            }
         }
 
         function hideOccupiedSlotsInfo() {
@@ -795,18 +744,12 @@
             $('#btnClearOutlet').on('click', function () {
                 $('#outletName').val('').focus();
                 toggleClearButton();
-                fetchOccupiedSlots(function () {
-                    markOccupiedShiftButtons();
-                    checkExistingRemittance();
-                });
+                checkExistingRemittance();
             });
 
             // Re-check existing remittance when outlet changes
             $('#outletName').on('change blur', function () {
-                fetchOccupiedSlots(function () {
-                    markOccupiedShiftButtons();
-                    checkExistingRemittance();
-                });
+                checkExistingRemittance();
             });
         }
 
@@ -815,17 +758,21 @@
             const dateStr = today.getFullYear() + '-' +
                 String(today.getMonth() + 1).padStart(2, '0') + '-' +
                 String(today.getDate()).padStart(2, '0');
-            const shiftStart = $('#shiftStart').val();
-            const shiftEnd = $('#shiftEnd').val();
+            const dailyStockId = $('#dailyStockId').val();
             const outletName = $('#outletName').val();
+
+            if (!dailyStockId) {
+                hideExistingRemittanceBanner();
+                disableSaveButton();
+                return;
+            }
 
             $.ajax({
                 url: BASE_URL + 'Sales/checkExistingRemittance',
                 type: 'GET',
                 data: {
+                    daily_stock_id: dailyStockId,
                     date: dateStr,
-                    shift_start: shiftStart,
-                    shift_end: shiftEnd,
                     outlet_name: outletName
                 },
                 dataType: 'json',
@@ -853,7 +800,8 @@
         }
 
         function showExistingRemittanceBanner(data) {
-            const message = `A remittance for this shift (${data.shift}) was already submitted by <strong>${data.cashier_display_name}</strong> at ${data.submitted_at}.`;
+            const cashierName = data.cashier_name || data.cashier_display_name || 'Unknown';
+            const message = `A remittance for this inventory period (${data.shift}) was already submitted by <strong>${cashierName}</strong> at ${data.submitted_at}.`;
             const details = `Total Sales: ₱${parseFloat(data.total_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 
             $('#existingRemittanceMessage').html(message);
@@ -870,7 +818,7 @@
                 .prop('disabled', true)
                 .removeClass('bg-primary hover:bg-secondary')
                 .addClass('bg-gray-400 cursor-not-allowed')
-                .attr('title', 'A remittance for this date and shift already exists');
+                .attr('title', 'A remittance for this inventory already exists');
         }
 
         function enableSaveButton() {
@@ -902,17 +850,19 @@
 
         var allTransactions = [];
 
-        function loadTodaysSalesData(shiftStart, shiftEnd) {
+        function loadTodaysSalesData(dailyStockId) {
             const today = new Date();
             const dateStr = today.getFullYear() + '-' +
                 String(today.getMonth() + 1).padStart(2, '0') + '-' +
                 String(today.getDate()).padStart(2, '0');
 
-            const requestData = {};
-            if (shiftStart && shiftEnd) {
-                requestData.shift_start = shiftStart;
-                requestData.shift_end = shiftEnd;
-                requestData.date = dateStr;
+            const requestData = {
+                daily_stock_id: dailyStockId,
+                date: dateStr
+            };
+
+            if (!dailyStockId) {
+                return;
             }
 
             $.ajax({
@@ -985,14 +935,16 @@
                         $('#totalOrders').text(formatNumber(total_orders));
                         $('#totalItemsSold').text(formatNumber(total_items_sold));
 
-                        // Populate Shift Summary Card
-                        if (shiftStart && shiftEnd) {
+                        // Populate Inventory Summary Card
+                        if (dailyStockId) {
                             const cashSalesTotal = totalSales - totalOnlineRevenue - Number(pandaRevenue);
                             const expectedCash = Math.max(0, cashSalesTotal);
-                            const selectedLabel = $('#selectedShiftLabel').val() || $('#selectedShiftKey').val() || '--';
+                            const selectedLabel = $('#dailyStockId option:selected').data('label') || $('#dailyStockId option:selected').text() || '--';
+                            const selectedInventory = response.data.inventory || {};
+                            const inventoryTimeRange = (selectedInventory.time_start ? formatTimeLabel(selectedInventory.time_start) : '--') + ' – ' + (selectedInventory.time_end ? formatTimeLabel(selectedInventory.time_end) : '--');
 
                             $('#shiftSummaryLabel').text(selectedLabel);
-                            $('#shiftSummaryTimeRange').text(formatTimeLabel(shiftStart) + ' – ' + formatTimeLabel(shiftEnd));
+                            $('#shiftSummaryTimeRange').text(inventoryTimeRange);
                             $('#shiftExpectedCash').text(formatCurrency(expectedCash));
                             $('#shiftExpectedOnline').text(formatCurrency(totalOnlineRevenue + Number(pandaRevenue)));
                             $('#shiftOrderCount').text(formatNumber(total_orders));
@@ -1184,6 +1136,10 @@
             $('#totalOnlineRevenue').val(0);
             $('#totalFoodPandaRevenue').val(0);
             $('#amountEnclosed').text('₱0.00');
+            $('#dailyStockId').val('');
+            hideExistingRemittanceBanner();
+            disableSaveButton();
+            $('#shiftSummaryCard').addClass('hidden');
 
             calculateAllTotals();
         });
@@ -1193,6 +1149,10 @@
         $('#btnPrintRemittance').on('click', function () {
             // Collect denominations data
             const denomsHtml = {};
+            const selectedInventoryOption = $('#dailyStockId option:selected');
+            const inventoryLabel = selectedInventoryOption.data('label') || selectedInventoryOption.text() || '';
+            const inventoryTimeStart = selectedInventoryOption.data('time-start') || '';
+            const inventoryTimeEnd = selectedInventoryOption.data('time-end') || '';
             Object.keys(billDenominations).forEach(function (inputId) {
                 const count = parseInt($('#' + inputId).val()) || 0;
                 const denomination = billDenominations[inputId];
@@ -1266,10 +1226,10 @@
                             <td class="value-col">${$('#outletName').val() || ''}</td>
                         </tr>
                         <tr>
-                            <td class="label-col">SHIFT:</td>
-                            <td class="value-col"> ${formatTime($('#shiftStart').val())}</td>
-                            <td class="label-col">TO:</td>
-                            <td class="value-col"> ${formatTime($('#shiftEnd').val())}</td>
+                            <td class="label-col">INVENTORY:</td>
+                            <td class="value-col">${inventoryLabel}</td>
+                            <td class="label-col">PERIOD:</td>
+                            <td class="value-col">${inventoryTimeStart ? formatTimeLabel(inventoryTimeStart) : '--'} - ${inventoryTimeEnd ? formatTimeLabel(inventoryTimeEnd) : '--'}</td>
                         </tr>
                     </table>
                     
@@ -1358,7 +1318,7 @@
 
             // Check if remittance already exists (client-side check)
             if (remittanceExists) {
-                showToast('warning', 'A remittance for this date and shift already exists. Please check the Remittance History.');
+                showToast('warning', 'A remittance for this inventory already exists. Please check the Remittance History.');
                 return;
             }
 
@@ -1371,31 +1331,24 @@
             const totalRemitted = amountEnclosed + totalOnlineRevenue + foodPandaRevenue + cashOutAmount;
             const variance = totalRemitted - totalSales;
 
-            // Get shift times from hidden inputs (set by shift button selection)
-            const shiftStart = $('#shiftStart').val();
-            const shiftEnd = $('#shiftEnd').val();
+            const dailyStockId = $('#dailyStockId').val();
 
-            if (!shiftStart || !shiftEnd) {
-                showToast('warning', 'Please select a shift before saving.');
+            if (!dailyStockId) {
+                showToast('warning', 'Please select an inventory before saving.');
                 return;
             }
-
-            // Ensure time format includes seconds
-            const shiftStartFull = shiftStart.length === 5 ? shiftStart + ':00' : shiftStart;
-            const shiftEndFull = shiftEnd.length === 5 ? shiftEnd + ':00' : shiftEnd;
 
             const remittanceData = {
                 // remittance_details table
                 // cashier_id: $('#cashierName').val(),
                 cashier_id: 1, // Temporary hardcoded for testing
                 outlet_name: $('#outletName').val(),
+                daily_stock_id: dailyStockId,
                 date: (function () {
                     const d = new Date();
                     const p = n => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
                 })(),
-                shift_start: shiftStartFull,
-                shift_end: shiftEndFull,
                 amount_enclosed: amountEnclosed,
                 total_online_revenue: totalOnlineRevenue,
                 foodpanda_revenue: foodPandaRevenue,
@@ -1433,10 +1386,12 @@
                         remittanceExists = true;
                         disableSaveButton();
 
-                        // Refresh the occupied slots and update shift buttons
-                        fetchOccupiedSlots(function () {
-                            markOccupiedShiftButtons();
-                        });
+                        // Mark the selected inventory as remitted in the selector.
+                        const $selected = $('#dailyStockId option:selected');
+                        $selected.prop('disabled', true).text(($selected.data('label') || $selected.text()) + ' (Remitted)');
+                        $('#dailyStockId').val('');
+                        $('#shiftSummaryCard').addClass('hidden');
+                        hideExistingRemittanceBanner();
                     } else {
                         showToast('danger', response.message || 'Failed to save remittance');
                     }
@@ -1453,7 +1408,7 @@
                             disableSaveButton();
                             remittanceExists = true;
                         }
-                        showToast('warning', response?.message || 'A remittance for this date and shift already exists.');
+                        showToast('warning', response?.message || 'A remittance for this inventory already exists.');
                     } else {
                         showToast('danger', 'Error saving remittance: ' + error);
                     }

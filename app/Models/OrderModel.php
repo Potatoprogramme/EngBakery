@@ -413,4 +413,48 @@ class OrderModel extends Model
             ->where('voided_at IS NULL')
             ->countAllResults();
     }
+
+    /**
+     * Get sales for a payment method scoped to an inventory period.
+     */
+    public function getSalesByPaymentMethodForInventory(string $paymentMethod, int $dailyStockId): float
+    {
+        $transactionSubquery = $this->db->table('transactions')
+            ->select('DISTINCT transactions.order_id', false)
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->getCompiledSelect();
+
+        $result = $this->builder()
+            ->selectSum('total_payment_due', 'total')
+            ->where('LOWER(payment_method)', strtolower($paymentMethod))
+            ->where('voided_at IS NULL')
+            ->where("order_id IN ($transactionSubquery)", null, false)
+            ->get()
+            ->getRowArray();
+
+        return floatval($result['total'] ?? 0);
+    }
+
+    /**
+     * Get order count scoped to a specific inventory period.
+     */
+    public function getOrderCountForInventory(int $dailyStockId): int
+    {
+        $transactionSubquery = $this->db->table('transactions')
+            ->select('DISTINCT transactions.order_id', false)
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->getCompiledSelect();
+
+        return $this->where('voided_at IS NULL')
+            ->where("order_id IN ($transactionSubquery)", null, false)
+            ->countAllResults();
+    }
 }

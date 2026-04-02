@@ -16,6 +16,7 @@ class DailyStockModel extends Model
         'time_end',
         'is_closed',
         'report_sent',
+        'is_remitted',
         'report_sent_at',
     ];
 
@@ -103,5 +104,36 @@ class DailyStockModel extends Model
     public function getInventoryById(int $id): ?array
     {
         return $this->find($id);
+    }
+
+    /**
+     * Get today's inventories that are eligible for remittance.
+     */
+    public function getRemittanceEligibleInventories(?string $date = null): array
+    {
+        $date = $date ?? date('Y-m-d');
+
+        return $this
+            ->where('inventory_date', $date)
+            ->where('is_closed', 1)
+            ->where('report_sent', 1)
+            ->where('is_remitted', 0)
+            ->orderBy('time_start', 'ASC')
+            ->orderBy('daily_stock_id', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Get all inventories for a day, including remittance state.
+     */
+    public function getInventoriesByDate(?string $date = null): array
+    {
+        $date = $date ?? date('Y-m-d');
+
+        return $this
+            ->where('inventory_date', $date)
+            ->orderBy('time_start', 'ASC')
+            ->orderBy('daily_stock_id', 'ASC')
+            ->findAll();
     }
 }

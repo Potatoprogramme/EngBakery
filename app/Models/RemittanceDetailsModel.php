@@ -12,6 +12,7 @@ class RemittanceDetailsModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
+        'daily_stock_id',
         'cashier',
         'outlet_name',
         'remittance_date',
@@ -82,6 +83,22 @@ class RemittanceDetailsModel extends Model
     }
 
     /**
+     * Check if a remittance already exists for a specific inventory record.
+     */
+    public function getExistingRemittanceByInventory(int $dailyStockId, ?string $outletName = null): ?array
+    {
+        $builder = $this->select("remittance_details.*, CONCAT(users.firstname, ' ', COALESCE(users.middlename, ''), ' ', users.lastname) AS cashier_name")
+            ->join('users', 'users.user_id = remittance_details.cashier', 'left')
+            ->where('remittance_details.daily_stock_id', $dailyStockId);
+
+        if ($outletName !== null) {
+            $builder->where('outlet_name', $outletName);
+        }
+
+        return $builder->first();
+    }
+
+    /**
      * Get all remittances for a specific date
      * Used to determine which time slots are already occupied
      * 
@@ -95,6 +112,23 @@ class RemittanceDetailsModel extends Model
             ->join('users', 'users.user_id = remittance_details.cashier', 'left')
             ->where('DATE(remittance_date)', $date)
             ->orderBy('shift_start', 'ASC');
+
+        if ($outletName !== null) {
+            $builder->where('outlet_name', $outletName);
+        }
+
+        return $builder->findAll();
+    }
+
+    /**
+     * Get all remittances tied to a specific inventory record.
+     */
+    public function getRemittancesByInventory(int $dailyStockId, ?string $outletName = null): array
+    {
+        $builder = $this->select("remittance_details.*, CONCAT(users.firstname, ' ', COALESCE(users.middlename, ''), ' ', users.lastname) AS cashier_name")
+            ->join('users', 'users.user_id = remittance_details.cashier', 'left')
+            ->where('remittance_details.daily_stock_id', $dailyStockId)
+            ->orderBy('remittance_date', 'DESC');
 
         if ($outletName !== null) {
             $builder->where('outlet_name', $outletName);

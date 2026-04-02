@@ -732,6 +732,7 @@
     // Track if inventory exists for today
     let inventoryExistsToday = false;
     let inventoryIsClosed = false;
+    let inventoryReportSent = false;
 
     function isInventoryInteractionBlocked() {
         return inventoryExistsToday && inventoryIsClosed;
@@ -746,7 +747,7 @@
     }
 
     function syncNewShiftButtonState() {
-        const shouldDisable = inventoryExistsToday && !inventoryIsClosed;
+        const shouldDisable = inventoryExistsToday && (!inventoryIsClosed || !inventoryReportSent);
         const $btn = $('#btnResetInventoryForNextShift');
 
         $btn
@@ -755,7 +756,11 @@
             .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', shouldDisable);
 
         if (shouldDisable) {
-            $btn.attr('title', 'Close inventory first before creating a new shift.');
+            if (!inventoryIsClosed) {
+                $btn.attr('title', 'Close inventory first before creating a new inventory.');
+            } else if (!inventoryReportSent) {
+                $btn.attr('title', 'Send inventory report first before creating a new inventory.');
+            }
         } else {
             $btn.removeAttr('title');
         }
@@ -2143,8 +2148,9 @@
                 }),
                 success: function(response) {
                     if (response && response.success) {
-                        showToast('success', response.message ||
-                            'Inventory report sent successfully.', 2500);
+                        const redirectUrl = (response && response.redirect_url) ? response.redirect_url :
+                            (baseUrl + '/Sales?daily_stock_id=' + encodeURIComponent(inventoryId));
+                        window.location.href = redirectUrl;
                     } else {
                         showToast('error', (response && response.message) ||
                             'Failed to send inventory report.', 3000);
@@ -2423,6 +2429,47 @@
         }
     }
 
+    function checkActiveInventoriesAndDisableButtons() {
+        const baseUrl = '<?= base_url() ?>';
+        $.ajax({
+            url: baseUrl + 'Inventory/CheckActiveInventories',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                const hasInventoryToProcess = inventoryExistsToday && !inventoryReportSent;
+
+                // Keep existing endpoint check as a fallback signal for availability.
+                const hasActiveInventory = response.success && response.has_active;
+                const noActionableInventory = !hasInventoryToProcess && !hasActiveInventory;
+
+                // Send Report must stay disabled while inventory is still open.
+                const disableSendReport = noActionableInventory || inventoryIsOpen || inventoryReportSent;
+                $('#btnSendInventoryReport')
+                    .prop('disabled', disableSendReport)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+
+                // Open button should remain available for closed, unsent inventory.
+                const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+                $('#btnOpenInventory')
+                    .prop('disabled', disableOpenButton)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+            },
+            error: function() {
+                const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                const disableSendReport = !inventoryExistsToday || inventoryIsOpen || inventoryReportSent;
+                const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+
+                $('#btnSendInventoryReport')
+                    .prop('disabled', disableSendReport)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+                $('#btnOpenInventory')
+                    .prop('disabled', disableOpenButton)
+                    .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+            }
+        });
+    }
+
     function checkIfInventoryExists() {
         const baseUrl = '<?= base_url() ?>';
         $.ajax({
@@ -2435,6 +2482,8 @@
                     inventoryExistsToday = true;
                     inventoryIsClosed = response.data && (response.data.is_closed === true || response.data
                         .is_closed === 1 || response.data.is_closed === '1');
+                    inventoryReportSent = response.data && (response.data.report_sent === true || response.data
+                        .report_sent === 1 || response.data.report_sent === '1');
                     syncInventoryInteractionLock();
                     updateDateTime(response.data);
                     fetchAllStockitems();
@@ -2456,6 +2505,7 @@
                 } else {
                     inventoryExistsToday = false;
                     inventoryIsClosed = false;
+                    inventoryReportSent = false;
                     syncInventoryInteractionLock();
                     showToast('warning', response.message, 2000);
                     loadInventory([]);
@@ -2473,11 +2523,13 @@
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    checkActiveInventoriesAndDisableButtons();
                 }
             },
             error: function(xhr, status, error) {
                 inventoryExistsToday = false;
                 inventoryIsClosed = false;
+                inventoryReportSent = false;
                 syncInventoryInteractionLock();
                 console.log('Error checking inventory: ' + error);
                 $('#btnCloseInventory').addClass('hidden');
@@ -4676,6 +4728,7 @@
         }
 
         syncInventoryInteractionLock();
+        checkActiveInventoriesAndDisableButtons();
     }
 
     function resetInventory() {
