@@ -41,14 +41,6 @@ use App\Libraries\OwnerNotificationPreferences;
 class AutoReportScheduler
 {
     /**
-     * Temporary test override: when set, inventory reports are sent only to these addresses.
-     * Clear this list after testing to restore normal owner recipient behavior.
-     *
-     * @var array<int, string>
-     */
-    private const TEST_ONLY_RECIPIENTS = [];
-
-    /**
      * Scheduled time windows.
      * Each slot fires during [ start_h, end_h ) — i.e. the entire named hour.
      *
@@ -222,7 +214,7 @@ class AutoReportScheduler
         $slotMeta = [
             'title' => 'Inventory Shift Report',
             'subtitle' => 'Manual Shift Snapshot',
-            'header_color' => '#fbbf24',
+            'header_color' => '#dbeafe',
             'subject_label' => $shiftLabel,
             'cashier' => $cashierMeta,
         ];
@@ -375,7 +367,7 @@ class AutoReportScheduler
         $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
         $slotTitle = $slotMeta['title'] ?? 'Inventory Report';
         $slotSubtitle = $slotMeta['subtitle'] ?? 'Manually Generated Snapshot';
-        $headerColor = $slotMeta['header_color'] ?? '#fbbf24';
+        $headerColor = $slotMeta['header_color'] ?? '#dbeafe';
 
         $totalProducts = 0;
         $totalSales = 0.0;
@@ -457,7 +449,7 @@ class AutoReportScheduler
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937; margin: 0; padding: 0; background:#f1f5f9; }
                 .container { max-width: 780px; margin: 0 auto; padding: 20px; }
-                .header { background-color: {$headerColor}; color: #b91c1c; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 3px solid #16a34a; }
+                .header { background-color: {$headerColor}; color: #111827; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 3px solid #16a34a; }
                 .content { background-color: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top:none; border-radius: 0 0 14px 14px; }
                 table { width: 100%; border-collapse: collapse; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
@@ -469,14 +461,14 @@ class AutoReportScheduler
                 <!-- Header -->
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
-                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#991b1b;'>E n' G Bakery - Karangahan &mdash; {$slotSubtitle}</p>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Karangahan &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
                     <table style='margin-bottom:16px;'>
                         <tr>
                             <td style='width:33.33%;padding:6px;'>
-                                <div style='background:#dc2626;color:#ffffff;border-radius:10px;padding:12px;'>
+                                <div style='background:#fee2e2;color:#111827;border:1px solid #fca5a5;border-radius:10px;padding:12px;'>
                                     <div style='font-size:11px;opacity:.85;'>OVERALL TOTAL SALES</div>
                                     <div style='font-size:20px;font-weight:800;margin-top:4px;'>₱" . number_format($totalSales, 2) . "</div>
                                 </div>
@@ -937,7 +929,7 @@ class AutoReportScheduler
             return [
                 'title' => 'Morning Shift Inventory Report',
                 'subtitle' => 'Morning Shift Snapshot',
-                'header_color' => '#fde047',
+                'header_color' => '#dbeafe',
                 'subject_label' => 'Morning Shift',
             ];
         }
@@ -946,7 +938,7 @@ class AutoReportScheduler
             return [
                 'title' => 'Afternoon Shift Inventory Report',
                 'subtitle' => 'Afternoon Shift Snapshot',
-                'header_color' => '#facc15',
+                'header_color' => '#dbeafe',
                 'subject_label' => 'Afternoon Shift',
             ];
         }
@@ -969,7 +961,7 @@ class AutoReportScheduler
         return [
             'title' => $label . ' Inventory Report',
             'subtitle' => $label . ' Snapshot',
-            'header_color' => '#fbbf24',
+            'header_color' => '#dbeafe',
             'subject_label' => $label,
         ];
     }
@@ -1011,17 +1003,11 @@ class AutoReportScheduler
     }
 
     /**
-     * Resolve recipient list, honoring temporary test-only override.
-     *
      * @param array<int, array<string, mixed>> $owners
      * @return array<int, string>
      */
     private static function resolveInventoryRecipients(array $owners): array
     {
-        if (!empty(self::TEST_ONLY_RECIPIENTS)) {
-            return self::TEST_ONLY_RECIPIENTS;
-        }
-
         return OwnerNotificationPreferences::resolveEmailsForType($owners, OwnerNotificationPreferences::TYPE_INVENTORY);
     }
 
