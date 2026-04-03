@@ -374,7 +374,10 @@ class OrderModel extends Model
      */
     public function getTransactionDetailsByOrderId(int $orderId)
     {
-        return $this->where('order_id', $orderId)->first();
+        return $this->where('order_id', $orderId)
+            ->join('users', 'users.user_id = orders.cashier_id', 'left')
+            ->select('orders.*, CONCAT(users.firstname, \' \', COALESCE(users.middlename, \'\'), \' \', users.lastname) AS cashier_name, users.email AS cashier_email')
+            ->first();
     }
 
     /**
