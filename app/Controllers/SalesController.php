@@ -501,12 +501,28 @@ class SalesController extends BaseController
             }
         }
 
-        // Save transaction IDs linked to this remittance
-        $transactionIds = $data['transaction_ids'] ?? [];
-        log_message('info', 'Transaction IDs: ' . json_encode($transactionIds));
+        // Recompute authoritative transaction IDs from selected inventory.
+        // Do not trust client-submitted transaction_ids to avoid cross-inventory leakage.
+        $serverTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
+        $clientTransactionIds = $data['transaction_ids'] ?? [];
 
-        if (is_array($transactionIds) && count($transactionIds) > 0) {
-            foreach ($transactionIds as $item) {
+        if (is_array($clientTransactionIds) && $clientTransactionIds !== $serverTransactionIds) {
+            log_message('warning', 'Client transaction IDs differ from authoritative inventory scope. Using server list. daily_stock_id=' . $dailyStockId . ' client=' . json_encode($clientTransactionIds) . ' server=' . json_encode($serverTransactionIds));
+        }
+
+        log_message('info', 'Authoritative transaction IDs: ' . json_encode($serverTransactionIds));
+
+        $reportedTotalSales = floatval($data['total_sales'] ?? 0);
+        if ($reportedTotalSales > 0 && count($serverTransactionIds) === 0) {
+            $this->db->transRollback();
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'No eligible transactions found for the selected inventory. Please reload the page and select the inventory again.'
+            ]);
+        }
+
+        if (count($serverTransactionIds) > 0) {
+            foreach ($serverTransactionIds as $item) {
                 if (!empty($item)) {
                     $remittanceItem = [
                         'remittance_id' => $remittanceId,
@@ -530,8 +546,9 @@ class SalesController extends BaseController
 
         $this->db->transCommit();
 
-        // Send daily remittance report email whenever a remittance is saved
-        \App\Libraries\DailyRemittanceReport::sendReport();
+        // Send remittance report email for this inventory.
+        // The mailer uses an inventory-scoped throttle so new inventories still email once.
+        \App\Libraries\DailyRemittanceReport::sendReport(null, false, $dailyStockId);
 
         // Generate in-app notification if remittance is short
         if ($isShort) {
