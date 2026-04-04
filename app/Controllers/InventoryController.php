@@ -863,6 +863,13 @@ class InventoryController extends BaseController
         // Prefer server-side category rules, and keep client flag as fallback for compatibility.
         $isAdjustmentMode = $categoryAdjustmentMode || $clientAdjustmentMode;
 
+        if ($isAdjustmentMode && !isset($json->ending_stock)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Ending stock is required in adjustment mode.'
+            ]);
+        }
+
         if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -888,9 +895,17 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            if ($inputEnding < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be negative.'
+                ]);
+            }
+
             $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
-            $newEndingStock = $oldEnding + $inputBeginning - $inputPullOut + $inputEnding;
+            // In adjustment mode, ending stock is now absolute (direct final value), not a delta.
+            $newEndingStock = $inputEnding;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
