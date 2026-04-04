@@ -3160,7 +3160,7 @@
             const endingInput = parseInt(payload.ending_stock) || 0;
 
             if (isAdjustmentMode) {
-                const oldQtySold = parseInt(item.quantity_sold) || Math.max(0,
+                const oldQtySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || Math.max(0,
                     (parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) - (parseInt(item.ending_stock) || 0)
                 );
 
@@ -3170,6 +3170,8 @@
 
                 const discrepancy = item.beginning_stock - (item.pull_out_quantity + oldQtySold + item.ending_stock);
                 item.quantity_sold = Math.max(0, oldQtySold + discrepancy);
+                item.quantity_sold_db = oldQtySold;
+                item.discrepancy = item.quantity_sold - oldQtySold;
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
@@ -3179,6 +3181,8 @@
                 );
                 item.ending_stock = Math.max(0, item.beginning_stock - item.pull_out_quantity - oldQtySold);
                 item.quantity_sold = oldQtySold;
+                item.quantity_sold_db = oldQtySold;
+                item.discrepancy = 0;
             }
 
             item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
@@ -3682,8 +3686,8 @@
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
-                    endingStock);
+                const quantitySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || Math.max(0,
+                    beginningStock - pullOutQty - endingStock);
                 $('#editOldQuantitySold').val(quantitySold);
 
                 if (isAdjustmentMode) {
@@ -3831,11 +3835,18 @@
                 const discrepancy = projectedBeginning - (projectedPullOut + oldQtySold + projectedRemaining);
                 const adjustedQtySold = Math.max(0, oldQtySold + discrepancy);
 
+                const discrepancyLabel = discrepancy > 0 ? ('+' + discrepancy) : String(discrepancy);
+                const discrepancyClass = discrepancy > 0
+                    ? 'text-green-700 border-green-200 bg-green-50'
+                    : (discrepancy < 0 ? 'text-red-700 border-red-200 bg-red-50' : 'text-gray-700 border-gray-200 bg-gray-50');
+
                 const nextHint =
-                    'Current End: ' + oldEnding + ' | New End: ' + Math.max(0, projectedRemaining) +
-                    ' | Discrepancy: ' + discrepancy + ' | Adjusted Qty Sold: ' + adjustedQtySold;
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ' + discrepancyClass + ' mr-1 mb-1">Discrepancy: ' + discrepancyLabel + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mb-1">Adjusted Qty Sold: ' + adjustedQtySold + '</span>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
-                    $('#editRemainingHint').text(nextHint);
+                    $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
                 }
             } else {

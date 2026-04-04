@@ -83,8 +83,27 @@ class InventoryController extends BaseController
 
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
-            $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
-            $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
+            $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
+            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+            $endingStock = intval($item['ending_stock'] ?? 0);
+
+            // For bakery/grocery, treat effective sold as inventory-reconciled sold.
+            // This keeps discrepancy adjustments persistent even after refresh.
+            $effectiveQtySold = $dbQtySold;
+            if (in_array($category, ['bakery', 'grocery'], true)) {
+                $effectiveQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+            }
+
+            $item['quantity_sold_db'] = $dbQtySold;
+            $item['discrepancy'] = $effectiveQtySold - $dbQtySold;
+            $item['quantity_sold'] = $effectiveQtySold;
+
+            $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
+                ? ($item['selling_price_per_piece'] ?? 0)
+                : ($item['selling_price'] ?? 0));
+            $item['total_sales'] = $effectiveQtySold * $price;
         }
 
         if ($daily_stock_items) {
