@@ -1079,15 +1079,16 @@ $(document).ready(function () {
 
     // Edit from View Modal
     $('#btnViewEditEntry').on('click', function () {
-        if (currentViewEntryId) {
+        const viewEntryId = currentViewEntryId;
+        if (viewEntryId) {
             closeViewModal();
             // Trigger the existing edit handler
-            const btn = $('.btn-edit-entry[data-id="' + currentViewEntryId + '"]').first();
+            const btn = $('.btn-edit-entry[data-id="' + viewEntryId + '"]').first();
             if (btn.length) {
                 btn.trigger('click');
             } else {
                 // Fallback: load directly if button not in DOM (paginated)
-                const editId = currentViewEntryId;
+                const editId = viewEntryId;
                 $.ajax({
                     url: baseUrl + 'MaterialStock/GetEntry/' + editId,
                     type: 'GET',
@@ -1134,9 +1135,10 @@ $(document).ready(function () {
 
     // Delete from View Modal
     $('#btnViewDeleteEntry').on('click', function () {
-        if (currentViewEntryId) {
+        const viewEntryId = currentViewEntryId;
+        if (viewEntryId) {
             closeViewModal();
-            deleteEntryId = currentViewEntryId;
+            deleteEntryId = viewEntryId;
             $('#deleteConfirmModal').removeClass('hidden');
             syncModalBodyScrollLock();
         }
