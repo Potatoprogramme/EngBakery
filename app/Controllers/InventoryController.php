@@ -904,7 +904,6 @@ class InventoryController extends BaseController
 
             $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
-            // In adjustment mode, ending stock is now absolute (direct final value), not a delta.
             $newEndingStock = $inputEnding;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {

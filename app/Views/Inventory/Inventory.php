@@ -572,7 +572,7 @@
                         Stock</label>
                     <input type="number" id="editEndingStock" name="ending_stock" step="1" min="0"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Enter the final ending stock value.</p>
+                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Enter the actual final ending stock count.</p>
                 </div>
 
                 <div class="mb-4">
@@ -3160,9 +3160,16 @@
             const endingInput = parseInt(payload.ending_stock) || 0;
 
             if (isAdjustmentMode) {
+                const oldQtySold = parseInt(item.quantity_sold) || Math.max(0,
+                    (parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) - (parseInt(item.ending_stock) || 0)
+                );
+
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
+
+                const discrepancy = item.beginning_stock - (item.pull_out_quantity + oldQtySold + item.ending_stock);
+                item.quantity_sold = Math.max(0, oldQtySold + discrepancy);
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
@@ -3177,9 +3184,6 @@
             item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
             item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
             item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
-            if (isAdjustmentMode) {
-                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
-            }
             item.notes = payload.notes || '';
 
             // Keep sales columns in sync for immediate redraw.
@@ -3690,9 +3694,9 @@
                     $('#editAdjustmentGuide').removeClass('hidden');
                     $('#editBeginningHint').text('Enter adjustment only (e.g. +10 or -5).');
                     $('#editPullOutHint').text('Enter added PO only (e.g. +5). No subtraction.');
-                    $('#editEndingHint').text('Enter the final ending stock value.');
+                    $('#editEndingHint').text('Enter the actual final ending stock count.');
 
-                    // Beginning/Pull Out use adjustment inputs; ending uses absolute final value.
+                    // Beginning/Pull Out are adjustments; Ending is absolute final value.
                     $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(endingStock).attr('min', 0);
@@ -3705,7 +3709,7 @@
                     $('#editAdjustmentGuide').addClass('hidden');
                     $('#editBeginningHint').text('');
                     $('#editPullOutHint').text('');
-                    $('#editEndingHint').text('Enter the final ending stock value.');
+                    $('#editEndingHint').text('Enter the actual final ending stock count.');
 
                     $('#editBeginningStock').val(beginningStock).attr('min', 0);
                     $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
@@ -3809,6 +3813,8 @@
         function updateRemainingPreview() {
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
 
+            const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+            const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
             const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
             const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
@@ -3819,10 +3825,15 @@
             let projectedRemaining = 0;
 
             if (isAdjustmentMode) {
+                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedPullOut = oldPullOut + pullOutInput;
                 projectedRemaining = endingInput;
+                const discrepancy = projectedBeginning - (projectedPullOut + oldQtySold + projectedRemaining);
+                const adjustedQtySold = Math.max(0, oldQtySold + discrepancy);
 
                 const nextHint =
-                    'Current End: ' + oldEnding + ' | New End: ' + Math.max(0, projectedRemaining);
+                    'Current End: ' + oldEnding + ' | New End: ' + Math.max(0, projectedRemaining) +
+                    ' | Discrepancy: ' + discrepancy + ' | Adjusted Qty Sold: ' + adjustedQtySold;
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').text(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
@@ -3950,7 +3961,7 @@
             $('#editEndingLabel').text('Ending Stock');
             $('#editBeginningHint').text('');
             $('#editPullOutHint').text('');
-            $('#editEndingHint').text('Enter the final ending stock value.');
+            $('#editEndingHint').text('Enter the actual final ending stock count.');
             $('#editRemainingPreview').val('');
             $('#editRemainingHint').text('Live preview while editing fields above.');
             $('#editEndingGroup').addClass('hidden');
@@ -4045,6 +4056,12 @@
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
                         2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (endingInput < 0) {
+                    showToast('warning', 'Ending stock cannot be negative.', 2500);
                     restoreSubmitButton();
                     return;
                 }
