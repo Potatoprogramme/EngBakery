@@ -15,6 +15,8 @@ $(document).ready(function () {
   let deleteEntryId = null;
   let currentViewEntryId = null;
   let fixedEditUsed = null;
+  let editBaseInitialQty = 0;
+  let syncingInitialFromAddStock = false;
   const compactRemainingBreakpoint = 1290;
   const compactActionsBreakpoint = 1290;
   let isCompactRemaining = window.innerWidth < compactRemainingBreakpoint;
@@ -251,12 +253,39 @@ $(document).ready(function () {
   // ──────────────────────────────
   $("#initial_qty").on("input change", function () {
     const initial = parseFloat($("#initial_qty").val()) || 0;
+    const isEdit = $("#edit_stock_id").val() !== "";
+
+    // Manual edits to stock on hand become the new baseline and reset add stock.
+    if (isEdit && !syncingInitialFromAddStock) {
+      editBaseInitialQty = initial;
+      $("#add_stock_qty").val(0);
+    }
+
     $("#remaining_qty").attr("max", initial);
     // If remaining now exceeds new initial, clamp it
     let remaining = parseFloat($("#remaining_qty").val()) || 0;
     if (remaining > initial) {
       $("#remaining_qty").val(initial);
     }
+    recalcModal("initial");
+  });
+
+  $("#add_stock_qty").on("input change", function () {
+    if ($("#edit_stock_id").val() === "") return;
+
+    const addStock = Math.max(0, parseFloat($(this).val()) || 0);
+    const updatedInitial = Math.max(0, editBaseInitialQty + addStock);
+
+    syncingInitialFromAddStock = true;
+    $("#initial_qty").val(updatedInitial);
+    syncingInitialFromAddStock = false;
+
+    $("#remaining_qty").attr("max", updatedInitial);
+    const remaining = parseFloat($("#remaining_qty").val()) || 0;
+    if (remaining > updatedInitial) {
+      $("#remaining_qty").val(updatedInitial);
+    }
+
     recalcModal("initial");
   });
 
@@ -447,6 +476,8 @@ $(document).ready(function () {
 
             $("#initial_qty").val(d.initial_qty);
             $("#unit").val(d.unit);
+            editBaseInitialQty = parseFloat(d.initial_qty) || 0;
+            $("#add_stock_qty").val(0);
 
             // Set remaining directly (remaining = initial - used)
             const qtyUsed = parseFloat(d.qty_used) || 0;
@@ -456,6 +487,7 @@ $(document).ready(function () {
             $("#remaining_qty").val(remaining);
 
             // Show edit-only fields
+            $("#add_stock_wrapper").removeClass("hidden");
             $("#qty_used_wrapper").removeClass("hidden");
             $("#remaining_qty_wrapper").removeClass("hidden");
             $("#cost_breakdown_wrapper").removeClass("hidden");
@@ -1120,12 +1152,16 @@ $(document).ready(function () {
 
   function resetModal() {
     fixedEditUsed = null;
+    editBaseInitialQty = 0;
+    syncingInitialFromAddStock = false;
     $("#stockInitialForm")[0].reset();
     $("#edit_stock_id").val("");
     $("#edit_cost_per_unit").val(0);
     $("#material_id").val("");
     $("#material_search").val("");
     $("#btnClearMaterial").addClass("hidden");
+    $("#add_stock_wrapper").addClass("hidden");
+    $("#add_stock_qty").val(0);
     $("#qty_used_wrapper").addClass("hidden");
     $("#remaining_qty_wrapper").addClass("hidden");
     $("#cost_breakdown_wrapper").addClass("hidden");
@@ -1305,6 +1341,8 @@ $(document).ready(function () {
 
                 $("#initial_qty").val(d.initial_qty);
                 $("#unit").val(d.unit);
+                editBaseInitialQty = parseFloat(d.initial_qty) || 0;
+                $("#add_stock_qty").val(0);
 
                 const qtyUsed = parseFloat(d.qty_used) || 0;
                 fixedEditUsed = Math.max(0, qtyUsed);
@@ -1312,6 +1350,7 @@ $(document).ready(function () {
                 const remaining = Math.max(0, initialQty - fixedEditUsed);
                 $("#remaining_qty").val(remaining);
 
+                $("#add_stock_wrapper").removeClass("hidden");
                 $("#qty_used_wrapper").removeClass("hidden");
                 $("#remaining_qty_wrapper").removeClass("hidden");
                 $("#cost_breakdown_wrapper").removeClass("hidden");
