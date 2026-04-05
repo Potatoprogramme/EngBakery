@@ -3165,12 +3165,12 @@
                     (parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) - (parseInt(item.ending_stock) || 0)
                 );
 
-                item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
+                item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput - pullOutInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
-                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                item.quantity_sold = Math.max(0, oldQtySold);
                 item.quantity_sold_db = oldQtySold;
-                item.discrepancy = item.quantity_sold - oldQtySold;
+                item.discrepancy = 0;
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
@@ -3834,7 +3834,7 @@
             let projectedRemaining = 0;
 
             if (isAdjustmentMode) {
-                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedBeginning = oldBeginning + beginningInput - pullOutInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const autoProjectedEnding = Math.max(0, oldEnding + beginningInput);
                 if (source === 'beginning' || source === 'modal-open') {
@@ -3842,18 +3842,15 @@
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
-                const adjustedQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
-                const qtySoldDelta = adjustedQtySold - oldQtySold;
-                const qtySoldDeltaLabel = qtySoldDelta > 0 ? ('+' + qtySoldDelta) : String(qtySoldDelta);
-                const qtySoldDeltaClass = qtySoldDelta > 0
-                    ? 'text-green-700 border-green-200 bg-green-50'
-                    : (qtySoldDelta < 0 ? 'text-red-700 border-red-200 bg-red-50' : 'text-gray-700 border-gray-200 bg-gray-50');
+                const adjustedQtySold = oldQtySold;
 
                 const nextHint =
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current Begin: ' + oldBeginning + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-amber-700 border-amber-200 bg-amber-50 mr-1 mb-1">New Begin: ' + Math.max(0, projectedBeginning) + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out affects Qty Sold</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ' + qtySoldDeltaClass + ' mb-1">Qty Sold Adj: ' + qtySoldDeltaLabel + ' (Now ' + adjustedQtySold + ')</span>';
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out deducts Beginning</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mb-1">Qty Sold unchanged: ' + adjustedQtySold + '</span>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
@@ -3888,7 +3885,8 @@
             const expected = distQty + carryQty;
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-            const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
+            const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
+            const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput - pullOutInput) : beginningInput;
 
             // Distribution limit info bar
             const infoKey = expected + '|' + distQty + '|' + carryQty;
@@ -4073,7 +4071,7 @@
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
 
-                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedBeginning = oldBeginning + beginningInput - pullOutInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
 
