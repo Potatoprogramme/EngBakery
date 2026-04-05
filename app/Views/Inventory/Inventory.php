@@ -581,8 +581,8 @@
                         (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
                         class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
-                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields
-                        above.</p>
+                    <p id="editRemainingHint" class="text-xs text-gray-500 mt-1">This summary updates while you edit
+                        values above.</p>
                 </div>
 
                 <div class="mb-6">
@@ -3844,21 +3844,28 @@
                 const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
                 const adjustedQtySold = oldQtySold + addedQtySold;
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
-                const reduceBadge = wouldReduceDbQtySold ?
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-red-700 border-red-200 bg-red-50 mb-1">Not allowed: would reduce DB Qty Sold</span>' :
-                    '';
+                const statusHtml = wouldReduceDbQtySold ?
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
+                    '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
 
                 const nextHint =
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current Begin: ' + oldBeginning + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-amber-700 border-amber-200 bg-amber-50 mr-1 mb-1">New Begin: ' + Math.max(0, projectedBeginning) + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-teal-700 border-teal-200 bg-teal-50 mr-1 mb-1">DB Qty Sold: ' + oldQtySold + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-sky-700 border-sky-200 bg-sky-50 mr-1 mb-1">Inventory Qty Sold: ' + projectedInventoryQtySold + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-emerald-700 border-emerald-200 bg-emerald-50 mr-1 mb-1">Added Qty Sold: +' + addedQtySold + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out deducts Ending</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mr-1 mb-1">Final Qty Sold: ' + adjustedQtySold + '</span>' +
-                    reduceBadge;
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-2">' +
+                    '  <div class="grid grid-cols-2 gap-x-3 gap-y-1">' +
+                    '    <div><span class="text-gray-500">Current Beginning:</span> <span class="font-semibold text-gray-800">' + oldBeginning + '</span></div>' +
+                    '    <div><span class="text-gray-500">Updated Beginning:</span> <span class="font-semibold text-amber-700">' + Math.max(0, projectedBeginning) + '</span></div>' +
+                    '    <div><span class="text-gray-500">Current Ending:</span> <span class="font-semibold text-gray-800">' + oldEnding + '</span></div>' +
+                    '    <div><span class="text-gray-500">Updated Ending:</span> <span class="font-semibold text-blue-700">' + Math.max(0, projectedRemaining) + '</span></div>' +
+                    '  </div>' +
+                    '  <div class="h-px bg-gray-200"></div>' +
+                    '  <div class="grid grid-cols-2 gap-x-3 gap-y-1">' +
+                    '    <div><span class="text-gray-500">DB Qty Sold (minimum):</span> <span class="font-semibold text-teal-700">' + oldQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Stock-based Qty Sold:</span> <span class="font-semibold text-sky-700">' + projectedInventoryQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Added Qty Sold:</span> <span class="font-semibold text-emerald-700">+' + addedQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Final Qty Sold:</span> <span class="font-semibold text-indigo-700">' + adjustedQtySold + '</span></div>' +
+                    '  </div>' +
+                    '  <div class="text-gray-500">Rule: Pull Out affects Ending. Final Qty Sold cannot be less than DB Qty Sold.</div>' +
+                    statusHtml +
+                    '</div>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
@@ -3867,10 +3874,13 @@
                 // In non-adjustment mode, ending is preserved and qty sold is reconciled.
                 projectedRemaining = oldEnding;
                 const projectedQtySold = Math.max(0, beginningInput - pullOutInput - projectedRemaining);
-                const nextHint = 'Ending stays at current count (' + oldEnding + '). Qty Sold auto-recomputes to ' +
-                    projectedQtySold + '.';
+                const nextHint =
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700">' +
+                    '  <div><span class="text-gray-500">Ending (fixed):</span> <span class="font-semibold text-gray-800">' + oldEnding + '</span></div>' +
+                    '  <div class="mt-1"><span class="text-gray-500">Projected Qty Sold:</span> <span class="font-semibold text-indigo-700">' + projectedQtySold + '</span></div>' +
+                    '</div>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
-                    $('#editRemainingHint').text(nextHint);
+                    $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
                 }
             }
@@ -3991,7 +4001,7 @@
             $('#editPullOutHint').text('');
             $('#editEndingHint').text('Enter the actual final ending stock count.');
             $('#editRemainingPreview').val('');
-            $('#editRemainingHint').text('Live preview while editing fields above.');
+            $('#editRemainingHint').text('This summary updates while you edit values above.');
             $('#editEndingGroup').addClass('hidden');
             $('#editBeginningStock').attr('min', 0);
             $('#editPullOutQuantity').attr('min', 0);
