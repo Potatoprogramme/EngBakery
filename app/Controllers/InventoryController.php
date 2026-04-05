@@ -108,20 +108,17 @@ class InventoryController extends BaseController
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
             $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
-            $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
 
-            // For bakery/grocery, treat effective sold as inventory-reconciled sold.
-            // This keeps discrepancy adjustments persistent even after refresh.
+            // Qty sold comes from transactions; inventory fields can deviate by adjustments.
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
             $effectiveQtySold = $dbQtySold;
-            if (in_array($category, ['bakery', 'grocery'], true)) {
-                $effectiveQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
-            }
 
             $item['quantity_sold_db'] = $dbQtySold;
-            $item['discrepancy'] = $effectiveQtySold - $dbQtySold;
+            $item['inventory_qty_sold'] = $inventoryQtySold;
+            $item['discrepancy'] = $inventoryQtySold - $dbQtySold;
             $item['quantity_sold'] = $effectiveQtySold;
 
             $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
@@ -949,7 +946,8 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            $newBeginning = $oldBeginning + $inputBeginning;
+            // Pull-out adjustments reduce beginning, not qty sold.
+            $newBeginning = $oldBeginning + $inputBeginning - $inputPullOut;
             $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
 
@@ -995,9 +993,9 @@ class InventoryController extends BaseController
             'notes' => $notes
         ];
 
-        // Only beginning stock changes affect raw materials
-        // (Pull out has NO effect — products are already made)
-        $netRawMaterialChange = $beginningDelta;
+        // Only explicit beginning adjustments affect raw materials.
+        // Pull-out adjustments have no raw-material effect.
+        $netRawMaterialChange = $isAdjustmentMode ? $inputBeginning : $beginningDelta;
 
         $deductionResult = null;
 
