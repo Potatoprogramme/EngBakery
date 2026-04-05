@@ -15,7 +15,6 @@ $(document).ready(function () {
   let deleteEntryId = null;
   let currentViewEntryId = null;
   let fixedEditUsed = null;
-  let lastCalculatedUsed = 0;
   const compactRemainingBreakpoint = 1290;
   const compactActionsBreakpoint = 1290;
   let isCompactRemaining = window.innerWidth < compactRemainingBreakpoint;
@@ -250,59 +249,6 @@ $(document).ready(function () {
   //  DYNAMIC RECALCULATION
   //  Fires on every keystroke in initial_qty or remaining_qty
   // ──────────────────────────────
-
-  function setRemainingValidationState(hasError) {
-    if (hasError) {
-      $("#remaining_qty")
-        .addClass("border-red-500 bg-red-50")
-        .removeClass("border-blue-300 bg-blue-50");
-      $("#remaining_error").removeClass("hidden");
-      $("#btnSaveEntry")
-        .prop("disabled", true)
-        .addClass("opacity-50 cursor-not-allowed");
-      return;
-    }
-
-    $("#remaining_qty")
-      .removeClass("border-red-500 bg-red-50")
-      .addClass("border-blue-300 bg-blue-50");
-    $("#remaining_error").addClass("hidden");
-    $("#btnSaveEntry")
-      .prop("disabled", false)
-      .removeClass("opacity-50 cursor-not-allowed");
-  }
-
-  function validateStockOnHandVsUsed(options) {
-    const opts = options || {};
-    const showToastOnError = !!opts.showToast;
-    const isEdit = $("#edit_stock_id").val() !== "";
-
-    if (!isEdit) {
-      setRemainingValidationState(false);
-      return true;
-    }
-
-    const initial = parseFloat($("#initial_qty").val()) || 0;
-    const stockOnHand = parseFloat($("#remaining_qty").val()) || 0;
-    const used = Math.max(0, parseFloat(lastCalculatedUsed) || 0);
-
-    let errorMessage = "";
-    if (stockOnHand > initial) {
-      errorMessage = "Stock on hand cannot exceed initial quantity.";
-    } else if (stockOnHand < used) {
-      errorMessage = "Cannot update: stock on hand is less than used quantity.";
-    }
-
-    const hasError = errorMessage !== "";
-    setRemainingValidationState(hasError);
-
-    if (hasError && showToastOnError) {
-      showToast("error", errorMessage);
-      $("#remaining_qty").focus();
-    }
-
-    return !hasError;
-  }
   $("#initial_qty").on("input change", function () {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     $("#remaining_qty").attr("max", initial);
@@ -312,7 +258,6 @@ $(document).ready(function () {
       $("#remaining_qty").val(initial);
     }
     recalcModal("initial");
-    validateStockOnHandVsUsed();
   });
 
   // Validate remaining on every keystroke — show inline error & disable Update if exceeded
@@ -327,13 +272,24 @@ $(document).ready(function () {
 
     if (remaining > initial) {
       // Show inline error, red border, disable Update
-      setRemainingValidationState(true);
+      $(this)
+        .addClass("border-red-500 bg-red-50")
+        .removeClass("border-blue-300 bg-blue-50");
+      $("#remaining_error").removeClass("hidden");
+      $("#btnSaveEntry")
+        .prop("disabled", true)
+        .addClass("opacity-50 cursor-not-allowed");
     } else {
       // Clear error, restore styling, enable Update
-      setRemainingValidationState(false);
+      $(this)
+        .removeClass("border-red-500 bg-red-50")
+        .addClass("border-blue-300 bg-blue-50");
+      $("#remaining_error").addClass("hidden");
+      $("#btnSaveEntry")
+        .prop("disabled", false)
+        .removeClass("opacity-50 cursor-not-allowed");
     }
     recalcModal("remaining");
-    validateStockOnHandVsUsed();
   });
 
   function recalcModal(source) {
@@ -359,7 +315,6 @@ $(document).ready(function () {
       if (isEdit) fixedEditUsed = used;
     }
 
-    lastCalculatedUsed = used;
     $("#qty_used_display").val(formatNumber(used));
 
     const initialCost = initial * costPerUnit;
@@ -408,10 +363,6 @@ $(document).ready(function () {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     const remaining = parseFloat($("#remaining_qty").val()) || 0;
 
-    if (!validateStockOnHandVsUsed({ showToast: true })) {
-      return;
-    }
-
     const payload = {
       material_id: $("#material_id").val(),
       initial_qty: $("#initial_qty").val(),
@@ -446,8 +397,8 @@ $(document).ready(function () {
           showToast("error", res.message);
         }
       },
-      error: function (xhr) {
-        showToast("error", xhr.responseJSON.message);
+      error: function () {
+        showToast("error", "Server error. Please try again.");
       },
       complete: function () {
         $("#btnSaveEntry").prop("disabled", false).text("Save");
@@ -505,7 +456,6 @@ $(document).ready(function () {
 
             // Trigger recalculation to fill remaining & costs
             recalcModal();
-            validateStockOnHandVsUsed();
 
             $("#modalTitle").text("Edit Stock Entry");
             $("#btnSaveEntry").text("Update");
@@ -1164,7 +1114,6 @@ $(document).ready(function () {
 
   function resetModal() {
     fixedEditUsed = null;
-    lastCalculatedUsed = 0;
     $("#stockInitialForm")[0].reset();
     $("#edit_stock_id").val("");
     $("#edit_cost_per_unit").val(0);
@@ -1179,7 +1128,6 @@ $(document).ready(function () {
     $("#display_initial_cost").text("₱0.00");
     $("#display_used_cost").text("₱0.00");
     $("#display_remaining_cost").text("₱0.00");
-    setRemainingValidationState(false);
     hideMaterialDropdown();
     $("#modalTitle").text("Add Stock Entry");
     $("#btnSaveEntry").text("Save");
@@ -1362,7 +1310,6 @@ $(document).ready(function () {
                 $("#remaining_qty_wrapper").removeClass("hidden");
                 $("#cost_breakdown_wrapper").removeClass("hidden");
                 recalcModal();
-                validateStockOnHandVsUsed();
 
                 $("#modalTitle").text("Edit Stock Entry");
                 $("#btnSaveEntry").text("Update");
