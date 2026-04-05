@@ -942,10 +942,16 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            if ($inputEnding < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be negative.'
+                ]);
+            }
+
             $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
-            // Beginning adjustments should flow into ending automatically.
-            $newEndingStock = max(0, $oldEnding + $inputBeginning);
+            $newEndingStock = $inputEnding;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
