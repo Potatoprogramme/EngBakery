@@ -212,6 +212,15 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.00001" required>
                     </div>
+                    <div id="add_stock_wrapper" class="hidden">
+                        <label for="add_stock_qty" class="block text-sm font-medium text-emerald-700 mb-1">
+                            Add Stock
+                        </label>
+                        <input type="number" name="add_stock_qty" id="add_stock_qty"
+                            class="w-full px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            placeholder="0" min="0" step="0.00001" value="0">
+                        <span class="text-xs text-gray-500 mt-1 block">Auto-adds to Stock On Hand.</span>
+                    </div>
                     <div id="qty_used_wrapper" class="hidden">
                         <label class="block text-sm font-medium text-orange-600 mb-1">
                             Used (auto-calculated)
