@@ -3168,9 +3168,9 @@
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput - pullOutInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
-                item.quantity_sold = Math.max(0, oldQtySold);
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.ending_stock);
                 item.quantity_sold_db = oldQtySold;
-                item.discrepancy = 0;
+                item.discrepancy = item.quantity_sold - oldQtySold;
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
@@ -3842,7 +3842,12 @@
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
-                const adjustedQtySold = oldQtySold;
+                const adjustedQtySold = Math.max(0, projectedBeginning - projectedRemaining);
+                const qtySoldDelta = adjustedQtySold - oldQtySold;
+                const qtySoldDeltaLabel = qtySoldDelta > 0 ? ('+' + qtySoldDelta) : String(qtySoldDelta);
+                const qtySoldDeltaClass = qtySoldDelta > 0
+                    ? 'text-green-700 border-green-200 bg-green-50'
+                    : (qtySoldDelta < 0 ? 'text-red-700 border-red-200 bg-red-50' : 'text-gray-700 border-gray-200 bg-gray-50');
 
                 const nextHint =
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current Begin: ' + oldBeginning + '</span>' +
@@ -3850,7 +3855,7 @@
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out deducts Beginning</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mb-1">Qty Sold unchanged: ' + adjustedQtySold + '</span>';
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ' + qtySoldDeltaClass + ' mb-1">Qty Sold Adj: ' + qtySoldDeltaLabel + ' (Now ' + adjustedQtySold + ')</span>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;

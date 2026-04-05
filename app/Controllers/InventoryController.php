@@ -108,13 +108,18 @@ class InventoryController extends BaseController
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
             $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
 
-            // Qty sold comes from transactions; inventory fields can deviate by adjustments.
-            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
-            $effectiveQtySold = $dbQtySold;
+            // For bakery/grocery, show inventory-adjusted sold so ending edits reflect immediately.
+            $inventoryQtySold = in_array($category, ['bakery', 'grocery'], true)
+                ? max(0, $beginningStock - $endingStock)
+                : max(0, $beginningStock - $pullOutQty - $endingStock);
+            $effectiveQtySold = in_array($category, ['bakery', 'grocery'], true)
+                ? $inventoryQtySold
+                : $dbQtySold;
 
             $item['quantity_sold_db'] = $dbQtySold;
             $item['inventory_qty_sold'] = $inventoryQtySold;
