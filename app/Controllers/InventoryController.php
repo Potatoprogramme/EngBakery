@@ -112,19 +112,21 @@ class InventoryController extends BaseController
             $beginningStock = intval($item['beginning_stock'] ?? 0);
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
-            $category = strtolower(trim($item['category'] ?? ''));
 
-            // For bakery/grocery, show inventory-adjusted sold so ending edits reflect immediately.
-            $inventoryQtySold = in_array($category, ['bakery', 'grocery'], true)
-                ? max(0, $beginningStock - $endingStock)
-                : max(0, $beginningStock - $pullOutQty - $endingStock);
-            $effectiveQtySold = in_array($category, ['bakery', 'grocery'], true)
-                ? $inventoryQtySold
-                : $dbQtySold;
+            // Inventory interpretation based on stock fields.
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+            if (in_array($category, ['bakery', 'grocery'], true)) {
+                // DB qty sold is the floor/source-of-truth for bakery/grocery.
+                $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
+                $addedQtySold = max(0, $inventoryQtySold - $dbQtySold);
+            } else {
+                $effectiveQtySold = $dbQtySold;
+                $addedQtySold = 0;
+            }
 
             $item['quantity_sold_db'] = $dbQtySold;
             $item['inventory_qty_sold'] = $inventoryQtySold;
-            $item['discrepancy'] = $inventoryQtySold - $dbQtySold;
+            $item['discrepancy'] = $addedQtySold;
             $item['quantity_sold'] = $effectiveQtySold;
 
             $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0

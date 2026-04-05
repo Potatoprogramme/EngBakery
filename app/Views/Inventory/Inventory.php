@@ -3161,13 +3161,15 @@
             const endingInput = parseInt(payload.ending_stock) || 0;
 
             if (isAdjustmentMode) {
+                const dbQtySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || 0;
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
-                const recomputedQtySold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
-                item.quantity_sold = recomputedQtySold;
-                item.quantity_sold_db = recomputedQtySold;
-                item.discrepancy = 0;
+                const inventoryQtySold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                const addedQtySold = Math.max(0, inventoryQtySold - dbQtySold);
+                item.quantity_sold = dbQtySold + addedQtySold;
+                item.quantity_sold_db = dbQtySold;
+                item.discrepancy = addedQtySold;
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
@@ -3822,6 +3824,7 @@
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
             const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+            const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
             const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
@@ -3837,15 +3840,25 @@
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
-                const adjustedQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
+                const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
+                const adjustedQtySold = oldQtySold + addedQtySold;
+                const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
+                const reduceBadge = wouldReduceDbQtySold ?
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-red-700 border-red-200 bg-red-50 mb-1">Not allowed: would reduce DB Qty Sold</span>' :
+                    '';
 
                 const nextHint =
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current Begin: ' + oldBeginning + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-amber-700 border-amber-200 bg-amber-50 mr-1 mb-1">New Begin: ' + Math.max(0, projectedBeginning) + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-teal-700 border-teal-200 bg-teal-50 mr-1 mb-1">DB Qty Sold: ' + oldQtySold + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-sky-700 border-sky-200 bg-sky-50 mr-1 mb-1">Inventory Qty Sold: ' + projectedInventoryQtySold + '</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-emerald-700 border-emerald-200 bg-emerald-50 mr-1 mb-1">Added Qty Sold: +' + addedQtySold + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out deducts Ending</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mb-1">Projected Qty Sold: ' + adjustedQtySold + '</span>';
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mr-1 mb-1">Final Qty Sold: ' + adjustedQtySold + '</span>' +
+                    reduceBadge;
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
@@ -4064,10 +4077,12 @@
             if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+                const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedEnding);
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
@@ -4084,6 +4099,13 @@
 
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (projectedInventoryQtySold < oldQtySold) {
+                    showToast('warning', 'Ending value is too high. It would reduce Qty Sold below DB source-of-truth (' +
+                        oldQtySold + ').', 3500);
                     restoreSubmitButton();
                     return;
                 }
