@@ -257,7 +257,7 @@ $(document).ready(function () {
     if (remaining > initial) {
       $("#remaining_qty").val(initial);
     }
-    recalcModal();
+    recalcModal("initial");
   });
 
   // Validate remaining on every keystroke — show inline error & disable Update if exceeded
@@ -289,35 +289,38 @@ $(document).ready(function () {
         .prop("disabled", false)
         .removeClass("opacity-50 cursor-not-allowed");
     }
-    recalcModal();
+    recalcModal("remaining");
   });
 
-  function recalcModal() {
+  function recalcModal(source) {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     const costPerUnit = parseFloat($("#edit_cost_per_unit").val()) || 0;
     const isEdit = $("#edit_stock_id").val() !== "";
 
-    let used;
-    let remaining;
+    const rawRemaining = parseFloat($("#remaining_qty").val()) || 0;
+    const remaining = Math.min(Math.max(0, rawRemaining), initial);
 
-    if (isEdit && fixedEditUsed !== null) {
-      // Edit mode: used is fixed
+    let used;
+
+    if (isEdit && fixedEditUsed !== null && source !== "remaining") {
+      // Keep used fixed unless user explicitly edits remaining
       used = Math.max(0, fixedEditUsed);
-      remaining = Math.max(0, initial - used);
-      $("#remaining_qty").val(remaining);
+      $("#remaining_qty").val(Math.max(0, initial - used));
     } else {
-      // Add mode: used derived from initial - remaining
-      const rawRemaining = parseFloat($("#remaining_qty").val()) || 0;
-      const clampedRemaining = Math.min(Math.max(0, rawRemaining), initial);
-      remaining = clampedRemaining;
+      // Recompute used from stock on hand and remaining
       used = Math.max(0, initial - remaining);
+      $("#remaining_qty").val(remaining);
+
+      // In edit mode, once remaining is user-driven, keep future edits consistent
+      if (isEdit) fixedEditUsed = used;
     }
 
     $("#qty_used_display").val(formatNumber(used));
 
     const initialCost = initial * costPerUnit;
     const usedCost = used * costPerUnit;
-    const remainingCost = remaining * costPerUnit;
+    const remainingCost =
+      (parseFloat($("#remaining_qty").val()) || 0) * costPerUnit;
 
     $("#display_initial_cost").text(
       "₱" +
