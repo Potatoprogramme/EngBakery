@@ -28,6 +28,30 @@ class InventoryController extends BaseController
         return '00:00:00';
     }
 
+    private function productHasRawMaterialRecipe(int $productId): bool
+    {
+        if ($productId <= 0) {
+            return false;
+        }
+
+        try {
+            $productRecipeModel = model('ProductRecipeModel');
+            $combinedRecipeModel = model('ProductCombinedRecipeModel');
+
+            $directRecipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
+            if (!empty($directRecipe)) {
+                return true;
+            }
+
+            $combinedRecipes = $combinedRecipeModel->getCombinedRecipesByProductId($productId);
+            return !empty($combinedRecipes);
+        } catch (\Throwable $e) {
+            log_message('error', 'productHasRawMaterialRecipe check failed: ' . $e->getMessage());
+            // Fail-safe: keep validation/deduction path active when check itself fails.
+            return true;
+        }
+    }
+
     public function inventory()
     {
         $data = $this->getSessionData();
@@ -83,8 +107,32 @@ class InventoryController extends BaseController
 
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
-            $item['total_sales'] = $salesDataMap[$item['item_id']]['total_sales'] ?? 0;
-            $item['quantity_sold'] = $salesDataMap[$item['item_id']]['quantity_sold'] ?? 0;
+            $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
+            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+            $endingStock = intval($item['ending_stock'] ?? 0);
+
+            // Inventory interpretation based on stock fields.
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+            if (in_array($category, ['bakery', 'grocery'], true)) {
+                // DB qty sold is the floor/source-of-truth for bakery/grocery.
+                $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
+                $addedQtySold = max(0, $inventoryQtySold - $dbQtySold);
+            } else {
+                $effectiveQtySold = $dbQtySold;
+                $addedQtySold = 0;
+            }
+
+            $item['quantity_sold_db'] = $dbQtySold;
+            $item['inventory_qty_sold'] = $inventoryQtySold;
+            $item['discrepancy'] = $addedQtySold;
+            $item['quantity_sold'] = $effectiveQtySold;
+
+            $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
+                ? ($item['selling_price_per_piece'] ?? 0)
+                : ($item['selling_price'] ?? 0));
+            $item['total_sales'] = $effectiveQtySold * $price;
         }
 
         if ($daily_stock_items) {
@@ -712,12 +760,14 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $productId = intval($json->product_id ?? 0);
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
+        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         // Pre-check: block if raw materials are insufficient
-        if ($beginningStock > 0) {
+        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
-                intval($json->product_id),
+                $productId,
                 $beginningStock,
                 true // preview only
             );
@@ -737,16 +787,16 @@ class InventoryController extends BaseController
 
         $result = $this->dailyStockItemsModel->addProductToInventory(
             $dailyStock['daily_stock_id'],
-            intval($json->product_id),
+            $productId,
             $beginningStock
         );
 
         if ($result) {
             $deductionResult = null;
 
-            if ($beginningStock > 0) {
+            if ($beginningStock > 0 && $hasRawMaterialRecipe) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    intval($json->product_id),
+                    $productId,
                     $beginningStock
                 );
             }
@@ -863,6 +913,13 @@ class InventoryController extends BaseController
         // Prefer server-side category rules, and keep client flag as fallback for compatibility.
         $isAdjustmentMode = $categoryAdjustmentMode || $clientAdjustmentMode;
 
+        if ($isAdjustmentMode && !isset($json->ending_stock)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Ending stock is required in adjustment mode.'
+            ]);
+        }
+
         if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -879,6 +936,8 @@ class InventoryController extends BaseController
         $inputPullOut = intval($json->pull_out_quantity);
         $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
         $notes = isset($json->notes) ? trim($json->notes) : null;
+        $productId = intval($item['product_id'] ?? 0);
+        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         if ($isAdjustmentMode) {
             if ($inputPullOut < 0) {
@@ -888,9 +947,18 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            if ($inputEnding < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be negative.'
+                ]);
+            }
+
+            // In adjustment mode, beginning and pull-out are independent edits.
+            // Pull-out changes should affect ending/qty sold, not beginning.
             $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
-            $newEndingStock = $oldEnding + $inputBeginning - $inputPullOut + $inputEnding;
+            $newEndingStock = $inputEnding;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -919,15 +987,9 @@ class InventoryController extends BaseController
         }
 
         if (!$isAdjustmentMode) {
-            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-            if ($quantitySold < 0) {
-                $quantitySold = 0;
-            }
-
-            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-            if ($newEndingStock < 0) {
-                $newEndingStock = 0;
-            }
+            // Preserve ending as the current physical count in non-adjustment mode.
+            // Pull out changes are reflected by the computed qty sold on fetch/render.
+            $newEndingStock = max(0, $oldEnding);
         }
 
         $beginningDelta = $newBeginning - $oldBeginning;
@@ -940,16 +1002,16 @@ class InventoryController extends BaseController
             'notes' => $notes
         ];
 
-        // Only beginning stock changes affect raw materials
-        // (Pull out has NO effect — products are already made)
-        $netRawMaterialChange = $beginningDelta;
+        // Only explicit beginning adjustments affect raw materials.
+        // Pull-out adjustments have no raw-material effect.
+        $netRawMaterialChange = $isAdjustmentMode ? $inputBeginning : $beginningDelta;
 
         $deductionResult = null;
 
         // Perform deduction once (non-preview) to avoid double computation latency.
-        if ($netRawMaterialChange > 0 && isset($item['product_id'])) {
+        if ($netRawMaterialChange > 0 && $productId > 0 && $hasRawMaterialRecipe) {
             $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                intval($item['product_id']),
+                $productId,
                 $netRawMaterialChange
             );
 
@@ -970,14 +1032,14 @@ class InventoryController extends BaseController
             $restorationResult = null;
 
             // Beginning decrease → restore raw materials
-            if ($netRawMaterialChange < 0 && isset($item['product_id'])) {
+            if ($netRawMaterialChange < 0 && $productId > 0 && $hasRawMaterialRecipe) {
                 $restorationResult = $this->rawMaterialStockModel->restoreForProduction(
-                    intval($item['product_id']),
+                    $productId,
                     abs($netRawMaterialChange)
                 );
             }
 
-            if ($netRawMaterialChange != 0) {
+            if ($netRawMaterialChange != 0 && $hasRawMaterialRecipe) {
                 \App\Libraries\LowStockNotifier::checkAndNotify();
             }
 
@@ -995,9 +1057,9 @@ class InventoryController extends BaseController
             ]);
         } else {
             // Roll back raw material deduction if inventory row update fails.
-            if ($netRawMaterialChange > 0 && !empty($deductionResult['success']) && isset($item['product_id'])) {
+            if ($netRawMaterialChange > 0 && !empty($deductionResult['success']) && $productId > 0 && $hasRawMaterialRecipe) {
                 $this->rawMaterialStockModel->restoreForProduction(
-                    intval($item['product_id']),
+                    $productId,
                     $netRawMaterialChange
                 );
             }

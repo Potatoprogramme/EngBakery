@@ -69,12 +69,12 @@ class OrdersController extends BaseController
             ]);
         }
 
-        // Check if order contains any items that need daily inventory (bakery/dough)
-        // Drinks and groceries don't need inventory — they deduct raw materials directly
+        // Check if order contains any items that need daily inventory
+        // Drinks use ingredient deduction directly; grocery uses inventory stock.
         $needsInventory = false;
         foreach ($data['items'] as $item) {
             $product = $this->productModel->findActiveForOrdering(intval($item['product_id']));
-            if ($product && !in_array($product['category'], ['drinks', 'grocery'])) {
+            if ($product && !in_array($product['category'], ['drinks'])) {
                 $needsInventory = true;
                 break;
             }
@@ -151,8 +151,8 @@ class OrdersController extends BaseController
                 $productId = intval($item['product_id']);
                 $quantity = intval($item['quantity']);
 
-                // Drinks & groceries: deduct raw materials directly via recipe
-                if (in_array($category, ['drinks', 'grocery'])) {
+                // Drinks: deduct raw materials directly via recipe
+                if (in_array($category, ['drinks'])) {
                     $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $quantity);
                     if (
                         !$deductResult['success'] ||
@@ -378,8 +378,8 @@ class OrdersController extends BaseController
                 $product = $this->productModel->find(intval($item['product_id']));
                 $category = $product['category'] ?? '';
 
-                // Drinks & groceries: restore raw materials via recipe
-                if (in_array($category, ['drinks', 'grocery'])) {
+                // Drinks: restore raw materials via recipe
+                if (in_array($category, ['drinks'])) {
                     $this->rawMaterialStockModel->restoreForProduction(
                         intval($item['product_id']),
                         intval($item['amount'])
@@ -470,8 +470,8 @@ class OrdersController extends BaseController
                 $product = $this->productModel->find(intval($item['product_id']));
                 $category = $product['category'] ?? '';
 
-                // Drinks & groceries: restore raw materials via recipe
-                if (in_array($category, ['drinks', 'grocery'])) {
+                // Drinks: restore raw materials via recipe
+                if (in_array($category, ['drinks'])) {
                     $this->rawMaterialStockModel->restoreForProduction(
                         intval($item['product_id']),
                         intval($item['amount'])
@@ -520,7 +520,8 @@ class OrdersController extends BaseController
      */
     private function getUserNameById($userId)
     {
-        if (!$userId) return 'Unknown';
+        if (!$userId)
+            return 'Unknown';
         $userModel = model('UserModel');
         $user = $userModel->find($userId);
         return $user['name'] ?? $user['username'] ?? 'Unknown';
@@ -589,8 +590,8 @@ class OrdersController extends BaseController
             ]);
         }
 
-        if (!in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
-            return $this->response->setJSON(['success' => true]); // only check drinks/grocery
+        if (!in_array($product['category'] ?? '', ['drinks'])) {
+            return $this->response->setJSON(['success' => true]); // only check drinks
         }
 
         // Also account for items already in the cart (sent as query param)
@@ -639,7 +640,7 @@ class OrdersController extends BaseController
         $needsInventory = false;
         foreach ($items as $item) {
             $product = $this->productModel->findActiveForOrdering(intval($item['product_id'] ?? 0));
-            if ($product && !in_array($product['category'] ?? '', ['drinks', 'grocery'])) {
+            if ($product && !in_array($product['category'] ?? '', ['drinks'])) {
                 $needsInventory = true;
                 break;
             }
@@ -659,8 +660,8 @@ class OrdersController extends BaseController
 
     /**
      * Validate full-cart stock rules:
-     * - Bakery/dough: quantity must not exceed daily inventory ending stock
-     * - Drinks/grocery: aggregate required raw materials across all items
+     * - Inventory-based categories (including grocery): quantity must not exceed daily inventory ending stock
+     * - Drinks: aggregate required raw materials across all items
      */
     private function validateOrderStock(array $items, ?array $dailyStock): array
     {
@@ -710,7 +711,7 @@ class OrdersController extends BaseController
             $productName = $product['product_name'] ?? ('Product #' . $productId);
             $category = $product['category'] ?? '';
 
-            if (in_array($category, ['drinks', 'grocery'])) {
+            if (in_array($category, ['drinks'])) {
                 $preview = $this->rawMaterialStockModel->deductForProduction($productId, $quantity, true);
 
                 if (!$preview['success']) {

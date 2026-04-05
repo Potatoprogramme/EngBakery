@@ -597,10 +597,29 @@
                 const isEligible = eligibleInventories.some(function (eligible) {
                     return String(eligible.daily_stock_id) === String(inventory.daily_stock_id);
                 });
-                const label = `${formatInventoryLabel(inventory)}${isEligible ? '' : ' (Unavailable)'}`;
+                const baseLabel = formatInventoryLabel(inventory);
+                const isRemitted = String(inventory.is_remitted || 0) === '1';
+                const isClosed = String(inventory.is_closed || 0) === '1';
+                const isReportSent = String(inventory.report_sent || 0) === '1';
+                let statusSuffix = '';
+
+                if (!isEligible) {
+                    if (isRemitted) {
+                        statusSuffix = ' (Remitted)';
+                    } else if (!isClosed) {
+                        statusSuffix = ' (Open)';
+                    } else if (!isReportSent) {
+                        statusSuffix = ' (Report Not Sent)';
+                    } else {
+                        statusSuffix = ' (Unavailable)';
+                    }
+                }
+
+                const label = `${baseLabel}${statusSuffix}`;
                 const $option = $('<option></option>')
                     .val(inventory.daily_stock_id)
                     .text(label)
+                    .attr('data-base-label', baseLabel)
                     .attr('data-label', label)
                     .attr('data-time-start', inventory.time_start || '')
                     .attr('data-time-end', inventory.time_end || '')
@@ -1388,7 +1407,13 @@
 
                         // Mark the selected inventory as remitted in the selector.
                         const $selected = $('#dailyStockId option:selected');
-                        $selected.prop('disabled', true).text(($selected.data('label') || $selected.text()) + ' (Remitted)');
+                        const baseLabel = $selected.data('base-label') || $selected.text();
+                        const remittedLabel = `${baseLabel} (Remitted)`;
+                        $selected
+                            .prop('disabled', true)
+                            .attr('data-is-remitted', 1)
+                            .attr('data-label', remittedLabel)
+                            .text(remittedLabel);
                         $('#dailyStockId').val('');
                         $('#shiftSummaryCard').addClass('hidden');
                         hideExistingRemittanceBanner();
