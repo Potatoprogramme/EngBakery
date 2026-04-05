@@ -10,6 +10,22 @@ class Email extends BaseConfig
     public string $fromName   = '';
     public string $recipients = '';
 
+    public function __construct()
+    {
+        parent::__construct();
+        
+        // Load environment variables for sender info
+        $this->fromEmail = getenv('EMAIL_FROM_EMAIL') ?: 'noreply@engbakery.com';
+        $this->fromName = getenv('EMAIL_FROM_NAME') ?: 'E n\' G Bakery';
+        
+        // Load SMTP settings from environment
+        $this->SMTPHost = getenv('EMAIL_SMTP_HOST') ?: 'smtp.gmail.com';
+        $this->SMTPUser = getenv('EMAIL_SMTP_USER') ?: '';
+        $this->SMTPPass = getenv('EMAIL_SMTP_PASS') ?: '';
+        $this->SMTPPort = (int)(getenv('EMAIL_SMTP_PORT') ?: 587);
+        $this->SMTPCrypto = getenv('EMAIL_SMTP_CRYPTO') ?: 'tls';
+    }
+
     /**
      * The "user agent"
      */
@@ -28,17 +44,17 @@ class Email extends BaseConfig
     /**
      * SMTP Server Hostname
      */
-    public string $SMTPHost = 'smtp.gmail.com';
+    public string $SMTPHost = '';
 
     /**
      * SMTP Username
      */
-    public string $SMTPUser = 'engbakery2026@gmail.com';
+    public string $SMTPUser = '';
 
     /**
      * SMTP Password
      */
-    public string $SMTPPass = 'oyvheptysbjyctjl';
+    public string $SMTPPass = '';
 
     /**
      * SMTP Port

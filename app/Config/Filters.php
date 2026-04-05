@@ -85,6 +85,7 @@ class Filters extends BaseFilters
                 'Login/Manual',
                 'Logout',
                 'Auth/*',
+                'PasswordReset',
                 'PasswordReset/*',
                 'Auth/CheckSession',
             ]],
