@@ -952,15 +952,9 @@ class InventoryController extends BaseController
         }
 
         if (!$isAdjustmentMode) {
-            $quantitySold = $oldBeginning - $oldPullOut - $oldEnding;
-            if ($quantitySold < 0) {
-                $quantitySold = 0;
-            }
-
-            $newEndingStock = $newBeginning - $newPullOut - $quantitySold;
-            if ($newEndingStock < 0) {
-                $newEndingStock = 0;
-            }
+            // Preserve ending as the current physical count in non-adjustment mode.
+            // Pull out changes are reflected by the computed qty sold on fetch/render.
+            $newEndingStock = max(0, $oldEnding);
         }
 
         $beginningDelta = $newBeginning - $oldBeginning;

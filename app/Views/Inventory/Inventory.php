@@ -3175,14 +3175,15 @@
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
-                const oldQtySold = Math.max(0, parseInt(item.quantity_sold) ||
-                    ((parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) -
-                        (parseInt(item.ending_stock) || 0))
-                );
-                item.ending_stock = Math.max(0, item.beginning_stock - item.pull_out_quantity - oldQtySold);
-                item.quantity_sold = oldQtySold;
+                // Keep ending as the physical count; reconcile pull out into qty sold.
+                const currentEnding = Math.max(0, parseInt(item.ending_stock) || 0);
+                const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                const oldQtySold = Number.isNaN(dbQtySoldRaw) ? Math.max(0, parseInt(item.quantity_sold) || 0) : Math.max(
+                    0, dbQtySoldRaw);
+                item.ending_stock = currentEnding;
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
                 item.quantity_sold_db = oldQtySold;
-                item.discrepancy = 0;
+                item.discrepancy = item.quantity_sold - oldQtySold;
             }
 
             item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
@@ -3850,8 +3851,11 @@
                     editPreviewUiState.remainingHint = nextHint;
                 }
             } else {
-                projectedRemaining = beginningInput - pullOutInput - oldQtySold;
-                const nextHint = 'Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').';
+                // In non-adjustment mode, ending is preserved and qty sold is reconciled.
+                projectedRemaining = oldEnding;
+                const projectedQtySold = Math.max(0, beginningInput - pullOutInput - projectedRemaining);
+                const nextHint = 'Ending stays at current count (' + oldEnding + '). Qty Sold auto-recomputes to ' +
+                    projectedQtySold + '.';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').text(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
