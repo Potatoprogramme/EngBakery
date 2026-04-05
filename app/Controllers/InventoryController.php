@@ -112,6 +112,7 @@ class InventoryController extends BaseController
             $beginningStock = intval($item['beginning_stock'] ?? 0);
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
+            $category = strtolower(trim($item['category'] ?? ''));
 
             // For bakery/grocery, show inventory-adjusted sold so ending edits reflect immediately.
             $inventoryQtySold = in_array($category, ['bakery', 'grocery'], true)
@@ -951,8 +952,9 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            // Pull-out adjustments reduce beginning, not qty sold.
-            $newBeginning = $oldBeginning + $inputBeginning - $inputPullOut;
+            // In adjustment mode, beginning and pull-out are independent edits.
+            // Pull-out changes should affect ending/qty sold, not beginning.
+            $newBeginning = $oldBeginning + $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
 
