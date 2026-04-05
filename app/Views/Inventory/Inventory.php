@@ -3168,9 +3168,7 @@
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
-
-                const discrepancy = item.beginning_stock - (item.pull_out_quantity + oldQtySold + item.ending_stock);
-                item.quantity_sold = Math.max(0, oldQtySold + discrepancy);
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
                 item.quantity_sold_db = oldQtySold;
                 item.discrepancy = item.quantity_sold - oldQtySold;
             } else {
@@ -3700,9 +3698,9 @@
                     $('#editAdjustmentGuide').removeClass('hidden');
                     $('#editBeginningHint').text('Enter adjustment only (e.g. +10 or -5).');
                     $('#editPullOutHint').text('Enter added PO only (e.g. +5). No subtraction.');
-                    $('#editEndingHint').text('Enter the actual final ending stock count.');
+                    $('#editEndingHint').text('Auto-fills from beginning adjustment, but you can still edit this value.');
 
-                    // Beginning/Pull Out are adjustments; Ending is absolute final value.
+                    // Beginning/Pull Out are adjustments; Ending is editable final value.
                     $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
@@ -3738,8 +3736,7 @@
                 resetEditPreviewUiState();
 
                 // Update the distribution display and notes requirement
-                updateBeginningStockDisplay();
-                updateRemainingPreview();
+                runEditPreviewUpdate('modal-open');
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
@@ -3768,19 +3765,19 @@
             };
         }
 
-        function runEditPreviewUpdate() {
+        function runEditPreviewUpdate(source = 'generic') {
             updateBeginningStockDisplay();
-            updateRemainingPreview();
+            updateRemainingPreview(source);
         }
 
-        function scheduleEditPreviewUpdate(delayMs = 60) {
+        function scheduleEditPreviewUpdate(source = 'generic', delayMs = 60) {
             if (editPreviewDebounceTimer) {
                 clearTimeout(editPreviewDebounceTimer);
             }
 
             editPreviewDebounceTimer = setTimeout(function () {
                 editPreviewDebounceTimer = null;
-                runEditPreviewUpdate();
+                runEditPreviewUpdate(source);
             }, delayMs);
         }
 
@@ -3788,37 +3785,41 @@
             const current = parseInt($('#editBeginningStock').val()) || 0;
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('beginning');
         });
 
         $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('beginning');
         });
 
         $('#btnDecreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(Math.max(0, current - 1));
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('pullout');
         });
 
         $('#btnIncreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(current + 1);
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('pullout');
         });
 
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
-            scheduleEditPreviewUpdate();
+            scheduleEditPreviewUpdate('beginning');
         });
 
-        $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
-            scheduleEditPreviewUpdate();
+        $('#editPullOutQuantity').on('input change', function () {
+            scheduleEditPreviewUpdate('pullout');
         });
 
-        function updateRemainingPreview() {
+        $('#editEndingStock').on('input change', function () {
+            scheduleEditPreviewUpdate('ending');
+        });
+
+        function updateRemainingPreview(source = 'generic') {
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
 
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
@@ -3835,20 +3836,24 @@
             if (isAdjustmentMode) {
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                projectedRemaining = endingInput;
-                const discrepancy = projectedBeginning - (projectedPullOut + oldQtySold + projectedRemaining);
-                const adjustedQtySold = Math.max(0, oldQtySold + discrepancy);
+                const autoProjectedEnding = Math.max(0, oldEnding + beginningInput);
+                if (source === 'beginning' || source === 'modal-open') {
+                    $('#editEndingStock').val(autoProjectedEnding);
+                }
 
-                const discrepancyLabel = discrepancy > 0 ? ('+' + discrepancy) : String(discrepancy);
-                const discrepancyClass = discrepancy > 0
+                projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
+                const adjustedQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
+                const qtySoldDelta = adjustedQtySold - oldQtySold;
+                const qtySoldDeltaLabel = qtySoldDelta > 0 ? ('+' + qtySoldDelta) : String(qtySoldDelta);
+                const qtySoldDeltaClass = qtySoldDelta > 0
                     ? 'text-green-700 border-green-200 bg-green-50'
-                    : (discrepancy < 0 ? 'text-red-700 border-red-200 bg-red-50' : 'text-gray-700 border-gray-200 bg-gray-50');
+                    : (qtySoldDelta < 0 ? 'text-red-700 border-red-200 bg-red-50' : 'text-gray-700 border-gray-200 bg-gray-50');
 
                 const nextHint =
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-gray-700 border-gray-200 bg-white mr-1 mb-1">Current End: ' + oldEnding + '</span>' +
                     '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-blue-700 border-blue-200 bg-blue-50 mr-1 mb-1">New End: ' + Math.max(0, projectedRemaining) + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ' + discrepancyClass + ' mr-1 mb-1">Discrepancy: ' + discrepancyLabel + '</span>' +
-                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-indigo-700 border-indigo-200 bg-indigo-50 mb-1">Adjusted Qty Sold: ' + adjustedQtySold + '</span>';
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium text-purple-700 border-purple-200 bg-purple-50 mr-1 mb-1">Pull Out affects Qty Sold</span>' +
+                    '<span class="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ' + qtySoldDeltaClass + ' mb-1">Qty Sold Adj: ' + qtySoldDeltaLabel + ' (Now ' + adjustedQtySold + ')</span>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
                     $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
