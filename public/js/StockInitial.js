@@ -362,6 +362,7 @@ $(document).ready(function () {
 
     const initial = parseFloat($("#initial_qty").val()) || 0;
     const remaining = parseFloat($("#remaining_qty").val()) || 0;
+    const qtyUsed = isEdit ? Math.max(0, parseFloat(fixedEditUsed) || 0) : 0;
 
     const payload = {
       material_id: $("#material_id").val(),
@@ -374,6 +375,11 @@ $(document).ready(function () {
       payload.remaining = Math.min(Math.max(0, remaining), initial); // Send remaining, server computes used
     } else {
       payload.qty_used = 0;
+    }
+
+    if (isEdit && initial < qtyUsed) {
+      showToast("error", "Cannot be less than used");
+      return;
     }
 
     const url = isEdit
