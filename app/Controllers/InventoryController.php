@@ -837,6 +837,7 @@ class InventoryController extends BaseController
 
         $remittance = $this->remittanceDetailsModel
             ->where('DATE(remittance_date)', $today)
+            ->where('daily_stock_id', intval($id))
             ->get()
             ->getRow();
 
