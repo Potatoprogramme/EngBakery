@@ -2296,6 +2296,7 @@
             // Close Item Details Modal
             $('#itemDetailsModalClose, #itemDetailsModalCancel, #itemDetailsModalBackdrop').on('click', function () {
                 $('#itemDetailsModal').addClass('hidden');
+                unlockBackgroundScroll();
             });
 
             // Apply Filter
@@ -3489,6 +3490,7 @@
 
             // Open modal
             $('#itemDetailsModal').removeClass('hidden');
+            lockBackgroundScroll();
 
             // Fetch and calculate materials if total units > 0 and product has recipe
             if (totalUnits > 0 && productId) {
@@ -3660,6 +3662,20 @@
             $('#grandTotalQty').text(grandQty);
         }
 
+        let modalScrollLockCount = 0;
+
+        function lockBackgroundScroll() {
+            modalScrollLockCount += 1;
+            $('body').addClass('overflow-hidden');
+        }
+
+        function unlockBackgroundScroll() {
+            modalScrollLockCount = Math.max(0, modalScrollLockCount - 1);
+            if (modalScrollLockCount === 0) {
+                $('body').removeClass('overflow-hidden');
+            }
+        }
+
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             if (enforceInventoryLock()) {
@@ -3739,6 +3755,7 @@
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
+                lockBackgroundScroll();
             } else {
                 showToast('error', 'Could not find item data', 2000);
             }
@@ -3991,6 +4008,7 @@
         // Close Edit Modal
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
+            unlockBackgroundScroll();
             $('#editInventoryForm')[0].reset();
             resetEditPreviewUiState();
             $('#editAdjustmentGuide').addClass('hidden');
@@ -4179,6 +4197,7 @@
                             fetchAllStockitems(); // Fallback when local cache is missing
                         }
                         $('#editInventoryModal').addClass('hidden');
+                        unlockBackgroundScroll();
                         $('#editInventoryForm')[0].reset();
                     } else {
                         showToast('error', response.message, 2000);
