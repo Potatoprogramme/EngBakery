@@ -16,9 +16,8 @@ use App\Libraries\OwnerNotificationPreferences;
  *
  * Design principles
  * ─────────────────
- *  • Idempotent   – flag files guarantee each slot fires exactly once per day.
- *  • Race-safe    – flock() prevents two simultaneous requests from both
- *                   passing the flag check and sending duplicate emails.
+ *  • Idempotent   – database run markers guarantee each slot fires once/day.
+ *  • Race-safe    – DB named locks prevent concurrent duplicate sends.
  *  • Silent       – all failures are logged; they never surface to the user.
  *  • Zero deps    – reuses the same Services::email() + UsersModel pattern
  *                   used by LowStockNotifier and DailyRemittanceReport.
@@ -28,15 +27,9 @@ use App\Libraries\OwnerNotificationPreferences;
  *  AM slot : 15:00 – 15:59  →  afternoon inventory snapshot
  *  PM slot : 20:00 – 20:59  →  end-of-business-day  inventory snapshot
  *
- * Flag files (in WRITEPATH)
- * ─────────────────────────
- *  inventory_report_sent_{Y-m-d}_am.flag
- *  inventory_report_sent_{Y-m-d}_pm.flag
- *
- * Lock files (in WRITEPATH, transient – prevent concurrent send race)
- * ───────────────────────────────────────────────────────────────────
- *  inventory_report_am.lock
- *  inventory_report_pm.lock
+ * DB table (auto-created)
+ * ───────────────────────
+ *  inventory_report_runs(report_date, slot, sent_at)
  */
 class AutoReportScheduler
 {
@@ -51,6 +44,11 @@ class AutoReportScheduler
         'pm' => ['start_h' => 20, 'end_h' => 21],  // 20:00 – 20:59
     ];
 
+    /**
+     * DB table for scheduled report idempotency.
+     */
+    private const RUNS_TABLE = 'inventory_report_runs';
+
     // =========================================================================
     //  PUBLIC API
     // =========================================================================
@@ -61,11 +59,10 @@ class AutoReportScheduler
      */
     public static function runDueJobs(): void
     {
-        // Disabled by product decision: inventory reports are manual-only.
-        return;
-
         $nowH  = (int) date('G');   // 0–23, no leading zero
         $today = date('Y-m-d');
+
+        self::ensureRunsTableExists();
 
         foreach (self::SLOTS as $slot => $window) {
 
@@ -74,30 +71,21 @@ class AutoReportScheduler
                 continue;
             }
 
-            $flagFile = WRITEPATH . "inventory_report_sent_{$today}_{$slot}.flag";
-
-            // ── Fast path: already sent today ────────────────────────────
-            if (file_exists($flagFile)) {
+            // ── Fast path: already sent today (DB marker) ────────────────
+            if (self::hasShiftBeenReported($today, $slot)) {
                 continue;
             }
 
-            // ── Acquire a per-slot exclusive lock to prevent concurrent ───
-            // ── requests from both passing the flag check at the same time ─
-            $lockFile = WRITEPATH . "inventory_report_{$slot}.lock";
-            $lock     = @fopen($lockFile, 'c');
-
-            if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
-                // Another request holds the lock — it will handle this slot
-                if ($lock !== false) {
-                    fclose($lock);
-                }
+            $lockName = self::buildDbLockName($today, $slot);
+            if (!self::acquireDbLock($lockName)) {
+                // Another request/process holds the lock and will process this slot.
                 continue;
             }
 
             try {
-                // ── Double-checked locking: re-read flag inside the lock ─
-                if (file_exists($flagFile)) {
-                    continue; // Sent between our first check and lock acquire
+                // ── Double-check inside lock to avoid race duplicates ─────
+                if (self::hasShiftBeenReported($today, $slot)) {
+                    continue;
                 }
 
                 log_message('info', "AutoReportScheduler: Firing [{$slot}] inventory report for {$today}.");
@@ -105,9 +93,8 @@ class AutoReportScheduler
                 $sent = self::sendInventoryReport($slot, $today);
 
                 if ($sent) {
-                    // Mark as sent — subsequent requests in this hour skip it
-                    file_put_contents($flagFile, date('Y-m-d H:i:s'));
-                    log_message('info', "AutoReportScheduler: [{$slot}] report sent and flagged for {$today}.");
+                    self::markShiftReported($today, $slot);
+                    log_message('info', "AutoReportScheduler: [{$slot}] report sent and recorded in DB for {$today}.");
                 } else {
                     log_message('warning', "AutoReportScheduler: [{$slot}] report not sent (no owners, empty stock, or send failure).");
                 }
@@ -115,8 +102,7 @@ class AutoReportScheduler
             } catch (\Throwable $e) {
                 log_message('error', "AutoReportScheduler [{$slot}] exception: " . $e->getMessage());
             } finally {
-                flock($lock, LOCK_UN);
-                fclose($lock);
+                self::releaseDbLock($lockName);
             }
         }
     }
@@ -982,19 +968,82 @@ class AutoReportScheduler
         ];
     }
 
-    private static function getShiftFlagFilePath(string $date, string $slot): string
-    {
-        return WRITEPATH . "inventory_report_sent_{$date}_{$slot}.flag";
-    }
-
     private static function hasShiftBeenReported(string $date, string $slot): bool
     {
-        return file_exists(self::getShiftFlagFilePath($date, $slot));
+        self::ensureRunsTableExists();
+        $db = \Config\Database::connect();
+        $builder = $db->table(self::RUNS_TABLE);
+
+        return $builder
+            ->where('report_date', $date)
+            ->where('slot', $slot)
+            ->countAllResults() > 0;
     }
 
     private static function markShiftReported(string $date, string $slot): void
     {
-        @file_put_contents(self::getShiftFlagFilePath($date, $slot), date('Y-m-d H:i:s'));
+        self::ensureRunsTableExists();
+        $db = \Config\Database::connect();
+
+        $db->query(
+            'INSERT INTO ' . self::RUNS_TABLE . ' (report_date, slot, sent_at) VALUES (?, ?, ?) '
+                . 'ON DUPLICATE KEY UPDATE sent_at = VALUES(sent_at)',
+            [$date, $slot, date('Y-m-d H:i:s')]
+        );
+    }
+
+    private static function ensureRunsTableExists(): void
+    {
+        static $ensured = false;
+        if ($ensured) {
+            return;
+        }
+
+        $db = \Config\Database::connect();
+        $table = self::RUNS_TABLE;
+
+        if (!$db->tableExists($table)) {
+            $db->query(
+                "CREATE TABLE IF NOT EXISTS {$table} ("
+                    . 'run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,'
+                    . 'report_date DATE NOT NULL,'
+                    . 'slot VARCHAR(32) NOT NULL,'
+                    . 'sent_at DATETIME NOT NULL,'
+                    . 'created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,'
+                    . 'PRIMARY KEY (run_id),'
+                    . 'UNIQUE KEY uq_inventory_report_runs_date_slot (report_date, slot)'
+                    . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci'
+            );
+        }
+
+        $ensured = true;
+    }
+
+    private static function buildDbLockName(string $date, string $slot): string
+    {
+        return 'engbakery:inventory_report:' . $date . ':' . $slot;
+    }
+
+    private static function acquireDbLock(string $lockName): bool
+    {
+        try {
+            $db = \Config\Database::connect();
+            $row = $db->query('SELECT GET_LOCK(?, 0) AS lock_status', [$lockName])->getRowArray();
+            return intval($row['lock_status'] ?? 0) === 1;
+        } catch (\Throwable $e) {
+            log_message('error', 'AutoReportScheduler: failed to acquire DB lock [' . $lockName . ']: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private static function releaseDbLock(string $lockName): void
+    {
+        try {
+            $db = \Config\Database::connect();
+            $db->query('SELECT RELEASE_LOCK(?)', [$lockName]);
+        } catch (\Throwable $e) {
+            log_message('error', 'AutoReportScheduler: failed to release DB lock [' . $lockName . ']: ' . $e->getMessage());
+        }
     }
 
     private static function resolvePiecesPerBatch(array $item): int
