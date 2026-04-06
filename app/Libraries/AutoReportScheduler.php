@@ -618,14 +618,30 @@ class AutoReportScheduler
             $drinks = [];
 
             foreach ($allItems as $item) {
+                $isEnabled = intval($item['is_enabled'] ?? 1) === 1;
+                $isProductDisabled = intval($item['is_disabled'] ?? 0) === 1;
+                if (!$isEnabled || $isProductDisabled) {
+                    continue;
+                }
+
                 $category = strtolower((string) ($item['category'] ?? ''));
                 if (!in_array($category, ['bakery', 'grocery', 'drinks'], true)) {
                     continue;
                 }
 
                 $productId = intval($item['product_id'] ?? 0);
-                $qtySold = intval($soldByProduct[$productId] ?? 0);
+                $qtySoldFromOrders = intval($soldByProduct[$productId] ?? 0);
+                $beg = intval($item['beginning_stock'] ?? 0);
                 $po = intval($item['pull_out_quantity'] ?? 0);
+                $end = intval($item['ending_stock'] ?? 0);
+                $inventoryQtySold = max(0, $beg - $po - $end);
+
+                // Keep report qty sold consistent with the inventory screen for bakery/grocery.
+                $qtySold = $qtySoldFromOrders;
+                if (in_array($category, ['bakery', 'grocery'], true)) {
+                    $qtySold = max($qtySoldFromOrders, $inventoryQtySold);
+                }
+
                 $srp = self::resolveSrp($item);
                 $sales = $qtySold * $srp;
                 $directCostPerPiece = self::resolveDirectCostPerPiece($item);
@@ -636,9 +652,9 @@ class AutoReportScheduler
                 $row = [
                     'product_name' => (string) ($item['product_name'] ?? 'Unknown'),
                     'srp' => $srp,
-                    'beg' => intval($item['beginning_stock'] ?? 0),
+                    'beg' => $beg,
                     'po' => $po,
-                    'end' => intval($item['ending_stock'] ?? 0),
+                    'end' => $end,
                     'qty_sold' => $qtySold,
                     'sales' => $sales,
                     'raw_materials_used' => $rawMaterialsUsed,

@@ -112,7 +112,6 @@ class InventoryController extends BaseController
             $beginningStock = intval($item['beginning_stock'] ?? 0);
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
-
             // Inventory interpretation based on stock fields.
             $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
             if (in_array($category, ['bakery', 'grocery'], true)) {
@@ -1197,29 +1196,43 @@ class InventoryController extends BaseController
             $totalBeginning = 0;
             $totalEnding = 0;
             $totalPullOut = 0;
+            $totalSold = 0;
             $totalSales = 0;
             $productNames = [];
             $productsDetail = [];
 
             foreach ($stockItems as $item) {
                 $productName = trim((string) ($item['product_name'] ?? 'Unknown Product'));
-                $quantitySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+                $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
+                $category = strtolower(trim((string) ($item['category'] ?? '')));
+                $beginningStock = intval($item['beginning_stock'] ?? 0);
+                $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+                $endingStock = intval($item['ending_stock'] ?? 0);
+                $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+                $quantitySold = in_array($category, ['bakery', 'grocery'], true)
+                    ? max($dbQtySold, $inventoryQtySold)
+                    : $dbQtySold;
+
+                $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
+                    ? ($item['selling_price_per_piece'] ?? 0)
+                    : ($item['selling_price'] ?? 0));
+                $itemTotalSales = $quantitySold * $price;
 
                 $productNames[] = $productName;
                 $productsDetail[] = [
                     'product_name' => $productName,
                     'category' => $item['category'] ?? 'uncategorized',
-                    'beginning_stock' => intval($item['beginning_stock'] ?? 0),
+                    'beginning_stock' => $beginningStock,
                     'quantity_sold' => $quantitySold,
-                    'pull_out_quantity' => intval($item['pull_out_quantity'] ?? 0),
-                    'ending_stock' => intval($item['ending_stock'] ?? 0),
+                    'pull_out_quantity' => $pullOutQty,
+                    'ending_stock' => $endingStock,
                 ];
 
-                $totalBeginning += intval($item['beginning_stock'] ?? 0);
-                $totalEnding += intval($item['ending_stock'] ?? 0);
-                $totalPullOut += intval($item['pull_out_quantity'] ?? 0);
-                // Get sales from transactions table for this item
-                $totalSales += floatval($salesDataMap[$item['item_id']]['total_sales'] ?? 0);
+                $totalBeginning += $beginningStock;
+                $totalEnding += $endingStock;
+                $totalPullOut += $pullOutQty;
+                $totalSold += $quantitySold;
+                $totalSales += $itemTotalSales;
             }
 
             $previewNames = array_slice($productNames, 0, 3);
@@ -1233,7 +1246,7 @@ class InventoryController extends BaseController
             $inventory['total_beginning'] = $totalBeginning;
             $inventory['total_ending'] = $totalEnding;
             $inventory['total_pull_out'] = $totalPullOut;
-            $inventory['total_sold'] = max(0, $totalBeginning - $totalEnding - $totalPullOut);
+            $inventory['total_sold'] = $totalSold;
             $inventory['total_sales'] = $totalSales;
             $inventory['products_preview'] = $productsPreview;
             $inventory['products_detail'] = $productsDetail;
@@ -1284,8 +1297,23 @@ class InventoryController extends BaseController
 
         // Enrich stock items with sales data
         foreach ($stockItems as &$item) {
-            $item['total_sales'] = $salesMap[$item['item_id']]['total_sales'] ?? 0;
-            $item['quantity_sold'] = $salesMap[$item['item_id']]['quantity_sold'] ?? 0;
+            $dbQtySold = intval($salesMap[$item['item_id']]['quantity_sold'] ?? 0);
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
+            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+            $endingStock = intval($item['ending_stock'] ?? 0);
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+
+            $effectiveQtySold = in_array($category, ['bakery', 'grocery'], true)
+                ? max($dbQtySold, $inventoryQtySold)
+                : $dbQtySold;
+
+            $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
+                ? ($item['selling_price_per_piece'] ?? 0)
+                : ($item['selling_price'] ?? 0));
+
+            $item['quantity_sold'] = $effectiveQtySold;
+            $item['total_sales'] = $effectiveQtySold * $price;
         }
 
         return $this->response->setJSON([

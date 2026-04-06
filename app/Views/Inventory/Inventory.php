@@ -169,9 +169,9 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
@@ -288,9 +288,9 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
@@ -3247,8 +3247,8 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
@@ -3402,8 +3402,8 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
