@@ -30,8 +30,8 @@ class DailyRemittanceReport
             return false;
         }
 
-        $remittanceModel     = new RemittanceDetailsModel();
-        $denominationsModel  = new RemittanceDenominationsModel();
+        $remittanceModel = new RemittanceDetailsModel();
+        $denominationsModel = new RemittanceDenominationsModel();
 
         // Fetch all remittances for the inventory when available, otherwise by date.
         $remittances = $dailyStockId !== null
@@ -55,8 +55,8 @@ class DailyRemittanceReport
         // Get owner emails
         $usersModel = new UsersModel();
         $owners = $usersModel->where('employee_type', 'owner')
-                             ->where('approved', 1)
-                             ->findAll();
+            ->where('approved', 1)
+            ->findAll();
 
         if (empty($owners)) {
             return false;
@@ -67,7 +67,7 @@ class DailyRemittanceReport
             log_message('info', 'DailyRemittanceReport: All owner recipients have remittance email notifications turned off.');
             return false;
         }
-        $emailBody   = self::buildEmailBody($remittances, $date);
+        $emailBody = self::buildEmailBody($remittances, $date);
 
         try {
             $emailService = \Config\Services::email();
@@ -96,37 +96,46 @@ class DailyRemittanceReport
     {
         $reportDate = date('F d, Y', strtotime($date));
         $reportTime = date('h:i A');
-        $reportRef  = 'REM-' . date('Ymd-His');
+        $reportRef = 'REM-' . date('Ymd-His');
 
         // Aggregate totals
-        $totalSales      = 0;
-        $totalRemitted   = 0;
-        $totalBakery     = 0;
-        $totalCoffee     = 0;
-        $totalGrocery    = 0;
-        $totalCashOut    = 0;
-        $totalOnline    = 0;
+        $totalSales = 0;
+        $totalRemitted = 0;
+        $totalBakery = 0;
+        $totalCoffee = 0;
+        $totalGrocery = 0;
+        $totalDiscrepancy = 0;
+        $totalCashOut = 0;
+        $totalOnline = 0;
         $totalFoodpanda = 0;
-        $totalVariance   = 0;
-        $shortCount      = 0;
-        $overCount       = 0;
+        $totalVariance = 0;
+        $shortCount = 0;
+        $overCount = 0;
 
         foreach ($remittances as $r) {
-            $totalSales    += floatval($r['total_sales']);
+            $rowTotalSales = floatval($r['total_sales']);
+            $rowBakery = floatval($r['bakery_sales']);
+            $rowCoffee = floatval($r['coffee_sales']) + floatval($r['dough_sales'] ?? 0);
+            $rowGrocery = floatval($r['grocery_sales']);
+            $rowDiscrepancy = max(0, $rowTotalSales - ($rowBakery + $rowCoffee + $rowGrocery));
+
+            $totalSales += $rowTotalSales;
             $totalRemitted += floatval($r['amount_enclosed']);
-            $totalBakery   += floatval($r['bakery_sales']);
-            $totalCoffee   += floatval($r['coffee_sales']);
-            $totalGrocery  += floatval($r['grocery_sales']);
-            $totalCashOut  += floatval($r['cash_out']);
-            $totalOnline   += floatval($r['total_online_revenue'] ?? 0);
+            $totalBakery += $rowBakery;
+            $totalCoffee += $rowCoffee;
+            $totalGrocery += $rowGrocery;
+            $totalDiscrepancy += $rowDiscrepancy;
+            $totalCashOut += floatval($r['cash_out']);
+            $totalOnline += floatval($r['total_online_revenue'] ?? 0);
             $totalFoodpanda += floatval($r['foodpanda_revenue'] ?? 0);
-            $variance       = floatval($r['variance_amount']);
+            $variance = floatval($r['variance_amount']);
             if ($r['is_short']) {
                 $totalVariance -= $variance;
                 $shortCount++;
             } else {
                 $totalVariance += $variance;
-                if ($variance > 0) $overCount++;
+                if ($variance > 0)
+                    $overCount++;
             }
         }
 
@@ -135,36 +144,40 @@ class DailyRemittanceReport
         // Build individual inventory period cards
         $periodCards = '';
         foreach ($remittances as $i => $r) {
-            $periodNum   = $i + 1;
-            $cashier     = $r['cashier_name'] ?? 'Unknown';
-            $outlet      = $r['outlet_name'] ?? '—';
-            $periodTime  = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
-            $sales       = number_format(floatval($r['total_sales']), 2);
-            $enclosed    = number_format(floatval($r['amount_enclosed']), 2);
-            $cashOut     = number_format(floatval($r['cash_out']), 2);
-            $online      = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
-            $foodpanda   = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
-            $variance    = floatval($r['variance_amount']);
-            $isShort     = $r['is_short'];
+            $periodNum = $i + 1;
+            $cashier = $r['cashier_name'] ?? 'Unknown';
+            $outlet = $r['outlet_name'] ?? '—';
+            $periodTime = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
+            $sales = number_format(floatval($r['total_sales']), 2);
+            $enclosed = number_format(floatval($r['amount_enclosed']), 2);
+            $cashOut = number_format(floatval($r['cash_out']), 2);
+            $online = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
+            $foodpanda = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
+            $bakery = number_format(floatval($r['bakery_sales'] ?? 0), 2);
+            $coffee = number_format(floatval($r['coffee_sales'] ?? 0) + floatval($r['dough_sales'] ?? 0), 2);
+            $grocery = number_format(floatval($r['grocery_sales'] ?? 0), 2);
+            $discrepancy = number_format(max(0, floatval($r['total_sales']) - (floatval($r['bakery_sales']) + floatval($r['coffee_sales']) + floatval($r['dough_sales'] ?? 0) + floatval($r['grocery_sales']))), 2);
+            $variance = floatval($r['variance_amount']);
+            $isShort = $r['is_short'];
 
-            $varianceText  = '₱' . number_format($variance, 2);
+            $varianceText = '₱' . number_format($variance, 2);
             $varianceColor = '#28a745';
             $varianceLabel = 'EXACT';
             if ($variance > 0 && $isShort) {
                 $varianceColor = '#dc3545';
                 $varianceLabel = 'SHORT';
-                $varianceText  = '-₱' . number_format($variance, 2);
+                $varianceText = '-₱' . number_format($variance, 2);
             } elseif ($variance > 0 && !$isShort) {
                 $varianceColor = '#007bff';
                 $varianceLabel = 'OVER';
-                $varianceText  = '+₱' . number_format($variance, 2);
+                $varianceText = '+₱' . number_format($variance, 2);
             }
 
             $cashOutDisplay = floatval($r['cash_out']) > 0
                 ? '₱' . $cashOut
                 : '₱0.00';
-            
-            $cashOutReason = !empty($r['cashout_reason']) 
+
+            $cashOutReason = !empty($r['cashout_reason'])
                 ? '<div style="font-size:10px;color:#888;margin-top:2px;">' . htmlspecialchars($r['cashout_reason']) . '</div>'
                 : '';
 
@@ -222,22 +235,33 @@ class DailyRemittanceReport
                                 <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$foodpanda}</div>
                             </td>
                         </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Bakery / Coffee</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$bakery} / ₱{$coffee}</div>
+                            </td>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Grocery / Discrepancy</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$grocery} / ₱{$discrepancy}</div>
+                            </td>
+                        </tr>
                     </table>
                 </div>";
         }
 
         // Totals row
-        $fmtTotalSales    = number_format($totalSales, 2);
+        $fmtTotalSales = number_format($totalSales, 2);
         $fmtTotalRemitted = number_format($totalRemitted, 2);
-        $fmtTotalCashOut  = number_format($totalCashOut, 2);
-        $fmtBakery        = number_format($totalBakery, 2);
-        $fmtCoffee        = number_format($totalCoffee, 2);
-        $fmtGrocery       = number_format($totalGrocery, 2);
-        $fmtOnline        = number_format($totalOnline, 2);
-        $fmtFoodpanda     = number_format($totalFoodpanda, 2);
+        $fmtTotalCashOut = number_format($totalCashOut, 2);
+        $fmtBakery = number_format($totalBakery, 2);
+        $fmtCoffee = number_format($totalCoffee, 2);
+        $fmtGrocery = number_format($totalGrocery, 2);
+        $fmtDiscrepancy = number_format($totalDiscrepancy, 2);
+        $fmtOnline = number_format($totalOnline, 2);
+        $fmtFoodpanda = number_format($totalFoodpanda, 2);
 
         $netVarianceColor = $totalVariance < 0 ? '#dc3545' : ($totalVariance > 0 ? '#007bff' : '#28a745');
-        $netVarianceText  = $totalVariance < 0
+        $netVarianceText = $totalVariance < 0
             ? '-₱' . number_format(abs($totalVariance), 2)
             : ($totalVariance > 0 ? '+₱' . number_format($totalVariance, 2) : '₱0.00');
         $netVarianceLabel = $totalVariance < 0 ? 'NET SHORT' : ($totalVariance > 0 ? 'NET OVER' : 'BALANCED');
@@ -325,19 +349,24 @@ class DailyRemittanceReport
                     <!-- Sales by Category -->
                     <table style='margin:15px 0 20px;'>
                         <tr>
-                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:33%;'>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:25%;'>
                                 <div style='font-size:11px;color:#888;text-transform:uppercase;'>Bakery</div>
                                 <div style='font-size:18px;font-weight:bold;color:#d4a017;'>₱{$fmtBakery}</div>
                             </td>
                             <td style='width:8px;'></td>
-                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:33%;'>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:25%;'>
                                 <div style='font-size:11px;color:#888;text-transform:uppercase;'>Coffee / Drinks</div>
                                 <div style='font-size:18px;font-weight:bold;color:#6f4e37;'>₱{$fmtCoffee}</div>
                             </td>
                             <td style='width:8px;'></td>
-                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:33%;'>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:25%;'>
                                 <div style='font-size:11px;color:#888;text-transform:uppercase;'>Grocery</div>
                                 <div style='font-size:18px;font-weight:bold;color:#2e8b57;'>₱{$fmtGrocery}</div>
+                            </td>
+                            <td style='width:8px;'></td>
+                            <td style='padding:10px 15px;background:#fff;border:1px solid #ddd;border-radius:5px;width:25%;'>
+                                <div style='font-size:11px;color:#888;text-transform:uppercase;'>Discrepancy</div>
+                                <div style='font-size:18px;font-weight:bold;color:#c05621;'>₱{$fmtDiscrepancy}</div>
                             </td>
                         </tr>
                     </table>
@@ -393,6 +422,12 @@ class DailyRemittanceReport
                                 <td style='padding:6px 0;'>
                                     <div style='font-size:11px;color:#666;'>Total Foodpanda</div>
                                     <div style='font-size:16px;font-weight:bold;color:#D70F64;'>₱{$fmtFoodpanda}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style='padding:6px 0;' colspan='2'>
+                                    <div style='font-size:11px;color:#666;'>Total Discrepancy Sales</div>
+                                    <div style='font-size:16px;font-weight:bold;color:#c05621;'>₱{$fmtDiscrepancy}</div>
                                 </td>
                             </tr>
                         </table>

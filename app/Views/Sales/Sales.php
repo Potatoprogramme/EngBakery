@@ -750,6 +750,7 @@
                 day: 'numeric'
             };
             $('#remittanceDate').text(today.toLocaleDateString('en-US', options));
+            updateCashOutReasonRequirement();
         }
 
         function bindOutletChangeEvent() {
@@ -1002,7 +1003,14 @@
 
             // Also bind cash out amount
             $('#cashOutAmount').on('input', function () {
+                updateCashOutReasonRequirement();
                 calculateVariance();
+            });
+
+            $('#cashOutReason').on('input', function () {
+                if ($(this).val().trim().length > 0) {
+                    $(this).removeClass('border-red-400 ring-1 ring-red-300');
+                }
             });
         }
 
@@ -1061,6 +1069,21 @@
 
             $('#amountEnclosed').text(formatCurrency(totalEnclosed));
             return totalEnclosed;
+        }
+
+        function updateCashOutReasonRequirement() {
+            const cashOutAmount = roundToCurrency(parseFloat($('#cashOutAmount').val()) || 0);
+            const $cashOutReason = $('#cashOutReason');
+            const mustProvideReason = cashOutAmount > 0;
+
+            $cashOutReason.prop('required', mustProvideReason);
+
+            if (mustProvideReason) {
+                $cashOutReason.attr('placeholder', 'Reason (required)');
+            } else {
+                $cashOutReason.attr('placeholder', 'Reason');
+                $cashOutReason.removeClass('border-red-400 ring-1 ring-red-300');
+            }
         }
 
         // NOTE: Cash count variance UI was removed. Amount enclosed is still
@@ -1193,6 +1216,7 @@
             hideExistingRemittanceBanner();
             disableSaveButton();
             $('#shiftSummaryCard').addClass('hidden');
+            updateCashOutReasonRequirement();
 
             calculateAllTotals();
         });
@@ -1387,6 +1411,13 @@
             const cashOutAmount = totals.cashOut;
             const totalSales = totals.totalSales;
             const variance = totals.variance;
+            const cashOutReason = ($('#cashOutReason').val() || '').trim();
+
+            if (cashOutAmount > 0 && cashOutReason === '') {
+                $('#cashOutReason').addClass('border-red-400 ring-1 ring-red-300').focus();
+                showToast('warning', 'Please provide a cash out reason when Cash Out amount is greater than zero.');
+                return;
+            }
 
             const dailyStockId = $('#dailyStockId').val();
 
@@ -1410,7 +1441,7 @@
                 total_online_revenue: totalOnlineRevenue,
                 foodpanda_revenue: foodPandaRevenue,
                 cash_out_amount: cashOutAmount,
-                cash_out_reason: $('#cashOutReason').val(),
+                cash_out_reason: cashOutReason,
                 bakery_sales: parseCurrency($('#bakerySales').text()),
                 coffee_sales: parseCurrency($('#coffeeSales').text()),
                 grocery_sales: parseCurrency($('#grocerySales').text()),
