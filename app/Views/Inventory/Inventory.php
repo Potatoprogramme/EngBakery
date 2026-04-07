@@ -3835,20 +3835,21 @@
             if (isAdjustmentMode) {
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                const autoProjectedEnding = Math.max(0, oldEnding + beginningInput - pullOutInput);
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
+                const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput - pullOutInput));
                 if (source === 'beginning' || source === 'pullout' || source === 'modal-open') {
                     $('#editEndingStock').val(autoProjectedEnding);
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
-                $('#editEndingStock').attr('max', Math.max(0, projectedBeginning));
+                $('#editEndingStock').attr('max', maxAllowedEnding);
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
                 const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
                 const adjustedQtySold = oldQtySold + addedQtySold;
-                const wouldExceedBeginning = projectedRemaining > projectedBeginning;
+                const wouldExceedAllowedEnding = projectedRemaining > maxAllowedEnding;
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
-                const statusHtml = wouldExceedBeginning ?
-                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot be higher than Beginning.</div>' :
+                const statusHtml = wouldExceedAllowedEnding ?
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning - Pull Out).</div>' :
                     wouldReduceDbQtySold ?
                         '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
                         '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
@@ -4097,6 +4098,7 @@
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedEnding);
 
                 if (pullOutInput < 0) {
@@ -4118,8 +4120,8 @@
                     return;
                 }
 
-                if (projectedEnding > projectedBeginning) {
-                    showToast('warning', 'Ending cannot be higher than Beginning.', 2500);
+                if (projectedEnding > maxAllowedEnding) {
+                    showToast('warning', 'Ending cannot exceed Beginning minus Pull Out.', 2500);
                     restoreSubmitButton();
                     return;
                 }
