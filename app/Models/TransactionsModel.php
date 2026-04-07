@@ -316,4 +316,24 @@ class TransactionsModel extends Model
 
         return intval($result['total_items_sold'] ?? 0);
     }
+
+    /**
+     * Get aggregated recorded sales per inventory item for a specific inventory period.
+     * Returns rows: item_id, quantity_sold, total_sales.
+     */
+    public function getSalesDataByInventory(int $dailyStockId): array
+    {
+        return $this->builder()
+            ->select('transactions.item_id, SUM(transactions.quantity_sold) AS quantity_sold, SUM(transactions.total_sales) AS total_sales')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('orders.voided_at IS NULL')
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->groupBy('transactions.item_id')
+            ->get()
+            ->getResultArray();
+    }
 }
