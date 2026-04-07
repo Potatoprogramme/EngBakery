@@ -3841,13 +3841,17 @@
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
+                $('#editEndingStock').attr('max', Math.max(0, projectedBeginning));
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
                 const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
                 const adjustedQtySold = oldQtySold + addedQtySold;
+                const wouldExceedBeginning = projectedRemaining > projectedBeginning;
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
-                const statusHtml = wouldReduceDbQtySold ?
-                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
-                    '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
+                const statusHtml = wouldExceedBeginning ?
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot be higher than Beginning.</div>' :
+                    wouldReduceDbQtySold ?
+                        '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
+                        '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
 
                 const nextHint =
                     '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-2">' +
@@ -4110,6 +4114,12 @@
 
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (projectedEnding > projectedBeginning) {
+                    showToast('warning', 'Ending cannot be higher than Beginning.', 2500);
                     restoreSubmitButton();
                     return;
                 }

@@ -965,6 +965,13 @@ class InventoryController extends BaseController
                     'message' => 'Adjustment results cannot go below zero.'
                 ]);
             }
+
+            if ($newEndingStock > $newBeginning) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be greater than beginning stock.'
+                ]);
+            }
         } else {
             $newBeginning = $inputBeginning;
             $newPullOut = $inputPullOut;
