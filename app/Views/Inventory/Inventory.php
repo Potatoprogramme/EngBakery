@@ -500,7 +500,7 @@
                 <strong>Pull Out</strong> accepts positive values only.
             </div>
 
-            <form id="editInventoryForm" class="flex-1 overflow-y-auto pr-1" novalidate>
+            <form id="editInventoryForm" class="flex-1 overflow-y-auto pr-1">
                 <input type="hidden" id="editItemId" name="item_id">
                 <input type="hidden" id="editDistributionQty" value="0">
                 <input type="hidden" id="editCarryoverQty" value="0">
@@ -510,9 +510,8 @@
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
                 <input type="hidden" id="editOldQuantitySold" value="0">
-                <input type="hidden" id="editDrinkMode" value="0">
 
-                <div class="mb-4" id="editBeginningGroup">
+                <div class="mb-4">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
@@ -521,7 +520,7 @@
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
                             &minus;
                         </button>
-                        <input type="number" id="editBeginningStock" name="beginning_stock" min="0" step="1"
+                        <input type="number" id="editBeginningStock" name="beginning_stock" required min="0" step="1"
                             class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         <button type="button" id="btnIncreaseBeginning"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
@@ -548,7 +547,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4" id="editPullOutGroup">
+                <div class="mb-4">
                     <label for="editPullOutQuantity" id="editPullOutLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
@@ -557,7 +556,7 @@
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
                             &minus;
                         </button>
-                        <input type="number" id="editPullOutQuantity" name="pull_out_quantity" min="0" step="1"
+                        <input type="number" id="editPullOutQuantity" name="pull_out_quantity" required min="0" step="1"
                             class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         <button type="button" id="btnIncreasePullOut"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
@@ -565,24 +564,6 @@
                         </button>
                     </div>
                     <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
-                </div>
-
-                <div class="mb-4 hidden" id="editQuantitySoldGroup">
-                    <label for="editQuantitySold" id="editQuantitySoldLabel"
-                        class="block mb-1.5 text-sm font-medium text-gray-700">Quantity Sold</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseQuantitySold"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
-                            &minus;
-                        </button>
-                        <input type="number" id="editQuantitySold" name="quantity_sold" min="0" step="1"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                        <button type="button" id="btnIncreaseQuantitySold"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
-                            +
-                        </button>
-                    </div>
-                    <p id="editQuantitySoldHint" class="text-xs text-gray-400 mt-1">Use +/- or type the sold quantity directly.</p>
                 </div>
 
                 <div class="mb-4 hidden" id="editEndingGroup">
@@ -595,7 +576,7 @@
                     </p>
                 </div>
 
-                <div class="mb-4" id="editRemainingGroup">
+                <div class="mb-4">
                     <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining
                         (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
@@ -604,7 +585,7 @@
                         values above.</p>
                 </div>
 
-                <div class="mb-6" id="editNotesGroup">
+                <div class="mb-6">
                     <label for="editNotes" id="editNotesLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
@@ -2315,7 +2296,6 @@
             // Close Item Details Modal
             $('#itemDetailsModalClose, #itemDetailsModalCancel, #itemDetailsModalBackdrop').on('click', function () {
                 $('#itemDetailsModal').addClass('hidden');
-                unlockBackgroundScroll();
             });
 
             // Apply Filter
@@ -3166,7 +3146,7 @@
             renderMobileCards();
         }
 
-        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode, isDrinkMode = false) {
+        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode) {
             const index = allInventoryItems.findIndex(item => String(item.item_id) === String(itemId));
             if (index < 0) {
                 return false;
@@ -3180,16 +3160,9 @@
             const pullOutInput = parseInt(payload.pull_out_quantity) || 0;
             const endingInput = parseInt(payload.ending_stock) || 0;
 
-            if (isDrinkMode) {
-                const qtySold = parseInt(payload.quantity_sold) || 0;
-                const beginning = parseInt(item.beginning_stock) || 0;
-                const pullOut = parseInt(item.pull_out_quantity) || 0;
-                item.quantity_sold = Math.max(0, qtySold);
-                item.ending_stock = Math.max(0, beginning - pullOut - item.quantity_sold);
-                const dbQtySold = parseInt(item.quantity_sold_db) || 0;
-                item.discrepancy = item.quantity_sold - dbQtySold;
-            } else if (isAdjustmentMode) {
-                const dbQtySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || 0;
+            if (isAdjustmentMode) {
+                const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
@@ -3371,10 +3344,6 @@
                         '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
                         (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
                             'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ?
-                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                            .item_id +
-                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
                     rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
@@ -3521,7 +3490,6 @@
 
             // Open modal
             $('#itemDetailsModal').removeClass('hidden');
-            lockBackgroundScroll();
 
             // Fetch and calculate materials if total units > 0 and product has recipe
             if (totalUnits > 0 && productId) {
@@ -3693,20 +3661,6 @@
             $('#grandTotalQty').text(grandQty);
         }
 
-        let modalScrollLockCount = 0;
-
-        function lockBackgroundScroll() {
-            modalScrollLockCount += 1;
-            $('body').addClass('overflow-hidden');
-        }
-
-        function unlockBackgroundScroll() {
-            modalScrollLockCount = Math.max(0, modalScrollLockCount - 1);
-            if (modalScrollLockCount === 0) {
-                $('body').removeClass('overflow-hidden');
-            }
-        }
-
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             if (enforceInventoryLock()) {
@@ -3720,7 +3674,6 @@
             if (item) {
                 const category = (item.category || '').toLowerCase();
                 const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
-                const isDrinkMode = (category === 'drinks');
                 const beginningStock = parseInt(item.beginning_stock) || 0;
                 const pullOutQty = parseInt(item.pull_out_quantity) || 0;
                 const endingStock = parseInt(item.ending_stock) || 0;
@@ -3729,35 +3682,15 @@
                 $('#editItemId').val(itemId);
                 $('#editCategory').val(category);
                 $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
-                $('#editDrinkMode').val(isDrinkMode ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySold = isDrinkMode ?
-                    (parseInt(item.quantity_sold) || 0) :
-                    (parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || Math.max(0,
-                        beginningStock - pullOutQty - endingStock));
+                const quantitySoldRaw = parseInt(item.quantity_sold_db);
+                const quantitySold = Number.isNaN(quantitySoldRaw) ? 0 : Math.max(0, quantitySoldRaw);
                 $('#editOldQuantitySold').val(quantitySold);
-                $('#editQuantitySold').val(parseInt(item.quantity_sold) || 0);
 
-                if (isDrinkMode) {
-                    $('#editAdjustmentGuide').addClass('hidden');
-                    $('#editBeginningGroup').addClass('hidden');
-                    $('#editPullOutGroup').addClass('hidden');
-                    $('#editEndingGroup').addClass('hidden');
-                    $('#editQuantitySoldGroup').removeClass('hidden');
-                    $('#editRemainingGroup').addClass('hidden');
-                    $('#editNotesGroup').addClass('hidden');
-                    $('#editDistributionInfo').addClass('hidden');
-                    $('#editStockWarning').addClass('hidden');
-                    $('#editRemainingHint').text('For drinks, Quantity Sold is manually editable.');
-                } else if (isAdjustmentMode) {
-                    $('#editBeginningGroup').removeClass('hidden');
-                    $('#editPullOutGroup').removeClass('hidden');
-                    $('#editQuantitySoldGroup').addClass('hidden');
-                    $('#editRemainingGroup').removeClass('hidden');
-                    $('#editNotesGroup').removeClass('hidden');
+                if (isAdjustmentMode) {
                     $('#editBeginningLabel').text('Beginning Stock ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
@@ -3774,11 +3707,6 @@
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
-                    $('#editBeginningGroup').removeClass('hidden');
-                    $('#editPullOutGroup').removeClass('hidden');
-                    $('#editQuantitySoldGroup').addClass('hidden');
-                    $('#editRemainingGroup').removeClass('hidden');
-                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock');
                     $('#editPullOutLabel').text('Pull Out Quantity');
                     $('#editEndingLabel').text('Ending Stock');
@@ -3812,7 +3740,6 @@
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
-                lockBackgroundScroll();
             } else {
                 showToast('error', 'Could not find item data', 2000);
             }
@@ -3839,16 +3766,6 @@
         }
 
         function runEditPreviewUpdate(source = 'generic') {
-            if ($('#editDrinkMode').val() === '1') {
-                const qtySold = Math.max(0, parseInt($('#editQuantitySold').val()) || 0);
-                $('#editQuantitySold').val(qtySold);
-                $('#editRemainingPreview').val('');
-                $('#editRemainingHint').text('For drinks, Quantity Sold is manually editable.');
-                $('#editDistributionInfo').addClass('hidden');
-                $('#editStockWarning').addClass('hidden');
-                return;
-            }
-
             updateBeginningStockDisplay();
             updateRemainingPreview(source);
         }
@@ -3889,18 +3806,6 @@
             runEditPreviewUpdate('pullout');
         });
 
-        $('#btnDecreaseQuantitySold').on('click', function () {
-            const current = parseInt($('#editQuantitySold').val()) || 0;
-            $('#editQuantitySold').val(Math.max(0, current - 1));
-            runEditPreviewUpdate('qtysold');
-        });
-
-        $('#btnIncreaseQuantitySold').on('click', function () {
-            const current = parseInt($('#editQuantitySold').val()) || 0;
-            $('#editQuantitySold').val(current + 1);
-            runEditPreviewUpdate('qtysold');
-        });
-
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
             scheduleEditPreviewUpdate('beginning');
@@ -3912,10 +3817,6 @@
 
         $('#editEndingStock').on('input change', function () {
             scheduleEditPreviewUpdate('ending');
-        });
-
-        $('#editQuantitySold').on('input change', function () {
-            scheduleEditPreviewUpdate('qtysold');
         });
 
         function updateRemainingPreview(source = 'generic') {
@@ -3940,13 +3841,17 @@
                 }
 
                 projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
+                $('#editEndingStock').attr('max', Math.max(0, projectedBeginning));
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
                 const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
                 const adjustedQtySold = oldQtySold + addedQtySold;
+                const wouldExceedBeginning = projectedRemaining > projectedBeginning;
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
-                const statusHtml = wouldReduceDbQtySold ?
-                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
-                    '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
+                const statusHtml = wouldExceedBeginning ?
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot be higher than Beginning.</div>' :
+                    wouldReduceDbQtySold ?
+                        '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
+                        '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
 
                 const nextHint =
                     '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-2">' +
@@ -4091,7 +3996,6 @@
         // Close Edit Modal
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
-            unlockBackgroundScroll();
             $('#editInventoryForm')[0].reset();
             resetEditPreviewUiState();
             $('#editAdjustmentGuide').addClass('hidden');
@@ -4101,15 +4005,8 @@
             $('#editBeginningHint').text('');
             $('#editPullOutHint').text('');
             $('#editEndingHint').text('Enter the actual final ending stock count.');
-            $('#editQuantitySold').val('0');
-            $('#editDrinkMode').val('0');
             $('#editRemainingPreview').val('');
             $('#editRemainingHint').text('This summary updates while you edit values above.');
-            $('#editBeginningGroup').removeClass('hidden');
-            $('#editPullOutGroup').removeClass('hidden');
-            $('#editQuantitySoldGroup').addClass('hidden');
-            $('#editRemainingGroup').removeClass('hidden');
-            $('#editNotesGroup').removeClass('hidden');
             $('#editEndingGroup').addClass('hidden');
             $('#editBeginningStock').attr('min', 0);
             $('#editPullOutQuantity').attr('min', 0);
@@ -4181,11 +4078,9 @@
 
             const itemId = $('#editItemId').val();
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-            const isDrinkMode = $('#editDrinkMode').val() === '1';
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
             const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
-            const qtySoldInput = parseInt($('#editQuantitySold').val()) || 0;
             const notes = $('#editNotes').val();
 
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
@@ -4194,17 +4089,7 @@
 
             let payload;
 
-            if (isDrinkMode) {
-                if (qtySoldInput < 0) {
-                    showToast('warning', 'Quantity sold cannot be negative', 2000);
-                    restoreSubmitButton();
-                    return;
-                }
-
-                payload = {
-                    quantity_sold: qtySoldInput
-                };
-            } else if (isAdjustmentMode) {
+            if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
                 const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
@@ -4229,6 +4114,12 @@
 
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (projectedEnding > projectedBeginning) {
+                    showToast('warning', 'Ending cannot be higher than Beginning.', 2500);
                     restoreSubmitButton();
                     return;
                 }
@@ -4288,7 +4179,7 @@
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         const patched = applyEditedInventoryItemLocally(itemId, payload,
-                            isAdjustmentMode, isDrinkMode);
+                            isAdjustmentMode);
                         if (patched) {
                             loadInventory(allInventoryItems, {
                                 fetchCarryover: false
@@ -4299,7 +4190,6 @@
                             fetchAllStockitems(); // Fallback when local cache is missing
                         }
                         $('#editInventoryModal').addClass('hidden');
-                        unlockBackgroundScroll();
                         $('#editInventoryForm')[0].reset();
                     } else {
                         showToast('error', response.message, 2000);
@@ -4520,7 +4410,7 @@
             card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
                 'Enabled' : 'Disabled');
             card += '    </button>';
-            if (isEnabled) {
+            if (isEnabled && category !== 'drinks') {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
                     item.item_id + '">';
                 card += '      <i class="fas fa-edit mr-1"></i>Edit';

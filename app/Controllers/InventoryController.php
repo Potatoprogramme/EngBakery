@@ -118,10 +118,6 @@ class InventoryController extends BaseController
                 // DB qty sold is the floor/source-of-truth for bakery/grocery.
                 $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
                 $addedQtySold = max(0, $inventoryQtySold - $dbQtySold);
-            } elseif ($category === 'drinks') {
-                // Drinks are manually reconciled from inventory stock fields.
-                $effectiveQtySold = $inventoryQtySold;
-                $addedQtySold = $inventoryQtySold - $dbQtySold;
             } else {
                 $effectiveQtySold = $dbQtySold;
                 $addedQtySold = 0;
@@ -841,7 +837,6 @@ class InventoryController extends BaseController
 
         $remittance = $this->remittanceDetailsModel
             ->where('DATE(remittance_date)', $today)
-            ->where('daily_stock_id', intval($id))
             ->get()
             ->getRow();
 
@@ -888,15 +883,12 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        if (!$json) {
+        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Invalid input data'
             ]);
         }
-
-        $hasStockPayload = isset($json->beginning_stock) && isset($json->pull_out_quantity);
-        $hasDrinkSoldPayload = isset($json->quantity_sold);
 
         $item = $this->dailyStockItemsModel->find($item_id);
 
@@ -910,28 +902,11 @@ class InventoryController extends BaseController
         $rawAdjustmentMode = $json->adjustment_mode ?? null;
         $clientAdjustmentMode = in_array($rawAdjustmentMode, [true, 1, '1', 'true', 'TRUE'], true);
 
-        $productCategory = '';
         $categoryAdjustmentMode = false;
         if (isset($item['product_id'])) {
             $product = $this->productModel->find(intval($item['product_id']));
             $productCategory = strtolower(trim($product['category'] ?? ''));
             $categoryAdjustmentMode = in_array($productCategory, ['bakery', 'grocery'], true);
-        }
-
-        $isDrinkMode = ($productCategory === 'drinks');
-
-        if ($isDrinkMode && !$hasDrinkSoldPayload) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Quantity sold is required for drinks.'
-            ]);
-        }
-
-        if (!$isDrinkMode && !$hasStockPayload) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Beginning stock and pull out quantity are required.'
-            ]);
         }
 
         // Prefer server-side category rules, and keep client flag as fallback for compatibility.
@@ -944,7 +919,7 @@ class InventoryController extends BaseController
             ]);
         }
 
-        if (!$isDrinkMode && !$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
+        if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Values cannot be negative'
@@ -955,50 +930,11 @@ class InventoryController extends BaseController
         $oldBeginning = intval($item['beginning_stock']);
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
-        $notes = isset($json->notes) ? trim($json->notes) : null;
-
-        if ($isDrinkMode) {
-            $inputQtySold = intval($json->quantity_sold ?? -1);
-            if ($inputQtySold < 0) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Quantity sold cannot be negative.'
-                ]);
-            }
-
-            // Keep drinks edit simple: allow manual qty sold and auto-align stock fields.
-            // If sold exceeds current baseline, raise beginning_stock to preserve non-negative ending.
-            $requiredBeginning = $oldPullOut + $oldEnding + $inputQtySold;
-            $newBeginningStock = max($oldBeginning, $requiredBeginning);
-            $newEndingStock = max(0, $newBeginningStock - $oldPullOut - $inputQtySold);
-            $updateData = [
-                'beginning_stock' => $newBeginningStock,
-                'ending_stock' => $newEndingStock,
-            ];
-
-            if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Drink quantity sold updated successfully',
-                    'data' => $updateData,
-                    'raw_material_change' => [
-                        'beginning_delta' => 0,
-                        'pullout_delta' => 0,
-                        'net_change' => 0,
-                    ],
-                ]);
-            }
-
-            return $this->response->setStatusCode(500)->setJSON([
-                'success' => false,
-                'message' => 'Failed to update inventory item',
-                'errors' => $this->dailyStockItemsModel->errors()
-            ]);
-        }
 
         $inputBeginning = intval($json->beginning_stock);
         $inputPullOut = intval($json->pull_out_quantity);
         $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
+        $notes = isset($json->notes) ? trim($json->notes) : null;
         $productId = intval($item['product_id'] ?? 0);
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
@@ -1027,6 +963,13 @@ class InventoryController extends BaseController
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+
+            if ($newEndingStock > $newBeginning) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be greater than beginning stock.'
                 ]);
             }
         } else {
@@ -1273,13 +1216,9 @@ class InventoryController extends BaseController
                 $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
                 $endingStock = intval($item['ending_stock'] ?? 0);
                 $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
-                if (in_array($category, ['bakery', 'grocery'], true)) {
-                    $quantitySold = max($dbQtySold, $inventoryQtySold);
-                } elseif ($category === 'drinks') {
-                    $quantitySold = $inventoryQtySold;
-                } else {
-                    $quantitySold = $dbQtySold;
-                }
+                $quantitySold = in_array($category, ['bakery', 'grocery'], true)
+                    ? max($dbQtySold, $inventoryQtySold)
+                    : $dbQtySold;
 
                 $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
                     ? ($item['selling_price_per_piece'] ?? 0)
@@ -1372,13 +1311,9 @@ class InventoryController extends BaseController
             $endingStock = intval($item['ending_stock'] ?? 0);
             $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
 
-            if (in_array($category, ['bakery', 'grocery'], true)) {
-                $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
-            } elseif ($category === 'drinks') {
-                $effectiveQtySold = $inventoryQtySold;
-            } else {
-                $effectiveQtySold = $dbQtySold;
-            }
+            $effectiveQtySold = in_array($category, ['bakery', 'grocery'], true)
+                ? max($dbQtySold, $inventoryQtySold)
+                : $dbQtySold;
 
             $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
                 ? ($item['selling_price_per_piece'] ?? 0)
