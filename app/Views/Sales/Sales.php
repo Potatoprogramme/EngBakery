@@ -1060,15 +1060,37 @@
             calculateVariance();
         }
 
-        function calculateVariance() {
-            const amountEnclosed = parseCurrency($('#amountEnclosed').text());
-            const gcash = parseFloat($('#totalOnlineRevenue').val()) || 0;
-            const foodpanda = parseFloat($('#totalFoodPandaRevenue').val()) || 0;
-            const cashOut = parseFloat($('#cashOutAmount').val()) || 0;
-            const totalSales = parseCurrency($('#totalSales').text());
+        function roundToCurrency(value) {
+            return Math.round((Number(value) || 0) * 100) / 100;
+        }
 
-            const totalRemitted = amountEnclosed + gcash + foodpanda + cashOut;
-            const variance = totalRemitted - totalSales;
+        function getRemittanceComputation() {
+            const amountEnclosed = roundToCurrency(parseCurrency($('#amountEnclosed').text()));
+            const gcash = roundToCurrency(parseFloat($('#totalOnlineRevenue').val()) || 0);
+            const foodpanda = roundToCurrency(parseFloat($('#totalFoodPandaRevenue').val()) || 0);
+            const cashOut = roundToCurrency(parseFloat($('#cashOutAmount').val()) || 0);
+            const totalSales = roundToCurrency(parseCurrency($('#totalSales').text()));
+
+            const rawTotalRemitted = roundToCurrency(amountEnclosed + gcash + foodpanda + cashOut);
+            const rawVariance = roundToCurrency(rawTotalRemitted - totalSales);
+            const variance = Math.abs(rawVariance) < 0.005 ? 0 : rawVariance;
+            const totalRemitted = roundToCurrency(totalSales + variance);
+
+            return {
+                amountEnclosed,
+                gcash,
+                foodpanda,
+                cashOut,
+                totalSales,
+                totalRemitted,
+                variance
+            };
+        }
+
+        function calculateVariance() {
+            const totals = getRemittanceComputation();
+            const totalRemitted = totals.totalRemitted;
+            const variance = totals.variance;
 
             // Update total remitted display
             $('#totalRemitted').text(formatCurrency(totalRemitted));
@@ -1341,14 +1363,14 @@
                 return;
             }
 
-            // Calculate variance properly with sign
-            const amountEnclosed = parseCurrency($('#amountEnclosed').text());
-            const totalOnlineRevenue = parseFloat($('#totalOnlineRevenue').val()) || 0;
-            const foodPandaRevenue = parseFloat($('#totalFoodPandaRevenue').val()) || 0;
-            const cashOutAmount = parseFloat($('#cashOutAmount').val()) || 0;
-            const totalSales = parseCurrency($('#totalSales').text());
-            const totalRemitted = amountEnclosed + totalOnlineRevenue + foodPandaRevenue + cashOutAmount;
-            const variance = totalRemitted - totalSales;
+            // Use the exact same rounded computation as the UI to avoid save/display drift.
+            const totals = getRemittanceComputation();
+            const amountEnclosed = totals.amountEnclosed;
+            const totalOnlineRevenue = totals.gcash;
+            const foodPandaRevenue = totals.foodpanda;
+            const cashOutAmount = totals.cashOut;
+            const totalSales = totals.totalSales;
+            const variance = totals.variance;
 
             const dailyStockId = $('#dailyStockId').val();
 
