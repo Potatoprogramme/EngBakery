@@ -211,6 +211,47 @@ class SalesController extends BaseController
         $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForInventory($dailyStockId);
         $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
 
+        // Compute discrepancy sales for bakery/grocery:
+        // discrepancy_qty = max(0, inventory_qty_sold - recorded_db_qty_sold)
+        // discrepancy_revenue = discrepancy_qty * item selling price
+        $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStockId);
+        $salesByItem = $this->transactionsModel->getSalesDataByInventory($dailyStockId);
+        $salesByItemMap = [];
+        foreach ($salesByItem as $row) {
+            $salesByItemMap[intval($row['item_id'])] = [
+                'quantity_sold' => intval($row['quantity_sold'] ?? 0),
+                'total_sales' => floatval($row['total_sales'] ?? 0),
+            ];
+        }
+
+        $discrepancyQtyTotal = 0;
+        $discrepancyRevenueTotal = 0.0;
+        foreach ($stockItems as $item) {
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
+            if (!in_array($category, ['bakery', 'grocery'], true)) {
+                continue;
+            }
+
+            $itemId = intval($item['item_id'] ?? 0);
+            $dbQtySold = intval($salesByItemMap[$itemId]['quantity_sold'] ?? 0);
+            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+            $endingStock = intval($item['ending_stock'] ?? 0);
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
+            $discrepancyQty = max(0, $inventoryQtySold - $dbQtySold);
+
+            if ($discrepancyQty <= 0) {
+                continue;
+            }
+
+            $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
+                ? ($item['selling_price_per_piece'] ?? 0)
+                : ($item['selling_price'] ?? 0));
+
+            $discrepancyQtyTotal += $discrepancyQty;
+            $discrepancyRevenueTotal += ($discrepancyQty * $price);
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'data' => [
@@ -224,6 +265,10 @@ class SalesController extends BaseController
                 'credit_card_sales' => ['total_revenue' => $creditCardSales],
                 'debit_card_sales' => ['total_revenue' => $debitCardSales],
                 'panda_sales' => ['total_revenue' => $pandaSales],
+                'discrepancy_sales' => [
+                    'total_items_sold' => $discrepancyQtyTotal,
+                    'total_revenue' => round($discrepancyRevenueTotal, 2),
+                ],
                 'total_orders' => $todaysTotalOrders,
                 'total_items_sold' => $todaysTotalItemsSold,
                 'transaction_ids' => $todaysTransactionIds
@@ -492,7 +537,7 @@ class SalesController extends BaseController
                         'quantity' => $countValue,
                         'created_at' => date('Y-m-d H:i:s')
                     ];
-                    if (! $this->remittanceDenominationsModel->insert($remittanceDenom)) {
+                    if (!$this->remittanceDenominationsModel->insert($remittanceDenom)) {
                         $this->db->transRollback();
                         return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to save remittance denominations']);
                     }
@@ -530,7 +575,7 @@ class SalesController extends BaseController
                         'created_at' => date('Y-m-d H:i:s')
                     ];
 
-                    if (! $this->remittanceItemsModel->insert($remittanceItem)) {
+                    if (!$this->remittanceItemsModel->insert($remittanceItem)) {
                         $this->db->transRollback();
                         return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to save remittance items']);
                     }
@@ -539,7 +584,7 @@ class SalesController extends BaseController
             }
         }
 
-        if (! $this->dailyStockModel->update($dailyStockId, ['is_remitted' => 1])) {
+        if (!$this->dailyStockModel->update($dailyStockId, ['is_remitted' => 1])) {
             $this->db->transRollback();
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Failed to mark inventory as remitted']);
         }
