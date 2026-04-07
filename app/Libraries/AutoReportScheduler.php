@@ -622,12 +622,10 @@ class AutoReportScheduler
                 $end = intval($item['ending_stock'] ?? 0);
                 $inventoryQtySold = max(0, $beg - $po - $end);
 
-                // Keep report qty sold consistent with the inventory screen rules.
+                // Keep report qty sold consistent with the inventory screen for bakery/grocery.
                 $qtySold = $qtySoldFromOrders;
                 if (in_array($category, ['bakery', 'grocery'], true)) {
                     $qtySold = max($qtySoldFromOrders, $inventoryQtySold);
-                } elseif ($category === 'drinks') {
-                    $qtySold = $inventoryQtySold;
                 }
 
                 $srp = self::resolveSrp($item);

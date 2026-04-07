@@ -161,8 +161,21 @@
                 </button>
             </div>
             <div class="p-4 overflow-y-auto">
-                <div id="contentsModalBody" class="space-y-5">
-                    <div class="text-center text-gray-500 py-6">No items found</div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left text-gray-600">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2">Product</th>
+                                <th class="px-4 py-2 text-center">Begin</th>
+                                <th class="px-4 py-2 text-center">Sold</th>
+                                <th class="px-4 py-2 text-center">Pull Out</th>
+                                <th class="px-4 py-2 text-center">Ending</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contentsModalBody">
+                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -229,53 +242,6 @@
 
         function isEnabledStatus(value) {
             return value === 1 || value === '1' || value === true || value === 'true';
-        }
-
-        function getInventoryCategoryLabel(category) {
-            const normalized = String(category || '').toLowerCase();
-            if (normalized === 'bakery') return 'Bread';
-            if (normalized === 'drinks') return 'Drinks';
-            if (normalized === 'grocery') return 'Bottled Water / Grocery';
-            return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : 'Other';
-        }
-
-        function renderInventoryContentsTable(title, rows, soldOnly = false) {
-            const headerHtml = soldOnly
-                ? `
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2">Product</th>
-                            <th class="px-4 py-2 text-center">Qty Sold</th>
-                        </tr>
-                    </thead>
-                `
-                : `
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2">Product</th>
-                            <th class="px-4 py-2 text-center">Begin</th>
-                            <th class="px-4 py-2 text-center">Sold</th>
-                            <th class="px-4 py-2 text-center">Pull Out</th>
-                            <th class="px-4 py-2 text-center">Ending</th>
-                        </tr>
-                    </thead>
-                `;
-
-            return `
-                <section class="rounded-lg border border-gray-200 overflow-hidden">
-                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                        <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wide">${title}</h4>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-left text-gray-600">
-                            ${headerHtml}
-                            <tbody>
-                                ${rows || `<tr><td colspan="${soldOnly ? 2 : 5}" class="px-4 py-4 text-center text-gray-500">No items in this category</td></tr>`}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            `;
         }
 
         function buildStatusBadges(inv) {
@@ -493,68 +459,26 @@
             $('#contentsModalSubtitle').text(`${displayDate} • ${details.length} products`);
 
             if (details.length === 0) {
-                $('#contentsModalBody').html('<div class="text-center text-gray-500 py-6">No items found</div>');
+                $('#contentsModalBody').html('<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>');
                 $('#contentsModal').removeClass('hidden');
                 $('body').addClass('overflow-hidden');
                 return;
             }
 
-            const grouped = {
-                bakery: [],
-                drinks: [],
-                grocery: [],
-                other: []
-            };
-
+            let rows = '';
             details.forEach(item => {
-                const category = String(item.category || '').toLowerCase();
-                if (category === 'bakery') {
-                    grouped.bakery.push(item);
-                } else if (category === 'drinks') {
-                    grouped.drinks.push(item);
-                } else if (category === 'grocery') {
-                    grouped.grocery.push(item);
-                } else {
-                    grouped.other.push(item);
-                }
+                rows += `
+                    <tr class="border-b">
+                        <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                        <td class="px-4 py-2 text-center text-blue-600">${item.beginning_stock}</td>
+                        <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
+                        <td class="px-4 py-2 text-center text-amber-600">${item.pull_out_quantity}</td>
+                        <td class="px-4 py-2 text-center text-gray-700">${item.ending_stock}</td>
+                    </tr>
+                `;
             });
 
-            const sections = [];
-
-            const bakeryRows = grouped.bakery.map(item => `
-                <tr class="border-b">
-                    <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                    <td class="px-4 py-2 text-center text-blue-600">${item.beginning_stock}</td>
-                    <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
-                    <td class="px-4 py-2 text-center text-amber-600">${item.pull_out_quantity}</td>
-                    <td class="px-4 py-2 text-center text-gray-700">${item.ending_stock}</td>
-                </tr>
-            `).join('');
-            if (grouped.bakery.length > 0) {
-                sections.push(renderInventoryContentsTable('Bread', bakeryRows, false));
-            }
-
-            const drinksRows = [...grouped.drinks, ...grouped.other].map(item => `
-                <tr class="border-b">
-                    <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                    <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
-                </tr>
-            `).join('');
-            if (grouped.drinks.length > 0 || grouped.other.length > 0) {
-                sections.push(renderInventoryContentsTable('Drinks / Beverages', drinksRows, true));
-            }
-
-            const groceryRows = grouped.grocery.map(item => `
-                <tr class="border-b">
-                    <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                    <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
-                </tr>
-            `).join('');
-            if (grouped.grocery.length > 0) {
-                sections.push(renderInventoryContentsTable('Bottled Water / Grocery', groceryRows, true));
-            }
-
-            $('#contentsModalBody').html(sections.join(''));
+            $('#contentsModalBody').html(rows);
             $('#contentsModal').removeClass('hidden');
             $('body').addClass('overflow-hidden');
         }

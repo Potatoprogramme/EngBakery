@@ -197,46 +197,10 @@ class SalesController extends BaseController
             ]);
         }
 
-        $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStockId);
-
-        $breadRevenue = 0.0;
-        $drinksRevenue = 0.0;
-        $groceryRevenue = 0.0;
-        $totalItemsSold = 0;
-
-        foreach ($stockItems as $item) {
-            if (intval($item['is_enabled'] ?? 1) !== 1) {
-                continue;
-            }
-
-            $category = strtolower(trim((string) ($item['category'] ?? '')));
-            $beginningStock = intval($item['beginning_stock'] ?? 0);
-            $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
-            $endingStock = intval($item['ending_stock'] ?? 0);
-            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
-
-            $srp = floatval(($item['selling_price_per_piece'] ?? 0) > 0
-                ? ($item['selling_price_per_piece'] ?? 0)
-                : ($item['selling_price'] ?? 0));
-
-            $categoryRevenue = $inventoryQtySold * $srp;
-
-            if ($category === 'bakery') {
-                $breadRevenue += $categoryRevenue;
-                $totalItemsSold += $inventoryQtySold;
-            } elseif ($category === 'drinks') {
-                $drinksRevenue += $categoryRevenue;
-                $totalItemsSold += $inventoryQtySold;
-            } elseif ($category === 'grocery') {
-                $groceryRevenue += $categoryRevenue;
-                $totalItemsSold += $inventoryQtySold;
-            }
-        }
-
-        $breadSales = ['total_revenue' => $breadRevenue];
-        $drinksSales = ['total_revenue' => $drinksRevenue];
-        $doughSales = ['total_revenue' => 0];
-        $grocerySales = ['total_revenue' => $groceryRevenue];
+        $breadSales = $this->transactionsModel->getSalesByCategoryForInventory('bakery', $dailyStockId);
+        $drinksSales = $this->transactionsModel->getSalesByCategoryForInventory('drinks', $dailyStockId);
+        $doughSales = $this->transactionsModel->getSalesByCategoryForInventory('dough', $dailyStockId);
+        $grocerySales = $this->transactionsModel->getSalesByCategoryForInventory('grocery', $dailyStockId);
 
         $gCashSales = $this->orderModel->getSalesByPaymentMethodForInventory('gcash', $dailyStockId);
         $mayaSales = $this->orderModel->getSalesByPaymentMethodForInventory('maya', $dailyStockId);
@@ -244,7 +208,7 @@ class SalesController extends BaseController
         $debitCardSales = $this->orderModel->getSalesByPaymentMethodForInventory('debit card', $dailyStockId);
         $pandaSales = $this->orderModel->getSalesByPaymentMethodForInventory('panda', $dailyStockId);
         $todaysTotalOrders = $this->orderModel->getOrderCountForInventory($dailyStockId);
-        $todaysTotalItemsSold = $totalItemsSold;
+        $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForInventory($dailyStockId);
         $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
 
         return $this->response->setJSON([
@@ -550,7 +514,11 @@ class SalesController extends BaseController
 
         $reportedTotalSales = floatval($data['total_sales'] ?? 0);
         if ($reportedTotalSales > 0 && count($serverTransactionIds) === 0) {
-            log_message('warning', 'Remittance save: no transaction IDs for inventory ' . $dailyStockId . ' with total_sales=' . $reportedTotalSales . '. Continuing because sales may be inventory-derived.');
+            $this->db->transRollback();
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'No eligible transactions found for the selected inventory. Please reload the page and select the inventory again.'
+            ]);
         }
 
         if (count($serverTransactionIds) > 0) {
