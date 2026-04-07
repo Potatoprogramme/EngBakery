@@ -221,6 +221,11 @@
                                             class="fas fa-shopping-basket text-gray-500 mr-2 w-4"></i>Grocery</span>
                                     <span class="font-medium" id="detailGrocerySales">₱0.00</span>
                                 </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600"><i
+                                            class="fas fa-scale-balanced text-orange-500 mr-2 w-4"></i>Discrepancy</span>
+                                    <span class="font-medium text-orange-600" id="detailDiscrepancySales">₱0.00</span>
+                                </div>
                                 <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                                     <span class="font-semibold text-gray-800">Total Sales</span>
                                     <span class="font-bold text-primary" id="detailTotalSales">₱0.00</span>
@@ -397,10 +402,16 @@
             $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.foodpanda_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
 
             // Populate sales by category
-            $('#detailBakerySales').text(formatCurrency(details.bakery_sales || 0));
-            $('#detailCoffeeSales').text(formatCurrency(details.coffee_sales || 0));
-            $('#detailDoughSales').text(formatCurrency(details.dough_sales || 0));
-            $('#detailGrocerySales').text(formatCurrency(details.grocery_sales || 0));
+            const bakerySalesValue = parseFloat(details.bakery_sales) || 0;
+            const coffeeSalesValue = (parseFloat(details.coffee_sales) || 0) + (parseFloat(details.dough_sales) || 0);
+            const grocerySalesValue = parseFloat(details.grocery_sales) || 0;
+            const totalSalesValue = parseFloat(details.total_sales) || 0;
+            const discrepancySalesValue = Math.max(0, totalSalesValue - (bakerySalesValue + coffeeSalesValue + grocerySalesValue));
+
+            $('#detailBakerySales').text(formatCurrency(bakerySalesValue));
+            $('#detailCoffeeSales').text(formatCurrency(coffeeSalesValue));
+            $('#detailGrocerySales').text(formatCurrency(grocerySalesValue));
+            $('#detailDiscrepancySales').text(formatCurrency(discrepancySalesValue));
 
             // Populate denomination breakdown table
             if (denominations && denominations.length > 0) {
@@ -764,9 +775,10 @@
             const onlinePayment = $('#detailGcash').text();
             const foodPandaPayment = $('#detailFoodPanda').text();
             const cashOut = $('#detailCashOut').text();
-            const bakerySales = $('#detailTotalSales').text(); // Using total sales for bakery display
-            const grocerySales = '₱0.00';
-            const coffeeSales = '₱0.00';
+            const bakerySales = $('#detailBakerySales').text();
+            const grocerySales = $('#detailGrocerySales').text();
+            const coffeeSales = $('#detailCoffeeSales').text();
+            const discrepancySales = $('#detailDiscrepancySales').text();
             const totalSales = $('#detailTotalSales').text();
             const variance = $('#detailVariance').text();
 
@@ -944,6 +956,10 @@
                             <td class="sum-label" colspan="2">COFFEE:</td>
                             <td class="sum-value" colspan="2">${coffeeSales}</td>
                         </tr>
+                        <tr>
+                            <td class="sum-label" colspan="2">DISCREPANCY:</td>
+                            <td class="sum-value" colspan="2">${discrepancySales}</td>
+                        </tr>
                         <tr class="total-row">
                             <td class="sum-label" colspan="2">TOTAL SALES:</td>
                             <td class="sum-value" colspan="2">${totalSales}</td>
@@ -1000,6 +1016,10 @@
                 'FoodPanda',
                 'Cash Out',
                 'Cash Out Reason',
+                'Bakery Sales',
+                'Coffee Sales',
+                'Grocery Sales',
+                'Discrepancy Sales',
                 'Total Sales',
                 'Total Remitted',
                 'Variance'
@@ -1008,6 +1028,11 @@
                 const varianceAmount = parseFloat(remittance.variance_amount) || 0;
                 const isShort = parseInt(remittance.is_short) === 1;
                 const variance = isShort ? -varianceAmount : varianceAmount;
+                const bakerySales = parseFloat(remittance.bakery_sales) || 0;
+                const coffeeSales = (parseFloat(remittance.coffee_sales) || 0) + (parseFloat(remittance.dough_sales) || 0);
+                const grocerySales = parseFloat(remittance.grocery_sales) || 0;
+                const totalSales = parseFloat(remittance.total_sales) || 0;
+                const discrepancySales = Math.max(0, totalSales - (bakerySales + coffeeSales + grocerySales));
                 return [
                     remittance.remittance_date,
                     remittance.cashier_name || '',
@@ -1018,7 +1043,11 @@
                     remittance.foodpanda_revenue || 0,
                     remittance.cash_out || 0,
                     remittance.cashout_reason || '',
-                    remittance.total_sales || 0,
+                    bakerySales,
+                    coffeeSales,
+                    grocerySales,
+                    discrepancySales,
+                    totalSales,
                     Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0),
                     variance
                 ];
