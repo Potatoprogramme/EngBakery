@@ -3161,7 +3161,8 @@
             const endingInput = parseInt(payload.ending_stock) || 0;
 
             if (isAdjustmentMode) {
-                const dbQtySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || 0;
+                const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
@@ -3685,8 +3686,8 @@
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySold = parseInt(item.quantity_sold_db) || parseInt(item.quantity_sold) || Math.max(0,
-                    beginningStock - pullOutQty - endingStock);
+                const quantitySoldRaw = parseInt(item.quantity_sold_db);
+                const quantitySold = Number.isNaN(quantitySoldRaw) ? 0 : Math.max(0, quantitySoldRaw);
                 $('#editOldQuantitySold').val(quantitySold);
 
                 if (isAdjustmentMode) {
