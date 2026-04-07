@@ -16,7 +16,7 @@ use App\Libraries\OwnerNotificationPreferences;
  *
  * Design principles
  * ─────────────────
- *  • Idempotent   – database run markers guarantee each slot fires once/day.
+ *  • Idempotent   – daily_stock.report_sent/report_sent_at drive send state.
  *  • Race-safe    – DB named locks prevent concurrent duplicate sends.
  *  • Silent       – all failures are logged; they never surface to the user.
  *  • Zero deps    – reuses the same Services::email() + UsersModel pattern
@@ -26,10 +26,6 @@ use App\Libraries\OwnerNotificationPreferences;
  * ────────────────────────────────────────────────────────────────────────────
  *  AM slot : 15:00 – 15:59  →  afternoon inventory snapshot
  *  PM slot : 20:00 – 20:59  →  end-of-business-day  inventory snapshot
- *
- * DB table (auto-created)
- * ───────────────────────
- *  inventory_report_runs(report_date, slot, sent_at)
  */
 class AutoReportScheduler
 {
@@ -44,11 +40,6 @@ class AutoReportScheduler
         'pm' => ['start_h' => 20, 'end_h' => 21],  // 20:00 – 20:59
     ];
 
-    /**
-     * DB table for scheduled report idempotency.
-     */
-    private const RUNS_TABLE = 'inventory_report_runs';
-
     // =========================================================================
     //  PUBLIC API
     // =========================================================================
@@ -62,8 +53,6 @@ class AutoReportScheduler
         $nowH  = (int) date('G');   // 0–23, no leading zero
         $today = date('Y-m-d');
 
-        self::ensureRunsTableExists();
-
         foreach (self::SLOTS as $slot => $window) {
 
             // ── Is the current hour inside this slot's fire window? ───────
@@ -71,12 +60,14 @@ class AutoReportScheduler
                 continue;
             }
 
-            // ── Fast path: already sent today (DB marker) ────────────────
-            if (self::hasShiftBeenReported($today, $slot)) {
+            $candidate = self::findPendingInventoryForSlot($today, $slot);
+            if (empty($candidate['daily_stock_id'])) {
                 continue;
             }
 
-            $lockName = self::buildDbLockName($today, $slot);
+            $inventoryId = intval($candidate['daily_stock_id']);
+
+            $lockName = self::buildDbLockName($today, $slot, $inventoryId);
             if (!self::acquireDbLock($lockName)) {
                 // Another request/process holds the lock and will process this slot.
                 continue;
@@ -84,19 +75,19 @@ class AutoReportScheduler
 
             try {
                 // ── Double-check inside lock to avoid race duplicates ─────
-                if (self::hasShiftBeenReported($today, $slot)) {
+                $fresh = self::findPendingInventoryForSlot($today, $slot, $inventoryId);
+                if (empty($fresh['daily_stock_id'])) {
                     continue;
                 }
 
-                log_message('info', "AutoReportScheduler: Firing [{$slot}] inventory report for {$today}.");
+                log_message('info', "AutoReportScheduler: Firing [{$slot}] inventory report for {$today} (inventory_id={$inventoryId}).");
 
-                $sent = self::sendInventoryReport($slot, $today);
+                $sent = self::sendInventoryReport($slot, $today, $inventoryId);
 
                 if ($sent) {
-                    self::markShiftReported($today, $slot);
-                    log_message('info', "AutoReportScheduler: [{$slot}] report sent and recorded in DB for {$today}.");
+                    log_message('info', "AutoReportScheduler: [{$slot}] report sent and recorded on daily_stock for inventory_id={$inventoryId}.");
                 } else {
-                    log_message('warning', "AutoReportScheduler: [{$slot}] report not sent (no owners, empty stock, or send failure).");
+                    log_message('warning', "AutoReportScheduler: [{$slot}] report not sent for inventory_id={$inventoryId} (no owners, empty stock, or send failure).");
                 }
 
             } catch (\Throwable $e) {
@@ -176,13 +167,6 @@ class AutoReportScheduler
             ->where('approved', 1)
             ->findAll();
 
-        if (empty($owners)) {
-            return [
-                'success' => false,
-                'message' => 'No approved owner recipients found.',
-            ];
-        }
-
         $isResend = !empty($dailyStock['report_sent_at']);
         $reason = trim((string) $resendReason);
         if ($reason === '') {
@@ -190,6 +174,18 @@ class AutoReportScheduler
         }
 
         $ownerEmails = self::resolveInventoryRecipients($owners);
+        $cashierEmail = self::resolveCashierEmail($cashierUserId);
+        if ($cashierEmail !== '' && !in_array($cashierEmail, $ownerEmails, true)) {
+            $ownerEmails[] = $cashierEmail;
+        }
+
+        if (empty($ownerEmails)) {
+            return [
+                'success' => false,
+                'message' => 'No report recipients found. Please configure owner notification recipients.',
+            ];
+        }
+
         log_message('info', 'AutoReportScheduler: Manual inventory send requested for inventory_id=' . $inventoryId
             . ' date=' . $date
             . ' cashier_user_id=' . intval($cashierUserId ?? 0)
@@ -271,72 +267,29 @@ class AutoReportScheduler
      * @param string $slot  'am' or 'pm'
      * @param string $date  'Y-m-d'
      */
-    private static function sendInventoryReport(string $slot, string $date): bool
+    private static function sendInventoryReport(string $slot, string $date, ?int $inventoryId = null): bool
     {
-        $dailyStockModel = new DailyStockModel();
-        $dailyStock = $dailyStockModel->checkInventoryExists($date);
-        if (!$dailyStock || empty($dailyStock['daily_stock_id'])) {
-            log_message('info', 'AutoReportScheduler: No daily inventory record found. Report skipped.');
-            return false;
-        }
+        $targetInventoryId = intval($inventoryId ?? 0);
 
-        $itemsModel = new DailyStockItemsModel();
-        $allItems = $itemsModel->fetchAllStockItems(intval($dailyStock['daily_stock_id']));
-        if (empty($allItems)) {
-            log_message('info', 'AutoReportScheduler: No inventory products found. Report skipped.');
-            return false;
-        }
-
-        $shiftWindows = self::resolveShiftWindowsForSlot($slot, $date);
-        $shiftReports = self::buildShiftReports($allItems, $date, $shiftWindows);
-        if (empty($shiftReports)) {
-            log_message('info', 'AutoReportScheduler: No shift data available for inventory report. Report skipped.');
-            return false;
-        }
-
-        // ── 3. Resolve owner recipients ──────────────────────────────────────
-        $usersModel = new UsersModel();
-        $owners = $usersModel
-            ->where('employee_type', 'owner')
-            ->where('approved', 1)
-            ->findAll();
-
-        if (empty($owners)) {
-            log_message('warning', 'AutoReportScheduler: No approved owner accounts found. Report not sent.');
-            return false;
-        }
-
-        $ownerEmails = self::resolveInventoryRecipients($owners);
-        $slotMeta = self::resolveSlotMeta($slot, $shiftReports, $date);
-        $slotLabel = $slotMeta['subject_label'] ?? null;
-        $subject = $slotLabel
-            ? ('📦 Inventory Report — ' . $slotLabel . ' — ' . date('F d, Y', strtotime($date)))
-            : ('📦 Inventory Report — ' . date('F d, Y', strtotime($date)));
-
-        $emailBody = self::buildEmailBody($shiftReports, $slot, $date, $slotMeta);
-
-        // ── 4. Send via the configured email service ─────────────────────────
-        try {
-            $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
-            $emailService->setTo($ownerEmails);
-            $emailService->setSubject($subject);
-            $emailService->setMessage($emailBody);
-            $emailService->setMailType('html');
-
-            if ($emailService->send()) {
-                log_message('info', 'AutoReportScheduler: Email dispatched to: ' . implode(', ', $ownerEmails));
-                return true;
+        if ($targetInventoryId <= 0) {
+            $candidate = self::findPendingInventoryForSlot($date, $slot);
+            if (empty($candidate['daily_stock_id'])) {
+                log_message('info', 'AutoReportScheduler: No pending closed inventory found for slot=' . $slot . ' on ' . $date . '.');
+                return false;
             }
 
-            log_message('error', 'AutoReportScheduler: send() returned false. Debug: '
-                . $emailService->printDebugger(['headers']));
-
-        } catch (\Exception $e) {
-            log_message('error', 'AutoReportScheduler: Email exception — ' . $e->getMessage());
+            $targetInventoryId = intval($candidate['daily_stock_id']);
         }
 
-        return false;
+        $sendResult = self::sendManualReportForInventory($targetInventoryId, 'scheduled auto send');
+        if (empty($sendResult['success'])) {
+            log_message('warning', 'AutoReportScheduler: Scheduled send failed for inventory_id=' . $targetInventoryId
+                . '. ' . (($sendResult['message'] ?? '') ?: 'Unknown send failure.'));
+            return false;
+        }
+
+        self::markInventoryReported($targetInventoryId);
+        return true;
     }
 
     // =========================================================================
@@ -968,60 +921,115 @@ class AutoReportScheduler
         ];
     }
 
-    private static function hasShiftBeenReported(string $date, string $slot): bool
+    private static function markInventoryReported(int $inventoryId): void
     {
-        self::ensureRunsTableExists();
-        $db = \Config\Database::connect();
-        $builder = $db->table(self::RUNS_TABLE);
-
-        return $builder
-            ->where('report_date', $date)
-            ->where('slot', $slot)
-            ->countAllResults() > 0;
-    }
-
-    private static function markShiftReported(string $date, string $slot): void
-    {
-        self::ensureRunsTableExists();
-        $db = \Config\Database::connect();
-
-        $db->query(
-            'INSERT INTO ' . self::RUNS_TABLE . ' (report_date, slot, sent_at) VALUES (?, ?, ?) '
-                . 'ON DUPLICATE KEY UPDATE sent_at = VALUES(sent_at)',
-            [$date, $slot, date('Y-m-d H:i:s')]
-        );
-    }
-
-    private static function ensureRunsTableExists(): void
-    {
-        static $ensured = false;
-        if ($ensured) {
+        if ($inventoryId <= 0) {
             return;
         }
 
-        $db = \Config\Database::connect();
-        $table = self::RUNS_TABLE;
-
-        if (!$db->tableExists($table)) {
-            $db->query(
-                "CREATE TABLE IF NOT EXISTS {$table} ("
-                    . 'run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,'
-                    . 'report_date DATE NOT NULL,'
-                    . 'slot VARCHAR(32) NOT NULL,'
-                    . 'sent_at DATETIME NOT NULL,'
-                    . 'created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,'
-                    . 'PRIMARY KEY (run_id),'
-                    . 'UNIQUE KEY uq_inventory_report_runs_date_slot (report_date, slot)'
-                    . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci'
-            );
-        }
-
-        $ensured = true;
+        $dailyStockModel = new DailyStockModel();
+        $dailyStockModel->update($inventoryId, [
+            'report_sent' => 1,
+            'report_sent_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 
-    private static function buildDbLockName(string $date, string $slot): string
+    private static function findPendingInventoryForSlot(string $date, string $slot, ?int $preferredInventoryId = null): ?array
     {
-        return 'engbakery:inventory_report:' . $date . ':' . $slot;
+        $dailyStockModel = new DailyStockModel();
+        $rows = $dailyStockModel
+            ->where('inventory_date', $date)
+            ->where('is_closed', 1)
+            ->where('report_sent', 0)
+            ->where('time_end IS NOT NULL', null, false)
+            ->where('time_end !=', '00:00:00')
+            ->orderBy('time_start', 'ASC')
+            ->orderBy('daily_stock_id', 'ASC')
+            ->findAll();
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        $preferred = intval($preferredInventoryId ?? 0);
+        if ($preferred > 0) {
+            foreach ($rows as $row) {
+                if (intval($row['daily_stock_id'] ?? 0) === $preferred) {
+                    return self::inventoryMatchesSlot($row, $slot, $date) ? $row : null;
+                }
+            }
+
+            return null;
+        }
+
+        foreach ($rows as $row) {
+            if (self::inventoryMatchesSlot($row, $slot, $date)) {
+                return $row;
+            }
+        }
+
+        if (count($rows) === 1) {
+            $fallback = $rows[0];
+            log_message('warning', 'AutoReportScheduler: Using fallback pending inventory_id=' . intval($fallback['daily_stock_id'] ?? 0)
+                . ' for slot=' . $slot . ' date=' . $date . ' due to non-standard shift start.');
+            return $fallback;
+        }
+
+        return null;
+    }
+
+    private static function inventoryMatchesSlot(array $dailyStockRow, string $slot, string $date): bool
+    {
+        $timeStart = self::normalizeTimeString((string) ($dailyStockRow['time_start'] ?? ''));
+        if ($timeStart === '') {
+            return false;
+        }
+
+        $windows = self::resolveShiftWindowsForSlot($slot, $date);
+        if (empty($windows)) {
+            return true;
+        }
+
+        foreach ($windows as $window) {
+            $start = self::normalizeTimeString((string) ($window['start'] ?? ''));
+            $end = self::normalizeTimeString((string) ($window['end'] ?? ''));
+
+            if ($start === '' || $end === '') {
+                continue;
+            }
+
+            if ($timeStart >= $start && $timeStart <= $end) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function normalizeTimeString(string $time): string
+    {
+        $trimmed = trim($time);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        if (strlen($trimmed) === 5) {
+            return $trimmed . ':00';
+        }
+
+        return $trimmed;
+    }
+
+    private static function buildDbLockName(string $date, string $slot, ?int $inventoryId = null): string
+    {
+        $lock = 'engbakery:inventory_report:' . $date . ':' . $slot;
+        $id = intval($inventoryId ?? 0);
+
+        if ($id > 0) {
+            $lock .= ':' . $id;
+        }
+
+        return $lock;
     }
 
     private static function acquireDbLock(string $lockName): bool
@@ -1107,5 +1115,24 @@ class AutoReportScheduler
             'user_id' => $cashierId,
             'name' => $fullName !== '' ? $fullName : 'Unknown',
         ];
+    }
+
+    /**
+     * Resolve cashier email for manual-send copy routing.
+     */
+    private static function resolveCashierEmail(?int $cashierUserId): string
+    {
+        $cashierId = intval($cashierUserId ?? 0);
+        if ($cashierId <= 0) {
+            return '';
+        }
+
+        $usersModel = new UsersModel();
+        $cashier = $usersModel->find($cashierId);
+        if (empty($cashier)) {
+            return '';
+        }
+
+        return trim((string) ($cashier['email'] ?? ''));
     }
 }
