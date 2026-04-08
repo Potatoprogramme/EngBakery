@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class OrderModel extends Model
 {
+    private const MANUAL_DRINK_ADJ_PREFIX = 'MANUAL_DRINK_ADJ|';
+
     protected $table = 'orders';
     protected $primaryKey = 'order_id';
     protected $returnType = 'array';
@@ -83,6 +85,11 @@ class OrderModel extends Model
             $builder->where('order_type', $orderType);
         }
 
+        $builder->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd();
+
         $builder->orderBy('date_created', 'DESC');
         $builder->orderBy('time_created', 'DESC');
 
@@ -128,6 +135,9 @@ class OrderModel extends Model
 
         $where = ['o.voided_at IS NULL'];
         $params = [];
+
+        $where[] = '(o.distributed_note IS NULL OR o.distributed_note NOT LIKE ?)';
+        $params[] = self::MANUAL_DRINK_ADJ_PREFIX . '%';
 
         if (!empty($dateFrom)) {
             $where[] = 'o.date_created >= ?';
@@ -201,7 +211,13 @@ class OrderModel extends Model
     public function getTodaysOrderCount(): int
     {
         $today = date('Y-m-d');
-        return $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
+        return $this->where('date_created', $today)
+            ->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
+            ->countAllResults();
     }
 
     /**
@@ -414,6 +430,10 @@ class OrderModel extends Model
             ->where('time_created >=', $shiftStart)
             ->where('time_created <=', $shiftEnd)
             ->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
             ->countAllResults();
     }
 
@@ -457,7 +477,83 @@ class OrderModel extends Model
             ->getCompiledSelect();
 
         return $this->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
             ->where("order_id IN ($transactionSubquery)", null, false)
             ->countAllResults();
+    }
+
+    /**
+     * Find the active tagged manual drinks adjustment order.
+     */
+    public function findManualDrinkAdjustmentOrder(string $marker): ?array
+    {
+        return $this->where('distributed_note', $marker)
+            ->where('voided_at IS NULL')
+            ->orderBy('order_id', 'DESC')
+            ->first();
+    }
+
+    /**
+     * Create an internal manual drinks adjustment order using current schema only.
+     */
+    public function createManualDrinkAdjustmentOrder(array $data): int|false
+    {
+        $orderData = [
+            'total_payment_due' => floatval($data['total_payment_due'] ?? 0),
+            'amount_received' => floatval($data['amount_received'] ?? 0),
+            'amount_change' => floatval($data['amount_change'] ?? 0),
+            'payment_method' => (string) ($data['payment_method'] ?? 'cash'),
+            'order_type' => 'distributed',
+            'distributed_note' => (string) ($data['distributed_note'] ?? ''),
+            'date_created' => (string) ($data['date_created'] ?? date('Y-m-d')),
+            'time_created' => (string) ($data['time_created'] ?? date('H:i:s')),
+            'voided_at' => null,
+            'voided_by' => null,
+        ];
+
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $orderData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        }
+
+        if ($this->db->fieldExists('cashier_name', $this->table)) {
+            $orderData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'System'));
+        }
+
+        if (!$this->insert($orderData)) {
+            return false;
+        }
+
+        return intval($this->insertID());
+    }
+
+    /**
+     * Update a tagged manual drinks adjustment order.
+     */
+    public function updateManualDrinkAdjustmentOrder(int $orderId, array $data): bool
+    {
+        $updateData = [
+            'total_payment_due' => floatval($data['total_payment_due'] ?? 0),
+            'amount_received' => floatval($data['amount_received'] ?? 0),
+            'amount_change' => floatval($data['amount_change'] ?? 0),
+            'payment_method' => (string) ($data['payment_method'] ?? 'cash'),
+            'distributed_note' => (string) ($data['distributed_note'] ?? ''),
+            'date_created' => (string) ($data['date_created'] ?? date('Y-m-d')),
+            'time_created' => (string) ($data['time_created'] ?? date('H:i:s')),
+            'voided_at' => null,
+            'voided_by' => null,
+        ];
+
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $updateData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        }
+
+        if ($this->db->fieldExists('cashier_name', $this->table)) {
+            $updateData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'System'));
+        }
+
+        return $this->update($orderId, $updateData);
     }
 }

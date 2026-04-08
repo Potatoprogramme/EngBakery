@@ -124,9 +124,86 @@ class TransactionsModel extends Model
             ->where('date_created', $date)
             ->where('time_created >=', $startTime)
             ->where('time_created <=', $endTime)
+            ->where('deleted_at IS NULL')
             ->groupBy('item_id')
             ->get()
             ->getResultArray();
+    }
+
+    /**
+     * Get baseline (non-manual-adjustment) sales for a drinks inventory item.
+     *
+     * Baseline excludes tagged manual drink adjustment orders.
+     */
+    public function getDrinksBaselineSalesForItem(int $itemId, string $manualMarkerPrefix = 'MANUAL_DRINK_ADJ|'): array
+    {
+        $row = $this->db->query(
+            "SELECT
+                COALESCE(SUM(t.quantity_sold), 0) AS quantity_sold,
+                COALESCE(SUM(t.total_sales), 0) AS total_sales
+             FROM transactions t
+             LEFT JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND (o.order_id IS NULL OR o.voided_at IS NULL)
+               AND (o.order_id IS NULL OR o.distributed_note IS NULL OR o.distributed_note NOT LIKE ?)",
+            [$itemId, $manualMarkerPrefix . '%']
+        )->getRowArray();
+
+        return [
+            'quantity_sold' => intval($row['quantity_sold'] ?? 0),
+            'total_sales' => floatval($row['total_sales'] ?? 0),
+        ];
+    }
+
+    /**
+     * Get active tagged manual drinks adjustment transaction for an inventory item.
+     */
+    public function getManualDrinkAdjustmentForItemByMarker(int $itemId, string $marker): ?array
+    {
+        $row = $this->db->query(
+            "SELECT
+                t.sale_id,
+                t.order_id,
+                t.quantity_sold,
+                t.total_sales,
+                o.payment_method,
+                o.distributed_note
+             FROM transactions t
+             INNER JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND o.voided_at IS NULL
+               AND o.distributed_note = ?
+             ORDER BY t.sale_id DESC
+             LIMIT 1",
+            [$itemId, $marker]
+        )->getRowArray();
+
+        return $row ?: null;
+    }
+
+    /**
+     * Get current effective sales for a specific inventory item.
+     */
+    public function getNetSalesForItem(int $itemId): array
+    {
+        $row = $this->db->query(
+            "SELECT
+                COALESCE(SUM(t.quantity_sold), 0) AS quantity_sold,
+                COALESCE(SUM(t.total_sales), 0) AS total_sales
+             FROM transactions t
+             LEFT JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND (o.order_id IS NULL OR o.voided_at IS NULL)",
+            [$itemId]
+        )->getRowArray();
+
+        return [
+            'quantity_sold' => intval($row['quantity_sold'] ?? 0),
+            'total_sales' => floatval($row['total_sales'] ?? 0),
+        ];
     }
 
     /** 

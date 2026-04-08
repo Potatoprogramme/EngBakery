@@ -637,6 +637,7 @@ class AutoReportScheduler
              WHERE t.date_created = ?
                AND o.time_created >= ?
                AND o.time_created <= ?
+                             AND t.deleted_at IS NULL
                AND o.voided_at IS NULL";
 
         $params = [$date, $start, $end];
