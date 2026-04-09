@@ -571,7 +571,8 @@
                     <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                         <div class="flex items-center gap-1.5 text-xs text-amber-700">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <span>This inventory is already remitted. Saving will create a post-remittance correction.</span>
+                            <span>This inventory is already remitted. Saving will create a post-remittance
+                                correction.</span>
                         </div>
                     </div>
                 </div>
@@ -3741,6 +3742,10 @@
                     );
                     $('#editNotesGroup').addClass('hidden');
                     $('#editNotes').val('');
+                    $('#editNotes').removeAttr('required').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                    editPreviewUiState.notesRequired = false;
 
                     $('#editBeginningStock').val(quantitySoldDisplay).attr('min', quantitySold);
                     $('#editPullOutQuantity').val(0).attr('min', 0);
@@ -3828,10 +3833,7 @@
         }
 
         function runEditPreviewUpdate(source = 'generic') {
-            const category = ($('#editCategory').val() || '').toLowerCase();
-            if (category !== 'drinks') {
-                updateBeginningStockDisplay();
-            }
+            updateBeginningStockDisplay();
             updateRemainingPreview(source);
         }
 
