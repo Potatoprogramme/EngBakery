@@ -120,6 +120,11 @@ class InventoryController extends BaseController
                 // DB qty sold is the floor/source-of-truth for bakery/grocery.
                 $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
                 $addedQtySold = max(0, $inventoryQtySold - $dbQtySold);
+            } elseif ($category === 'drinks') {
+                $baseline = $this->transactionsModel->getDrinksBaselineSalesForItem(intval($item['item_id']), self::MANUAL_DRINK_ADJ_PREFIX);
+                $dbQtySold = intval($baseline['quantity_sold'] ?? 0);
+                $effectiveQtySold = max($dbQtySold, intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0));
+                $addedQtySold = max(0, $effectiveQtySold - $dbQtySold);
             } else {
                 $effectiveQtySold = $dbQtySold;
                 $addedQtySold = 0;
@@ -1154,15 +1159,6 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $currentSales = $this->transactionsModel->getNetSalesForItem($itemId);
-        $currentQtySold = intval($currentSales['quantity_sold'] ?? 0);
-        if ($targetQty < $currentQtySold) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Target quantity sold cannot be below current value (' . $currentQtySold . ').'
-            ]);
-        }
-
         $dailyStockId = intval($item['daily_stock_id'] ?? 0);
         $dailyStock = $dailyStockId > 0 ? $this->dailyStockModel->find($dailyStockId) : null;
         if (empty($dailyStock)) {
@@ -1186,6 +1182,13 @@ class InventoryController extends BaseController
         $existingAdjustment = $this->transactionsModel->getManualDrinkAdjustmentForItemByMarker($itemId, $marker);
         $existingAdjustmentQty = intval($existingAdjustment['quantity_sold'] ?? 0);
         $baselineQty = intval($baseline['quantity_sold'] ?? 0);
+
+        if ($targetQty < $baselineQty) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Target quantity sold cannot be below DB source-of-truth (' . $baselineQty . ').'
+            ]);
+        }
 
         $desiredAdjustmentQty = $targetQty - $baselineQty;
         $adjustmentDelta = $desiredAdjustmentQty - $existingAdjustmentQty;
@@ -1227,10 +1230,7 @@ class InventoryController extends BaseController
         $signedTotalSales = round($sellingPrice * $desiredAdjustmentQty, 2);
         $existingOrder = $this->orderModel->findManualDrinkAdjustmentOrder($marker);
         $orderId = intval($existingOrder['order_id'] ?? 0);
-        $paymentMethod = strtolower(trim((string) ($existingOrder['payment_method'] ?? '')));
-        if ($paymentMethod === '') {
-            $paymentMethod = 'cash';
-        }
+        $paymentMethod = 'cash';
 
         try {
             $this->db->transBegin();
@@ -1360,6 +1360,7 @@ class InventoryController extends BaseController
                 'item_id' => $itemId,
                 'baseline_qty_sold' => $baselineQty,
                 'manual_adjustment_qty' => $desiredAdjustmentQty,
+                'discrepancy_qty' => max(0, $desiredAdjustmentQty),
                 'target_qty_sold' => $targetQty,
                 'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
                 'adjustment_delta' => $adjustmentDelta,

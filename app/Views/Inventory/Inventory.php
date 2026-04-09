@@ -510,6 +510,7 @@
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
                 <input type="hidden" id="editOldQuantitySold" value="0">
+                <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
                 <div class="mb-4" id="editBeginningGroup">
@@ -3178,15 +3179,21 @@
             const endingInput = parseInt(payload.ending_stock) || 0;
 
             if (isDrinksMode) {
+                const dbQtyFromResponse = parseInt(responseData && responseData.baseline_qty_sold);
                 const targetQtyFromResponse = parseInt(responseData && responseData.target_qty_sold);
                 const targetQtyFromPayload = parseInt(payload.quantity_sold_target);
+
+                const dbQtySold = Number.isNaN(dbQtyFromResponse) ?
+                    Math.max(0, parseInt(item.quantity_sold_db) || 0) :
+                    Math.max(0, dbQtyFromResponse);
+
                 const targetQty = Number.isNaN(targetQtyFromResponse) ?
-                    (Number.isNaN(targetQtyFromPayload) ? 0 : Math.max(0, targetQtyFromPayload)) :
-                    Math.max(0, targetQtyFromResponse);
+                    (Number.isNaN(targetQtyFromPayload) ? dbQtySold : Math.max(dbQtySold, targetQtyFromPayload)) :
+                    Math.max(dbQtySold, targetQtyFromResponse);
 
                 item.quantity_sold = targetQty;
-                item.quantity_sold_db = targetQty;
-                item.discrepancy = 0;
+                item.quantity_sold_db = dbQtySold;
+                item.discrepancy = Math.max(0, targetQty - dbQtySold);
             } else if (isAdjustmentMode) {
                 const dbQtySoldRaw = parseInt(item.quantity_sold_db);
                 const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
@@ -3725,9 +3732,10 @@
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySoldRaw = parseInt(isDrinksMode ? item.quantity_sold : item.quantity_sold_db);
-                const quantitySold = Number.isNaN(quantitySoldRaw) ? quantitySoldDisplay : Math.max(0, quantitySoldRaw);
-                $('#editOldQuantitySold').val(quantitySold);
+                const dbQuantitySoldRaw = parseInt(item.quantity_sold_db);
+                const dbQuantitySold = Number.isNaN(dbQuantitySoldRaw) ? Math.max(0, quantitySoldDisplay) : Math.max(0, dbQuantitySoldRaw);
+                $('#editOldQuantitySold').val(dbQuantitySold);
+                $('#editCurrentQuantitySold').val(quantitySoldDisplay);
 
                 $('#editBeginningGroup').removeClass('hidden');
                 $('#editPullOutGroup').removeClass('hidden');
@@ -3735,10 +3743,10 @@
                 $('#editEndingGroup').addClass('hidden');
 
                 if (isDrinksMode) {
-                    $('#editBeginningLabel').text('Final Qty Sold');
-                    $('#editBeginningHint').text('Use - and + to adjust from current. Final Qty Sold cannot go below current value.');
+                    $('#editBeginningLabel').text('Qty Sold Adjustment');
+                    $('#editBeginningHint').text('Use + to increase or - to decrease from current Qty Sold. Final Qty Sold cannot go below DB Qty Sold.');
                     $('#editAdjustmentGuide').removeClass('hidden').html(
-                        '<strong>Drinks Mode:</strong> Set the final Qty Sold directly. You can increase it, but not below current.'
+                        '<strong>Drinks Mode:</strong> Enter an adjustment value. DB Qty Sold is the minimum/source-of-truth. Manual deltas become discrepancy.'
                     );
                     $('#editNotesGroup').addClass('hidden');
                     $('#editNotes').val('');
@@ -3747,7 +3755,7 @@
                     $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
                     editPreviewUiState.notesRequired = false;
 
-                    $('#editBeginningStock').val(quantitySoldDisplay).attr('min', quantitySold);
+                    $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(0).attr('min', 0);
 
@@ -3852,8 +3860,10 @@
             const current = parseInt($('#editBeginningStock').val()) || 0;
             const category = ($('#editCategory').val() || '').toLowerCase();
             if (category === 'drinks') {
-                const floorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
-                $('#editBeginningStock').val(Math.max(floorQty, current - 1));
+                const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                const currentQty = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQty;
+                $('#editBeginningStock').val(Math.max(minDelta, current - 1));
                 runEditPreviewUpdate('beginning');
                 return;
             }
@@ -3909,18 +3919,22 @@
             let projectedRemaining = 0;
 
             if (isDrinksMode) {
-                const minAllowedQty = Math.max(0, oldQtySold);
-                const targetQtySold = Math.max(minAllowedQty, beginningInput);
-                if (targetQtySold !== beginningInput) {
-                    $('#editBeginningStock').val(targetQtySold);
+                const dbFloorQty = Math.max(0, oldQtySold);
+                const currentQtySold = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQtySold;
+                const qtyAdjustment = Math.max(minDelta, beginningInput);
+                if (qtyAdjustment !== beginningInput) {
+                    $('#editBeginningStock').val(qtyAdjustment);
                 }
-                const adjustmentDelta = targetQtySold - oldQtySold;
-                const deltaLabel = adjustmentDelta > 0 ? ('+' + adjustmentDelta) : String(adjustmentDelta);
+                const targetQtySold = Math.max(dbFloorQty, currentQtySold + qtyAdjustment);
+                const deltaLabel = qtyAdjustment > 0 ? ('+' + qtyAdjustment) : String(qtyAdjustment);
                 const nextHint =
                     '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-1">' +
-                    '  <div><span class="text-gray-500">Current Qty Sold:</span> <span class="font-semibold text-gray-800">' + oldQtySold + '</span></div>' +
-                    '  <div><span class="text-gray-500">Target Qty Sold:</span> <span class="font-semibold text-indigo-700">' + targetQtySold + '</span></div>' +
-                    '  <div><span class="text-gray-500">Manual Adjustment:</span> <span class="font-semibold text-emerald-700">' + deltaLabel + '</span></div>' +
+                    '  <div><span class="text-gray-500">DB Qty Sold (minimum):</span> <span class="font-semibold text-teal-700">' + dbFloorQty + '</span></div>' +
+                    '  <div><span class="text-gray-500">Current Qty Sold:</span> <span class="font-semibold text-gray-800">' + currentQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Adjustment:</span> <span class="font-semibold text-emerald-700">' + deltaLabel + '</span></div>' +
+                    '  <div><span class="text-gray-500">Final Qty Sold:</span> <span class="font-semibold text-indigo-700">' + targetQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Discrepancy:</span> <span class="font-semibold text-rose-700">+' + Math.max(0, targetQtySold - dbFloorQty) + '</span></div>' +
                     '</div>';
 
                 if (editPreviewUiState.remainingHint !== nextHint) {
@@ -4223,22 +4237,26 @@
             let payload;
 
             if (isDrinksMode) {
-                const targetQtySold = parseInt($('#editBeginningStock').val());
+                const qtyAdjustmentInput = parseInt($('#editBeginningStock').val());
                 const isRemitted = $('#editIsRemitted').val() === '1';
-                const minAllowedQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                const currentQtySold = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQtySold;
 
-                if (Number.isNaN(targetQtySold) || targetQtySold < 0) {
-                    showToast('warning', 'Final Qty Sold must be zero or greater.', 2500);
+                if (Number.isNaN(qtyAdjustmentInput)) {
+                    showToast('warning', 'Qty Sold adjustment must be a valid number.', 2500);
                     restoreSubmitButton();
                     return;
                 }
 
-                if (targetQtySold < minAllowedQty) {
-                    showToast('warning', 'Final Qty Sold cannot be below current value (' + minAllowedQty + ').', 2800);
-                    $('#editBeginningStock').val(minAllowedQty);
+                if (qtyAdjustmentInput < minDelta) {
+                    showToast('warning', 'Adjustment is too low. Final Qty Sold cannot go below DB Qty Sold (' + dbFloorQty + ').', 2800);
+                    $('#editBeginningStock').val(minDelta);
                     restoreSubmitButton();
                     return;
                 }
+
+                const targetQtySold = Math.max(dbFloorQty, currentQtySold + qtyAdjustmentInput);
 
                 if (isRemitted) {
                     const proceed = window.confirm(
