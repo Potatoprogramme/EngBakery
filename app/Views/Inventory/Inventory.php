@@ -3735,14 +3735,14 @@
 
                 if (isDrinksMode) {
                     $('#editBeginningLabel').text('Final Qty Sold');
-                    $('#editBeginningHint').text('Use - and + to set the final sold quantity for this drinks item.');
+                    $('#editBeginningHint').text('Use - and + to adjust from current. Final Qty Sold cannot go below current value.');
                     $('#editAdjustmentGuide').removeClass('hidden').html(
-                        '<strong>Drinks Mode:</strong> Set the final Qty Sold directly. This writes an internal adjustment record.'
+                        '<strong>Drinks Mode:</strong> Set the final Qty Sold directly. You can increase it, but not below current.'
                     );
                     $('#editNotesGroup').addClass('hidden');
                     $('#editNotes').val('');
 
-                    $('#editBeginningStock').val(quantitySoldDisplay).attr('min', 0);
+                    $('#editBeginningStock').val(quantitySoldDisplay).attr('min', quantitySold);
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(0).attr('min', 0);
 
@@ -3848,6 +3848,13 @@
 
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            if (category === 'drinks') {
+                const floorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                $('#editBeginningStock').val(Math.max(floorQty, current - 1));
+                runEditPreviewUpdate('beginning');
+                return;
+            }
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
             runEditPreviewUpdate('beginning');
@@ -3900,7 +3907,11 @@
             let projectedRemaining = 0;
 
             if (isDrinksMode) {
-                const targetQtySold = Math.max(0, beginningInput);
+                const minAllowedQty = Math.max(0, oldQtySold);
+                const targetQtySold = Math.max(minAllowedQty, beginningInput);
+                if (targetQtySold !== beginningInput) {
+                    $('#editBeginningStock').val(targetQtySold);
+                }
                 const adjustmentDelta = targetQtySold - oldQtySold;
                 const deltaLabel = adjustmentDelta > 0 ? ('+' + adjustmentDelta) : String(adjustmentDelta);
                 const nextHint =
@@ -4212,9 +4223,17 @@
             if (isDrinksMode) {
                 const targetQtySold = parseInt($('#editBeginningStock').val());
                 const isRemitted = $('#editIsRemitted').val() === '1';
+                const minAllowedQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
 
                 if (Number.isNaN(targetQtySold) || targetQtySold < 0) {
                     showToast('warning', 'Final Qty Sold must be zero or greater.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (targetQtySold < minAllowedQty) {
+                    showToast('warning', 'Final Qty Sold cannot be below current value (' + minAllowedQty + ').', 2800);
+                    $('#editBeginningStock').val(minAllowedQty);
                     restoreSubmitButton();
                     return;
                 }

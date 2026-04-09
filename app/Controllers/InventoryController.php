@@ -1154,6 +1154,15 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $currentSales = $this->transactionsModel->getNetSalesForItem($itemId);
+        $currentQtySold = intval($currentSales['quantity_sold'] ?? 0);
+        if ($targetQty < $currentQtySold) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Target quantity sold cannot be below current value (' . $currentQtySold . ').'
+            ]);
+        }
+
         $dailyStockId = intval($item['daily_stock_id'] ?? 0);
         $dailyStock = $dailyStockId > 0 ? $this->dailyStockModel->find($dailyStockId) : null;
         if (empty($dailyStock)) {
