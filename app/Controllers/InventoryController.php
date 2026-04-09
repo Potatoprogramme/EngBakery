@@ -6,6 +6,8 @@ use App\Libraries\DistributionQuantityCalculator;
 
 class InventoryController extends BaseController
 {
+    private const MANUAL_DRINK_ADJ_PREFIX = 'MANUAL_DRINK_ADJ|';
+
     /**
      * Keep open-shift semantics as NULL when the schema allows it.
      * Fallback to a safe placeholder for legacy schemas where time_end is NOT NULL.
@@ -140,6 +142,8 @@ class InventoryController extends BaseController
                 'data' => $daily_stock_items,
                 'inventory_id' => $daily_stock['daily_stock_id'],
                 'is_closed' => $daily_stock['is_closed'] ?? 0,
+                'report_sent' => $daily_stock['report_sent'] ?? 0,
+                'is_remitted' => $daily_stock['is_remitted'] ?? 0,
                 'message' => 'Inventory fetched successfully.'
             ]);
         } else {
@@ -883,7 +887,7 @@ class InventoryController extends BaseController
     {
         $json = $this->request->getJSON();
 
-        if (!$json || !isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+        if (!$json) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Invalid input data'
@@ -899,15 +903,25 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $productId = intval($item['product_id'] ?? 0);
+        $product = $productId > 0 ? $this->productModel->find($productId) : null;
+        $productCategory = strtolower(trim((string) ($product['category'] ?? '')));
+
+        if ($productCategory === 'drinks') {
+            return $this->updateDrinksStockItem(intval($item_id), $item, $json);
+        }
+
+        if (!isset($json->beginning_stock) || !isset($json->pull_out_quantity)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Beginning and pull out values are required.'
+            ]);
+        }
+
         $rawAdjustmentMode = $json->adjustment_mode ?? null;
         $clientAdjustmentMode = in_array($rawAdjustmentMode, [true, 1, '1', 'true', 'TRUE'], true);
 
-        $categoryAdjustmentMode = false;
-        if (isset($item['product_id'])) {
-            $product = $this->productModel->find(intval($item['product_id']));
-            $productCategory = strtolower(trim($product['category'] ?? ''));
-            $categoryAdjustmentMode = in_array($productCategory, ['bakery', 'grocery'], true);
-        }
+        $categoryAdjustmentMode = in_array($productCategory, ['bakery', 'grocery'], true);
 
         // Prefer server-side category rules, and keep client flag as fallback for compatibility.
         $isAdjustmentMode = $categoryAdjustmentMode || $clientAdjustmentMode;
@@ -935,7 +949,6 @@ class InventoryController extends BaseController
         $inputPullOut = intval($json->pull_out_quantity);
         $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
         $notes = isset($json->notes) ? trim($json->notes) : null;
-        $productId = intval($item['product_id'] ?? 0);
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         if ($isAdjustmentMode) {
@@ -1076,6 +1089,283 @@ class InventoryController extends BaseController
                 'errors' => $this->dailyStockItemsModel->errors()
             ]);
         }
+    }
+
+    private function buildManualDrinkAdjustmentMarker(array $item): string
+    {
+        $dailyStockId = intval($item['daily_stock_id'] ?? 0);
+        $itemId = intval($item['item_id'] ?? 0);
+
+        return self::MANUAL_DRINK_ADJ_PREFIX . $dailyStockId . '|' . $itemId;
+    }
+
+    private function resolveDrinkSellingPrice(int $productId): float
+    {
+        $costData = $this->productCostModel
+            ->where('product_id', $productId)
+            ->orderBy('product_cost_id', 'DESC')
+            ->first();
+
+        if (empty($costData)) {
+            return 0.0;
+        }
+
+        $pricePerPiece = floatval($costData['selling_price_per_piece'] ?? 0);
+        $price = $pricePerPiece > 0
+            ? $pricePerPiece
+            : floatval($costData['selling_price'] ?? 0);
+
+        return max(0, $price);
+    }
+
+    private function rollbackDrinkIngredientAdjustment(int $productId, int $adjustmentDelta): void
+    {
+        if ($adjustmentDelta === 0 || $productId <= 0) {
+            return;
+        }
+
+        try {
+            if ($adjustmentDelta > 0) {
+                $this->rawMaterialStockModel->restoreForProduction($productId, $adjustmentDelta);
+                return;
+            }
+
+            $this->rawMaterialStockModel->deductForProduction($productId, abs($adjustmentDelta));
+        } catch (\Throwable $e) {
+            log_message('error', 'rollbackDrinkIngredientAdjustment failed: ' . $e->getMessage());
+        }
+    }
+
+    private function updateDrinksStockItem(int $itemId, array $item, object $json)
+    {
+        $targetQtyRaw = $json->quantity_sold_target ?? null;
+        if ($targetQtyRaw === null || !is_numeric($targetQtyRaw)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Target quantity sold is required for drinks updates.'
+            ]);
+        }
+
+        $targetQty = intval($targetQtyRaw);
+        if ($targetQty < 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Quantity sold cannot be negative.'
+            ]);
+        }
+
+        $currentSales = $this->transactionsModel->getNetSalesForItem($itemId);
+        $currentQtySold = intval($currentSales['quantity_sold'] ?? 0);
+        if ($targetQty < $currentQtySold) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Target quantity sold cannot be below current value (' . $currentQtySold . ').'
+            ]);
+        }
+
+        $dailyStockId = intval($item['daily_stock_id'] ?? 0);
+        $dailyStock = $dailyStockId > 0 ? $this->dailyStockModel->find($dailyStockId) : null;
+        if (empty($dailyStock)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Inventory record not found for this item.'
+            ]);
+        }
+
+        $inventoryDate = (string) ($dailyStock['inventory_date'] ?? date('Y-m-d'));
+        $inventoryTime = trim((string) ($dailyStock['time_end'] ?? ''));
+        if ($inventoryTime === '' || $inventoryTime === '00:00:00') {
+            $inventoryTime = date('H:i:s');
+        }
+
+        $productId = intval($item['product_id'] ?? 0);
+        $sellingPrice = $this->resolveDrinkSellingPrice($productId);
+        $marker = $this->buildManualDrinkAdjustmentMarker($item);
+
+        $baseline = $this->transactionsModel->getDrinksBaselineSalesForItem($itemId, self::MANUAL_DRINK_ADJ_PREFIX);
+        $existingAdjustment = $this->transactionsModel->getManualDrinkAdjustmentForItemByMarker($itemId, $marker);
+        $existingAdjustmentQty = intval($existingAdjustment['quantity_sold'] ?? 0);
+        $baselineQty = intval($baseline['quantity_sold'] ?? 0);
+
+        $desiredAdjustmentQty = $targetQty - $baselineQty;
+        $adjustmentDelta = $desiredAdjustmentQty - $existingAdjustmentQty;
+
+        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+        if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
+            if ($adjustmentDelta > 0) {
+                $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $adjustmentDelta);
+                if (empty($deductResult['success'])) {
+                    $shortMaterials = array_filter($deductResult['deductions'] ?? [], fn($d) => !empty($d['insufficient']));
+                    $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => $deductResult['message'] ?? 'Cannot apply drinks quantity increase due to insufficient ingredients.',
+                        'insufficient_materials' => array_values($shortNames),
+                        'preview' => $deductResult,
+                    ]);
+                }
+            } else {
+                $restoreResult = $this->rawMaterialStockModel->restoreForProduction($productId, abs($adjustmentDelta));
+                if (empty($restoreResult['success'])) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => $restoreResult['message'] ?? 'Cannot apply drinks quantity decrease due to raw-material restore failure.',
+                        'preview' => $restoreResult,
+                    ]);
+                }
+            }
+        }
+
+        $sessionData = $this->getSessionData();
+        $cashierId = intval($sessionData['user_id'] ?? 0);
+        $cashierName = trim((string) ($sessionData['name'] ?? 'System'));
+        if ($cashierName === '') {
+            $cashierName = 'System';
+        }
+
+        $signedTotalSales = round($sellingPrice * $desiredAdjustmentQty, 2);
+        $existingOrder = $this->orderModel->findManualDrinkAdjustmentOrder($marker);
+        $orderId = intval($existingOrder['order_id'] ?? 0);
+        $paymentMethod = strtolower(trim((string) ($existingOrder['payment_method'] ?? '')));
+        if ($paymentMethod === '') {
+            $paymentMethod = 'cash';
+        }
+
+        try {
+            $this->db->transBegin();
+
+            if ($desiredAdjustmentQty === 0) {
+                if ($orderId > 0) {
+                    $deletedAt = date('Y-m-d H:i:s');
+
+                    $this->transactionsModel
+                        ->builder()
+                        ->where('order_id', $orderId)
+                        ->where('item_id', $itemId)
+                        ->update(['deleted_at' => $deletedAt]);
+
+                    $this->orderModel->update($orderId, [
+                        'total_payment_due' => 0,
+                        'amount_received' => 0,
+                        'amount_change' => 0,
+                        'voided_at' => $deletedAt,
+                        'voided_by' => $cashierId > 0 ? strval($cashierId) : 'system',
+                    ]);
+                }
+            } else {
+                $orderPayload = [
+                    'total_payment_due' => $signedTotalSales,
+                    'amount_received' => $signedTotalSales,
+                    'amount_change' => 0,
+                    'payment_method' => $paymentMethod,
+                    'distributed_note' => $marker,
+                    'date_created' => $inventoryDate,
+                    'time_created' => $inventoryTime,
+                    'cashier_id' => $cashierId,
+                    'cashier_name' => $cashierName,
+                ];
+
+                if ($orderId > 0) {
+                    if (!$this->orderModel->updateManualDrinkAdjustmentOrder($orderId, $orderPayload)) {
+                        throw new \RuntimeException('Failed to update drinks adjustment order.');
+                    }
+                } else {
+                    $orderId = intval($this->orderModel->createManualDrinkAdjustmentOrder($orderPayload));
+                    if ($orderId <= 0) {
+                        throw new \RuntimeException('Failed to create drinks adjustment order.');
+                    }
+                }
+
+                $orderItemData = [
+                    'order_id' => $orderId,
+                    'product_id' => $productId,
+                    'amount' => $desiredAdjustmentQty,
+                    'cost_per_item' => $sellingPrice,
+                    'total_cost_of_item' => $signedTotalSales,
+                    'date_created' => $inventoryDate,
+                    'time_created' => $inventoryTime,
+                ];
+
+                $existingOrderItem = $this->orderItemModel
+                    ->where('order_id', $orderId)
+                    ->where('product_id', $productId)
+                    ->first();
+
+                if (!empty($existingOrderItem['order_item_id'])) {
+                    if (!$this->orderItemModel->update(intval($existingOrderItem['order_item_id']), $orderItemData)) {
+                        throw new \RuntimeException('Failed to update drinks adjustment order item.');
+                    }
+                } else {
+                    if (!$this->orderItemModel->insert($orderItemData)) {
+                        throw new \RuntimeException('Failed to insert drinks adjustment order item.');
+                    }
+                }
+
+                $existingTransaction = $this->transactionsModel
+                    ->where('order_id', $orderId)
+                    ->where('item_id', $itemId)
+                    ->orderBy('sale_id', 'DESC')
+                    ->first();
+
+                $transactionData = [
+                    'item_id' => $itemId,
+                    'order_id' => $orderId,
+                    'quantity_sold' => $desiredAdjustmentQty,
+                    'total_sales' => $signedTotalSales,
+                    'date_created' => $inventoryDate,
+                    'time_created' => $inventoryTime,
+                    'deleted_at' => null,
+                ];
+
+                if (!empty($existingTransaction['sale_id'])) {
+                    if (!$this->transactionsModel->update(intval($existingTransaction['sale_id']), $transactionData)) {
+                        throw new \RuntimeException('Failed to update drinks adjustment transaction.');
+                    }
+                } else {
+                    if (!$this->transactionsModel->insert($transactionData)) {
+                        throw new \RuntimeException('Failed to insert drinks adjustment transaction.');
+                    }
+                }
+            }
+
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('Drinks adjustment transaction failed.');
+            }
+
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
+                $this->rollbackDrinkIngredientAdjustment($productId, $adjustmentDelta);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
+            \App\Libraries\LowStockNotifier::checkAndNotify();
+        }
+
+        $netSales = $this->transactionsModel->getNetSalesForItem($itemId);
+        $isPostRemit = intval($dailyStock['is_remitted'] ?? 0) === 1;
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Drinks quantity updated successfully.',
+            'data' => [
+                'item_id' => $itemId,
+                'baseline_qty_sold' => $baselineQty,
+                'manual_adjustment_qty' => $desiredAdjustmentQty,
+                'target_qty_sold' => $targetQty,
+                'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
+                'adjustment_delta' => $adjustmentDelta,
+                'is_post_remit' => $isPostRemit ? 1 : 0,
+            ],
+        ]);
     }
 
     /**

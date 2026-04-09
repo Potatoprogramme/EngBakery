@@ -163,12 +163,12 @@
             <div class="p-4 overflow-y-auto">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-left text-gray-600">
-                        <thead class="bg-gray-50">
+                        <thead class="hidden">
                             <tr>
                                 <th class="px-4 py-2">Product</th>
                                 <th class="px-4 py-2 text-center">Begin</th>
-                                <th class="px-4 py-2 text-center">Sold</th>
                                 <th class="px-4 py-2 text-center">Pull Out</th>
+                                <th class="px-4 py-2 text-center">Qty Sold</th>
                                 <th class="px-4 py-2 text-center">Ending</th>
                             </tr>
                         </thead>
@@ -465,17 +465,90 @@
                 return;
             }
 
-            let rows = '';
+            const categoryOrder = ['bakery', 'grocery', 'drinks', 'others'];
+            const categoryLabels = {
+                bakery: 'Bread',
+                grocery: 'Grocery',
+                drinks: 'Drinks',
+                others: 'Others'
+            };
+
+            const normalizeCategory = function(rawCategory) {
+                const category = String(rawCategory || '').trim().toLowerCase();
+                if (category === 'bread') return 'bakery';
+                if (categoryOrder.includes(category)) return category;
+                if (category === '') return 'others';
+                return 'others';
+            };
+
+            const grouped = {
+                bakery: [],
+                grocery: [],
+                drinks: [],
+                others: []
+            };
+
             details.forEach(item => {
+                grouped[normalizeCategory(item.category)].push(item);
+            });
+
+            let rows = '';
+            categoryOrder.forEach(categoryKey => {
+                const items = grouped[categoryKey] || [];
+                if (items.length === 0) return;
+
+                const isDrinksCategory = categoryKey === 'drinks';
+
                 rows += `
-                    <tr class="border-b">
-                        <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                        <td class="px-4 py-2 text-center text-blue-600">${item.beginning_stock}</td>
-                        <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
-                        <td class="px-4 py-2 text-center text-amber-600">${item.pull_out_quantity}</td>
-                        <td class="px-4 py-2 text-center text-gray-700">${item.ending_stock}</td>
+                    <tr class="bg-gray-100 border-y border-gray-200">
+                        <td colspan="5" class="px-4 py-2 font-semibold uppercase tracking-wide text-gray-700">${categoryLabels[categoryKey]}</td>
                     </tr>
                 `;
+
+                if (isDrinksCategory) {
+                    rows += `
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
+                            <td colspan="4" class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                        </tr>
+                    `;
+                } else {
+                    rows += `
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Begin</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pull Out</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Ending</td>
+                        </tr>
+                    `;
+                }
+
+                items.forEach(item => {
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const sold = parseInt(item.quantity_sold) || 0;
+                    const ending = parseInt(item.ending_stock) || 0;
+
+                    if (isDrinksCategory) {
+                        rows += `
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                                <td colspan="4" class="px-4 py-2 text-center text-green-600">${sold}</td>
+                            </tr>
+                        `;
+                    } else {
+                        rows += `
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                                <td class="px-4 py-2 text-center text-blue-600">${beginning}</td>
+                                <td class="px-4 py-2 text-center text-amber-600">${pullOut}</td>
+                                <td class="px-4 py-2 text-center text-green-600">${sold}</td>
+                                <td class="px-4 py-2 text-center text-gray-700">${ending}</td>
+                            </tr>
+                        `;
+                    }
+                });
             });
 
             $('#contentsModalBody').html(rows);

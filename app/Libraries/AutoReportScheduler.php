@@ -637,6 +637,7 @@ class AutoReportScheduler
              WHERE t.date_created = ?
                AND o.time_created >= ?
                AND o.time_created <= ?
+                             AND t.deleted_at IS NULL
                AND o.voided_at IS NULL";
 
         $params = [$date, $start, $end];
@@ -755,11 +756,14 @@ class AutoReportScheduler
                 $htmlRows .= "
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>";
+            } else {
+                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
             }
 
             $htmlRows .= "
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
 
@@ -795,11 +799,14 @@ class AutoReportScheduler
             $headers .= "
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>BEG</th>
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>
             <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>END</th>";
+        } else {
+            $headers .= "
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>";
         }
 
         $headers .= "
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SALES</th>
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>RAW MATERIALS USED</th>";
 

@@ -510,8 +510,9 @@
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
                 <input type="hidden" id="editOldQuantitySold" value="0">
+                <input type="hidden" id="editIsRemitted" value="0">
 
-                <div class="mb-4">
+                <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
@@ -547,7 +548,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4" id="editPullOutGroup">
                     <label for="editPullOutQuantity" id="editPullOutLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
@@ -564,6 +565,16 @@
                         </button>
                     </div>
                     <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+
+                <div class="mb-4 hidden" id="editPostRemitWarning">
+                    <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-amber-700">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>This inventory is already remitted. Saving will create a post-remittance
+                                correction.</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-4 hidden" id="editEndingGroup">
@@ -585,7 +596,7 @@
                         values above.</p>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-6" id="editNotesGroup">
                     <label for="editNotes" id="editNotesLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
@@ -3146,7 +3157,8 @@
             renderMobileCards();
         }
 
-        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode) {
+        function applyEditedInventoryItemLocally(itemId, payload, options) {
+            const opts = options || {};
             const index = allInventoryItems.findIndex(item => String(item.item_id) === String(itemId));
             if (index < 0) {
                 return false;
@@ -3156,11 +3168,26 @@
                 ...allInventoryItems[index]
             };
 
+            const category = (opts.category || item.category || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
+            const isAdjustmentMode = !!opts.isAdjustmentMode;
+            const responseData = opts.responseData || null;
+
             const beginningInput = parseInt(payload.beginning_stock) || 0;
             const pullOutInput = parseInt(payload.pull_out_quantity) || 0;
             const endingInput = parseInt(payload.ending_stock) || 0;
 
-            if (isAdjustmentMode) {
+            if (isDrinksMode) {
+                const targetQtyFromResponse = parseInt(responseData && responseData.target_qty_sold);
+                const targetQtyFromPayload = parseInt(payload.quantity_sold_target);
+                const targetQty = Number.isNaN(targetQtyFromResponse) ?
+                    (Number.isNaN(targetQtyFromPayload) ? 0 : Math.max(0, targetQtyFromPayload)) :
+                    Math.max(0, targetQtyFromResponse);
+
+                item.quantity_sold = targetQty;
+                item.quantity_sold_db = targetQty;
+                item.discrepancy = 0;
+            } else if (isAdjustmentMode) {
                 const dbQtySoldRaw = parseInt(item.quantity_sold_db);
                 const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
@@ -3188,12 +3215,15 @@
             item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
             item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
             item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
-            item.notes = payload.notes || '';
+            if (Object.prototype.hasOwnProperty.call(payload, 'notes')) {
+                item.notes = payload.notes || '';
+            }
 
             // Keep sales columns in sync for immediate redraw.
-            const price = parseFloat(
-                (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) || item.srp || 0
-            ) || 0;
+            const price = category === 'drinks' ?
+                (parseFloat(item.srp ?? item.selling_price ?? 0) || 0) :
+                (parseFloat((item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) ||
+                    item.srp || 0) || 0);
             item.sales = item.quantity_sold * price;
             item.total_sales = item.sales;
 
@@ -3344,6 +3374,10 @@
                         '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
                         (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
                             'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ?
+                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                            .item_id +
+                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
                     rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
@@ -3673,24 +3707,56 @@
 
             if (item) {
                 const category = (item.category || '').toLowerCase();
-                const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
+                const isDrinksMode = category === 'drinks';
+                const isAdjustmentMode = !isDrinksMode && (category === 'bakery' || category === 'grocery');
                 const beginningStock = parseInt(item.beginning_stock) || 0;
                 const pullOutQty = parseInt(item.pull_out_quantity) || 0;
                 const endingStock = parseInt(item.ending_stock) || 0;
+                const quantitySoldDisplay = Math.max(0, parseInt(item.quantity_sold) || 0);
+                const itemIsRemitted = item.is_remitted === true || item.is_remitted === 1 || item.is_remitted ===
+                    '1';
 
                 // Store item ID and populate modal
                 $('#editItemId').val(itemId);
                 $('#editCategory').val(category);
                 $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
+                $('#editIsRemitted').val(itemIsRemitted ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySoldRaw = parseInt(item.quantity_sold_db);
-                const quantitySold = Number.isNaN(quantitySoldRaw) ? 0 : Math.max(0, quantitySoldRaw);
+                const quantitySoldRaw = parseInt(isDrinksMode ? item.quantity_sold : item.quantity_sold_db);
+                const quantitySold = Number.isNaN(quantitySoldRaw) ? quantitySoldDisplay : Math.max(0, quantitySoldRaw);
                 $('#editOldQuantitySold').val(quantitySold);
 
-                if (isAdjustmentMode) {
+                $('#editBeginningGroup').removeClass('hidden');
+                $('#editPullOutGroup').removeClass('hidden');
+                $('#editPostRemitWarning').addClass('hidden');
+                $('#editEndingGroup').addClass('hidden');
+
+                if (isDrinksMode) {
+                    $('#editBeginningLabel').text('Final Qty Sold');
+                    $('#editBeginningHint').text('Use - and + to adjust from current. Final Qty Sold cannot go below current value.');
+                    $('#editAdjustmentGuide').removeClass('hidden').html(
+                        '<strong>Drinks Mode:</strong> Set the final Qty Sold directly. You can increase it, but not below current.'
+                    );
+                    $('#editNotesGroup').addClass('hidden');
+                    $('#editNotes').val('');
+                    $('#editNotes').removeAttr('required').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+
+                    $('#editBeginningStock').val(quantitySoldDisplay).attr('min', quantitySold);
+                    $('#editPullOutQuantity').val(0).attr('min', 0);
+                    $('#editEndingStock').val(0).attr('min', 0);
+
+                    $('#editPullOutGroup').addClass('hidden');
+                    if (itemIsRemitted) {
+                        $('#editPostRemitWarning').removeClass('hidden');
+                    }
+                } else if (isAdjustmentMode) {
+                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
@@ -3707,6 +3773,7 @@
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
+                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock');
                     $('#editPullOutLabel').text('Pull Out Quantity');
                     $('#editEndingLabel').text('Ending Stock');
@@ -3783,6 +3850,13 @@
 
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            if (category === 'drinks') {
+                const floorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                $('#editBeginningStock').val(Math.max(floorQty, current - 1));
+                runEditPreviewUpdate('beginning');
+                return;
+            }
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
             runEditPreviewUpdate('beginning');
@@ -3820,6 +3894,8 @@
         });
 
         function updateRemainingPreview(source = 'generic') {
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
 
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
@@ -3831,6 +3907,33 @@
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
 
             let projectedRemaining = 0;
+
+            if (isDrinksMode) {
+                const minAllowedQty = Math.max(0, oldQtySold);
+                const targetQtySold = Math.max(minAllowedQty, beginningInput);
+                if (targetQtySold !== beginningInput) {
+                    $('#editBeginningStock').val(targetQtySold);
+                }
+                const adjustmentDelta = targetQtySold - oldQtySold;
+                const deltaLabel = adjustmentDelta > 0 ? ('+' + adjustmentDelta) : String(adjustmentDelta);
+                const nextHint =
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-1">' +
+                    '  <div><span class="text-gray-500">Current Qty Sold:</span> <span class="font-semibold text-gray-800">' + oldQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Target Qty Sold:</span> <span class="font-semibold text-indigo-700">' + targetQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Manual Adjustment:</span> <span class="font-semibold text-emerald-700">' + deltaLabel + '</span></div>' +
+                    '</div>';
+
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').html(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
+
+                if (editPreviewUiState.remainingValue !== targetQtySold) {
+                    $('#editRemainingPreview').val(targetQtySold);
+                    editPreviewUiState.remainingValue = targetQtySold;
+                }
+                return;
+            }
 
             if (isAdjustmentMode) {
                 const projectedBeginning = oldBeginning + beginningInput;
@@ -3903,6 +4006,28 @@
          * based on current beginning stock vs expected (distribution + carryover).
          */
         function updateBeginningStockDisplay() {
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            if (category === 'drinks') {
+                if (editPreviewUiState.infoKey !== 'hidden') {
+                    $('#editDistributionInfo').addClass('hidden');
+                    editPreviewUiState.infoKey = 'hidden';
+                }
+                if (editPreviewUiState.warningKey !== 'hidden') {
+                    $('#editStockWarning').addClass('hidden');
+                    editPreviewUiState.warningKey = 'hidden';
+                }
+                if (editPreviewUiState.notesRequired !== false) {
+                    $('#editNotes').removeAttr('required');
+                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                        'text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+                }
+                $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                return;
+            }
+
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
@@ -3999,6 +4124,7 @@
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
             resetEditPreviewUiState();
+            $('#editIsRemitted').val('0');
             $('#editAdjustmentGuide').addClass('hidden');
             $('#editBeginningLabel').text('Beginning Stock');
             $('#editPullOutLabel').text('Pull Out Quantity');
@@ -4008,7 +4134,11 @@
             $('#editEndingHint').text('Enter the actual final ending stock count.');
             $('#editRemainingPreview').val('');
             $('#editRemainingHint').text('This summary updates while you edit values above.');
+            $('#editBeginningGroup').removeClass('hidden');
+            $('#editPullOutGroup').removeClass('hidden');
             $('#editEndingGroup').addClass('hidden');
+            $('#editPostRemitWarning').addClass('hidden');
+            $('#editNotesGroup').removeClass('hidden');
             $('#editBeginningStock').attr('min', 0);
             $('#editPullOutQuantity').attr('min', 0);
             $('#editEndingStock').prop('readonly', false).removeClass('bg-gray-50 cursor-not-allowed');
@@ -4078,11 +4208,13 @@
                 .html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
 
             const itemId = $('#editItemId').val();
-            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
+            const isAdjustmentMode = !isDrinksMode && $('#editAdjustmentMode').val() === '1';
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
             const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
-            const notes = $('#editNotes').val();
+            const notes = ($('#editNotes').val() || '').trim();
 
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
@@ -4090,7 +4222,38 @@
 
             let payload;
 
-            if (isAdjustmentMode) {
+            if (isDrinksMode) {
+                const targetQtySold = parseInt($('#editBeginningStock').val());
+                const isRemitted = $('#editIsRemitted').val() === '1';
+                const minAllowedQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+
+                if (Number.isNaN(targetQtySold) || targetQtySold < 0) {
+                    showToast('warning', 'Final Qty Sold must be zero or greater.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (targetQtySold < minAllowedQty) {
+                    showToast('warning', 'Final Qty Sold cannot be below current value (' + minAllowedQty + ').', 2800);
+                    $('#editBeginningStock').val(minAllowedQty);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (isRemitted) {
+                    const proceed = window.confirm(
+                        'This inventory is already remitted. Continue and save as a post-remittance correction?'
+                    );
+                    if (!proceed) {
+                        restoreSubmitButton();
+                        return;
+                    }
+                }
+
+                payload = {
+                    quantity_sold_target: targetQtySold
+                };
+            } else if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
                 const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
@@ -4180,8 +4343,12 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
-                        const patched = applyEditedInventoryItemLocally(itemId, payload,
-                            isAdjustmentMode);
+
+                        const patched = applyEditedInventoryItemLocally(itemId, payload, {
+                            isAdjustmentMode: isAdjustmentMode,
+                            category: category,
+                            responseData: response.data || null
+                        });
                         if (patched) {
                             loadInventory(allInventoryItems, {
                                 fetchCarryover: false
@@ -4412,7 +4579,7 @@
             card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
                 'Enabled' : 'Disabled');
             card += '    </button>';
-            if (isEnabled && category !== 'drinks') {
+            if (isEnabled) {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
                     item.item_id + '">';
                 card += '      <i class="fas fa-edit mr-1"></i>Edit';
