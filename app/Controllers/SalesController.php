@@ -211,9 +211,7 @@ class SalesController extends BaseController
         $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForInventory($dailyStockId);
         $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
 
-        // Compute discrepancy sales for bakery/grocery:
-        // discrepancy_qty = max(0, inventory_qty_sold - recorded_db_qty_sold)
-        // discrepancy_revenue = discrepancy_qty * item selling price
+        // Compute inventory-vs-DB discrepancy and fold it into category sales.
         $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStockId);
         $salesByItem = $this->transactionsModel->getSalesDataByInventory($dailyStockId);
         $salesByItemMap = [];
@@ -224,11 +222,16 @@ class SalesController extends BaseController
             ];
         }
 
-        $discrepancyQtyTotal = 0;
-        $discrepancyRevenueTotal = 0.0;
+        $discrepancyRevenueByCategory = [
+            'bakery' => 0.0,
+            'drinks' => 0.0,
+            'dough' => 0.0,
+            'grocery' => 0.0,
+        ];
+
         foreach ($stockItems as $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
-            if (!in_array($category, ['bakery', 'grocery'], true)) {
+            if (!array_key_exists($category, $discrepancyRevenueByCategory)) {
                 continue;
             }
 
@@ -248,9 +251,13 @@ class SalesController extends BaseController
                 ? ($item['selling_price_per_piece'] ?? 0)
                 : ($item['selling_price'] ?? 0));
 
-            $discrepancyQtyTotal += $discrepancyQty;
-            $discrepancyRevenueTotal += ($discrepancyQty * $price);
+            $discrepancyRevenueByCategory[$category] += ($discrepancyQty * $price);
         }
+
+        $breadSales['total_revenue'] = round(floatval($breadSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['bakery'], 2);
+        $drinksSales['total_revenue'] = round(floatval($drinksSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['drinks'], 2);
+        $doughSales['total_revenue'] = round(floatval($doughSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['dough'], 2);
+        $grocerySales['total_revenue'] = round(floatval($grocerySales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['grocery'], 2);
 
         return $this->response->setJSON([
             'success' => true,
@@ -265,10 +272,6 @@ class SalesController extends BaseController
                 'credit_card_sales' => ['total_revenue' => $creditCardSales],
                 'debit_card_sales' => ['total_revenue' => $debitCardSales],
                 'panda_sales' => ['total_revenue' => $pandaSales],
-                'discrepancy_sales' => [
-                    'total_items_sold' => $discrepancyQtyTotal,
-                    'total_revenue' => round($discrepancyRevenueTotal, 2),
-                ],
                 'total_orders' => $todaysTotalOrders,
                 'total_items_sold' => $todaysTotalItemsSold,
                 'transaction_ids' => $todaysTransactionIds
