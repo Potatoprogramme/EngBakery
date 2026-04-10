@@ -264,15 +264,6 @@ class SalesController extends BaseController
         $doughSales['total_revenue'] = round(floatval($doughSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['dough'], 2);
         $grocerySales['total_revenue'] = round(floatval($grocerySales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['grocery'], 2);
 
-        // Total discrepancy revenue for client validation
-        $totalDiscrepancyRevenue = round(
-            floatval($discrepancyRevenueByCategory['bakery'] ?? 0) +
-            floatval($discrepancyRevenueByCategory['drinks'] ?? 0) +
-            floatval($discrepancyRevenueByCategory['dough'] ?? 0) +
-            floatval($discrepancyRevenueByCategory['grocery'] ?? 0),
-            2
-        );
-
         return $this->response->setJSON([
             'success' => true,
             'data' => [
@@ -286,10 +277,8 @@ class SalesController extends BaseController
                 'credit_card_sales' => ['total_revenue' => $creditCardSales],
                 'debit_card_sales' => ['total_revenue' => $debitCardSales],
                 'panda_sales' => ['total_revenue' => $pandaSales],
-                'discrepancy_sales' => ['total_revenue' => $totalDiscrepancyRevenue],
                 'total_orders' => $todaysTotalOrders,
                 'total_items_sold' => $todaysTotalItemsSold,
-                'discrepancy_items_sold' => $discrepancyItemsSold,
                 'transaction_ids' => $todaysTransactionIds
             ]
         ]);
@@ -577,15 +566,14 @@ class SalesController extends BaseController
         log_message('info', 'Authoritative transaction IDs: ' . json_encode($serverTransactionIds));
 
         $reportedTotalSales = floatval($data['total_sales'] ?? 0);
-        $discrepancySales = floatval($data['discrepancy_sales'] ?? 0);
 
-        // Allow save if there are transactions OR if there are discrepancies (manual adjustments).
-        // Reject only if no transactions exist AND no discrepancies either.
-        if ($reportedTotalSales > 0 && count($serverTransactionIds) === 0 && $discrepancySales <= 0) {
+        // Allow save if total sales is > 0 (covers both DB transactions and discrepancies folded into categories).
+        // Reject only if no transactions exist AND reported total sales is 0 (no data).
+        if ($reportedTotalSales <= 0 && count($serverTransactionIds) === 0) {
             $this->db->transRollback();
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
-                'message' => 'No eligible transactions found for the selected inventory. Please reload the page and select the inventory again.'
+                'message' => 'No sales or discrepancies found for the selected inventory. Please reload the page and select the inventory again.'
             ]);
         }
 
