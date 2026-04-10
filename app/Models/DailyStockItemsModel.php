@@ -47,9 +47,9 @@ class DailyStockItemsModel extends Model
     }
 
     /**
-    * Insert daily stock items from distribution data.
-    * Each distribution record provides the product_id and product_qnty,
-    * which are converted into pieces using distribution qty mode semantics.
+     * Insert daily stock items from distribution data.
+     * Each distribution record provides the product_id and product_qnty,
+     * which are converted into pieces using distribution qty mode semantics.
      *
      * @param int   $dailyStockId
      * @param array $distributionItems Array of distribution records with product_id and product_qnty
@@ -190,7 +190,7 @@ class DailyStockItemsModel extends Model
 
     public function fetchAllStockItems($dailyStockId)
     {
-    $stockItems = $this->where('daily_stock_id', $dailyStockId)
+        $stockItems = $this->where('daily_stock_id', $dailyStockId)
             ->select('daily_stock_items.*, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece, product_costs.direct_cost, product_costs.overhead_cost_amount, product_costs.pieces_per_yield, product_costs.trays_per_yield')
             ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
             ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
@@ -289,40 +289,38 @@ class DailyStockItemsModel extends Model
     }
 
     /**
-    * Get the latest earlier ending_stock per product.
+     * Get carryover stock from the most recent previous inventory record.
      * Returns an associative array keyed by product_id => ending_stock.
      *
      * Carryover rule:
-    * - Use the most recent earlier inventory date that still has positive stock.
-    * - If no earlier inventory has remaining stock, carryover is empty.
+     * - Use the most recent inventory record that still has positive ending stock.
+     * - This uses the previous inventory's ending stock, not just the previous calendar day.
      *
-     * @param string $beforeDate  Current inventory date (Y-m-d)
-     * @return array<int, int>    [product_id => ending_stock]
+     * @return array<int, int> [product_id => ending_stock]
      */
     public function getCarryoverStock(string $beforeDate): array
     {
         $db = \Config\Database::connect();
 
         try {
-            $carryoverDateRow = $db->query(
-                "SELECT MAX(ds.inventory_date) AS carryover_date
+            $carryoverInventoryRow = $db->query(
+                "SELECT ds.daily_stock_id, ds.inventory_date
                  FROM daily_stock ds
-                 JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id
-                 WHERE ds.inventory_date < ?
-                   AND dsi.ending_stock > 0",
-                [$beforeDate]
+                 INNER JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id
+                 WHERE dsi.ending_stock > 0
+                 ORDER BY ds.daily_stock_id DESC
+                 LIMIT 1"
             )->getRowArray();
         } catch (\Throwable $e) {
-            log_message('error', 'CARRYOVER: Invalid beforeDate "{date}": {error}', [
-                'date' => $beforeDate,
+            log_message('error', 'CARRYOVER: Failed to load previous inventory carryover: {error}', [
                 'error' => $e->getMessage(),
             ]);
             return [];
         }
 
-        $carryoverDate = $carryoverDateRow['carryover_date'] ?? null;
-        if (!$carryoverDate) {
-            log_message('info', 'CARRYOVER: beforeDate={beforeDate}, no earlier inventory with remaining stock', [
+        $carryoverDailyStockId = $carryoverInventoryRow['daily_stock_id'] ?? null;
+        if (!$carryoverDailyStockId) {
+            log_message('info', 'CARRYOVER: beforeDate={beforeDate}, no previous inventory with remaining stock', [
                 'beforeDate' => $beforeDate,
             ]);
             return [];
@@ -331,10 +329,9 @@ class DailyStockItemsModel extends Model
         $items = $db->query("
             SELECT dsi.product_id, dsi.ending_stock
             FROM daily_stock_items dsi
-            JOIN daily_stock ds ON dsi.daily_stock_id = ds.daily_stock_id
-            WHERE ds.inventory_date = ?
+            WHERE dsi.daily_stock_id = ?
               AND dsi.ending_stock > 0
-        ", [$carryoverDate])->getResultArray();
+        ", [$carryoverDailyStockId])->getResultArray();
 
         $carryover = [];
         foreach ($items as $item) {
@@ -344,9 +341,9 @@ class DailyStockItemsModel extends Model
             }
         }
 
-        log_message('info', 'CARRYOVER: beforeDate={beforeDate}, carryover_date={carryoverDate}, products={count}', [
+        log_message('info', 'CARRYOVER: beforeDate={beforeDate}, carryover_daily_stock_id={carryoverDailyStockId}, products={count}', [
             'beforeDate' => $beforeDate,
-            'carryoverDate' => $carryoverDate,
+            'carryoverDailyStockId' => $carryoverDailyStockId,
             'count' => count($carryover),
         ]);
 
