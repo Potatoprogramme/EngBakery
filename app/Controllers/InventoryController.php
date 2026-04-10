@@ -221,7 +221,7 @@ class InventoryController extends BaseController
             // fetch ALL products for inventory tracking
             $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
 
-            // Get remaining stock from the latest earlier inventory date (carryover)
+            // Get remaining stock from the previous inventory ending stock (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
             // insert all products into daily stock items model
@@ -229,7 +229,7 @@ class InventoryController extends BaseController
                 $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
                 $message = 'Today\'s inventory added successfully.';
                 if ($carryoverCount > 0) {
-                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
+                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous inventory.";
                 }
 
                 // Immediate notification: inventory created
@@ -308,7 +308,7 @@ class InventoryController extends BaseController
         if ($this->dailyStockModel->addTodaysInventory($insertData)) {
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
-            // Get remaining stock from the latest earlier inventory date (carryover)
+            // Get remaining stock from the previous inventory ending stock (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
             if ($this->dailyStockItemsModel->insertDailyStockItemsFromDistribution($lastInsertId, $flatItems, $carryover)) {
@@ -337,7 +337,7 @@ class InventoryController extends BaseController
                 $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
                 $message = 'Today\'s inventory created from distribution data successfully.';
                 if ($carryoverCount > 0) {
-                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous day.";
+                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous inventory.";
                 }
 
                 // Immediate notification: inventory created from distribution
@@ -1702,7 +1702,7 @@ class InventoryController extends BaseController
     }
 
     /**
-     * Get yesterday's remaining stock only.
+     * Get previous inventory's remaining stock only.
      * Returns product-level carryover data for display before creating inventory.
      * GET /Inventory/GetYesterdayRemaining
      */
@@ -1715,7 +1715,7 @@ class InventoryController extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'data' => [],
-                'message' => 'No remaining stock from previous day.'
+                'message' => 'No remaining stock from previous inventory.'
             ]);
         }
 
@@ -1737,7 +1737,7 @@ class InventoryController extends BaseController
             'success' => true,
             'data' => $enrichedData,
             'total_products' => count($enrichedData),
-            'message' => count($enrichedData) . ' product(s) have remaining stock from previous day.'
+            'message' => count($enrichedData) . ' product(s) have remaining stock from previous inventory.'
         ]);
     }
 

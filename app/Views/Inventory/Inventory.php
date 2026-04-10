@@ -446,7 +446,7 @@
                     <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-boxes-stacked text-amber-600"></i>
-                            <span class="text-sm font-semibold text-amber-700">Yesterday's Remaining Stock</span>
+                            <span class="text-sm font-semibold text-amber-700">Previous Inventory Remaining Stock</span>
                         </div>
                         <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
                         <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be
@@ -455,7 +455,7 @@
                     <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-box-open text-gray-400"></i>
-                            <span class="text-xs text-gray-500">No remaining stock from previous day.</span>
+                            <span class="text-xs text-gray-500">No remaining stock from previous inventory.</span>
                         </div>
                     </div>
 
@@ -2178,7 +2178,7 @@
                 // Show badge immediately from current known source, then re-check in background
                 updateInventoryModeBadge(inventorySource);
                 checkIfDistributionExists(); // refreshes inventorySource + badge in background
-                fetchYesterdayRemaining(); // Load carryover preview
+                fetchYesterdayRemaining(); // Load carryover preview from previous inventory
                 $('#timeInputModal').removeClass('hidden');
             });
 
