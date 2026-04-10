@@ -414,14 +414,6 @@
                                     </div>
                                     <span class="text-sm font-bold text-green-600" id="grocerySales">₱0.00</span>
                                 </div>
-                                <div
-                                    class="flex items-center justify-between p-2 bg-rose-50 rounded border border-rose-100">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-exclamation-circle text-rose-600 text-xs"></i>
-                                        <span class="text-xs font-medium text-gray-700">DISCREPANCY:</span>
-                                    </div>
-                                    <span class="text-sm font-bold text-rose-600" id="discrepancySales">₱0.00</span>
-                                </div>
                             </div>
                         </div>
 
@@ -916,7 +908,6 @@
                         const debitCardSales = response.data.debit_card_sales || {};
                         const pandaSales = response.data.panda_sales || {};
 
-                        const discrepancySales = response.data.discrepancy_sales || {};
                         const total_orders = response.data.total_orders || 0;
                         const total_items_sold = response.data.total_items_sold || 0;
 
@@ -924,7 +915,6 @@
                         const drinksRevenue = drinksSales.total_revenue || 0;
                         const doughRevenue = doughSales.total_revenue || 0;
                         const groceryRevenue = grocerySales.total_revenue || 0;
-                        const discrepancyRevenue = discrepancySales.total_revenue || 0;
 
 
                         const gcashRevenue = gcashSales.total_revenue || 0;
@@ -940,9 +930,8 @@
                         $('#bakerySales').text(formatCurrency(Number(breadRevenue)));
                         $('#coffeeSales').text(formatCurrency(Number(drinksRevenue)));
                         $('#grocerySales').text(formatCurrency(Number(groceryRevenue)));
-                        $('#discrepancySales').text(formatCurrency(Number(discrepancyRevenue)));
 
-                        const totalSales = Number(breadRevenue) + Number(drinksRevenue) + Number(groceryRevenue) + Number(discrepancyRevenue);
+                        const totalSales = Number(breadRevenue) + Number(drinksRevenue) + Number(groceryRevenue);
 
                         // Only set value if there's actual online revenue, otherwise leave empty for placeholder
                         if (totalOnlineRevenue > 0) {
@@ -1209,7 +1198,6 @@
             $('#cashierEmail').val('');
             $('#totalOnlineRevenue').val(0);
             $('#totalFoodPandaRevenue').val(0);
-            $('#discrepancySales').text('₱0.00');
             $('#amountEnclosed').text('₱0.00');
             $('#dailyStockId').val('');
             hideExistingRemittanceBanner();
@@ -1355,10 +1343,6 @@
                             <td class="sum-label" colspan="2">COFFEE:</td>
                             <td class="sum-value" colspan="2">${$('#coffeeSales').text() || '₱0.00'}</td>
                         </tr>
-                        <tr>
-                            <td class="sum-label" colspan="2">DISCREPANCY:</td>
-                            <td class="sum-value" colspan="2">${$('#discrepancySales').text() || '₱0.00'}</td>
-                        </tr>
                         <tr class="total-row">
                             <td class="sum-label" colspan="2">TOTAL SALES:</td>
                             <td class="sum-value" colspan="2">${$('#totalSales').text() || '₱0.00'}</td>
@@ -1444,7 +1428,6 @@
                 bakery_sales: parseCurrency($('#bakerySales').text()),
                 coffee_sales: parseCurrency($('#coffeeSales').text()),
                 grocery_sales: parseCurrency($('#grocerySales').text()),
-                discrepancy_sales: parseCurrency($('#discrepancySales').text()),
                 total_sales: totalSales,
                 variance: variance,
                 //remittance_denomination table
