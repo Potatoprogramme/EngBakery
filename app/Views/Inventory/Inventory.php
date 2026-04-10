@@ -23,37 +23,37 @@
                         <!-- Primary Action -->
                         <button id="btnAddTodaysInventory"
                             class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
-                            <i class="fas fa-plus mr-2 text-green-500"></i>
-                            Add Inventory
+                            <i class="fas fa-plus sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Add Inventory</span>
                         </button>
 
                         <!-- Secondary Actions -->
                         <button id="btnAddProductToInventory"
                             class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
-                            <i class="fas fa-box-open mr-2 text-green-500"></i>
-                            Add Product
+                            <i class="fas fa-box-open sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Add Product</span>
                         </button>
 
                         <button id="btnDistributions"
                             class="inline-flex h-10 items-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 transition">
-                            <i class="fas fa-truck-loading mr-2 text-blue-500"></i>
-                            Distributions
+                            <i class="fas fa-truck-loading sm:mr-2 text-blue-500"></i>
+                            <span class="hidden sm:inline">Distributions</span>
                             <span id="distCount"
-                                class="ml-2 inline-flex items-center justify-center rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                                class="sm:ml-2 ml-1 inline-flex items-center justify-center rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
                                 0
                             </span>
                         </button>
 
                         <button id="btnSendInventoryReport"
                             class="inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
-                            <i class="fas fa-paper-plane mr-2 text-indigo-500"></i>
-                            Send Report
+                            <i class="fas fa-paper-plane sm:mr-2 text-indigo-500"></i>
+                            <span class="hidden sm:inline">Send Report</span>
                         </button>
 
                         <button id="btnResetInventoryForNextShift" onclick="openResetModal()"
                             class="hidden inline-flex h-10 items-center rounded-lg border border-yellow-200 bg-yellow-50 px-4 text-sm font-medium text-yellow-700 hover:bg-yellow-100 focus:ring-2 focus:ring-yellow-300 transition">
-                            <i class="fas fa-sync-alt mr-2 text-yellow-500"></i>
-                            Create New Inventory for new Shift
+                            <i class="fas fa-sync-alt sm:mr-2 text-yellow-500"></i>
+                            <span class="hidden sm:inline">Create New Inventory for new Shift</span>
                         </button>
 
                         <!-- Divider -->
@@ -62,20 +62,20 @@
                         <!-- Destructive Actions -->
                         <button id="btnCloseInventory" onclick="closeInventory()"
                             class="inline-flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 transition">
-                            <i class="fas fa-lock mr-2 text-gray-500"></i>
-                            Close
+                            <i class="fas fa-lock sm:mr-2 text-gray-500"></i>
+                            <span class="hidden sm:inline">Close</span>
                         </button>
 
                         <button id="btnOpenInventory" onclick="openInventory()"
                             class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
-                            <i class="fas fa-lock-open mr-2 text-green-500"></i>
-                            Open
+                            <i class="fas fa-lock-open sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Open</span>
                         </button>
 
                         <button id="btnDeleteTodaysInventory"
                             class="inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-300 transition">
-                            <i class="fas fa-trash mr-2 text-red-500"></i>
-                            Delete
+                            <i class="fas fa-trash sm:mr-2 text-red-500"></i>
+                            <span class="hidden sm:inline">Delete</span>
                         </button>
 
 
@@ -130,6 +130,87 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Today's Distribution Panel (moved to top) -->
+                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md mb-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
+                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
+                            </div>
+                            <button id="btnRefreshTodayDistribution" type="button"
+                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p class="text-sm">Loading today's distribution...</p>
+                        </div>
+
+                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-box-open text-3xl mb-2"></i>
+                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
+                        </div>
+
+                        <div id="todayDistributionContent" class="hidden space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Items</p>
+                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Groups</p>
+                                    <p id="todayDistSummaryGroups" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Batches</p>
+                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Pieces</p>
+                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                            </div>
+
+                            <div id="todayDistributionSlideViewport"
+                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
+                                <div id="todayDistributionSlideTrack"
+                                    class="flex transition-transform duration-300 ease-in-out"
+                                    style="width: 200%; transform: translateX(0);">
+                                    <div class="flex-shrink-0 p-3" style="width: 50%;">
+                                        <p class="text-xs font-semibold text-gray-700 mb-2">
+                                            <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
+                                        </p>
+                                        <div id="todayDistributionGroupList"
+                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
+                                    </div>
+
+                                    <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
+                                        <div class="mb-2">
+                                            <button type="button" id="btnTodayDistBackToGroups"
+                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
+                                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
+                                            </button>
+                                        </div>
+
+                                        <div class="mb-2.5">
+                                            <p id="todayDistSelectedGroupName"
+                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
+                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
+                                                batches • 0 pcs</p>
+                                            <p id="todayDistSelectedGroupNote"
+                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
+                                        </div>
+
+                                        <div id="todayDistributionGroupItems"
+                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Category Tabs -->
                     <div class="flex gap-2 mb-3">
                         <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
@@ -144,6 +225,21 @@
                             class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                             <i class="fas fa-shopping-basket mr-1.5 hidden sm:inline"></i> Grocery
                         </button>
+                    </div>
+
+                    <div class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Bakery Sales</p>
+                            <p id="salesCardBakeryAmount" class="text-lg font-semibold text-amber-800">₱0.00</p>
+                        </div>
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Drinks Sales</p>
+                            <p id="salesCardDrinksAmount" class="text-lg font-semibold text-blue-800">₱0.00</p>
+                        </div>
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Grocery Sales</p>
+                            <p id="salesCardGroceryAmount" class="text-lg font-semibold text-emerald-800">₱0.00</p>
+                        </div>
                     </div>
 
                     <!-- Tab Content: Bakery -->
@@ -336,87 +432,7 @@
                     </div>
                 </div>
 
-                <div class="xl:col-span-4 min-w-0">
-                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
-                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
-                            </div>
-                            <button id="btnRefreshTodayDistribution" type="button"
-                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
-                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
-                            </button>
-                        </div>
 
-                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                            <p class="text-sm">Loading today's distribution...</p>
-                        </div>
-
-                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-box-open text-3xl mb-2"></i>
-                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
-                        </div>
-
-                        <div id="todayDistributionContent" class="hidden space-y-3">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Items</p>
-                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Groups</p>
-                                    <p id="todayDistSummaryGroups" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Batches</p>
-                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Pieces</p>
-                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                            </div>
-
-                            <div id="todayDistributionSlideViewport"
-                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
-                                <div id="todayDistributionSlideTrack"
-                                    class="flex transition-transform duration-300 ease-in-out"
-                                    style="width: 200%; transform: translateX(0);">
-                                    <div class="flex-shrink-0 p-3" style="width: 50%;">
-                                        <p class="text-xs font-semibold text-gray-700 mb-2">
-                                            <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
-                                        </p>
-                                        <div id="todayDistributionGroupList"
-                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
-                                    </div>
-
-                                    <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
-                                        <div class="mb-2">
-                                            <button type="button" id="btnTodayDistBackToGroups"
-                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
-                                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
-                                            </button>
-                                        </div>
-
-                                        <div class="mb-2.5">
-                                            <p id="todayDistSelectedGroupName"
-                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
-                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
-                                                batches • 0 pcs</p>
-                                            <p id="todayDistSelectedGroupNote"
-                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
-                                        </div>
-
-                                        <div id="todayDistributionGroupItems"
-                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Time Input Modal -->
@@ -802,8 +818,16 @@
 
             // Confirm Delete
             $('#btnConfirmDelete').on('click', function () {
-                $('#deleteConfirmModal').addClass('hidden');
-                deleteInventory(); // This calls your function
+                const $confirmDeleteBtn = $(this);
+                if ($confirmDeleteBtn.prop('disabled')) {
+                    return;
+                }
+
+                setButtonLoading($confirmDeleteBtn, true, 'Deleting...');
+                deleteInventory(function () {
+                    setButtonLoading($confirmDeleteBtn, false);
+                    $('#deleteConfirmModal').addClass('hidden');
+                });
             });
 
             // Distributions button click — open distribution list modal
@@ -1137,6 +1161,80 @@
             const cleaned = String(value).replace(/[^0-9.-]/g, '');
             const parsed = parseFloat(cleaned);
             return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function setButtonLoading($button, isLoading, loadingLabel = '', options = {}) {
+            if (!$button || !$button.length) return;
+
+            if (isLoading) {
+                if (!$button.data('loading-original-html')) {
+                    $button.data('loading-original-html', $button.html());
+                }
+
+                const iconOnly = options.iconOnly === true;
+                const loadingHtml = iconOnly ?
+                    '<i class="fas fa-spinner fa-spin"></i>' :
+                    ('<i class="fas fa-spinner fa-spin mr-2"></i>' + (loadingLabel || 'Loading...'));
+
+                $button.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html(loadingHtml);
+                return;
+            }
+
+            const originalHtml = $button.data('loading-original-html');
+            $button.prop('disabled', false)
+                .removeClass('opacity-70 cursor-not-allowed');
+            if (originalHtml) {
+                $button.html(originalHtml);
+                $button.removeData('loading-original-html');
+            }
+        }
+
+        function getInventoryItemSalesAmount(item) {
+            const category = ((item && item.category) || '').toString().toLowerCase();
+            const qtySold = parseInventoryNumericValue(item && item.quantity_sold);
+
+            if (category === 'drinks') {
+                const directSales = parseInventoryNumericValue(item && (item.sales ?? item.total_sales));
+                if (directSales > 0) return directSales;
+
+                const drinkPrice = parseInventoryNumericValue(item && (item.srp ?? item.selling_price));
+                return qtySold * drinkPrice;
+            }
+
+            if (category === 'bakery') {
+                const bakeryPrice = parseInventoryNumericValue(item && ((item.selling_price_per_piece > 0) ? item.selling_price_per_piece : item.selling_price));
+                return qtySold * bakeryPrice;
+            }
+
+            if (category === 'grocery') {
+                const groceryPrice = parseInventoryNumericValue(item && item.selling_price);
+                return qtySold * groceryPrice;
+            }
+
+            return 0;
+        }
+
+        function updateCategorySalesCards(items) {
+            const totals = {
+                bakery: 0,
+                drinks: 0,
+                grocery: 0
+            };
+
+            (Array.isArray(items) ? items : []).forEach(function (item) {
+                const category = ((item && item.category) || '').toString().toLowerCase();
+                if (!Object.prototype.hasOwnProperty.call(totals, category)) {
+                    return;
+                }
+
+                totals[category] += getInventoryItemSalesAmount(item);
+            });
+
+            $('#salesCardBakeryAmount').text(formatInventoryPeso(totals.bakery));
+            $('#salesCardDrinksAmount').text(formatInventoryPeso(totals.drinks));
+            $('#salesCardGroceryAmount').text(formatInventoryPeso(totals.grocery));
         }
 
         function formatInventoryPeso(amount) {
@@ -2198,16 +2296,27 @@
             $('#timeInputForm').on('submit', function (e) {
                 e.preventDefault();
 
-                $('#timeInputModal').addClass('hidden');
+                const $submitBtn = $('#timeInputForm button[type="submit"]');
+                if ($submitBtn.prop('disabled')) {
+                    return;
+                }
+
+                setButtonLoading($submitBtn, true, 'Creating...');
+
+                const onCreateDone = function (wasSuccessful) {
+                    setButtonLoading($submitBtn, false);
+                    if (wasSuccessful) {
+                        $('#timeInputModal').addClass('hidden');
+                        $('#timeInputForm')[0].reset();
+                    }
+                };
 
                 // Route to the correct endpoint based on whether distribution exists today
                 if (inventorySource === 'distribution') {
-                    addTodaysInventoryFromDistribution();
+                    addTodaysInventoryFromDistribution(onCreateDone);
                 } else {
-                    addTodaysInventory();
+                    addTodaysInventory(onCreateDone);
                 }
-
-                $('#timeInputForm')[0].reset();
             });
 
             function closeModal() {
@@ -2956,7 +3065,7 @@
             });
         }
 
-        function addTodaysInventoryFromDistribution() {
+        function addTodaysInventoryFromDistribution(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddInventoryFromDistribution',
@@ -2973,8 +3082,14 @@
                         showToast('success', msg, 3000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 3000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr) {
@@ -2982,12 +3097,15 @@
                         xhr.responseJSON.message :
                         'An error occurred while creating inventory from distribution.';
                     showToast('danger', errorMessage, 4000);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
 
         // If no inventory, show button for creating inventory
-        function addTodaysInventory() {
+        function addTodaysInventory(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddTodaysInventory',
@@ -3000,14 +3118,23 @@
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 2000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
                         2000);
                     console.log(xhr.responseJSON);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
@@ -3141,6 +3268,8 @@
             const bakeryItems = normalizedItems.filter(i => i.category === 'bakery');
             const drinksItems = normalizedItems.filter(i => i.category === 'drinks');
             const groceryItems = normalizedItems.filter(i => i.category === 'grocery');
+
+            updateCategorySalesCards(normalizedItems);
 
             // Render each category table
             renderBakeryTable(bakeryItems);
@@ -4398,7 +4527,7 @@
             });
         });
 
-        function deleteInventory() {
+        function deleteInventory(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/DeleteInventory',
@@ -4416,13 +4545,22 @@
                         }
                         checkIfInventoryExists();
                         checkIfDistributionExists();
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 2000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
@@ -4717,6 +4855,13 @@
                 return;
             }
 
+            const $submitBtn = $('#btnSubmitAddProduct');
+            if ($submitBtn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($submitBtn, true, 'Adding...');
+
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddProductToInventory',
@@ -4765,6 +4910,9 @@
                         showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
                             error), 2000);
                     }
+                },
+                complete: function () {
+                    setButtonLoading($submitBtn, false);
                 }
             });
         });
@@ -4899,6 +5047,12 @@
         }
 
         function closeInventory() {
+            const $btn = $('#btnCloseInventory');
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($btn, true, 'Closing...');
             $.ajax({
                 url: '<?= base_url() ?>' + 'Inventory/CloseInventory',
                 type: 'POST',
@@ -4919,11 +5073,20 @@
                     showToast('danger', 'Error closing inventory: ' + (xhr.responseJSON?.message || error),
                         2000);
                     console.log(xhr);
+                },
+                complete: function () {
+                    setButtonLoading($btn, false);
                 }
             });
         }
 
         function openInventory() {
+            const $btn = $('#btnOpenInventory');
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($btn, true, 'Opening...');
             $.ajax({
                 url: '<?= base_url() ?>' + 'Inventory/OpenInventory',
                 type: 'POST',
@@ -4945,6 +5108,9 @@
                     showToast('danger', 'Error opening inventory: ' + (xhr.responseJSON?.message || error),
                         2000);
                     console.log(xhr);
+                },
+                complete: function () {
+                    setButtonLoading($btn, false);
                 }
             });
         }
