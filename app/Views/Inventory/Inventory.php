@@ -22,20 +22,20 @@
 
                         <!-- Primary Action -->
                         <button id="btnAddTodaysInventory"
-                            class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
                             <i class="fas fa-plus sm:mr-2 text-green-500"></i>
                             <span class="hidden sm:inline">Add Inventory</span>
                         </button>
 
                         <!-- Secondary Actions -->
                         <button id="btnAddProductToInventory"
-                            class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
                             <i class="fas fa-box-open sm:mr-2 text-green-500"></i>
                             <span class="hidden sm:inline">Add Product</span>
                         </button>
 
                         <button id="btnDistributions"
-                            class="inline-flex h-10 items-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 transition">
                             <i class="fas fa-truck-loading sm:mr-2 text-blue-500"></i>
                             <span class="hidden sm:inline">Distributions</span>
                             <span id="distCount"
@@ -45,7 +45,7 @@
                         </button>
 
                         <button id="btnSendInventoryReport"
-                            class="inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
                             <i class="fas fa-paper-plane sm:mr-2 text-indigo-500"></i>
                             <span class="hidden sm:inline">Send Report</span>
                         </button>
@@ -57,23 +57,23 @@
                         </button>
 
                         <!-- Divider -->
-                        <div class="hidden sm:block h-6 w-px bg-gray-300 mx-1"></div>
+                        <div id="inventoryActionDivider" class="hidden h-6 w-px bg-gray-300 mx-1"></div>
 
                         <!-- Destructive Actions -->
                         <button id="btnCloseInventory" onclick="closeInventory()"
-                            class="inline-flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 transition">
                             <i class="fas fa-lock sm:mr-2 text-gray-500"></i>
                             <span class="hidden sm:inline">Close</span>
                         </button>
 
                         <button id="btnOpenInventory" onclick="openInventory()"
-                            class="inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
                             <i class="fas fa-lock-open sm:mr-2 text-green-500"></i>
                             <span class="hidden sm:inline">Open</span>
                         </button>
 
                         <button id="btnDeleteTodaysInventory"
-                            class="inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-300 transition">
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-300 transition">
                             <i class="fas fa-trash sm:mr-2 text-red-500"></i>
                             <span class="hidden sm:inline">Delete</span>
                         </button>
@@ -121,93 +121,12 @@
             </div>
 
             <div id="inventoryInteractionArea" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-                <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0">
+                <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0 order-2 xl:order-1">
                     <div id="inventoryLockOverlay" class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
                         <div class="h-full w-full flex items-center justify-center p-3">
                             <div
                                 class="bg-gray-900/55 text-white text-sm font-medium rounded-lg px-4 py-2 shadow text-center">
                                 Inventory is closed. Click Open to enable editing.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Today's Distribution Panel (moved to top) -->
-                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md mb-4">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
-                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
-                            </div>
-                            <button id="btnRefreshTodayDistribution" type="button"
-                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
-                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
-                            </button>
-                        </div>
-
-                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                            <p class="text-sm">Loading today's distribution...</p>
-                        </div>
-
-                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-box-open text-3xl mb-2"></i>
-                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
-                        </div>
-
-                        <div id="todayDistributionContent" class="hidden space-y-3">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Items</p>
-                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Groups</p>
-                                    <p id="todayDistSummaryGroups" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Batches</p>
-                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Pieces</p>
-                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                            </div>
-
-                            <div id="todayDistributionSlideViewport"
-                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
-                                <div id="todayDistributionSlideTrack"
-                                    class="flex transition-transform duration-300 ease-in-out"
-                                    style="width: 200%; transform: translateX(0);">
-                                    <div class="flex-shrink-0 p-3" style="width: 50%;">
-                                        <p class="text-xs font-semibold text-gray-700 mb-2">
-                                            <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
-                                        </p>
-                                        <div id="todayDistributionGroupList"
-                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
-                                    </div>
-
-                                    <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
-                                        <div class="mb-2">
-                                            <button type="button" id="btnTodayDistBackToGroups"
-                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
-                                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
-                                            </button>
-                                        </div>
-
-                                        <div class="mb-2.5">
-                                            <p id="todayDistSelectedGroupName"
-                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
-                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
-                                                batches • 0 pcs</p>
-                                            <p id="todayDistSelectedGroupNote"
-                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
-                                        </div>
-
-                                        <div id="todayDistributionGroupItems"
-                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -428,6 +347,89 @@
                             <i class="fas fa-lock text-4xl text-gray-500 mb-4"></i>
                             <div class="text-lg font-semibold text-gray-700">Inventory is closed</div>
                             <div class="text-sm text-gray-500">You cannot make changes until it is reopened.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-4 min-w-0 order-1 xl:order-2">
+                    <!-- Today's Distribution Panel -->
+                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md mb-4 xl:mb-0">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
+                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
+                            </div>
+                            <button id="btnRefreshTodayDistribution" type="button"
+                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p class="text-sm">Loading today's distribution...</p>
+                        </div>
+
+                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
+                            <i class="fas fa-box-open text-3xl mb-2"></i>
+                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
+                        </div>
+
+                        <div id="todayDistributionContent" class="hidden space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Items</p>
+                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Groups</p>
+                                    <p id="todayDistSummaryGroups" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Batches</p>
+                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p class="text-[11px] text-gray-500">Pieces</p>
+                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
+                                </div>
+                            </div>
+
+                            <div id="todayDistributionSlideViewport"
+                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
+                                <div id="todayDistributionSlideTrack"
+                                    class="flex transition-transform duration-300 ease-in-out"
+                                    style="width: 200%; transform: translateX(0);">
+                                    <div class="flex-shrink-0 p-3" style="width: 50%;">
+                                        <p class="text-xs font-semibold text-gray-700 mb-2">
+                                            <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
+                                        </p>
+                                        <div id="todayDistributionGroupList"
+                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
+                                    </div>
+
+                                    <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
+                                        <div class="mb-2">
+                                            <button type="button" id="btnTodayDistBackToGroups"
+                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
+                                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
+                                            </button>
+                                        </div>
+
+                                        <div class="mb-2.5">
+                                            <p id="todayDistSelectedGroupName"
+                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
+                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
+                                                batches • 0 pcs</p>
+                                            <p id="todayDistSelectedGroupNote"
+                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
+                                        </div>
+
+                                        <div id="todayDistributionGroupItems"
+                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2606,6 +2608,7 @@
                         $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnResetInventoryForNextShift').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#inventoryActionDivider').removeClass('hidden').addClass('sm:block');
                         // Only show Load from Distribution if distribution exists for today
                         checkDistributionAndToggleButton();
                         // Hide add inventory buttons
@@ -2634,6 +2637,7 @@
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#inventoryActionDivider').addClass('hidden').removeClass('sm:block');
                         checkActiveInventoriesAndDisableButtons();
                     }
                 },
@@ -2657,6 +2661,7 @@
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#inventoryActionDivider').addClass('hidden').removeClass('sm:block');
                 }
             });
         }
