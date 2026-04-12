@@ -31,8 +31,10 @@ $routes->group('PasswordReset', function (RouteCollection $routes) {
 $routes->group('User', function (RouteCollection $routes) {
     $routes->get('Profile', 'UserController::index');
     $routes->get('GetUserData', 'UserController::getCurrentUserData');
+    $routes->get('GetNotificationSettings', 'UserController::getNotificationSettings');
     $routes->post('UpdateProfile', 'UserController::updateProfile');
     $routes->post('ChangePassword', 'UserController::changePassword');
+    $routes->post('UpdateNotificationSettings', 'UserController::updateNotificationSettings');
     $routes->get('GetCurrentUser', 'AuthenticationController::getCurrentUser');
 });
 
@@ -80,6 +82,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('/', 'InventoryController::inventory');
     $routes->get('History', 'InventoryController::inventoryHistory');
     $routes->get('CheckInventoryToday', 'InventoryController::checkInventoryToday');
+    $routes->get('CheckActiveInventories', 'InventoryController::checkActiveInventories');
     $routes->post('AddTodaysInventory', 'InventoryController::addTodaysInventory');
     $routes->post('AddInventoryFromDistribution', 'InventoryController::addInventoryFromDistribution');
     $routes->post('LoadFromDistribution', 'InventoryController::loadFromDistribution');
@@ -88,7 +91,7 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('FetchAllStockItems', 'InventoryController::fetchTodaysInventory');
     $routes->get('FetchHistory', 'InventoryController::fetchInventoryHistory');
     $routes->get('FetchByDate', 'InventoryController::fetchInventoryByDate');
-    $routes->post('DeleteTodaysInventory', 'InventoryController::deleteTodaysInventory');
+    $routes->post('DeleteInventory', 'InventoryController::deleteInventory');
     $routes->post('UpdateStockItem/(:num)', 'InventoryController::updateStockItem/$1');
     $routes->post('Delete/(:num)', 'InventoryController::deleteStockItem/$1');
     $routes->get('GetAvailableProducts', 'InventoryController::getAvailableProducts');
@@ -98,7 +101,10 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
     $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
     $routes->get('GetProductRecipe/(:num)', 'InventoryController::getProductRecipe/$1');
-    $routes->post('SendReport', 'InventoryController::sendInventoryReport'); // Owner: send manual auto-generated inventory email
+    $routes->post('SendReport', 'InventoryController::sendReport');
+    $routes->post('CloseInventory', 'InventoryController::closeInventory');
+    $routes->post('OpenInventory', 'InventoryController::openInventory');
+    $routes->post('ResetInventory/(:num)', 'InventoryController::resetInventory/$1');
 });
 
 $routes->group('Order', function (RouteCollection $routes) {
@@ -164,8 +170,11 @@ $routes->group('Approval', function (RouteCollection $routes) {
 $routes->group('ManageEmployee', function (RouteCollection $routes) {
     $routes->get('/', 'ManageEmployeeController::index');
     $routes->get('GetEmployees', 'ManageEmployeeController::getEmployees');
+    $routes->get('GetArchivedUsers', 'ManageEmployeeController::getArchivedUsers');
     $routes->get('Approval', 'ApprovalController::index');
     $routes->post('DeleteUser', 'ManageEmployeeController::deleteUser');
+    $routes->post('RestoreUser', 'ManageEmployeeController::restoreUser');
+    $routes->post('HardDeleteUser', 'ManageEmployeeController::hardDeleteUser');
     $routes->post('ChangeUserRole', 'ManageEmployeeController::changeUserRole');
 });
 

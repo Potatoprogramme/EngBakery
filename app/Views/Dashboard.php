@@ -232,6 +232,11 @@
                 <div class="flex flex-col items-start gap-3 mb-3 sm:mb-4">
                     <h3 class="text-sm sm:text-base font-semibold text-gray-900 flex items-center" id="salesTrendTitle">
                         <i class="fas fa-chart-line text-primary mr-2"></i>Sales Report Trend
+                        <span
+                            class="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 cursor-help"
+                            title="Trend values include manual sales adjustments and discrepancy amounts folded into category totals.">
+                            <i class="fas fa-info-circle text-xs"></i>
+                        </span>
                     </h3>
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
                         <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden w-full sm:w-auto">

@@ -15,7 +15,8 @@ class TransactionsModel extends Model
         'quantity_sold',
         'total_sales',
         'date_created',
-        'time_created'
+        'time_created',
+        'deleted_at',
     ];
     protected $useTimestamps = false;
 
@@ -107,6 +108,7 @@ class TransactionsModel extends Model
         return $this->builder()
             ->select('item_id, SUM(total_sales) as total_sales, SUM(quantity_sold) as quantity_sold')
             ->where('date_created', $date)
+            ->where('deleted_at IS NULL')
             ->groupBy('item_id')
             ->get()
             ->getResultArray();
@@ -122,9 +124,86 @@ class TransactionsModel extends Model
             ->where('date_created', $date)
             ->where('time_created >=', $startTime)
             ->where('time_created <=', $endTime)
+            ->where('deleted_at IS NULL')
             ->groupBy('item_id')
             ->get()
             ->getResultArray();
+    }
+
+    /**
+     * Get baseline (non-manual-adjustment) sales for a drinks inventory item.
+     *
+     * Baseline excludes tagged manual drink adjustment orders.
+     */
+    public function getDrinksBaselineSalesForItem(int $itemId, string $manualMarkerPrefix = 'MANUAL_DRINK_ADJ|'): array
+    {
+        $row = $this->db->query(
+            "SELECT
+                COALESCE(SUM(t.quantity_sold), 0) AS quantity_sold,
+                COALESCE(SUM(t.total_sales), 0) AS total_sales
+             FROM transactions t
+             LEFT JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND (o.order_id IS NULL OR o.voided_at IS NULL)
+               AND (o.order_id IS NULL OR o.distributed_note IS NULL OR o.distributed_note NOT LIKE ?)",
+            [$itemId, $manualMarkerPrefix . '%']
+        )->getRowArray();
+
+        return [
+            'quantity_sold' => intval($row['quantity_sold'] ?? 0),
+            'total_sales' => floatval($row['total_sales'] ?? 0),
+        ];
+    }
+
+    /**
+     * Get active tagged manual drinks adjustment transaction for an inventory item.
+     */
+    public function getManualDrinkAdjustmentForItemByMarker(int $itemId, string $marker): ?array
+    {
+        $row = $this->db->query(
+            "SELECT
+                t.sale_id,
+                t.order_id,
+                t.quantity_sold,
+                t.total_sales,
+                o.payment_method,
+                o.distributed_note
+             FROM transactions t
+             INNER JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND o.voided_at IS NULL
+               AND o.distributed_note = ?
+             ORDER BY t.sale_id DESC
+             LIMIT 1",
+            [$itemId, $marker]
+        )->getRowArray();
+
+        return $row ?: null;
+    }
+
+    /**
+     * Get current effective sales for a specific inventory item.
+     */
+    public function getNetSalesForItem(int $itemId): array
+    {
+        $row = $this->db->query(
+            "SELECT
+                COALESCE(SUM(t.quantity_sold), 0) AS quantity_sold,
+                COALESCE(SUM(t.total_sales), 0) AS total_sales
+             FROM transactions t
+             LEFT JOIN orders o ON o.order_id = t.order_id
+             WHERE t.item_id = ?
+               AND t.deleted_at IS NULL
+               AND (o.order_id IS NULL OR o.voided_at IS NULL)",
+            [$itemId]
+        )->getRowArray();
+
+        return [
+            'quantity_sold' => intval($row['quantity_sold'] ?? 0),
+            'total_sales' => floatval($row['total_sales'] ?? 0),
+        ];
     }
 
     /** 
@@ -252,5 +331,86 @@ class TransactionsModel extends Model
             ->getRowArray();
 
         return intval($result['total_items_sold'] ?? 0);
+    }
+
+    /**
+     * Get category sales for a specific inventory period.
+     */
+    public function getSalesByCategoryForInventory(string $category, int $dailyStockId): ?array
+    {
+        return $this->builder()
+            ->select('products.category, SUM(transactions.quantity_sold) AS total_items_sold, SUM(transactions.total_sales) AS total_revenue')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('products', 'products.product_id = daily_stock_items.product_id', 'left')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('products.category', $category)
+            ->where('orders.voided_at IS NULL')
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->groupBy('products.category')
+            ->get()
+            ->getRowArray();
+    }
+
+    /**
+     * Get transaction IDs for a specific inventory period.
+     */
+    public function getTransactionIdsForInventory(int $dailyStockId): array
+    {
+        $results = $this->builder()
+            ->select('transactions.sale_id')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('orders.voided_at IS NULL')
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->get()
+            ->getResultArray();
+
+        return array_values(array_unique(array_column($results, 'sale_id')));
+    }
+
+    /**
+     * Get total items sold for a specific inventory period.
+     */
+    public function getTotalItemsSoldForInventory(int $dailyStockId): int
+    {
+        $result = $this->builder()
+            ->selectSum('transactions.quantity_sold', 'total_items_sold')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('orders.voided_at IS NULL')
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->get()
+            ->getRowArray();
+
+        return intval($result['total_items_sold'] ?? 0);
+    }
+
+    /**
+     * Get aggregated recorded sales per inventory item for a specific inventory period.
+     * Returns rows: item_id, quantity_sold, total_sales.
+     */
+    public function getSalesDataByInventory(int $dailyStockId): array
+    {
+        return $this->builder()
+            ->select('transactions.item_id, SUM(transactions.quantity_sold) AS quantity_sold, SUM(transactions.total_sales) AS total_sales')
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('orders.voided_at IS NULL')
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->groupBy('transactions.item_id')
+            ->get()
+            ->getResultArray();
     }
 }

@@ -407,13 +407,23 @@
         }
 
         function showAlert(type, message) {
-            const alertClass = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
-            const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            let alertClass, iconClass;
+            
+            if (type === 'success') {
+                alertClass = 'bg-green-100 border-green-400 text-green-700';
+                iconClass = 'fa-check-circle';
+            } else if (type === 'info') {
+                alertClass = 'bg-blue-100 border-blue-400 text-blue-700';
+                iconClass = 'fa-info-circle';
+            } else {
+                alertClass = 'bg-red-100 border-red-400 text-red-700';
+                iconClass = 'fa-exclamation-circle';
+            }
 
             const alertHtml = `
                 <div class="${alertClass} border px-4 py-3 rounded relative alert-message" role="alert">
-                    <div class="flex items-center">
-                        <i class="fas ${iconClass} mr-2"></i>
+                    <div class="flex items-start">
+                        <i class="fas ${iconClass} mr-2 mt-0.5 flex-shrink-0"></i>
                         <span class="block sm:inline">${message}</span>
                     </div>
                 </div>
@@ -421,13 +431,14 @@
 
             $('#alertContainer').html(alertHtml);
 
-            // Auto-remove after 5 seconds (except for success messages on password reset)
+            // Auto-remove after delay (longer for info/dev alerts)
             if (!(type === 'success' && message.includes('Redirecting'))) {
+                const delay = (type === 'info') ? 15000 : 5000;  // 15s for info, 5s for others
                 setTimeout(function () {
                     $('.alert-message').fadeOut(function () {
                         $(this).remove();
                     });
-                }, 5000);
+                }, delay);
             }
         }
     </script>

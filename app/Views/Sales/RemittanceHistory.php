@@ -397,10 +397,13 @@
             $('#detailTotalRemittedCompare').text(formatCurrency((parseFloat(details.amount_enclosed) || 0) + (parseFloat(details.total_online_revenue) || 0) + (parseFloat(details.foodpanda_revenue) || 0) + (parseFloat(details.cash_out) || 0)));
 
             // Populate sales by category
-            $('#detailBakerySales').text(formatCurrency(details.bakery_sales || 0));
-            $('#detailCoffeeSales').text(formatCurrency(details.coffee_sales || 0));
-            $('#detailDoughSales').text(formatCurrency(details.dough_sales || 0));
-            $('#detailGrocerySales').text(formatCurrency(details.grocery_sales || 0));
+            const bakerySalesValue = parseFloat(details.bakery_sales) || 0;
+            const coffeeSalesValue = parseFloat(details.coffee_sales) || 0;
+            const grocerySalesValue = parseFloat(details.grocery_sales) || 0;
+
+            $('#detailBakerySales').text(formatCurrency(bakerySalesValue));
+            $('#detailCoffeeSales').text(formatCurrency(coffeeSalesValue));
+            $('#detailGrocerySales').text(formatCurrency(grocerySalesValue));
 
             // Populate denomination breakdown table
             if (denominations && denominations.length > 0) {
@@ -764,9 +767,9 @@
             const onlinePayment = $('#detailGcash').text();
             const foodPandaPayment = $('#detailFoodPanda').text();
             const cashOut = $('#detailCashOut').text();
-            const bakerySales = $('#detailTotalSales').text(); // Using total sales for bakery display
-            const grocerySales = '₱0.00';
-            const coffeeSales = '₱0.00';
+            const bakerySales = $('#detailBakerySales').text();
+            const grocerySales = $('#detailGrocerySales').text();
+            const coffeeSales = $('#detailCoffeeSales').text();
             const totalSales = $('#detailTotalSales').text();
             const variance = $('#detailVariance').text();
 
@@ -1000,6 +1003,9 @@
                 'FoodPanda',
                 'Cash Out',
                 'Cash Out Reason',
+                'Bakery Sales',
+                'Coffee Sales',
+                'Grocery Sales',
                 'Total Sales',
                 'Total Remitted',
                 'Variance'
@@ -1008,6 +1014,10 @@
                 const varianceAmount = parseFloat(remittance.variance_amount) || 0;
                 const isShort = parseInt(remittance.is_short) === 1;
                 const variance = isShort ? -varianceAmount : varianceAmount;
+                const bakerySales = parseFloat(remittance.bakery_sales) || 0;
+                const coffeeSales = parseFloat(remittance.coffee_sales) || 0;
+                const grocerySales = parseFloat(remittance.grocery_sales) || 0;
+                const totalSales = parseFloat(remittance.total_sales) || 0;
                 return [
                     remittance.remittance_date,
                     remittance.cashier_name || '',
@@ -1018,7 +1028,10 @@
                     remittance.foodpanda_revenue || 0,
                     remittance.cash_out || 0,
                     remittance.cashout_reason || '',
-                    remittance.total_sales || 0,
+                    bakerySales,
+                    coffeeSales,
+                    grocerySales,
+                    totalSales,
                     Number(remittance.amount_enclosed || 0) + Number(remittance.total_online_revenue || 0) + Number(remittance.foodpanda_revenue || 0) + Number(remittance.cash_out || 0),
                     variance
                 ];

@@ -123,10 +123,11 @@
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Pull Out</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Ending</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-right">Sales</th>
+                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Status</th>
                             </tr>
                         </thead>
                     <tbody id="historyTableBody">
-                        <tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
+                        <tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
                     </tbody>
                     </table>
                 </div>
@@ -162,12 +163,12 @@
             <div class="p-4 overflow-y-auto">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-left text-gray-600">
-                        <thead class="bg-gray-50">
+                        <thead class="hidden">
                             <tr>
                                 <th class="px-4 py-2">Product</th>
                                 <th class="px-4 py-2 text-center">Begin</th>
-                                <th class="px-4 py-2 text-center">Sold</th>
                                 <th class="px-4 py-2 text-center">Pull Out</th>
+                                <th class="px-4 py-2 text-center">Qty Sold</th>
                                 <th class="px-4 py-2 text-center">Ending</th>
                             </tr>
                         </thead>
@@ -239,12 +240,38 @@
             return `${h12}:${minutes} ${ampm}`;
         }
 
+        function isEnabledStatus(value) {
+            return value === 1 || value === '1' || value === true || value === 'true';
+        }
+
+        function buildStatusBadges(inv) {
+            const badges = [];
+
+            if (isEnabledStatus(inv.report_sent)) {
+                badges.push('<span class="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-inset ring-sky-200"><span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>Report Sent</span>');
+            }
+
+            if (isEnabledStatus(inv.is_closed)) {
+                badges.push('<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Inventory Closed</span>');
+            }
+
+            if (isEnabledStatus(inv.is_remitted)) {
+                badges.push('<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Is Remitted</span>');
+            }
+
+            if (badges.length === 0) {
+                badges.push('<span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-200"><span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>Open</span>');
+            }
+
+            return badges.join(' ');
+        }
+
         function loadInventoryHistory() {
             const dateFrom = $('#filterDateFrom').val();
             const dateTo = $('#filterDateTo').val();
             
             // Show loading
-            $('#historyTableBody').html('<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
+            $('#historyTableBody').html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
             
             $.ajax({
                 url: BASE_URL + 'Inventory/FetchHistory',
@@ -318,6 +345,11 @@
                         <td class="px-6 py-4 text-center text-amber-600 font-medium">${inv.total_pull_out > 0 ? inv.total_pull_out : '-'}</td>
                         <td class="px-6 py-4 text-center font-medium text-gray-700">${inv.total_ending}</td>
                         <td class="px-6 py-4 text-right font-semibold text-primary">₱${totalSales.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex flex-wrap justify-center gap-1.5">
+                                ${buildStatusBadges(inv)}
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
@@ -399,6 +431,12 @@
                                     <p class="text-xl font-bold text-primary">₱${totalSales.toFixed(2)}</p>
                                 </div>
                             </div>
+                            <div class="mt-3 border-t border-gray-100 pt-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Status</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    ${buildStatusBadges(inv)}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -427,17 +465,90 @@
                 return;
             }
 
-            let rows = '';
+            const categoryOrder = ['bakery', 'grocery', 'drinks', 'others'];
+            const categoryLabels = {
+                bakery: 'Bread',
+                grocery: 'Grocery',
+                drinks: 'Drinks',
+                others: 'Others'
+            };
+
+            const normalizeCategory = function(rawCategory) {
+                const category = String(rawCategory || '').trim().toLowerCase();
+                if (category === 'bread') return 'bakery';
+                if (categoryOrder.includes(category)) return category;
+                if (category === '') return 'others';
+                return 'others';
+            };
+
+            const grouped = {
+                bakery: [],
+                grocery: [],
+                drinks: [],
+                others: []
+            };
+
             details.forEach(item => {
+                grouped[normalizeCategory(item.category)].push(item);
+            });
+
+            let rows = '';
+            categoryOrder.forEach(categoryKey => {
+                const items = grouped[categoryKey] || [];
+                if (items.length === 0) return;
+
+                const isDrinksCategory = categoryKey === 'drinks';
+
                 rows += `
-                    <tr class="border-b">
-                        <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                        <td class="px-4 py-2 text-center text-blue-600">${item.beginning_stock}</td>
-                        <td class="px-4 py-2 text-center text-green-600">${item.quantity_sold}</td>
-                        <td class="px-4 py-2 text-center text-amber-600">${item.pull_out_quantity}</td>
-                        <td class="px-4 py-2 text-center text-gray-700">${item.ending_stock}</td>
+                    <tr class="bg-gray-100 border-y border-gray-200">
+                        <td colspan="5" class="px-4 py-2 font-semibold uppercase tracking-wide text-gray-700">${categoryLabels[categoryKey]}</td>
                     </tr>
                 `;
+
+                if (isDrinksCategory) {
+                    rows += `
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
+                            <td colspan="4" class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                        </tr>
+                    `;
+                } else {
+                    rows += `
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Begin</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pull Out</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Ending</td>
+                        </tr>
+                    `;
+                }
+
+                items.forEach(item => {
+                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const sold = parseInt(item.quantity_sold) || 0;
+                    const ending = parseInt(item.ending_stock) || 0;
+
+                    if (isDrinksCategory) {
+                        rows += `
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                                <td colspan="4" class="px-4 py-2 text-center text-green-600">${sold}</td>
+                            </tr>
+                        `;
+                    } else {
+                        rows += `
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                                <td class="px-4 py-2 text-center text-blue-600">${beginning}</td>
+                                <td class="px-4 py-2 text-center text-amber-600">${pullOut}</td>
+                                <td class="px-4 py-2 text-center text-green-600">${sold}</td>
+                                <td class="px-4 py-2 text-center text-gray-700">${ending}</td>
+                            </tr>
+                        `;
+                    }
+                });
             });
 
             $('#contentsModalBody').html(rows);
@@ -469,7 +580,7 @@
         function showEmptyState(message = 'No inventory records found') {
             $('#historyTableBody').html(`
                 <tr>
-                    <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="10" class="px-6 py-12 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-3"></i>
                         <p>${message}</p>
                     </td>

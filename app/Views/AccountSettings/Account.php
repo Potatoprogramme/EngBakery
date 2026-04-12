@@ -28,6 +28,13 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Change Password</span>
                             </button>
+                            <?php if (($employee_type ?? '') === 'owner'): ?>
+                                <button id="notificationTab"
+                                    class="settings-tab w-full text-left px-4 py-3 rounded-lg mt-1 flex items-center gap-3 text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-bell"></i>
+                                    <span>Email Notifications</span>
+                                </button>
+                            <?php endif; ?>
                         </nav>
                     </div>
                 </div>
@@ -255,13 +262,69 @@
                         </form>
                     </div>
                 </div>
+
+                <?php if (($employee_type ?? '') === 'owner'): ?>
+                <div id="notificationSection" class="lg:col-span-2 settings-content hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-4 bg-primary text-white">
+                            <h2 class="font-semibold">Email Notification Settings</h2>
+                        </div>
+                        <form id="notificationForm" class="p-6">
+                            <p class="text-sm text-gray-600 mb-5">Control which email reports your owner account receives.</p>
+
+                            <div class="space-y-4">
+                                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">Send Low Stock Alerts</p>
+                                        <p class="text-xs text-gray-500">Receive alert emails when product/raw material stock is low.</p>
+                                    </div>
+                                    <input type="checkbox" id="low_stock_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
+                                </label>
+
+                                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">Send Inventory Reports</p>
+                                        <p class="text-xs text-gray-500">Receive inventory report emails from manual/scheduled sends.</p>
+                                    </div>
+                                    <input type="checkbox" id="inventory_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
+                                </label>
+
+                                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">Send Remittance Reports</p>
+                                        <p class="text-xs text-gray-500">Receive daily remittance summary emails.</p>
+                                    </div>
+                                    <input type="checkbox" id="remittance_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
+                                </label>
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button type="button" id="cancelNotificationBtn"
+                                    class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-secondary transition-colors font-medium">
+                                    <i class="fas fa-save mr-2"></i>Save Notification Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 
     <script>
         const BASE_URL = '<?= base_url() ?>';
+        const IS_OWNER = <?= (($employee_type ?? '') === 'owner') ? 'true' : 'false' ?>;
         let originalProfileData = {};
+        let originalNotificationSettings = {
+            low_stock_enabled: 1,
+            inventory_enabled: 1,
+            remittance_enabled: 1
+        };
 
         $(document).ready(function() {
             loadUserData();
@@ -281,9 +344,15 @@
                 if (tabId === 'profileTab') {
                     $('#profileSection').removeClass('hidden');
                     $('#passwordSection').addClass('hidden');
+                    $('#notificationSection').addClass('hidden');
                 } else if (tabId === 'passwordTab') {
                     $('#profileSection').addClass('hidden');
                     $('#passwordSection').removeClass('hidden');
+                    $('#notificationSection').addClass('hidden');
+                } else if (tabId === 'notificationTab') {
+                    $('#profileSection').addClass('hidden');
+                    $('#passwordSection').addClass('hidden');
+                    $('#notificationSection').removeClass('hidden');
                 }
             });
 
@@ -295,6 +364,17 @@
             $('#cancelPasswordBtn').on('click', function() {
                 $('#passwordForm')[0].reset();
             });
+
+            if (IS_OWNER) {
+                $('#cancelNotificationBtn').on('click', function() {
+                    setNotificationToggleState(originalNotificationSettings);
+                });
+
+                $('#notificationForm').on('submit', function(e) {
+                    e.preventDefault();
+                    updateNotificationSettings();
+                });
+            }
 
             // Profile form submission
             $('#profileForm').on('submit', function(e) {
@@ -335,6 +415,19 @@
                         $('#employee_type_display').text(capitalizeRole(user.employee_type) || '-');
                         $('#approved_display').text(user.approved == 1 ? 'Approved' : 'Pending');
                         $('#created_at_display').text(formatDate(user.created_at) || '-');
+
+                        if (IS_OWNER) {
+                            if (user.notification_settings) {
+                                originalNotificationSettings = {
+                                    low_stock_enabled: parseInt(user.notification_settings.low_stock_enabled || 0, 10) === 1 ? 1 : 0,
+                                    inventory_enabled: parseInt(user.notification_settings.inventory_enabled || 0, 10) === 1 ? 1 : 0,
+                                    remittance_enabled: parseInt(user.notification_settings.remittance_enabled || 0, 10) === 1 ? 1 : 0
+                                };
+                                setNotificationToggleState(originalNotificationSettings);
+                            } else {
+                                loadNotificationSettings();
+                            }
+                        }
                     } else {
                         showAlert('error', response.message || 'Failed to load user data');
                     }
@@ -342,6 +435,70 @@
                 error: function(xhr, status, error) {
                     console.error('Error loading user data:', error);
                     showAlert('error', 'Failed to load user data. Please refresh the page.');
+                }
+            });
+        }
+
+        function loadNotificationSettings() {
+            if (!IS_OWNER) return;
+
+            $.ajax({
+                url: BASE_URL + 'User/GetNotificationSettings',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data) {
+                        originalNotificationSettings = {
+                            low_stock_enabled: parseInt(response.data.low_stock_enabled || 0, 10) === 1 ? 1 : 0,
+                            inventory_enabled: parseInt(response.data.inventory_enabled || 0, 10) === 1 ? 1 : 0,
+                            remittance_enabled: parseInt(response.data.remittance_enabled || 0, 10) === 1 ? 1 : 0
+                        };
+                        setNotificationToggleState(originalNotificationSettings);
+                    }
+                }
+            });
+        }
+
+        function setNotificationToggleState(settings) {
+            $('#low_stock_enabled').prop('checked', parseInt(settings.low_stock_enabled || 0, 10) === 1);
+            $('#inventory_enabled').prop('checked', parseInt(settings.inventory_enabled || 0, 10) === 1);
+            $('#remittance_enabled').prop('checked', parseInt(settings.remittance_enabled || 0, 10) === 1);
+        }
+
+        function updateNotificationSettings() {
+            if (!IS_OWNER) return;
+
+            const payload = {
+                low_stock_enabled: $('#low_stock_enabled').is(':checked') ? 1 : 0,
+                inventory_enabled: $('#inventory_enabled').is(':checked') ? 1 : 0,
+                remittance_enabled: $('#remittance_enabled').is(':checked') ? 1 : 0
+            };
+
+            if (typeof ButtonLoader !== 'undefined') {
+                ButtonLoader.start('#notificationForm button[type="submit"]', 'Saving...');
+            }
+
+            $.ajax({
+                url: BASE_URL + 'User/UpdateNotificationSettings',
+                type: 'POST',
+                data: payload,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        originalNotificationSettings = payload;
+                        showAlert('success', response.message || 'Notification settings updated successfully');
+                    } else {
+                        showAlert('error', response.message || 'Failed to update notification settings');
+                    }
+                },
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON?.message || 'Failed to update notification settings. Please try again.';
+                    showAlert('error', errorMsg);
+                },
+                complete: function() {
+                    if (typeof ButtonLoader !== 'undefined') {
+                        ButtonLoader.stop('#notificationForm button[type="submit"]', '<i class="fas fa-save mr-2"></i>Save Notification Settings');
+                    }
                 }
             });
         }
@@ -495,6 +652,8 @@
             // Add new alert to the active section
             if ($('#profileSection').is(':visible')) {
                 $('#profileForm').prepend(alertHtml);
+            } else if ($('#notificationSection').is(':visible')) {
+                $('#notificationForm').prepend(alertHtml);
             } else {
                 $('#passwordForm').prepend(alertHtml);
             }

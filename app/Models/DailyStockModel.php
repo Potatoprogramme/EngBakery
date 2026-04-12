@@ -14,6 +14,10 @@ class DailyStockModel extends Model
         'inventory_date',
         'time_start',
         'time_end',
+        'is_closed',
+        'report_sent',
+        'is_remitted',
+        'report_sent_at',
     ];
 
     // Dates
@@ -22,26 +26,35 @@ class DailyStockModel extends Model
     // protected $updatedField = 'date_updated';
     // protected $deletedField = 'date_deleted';
 
-    public function checkInventoryExistsToday($date)
-    {
-        return $this->where('inventory_date', $date)->first();
-    }
+    // public function checkInventoryExistsToday($date)
+    // {
+    //     return $this
+    //         ->where('inventory_date', $date)
+    //         ->orderBy('daily_stock_id', 'DESC')
+    //         ->first();
+    // }
 
     public function checkInventoryToday($date)
     {
-        return $this->where('inventory_date', $date)->first();
+        return $this
+            ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
     }
     public function checkInventoryExists($date)
     {
-        return $this->where('inventory_date', $date)->first();
+        return $this
+            ->where('inventory_date', $date)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
     }
     public function addTodaysInventory($data)
     {
         return $this->insert($data);
     }
-    public function deleteInventoryByDate($date)
+    public function deleteInventory(int $id)
     {
-        return $this->where('inventory_date', $date)->delete();
+        return $this->where('daily_stock_id', $id)->delete();
     }
 
     /**
@@ -49,7 +62,23 @@ class DailyStockModel extends Model
      */
     public function getTodaysInventory(): ?array
     {
-        return $this->where('inventory_date', date('Y-m-d'))->first();
+        return $this
+            ->where('inventory_date', date('Y-m-d'))
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
+    }
+
+    /**
+     * Get today's active inventory record used by Orders flow.
+     * Active means the shift is not closed and report is not sent yet.
+     */
+    public function getActiveTodaysInventory(): ?array
+    {
+        return $this
+            ->where('inventory_date', date('Y-m-d'))
+            ->orderBy('inventory_date', 'DESC')
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
     }
 
     /**
@@ -57,7 +86,7 @@ class DailyStockModel extends Model
      */
     public function getInventoryHistory(?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $builder = $this->orderBy('inventory_date', 'DESC');
+        $builder = $this->orderBy('daily_stock_id', 'DESC');
 
         if ($dateFrom) {
             $builder->where('inventory_date >=', $dateFrom);
@@ -75,5 +104,36 @@ class DailyStockModel extends Model
     public function getInventoryById(int $id): ?array
     {
         return $this->find($id);
+    }
+
+    /**
+     * Get today's inventories that are eligible for remittance.
+     */
+    public function getRemittanceEligibleInventories(?string $date = null): array
+    {
+        $date = $date ?? date('Y-m-d');
+
+        return $this
+            ->where('inventory_date', $date)
+            ->where('is_closed', 1)
+            ->where('report_sent', 1)
+            ->where('is_remitted', 0)
+            ->orderBy('time_start', 'ASC')
+            ->orderBy('daily_stock_id', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Get all inventories for a day, including remittance state.
+     */
+    public function getInventoriesByDate(?string $date = null): array
+    {
+        $date = $date ?? date('Y-m-d');
+
+        return $this
+            ->where('inventory_date', $date)
+            ->orderBy('time_start', 'ASC')
+            ->orderBy('daily_stock_id', 'ASC')
+            ->findAll();
     }
 }

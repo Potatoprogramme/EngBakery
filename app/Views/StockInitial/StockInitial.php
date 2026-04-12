@@ -31,6 +31,26 @@
                         <?php endif; ?>
                     </div>
                 </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-gray-200 my-4"></div>
+
+                <?php if (!$isStaffView): ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
+                        <div class="bg-white rounded-lg shadow-md border border-green-100 p-4">
+                            <p class="text-xs uppercase tracking-wide text-green-700 font-semibold">Grand Total Initial Cost</p>
+                            <p id="totalInitialCostCard" class="mt-1 text-2xl font-bold text-green-700 tabular-nums">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md border border-orange-100 p-4">
+                            <p class="text-xs uppercase tracking-wide text-orange-700 font-semibold">Grand Total Used Cost</p>
+                            <p id="totalUsedCostCard" class="mt-1 text-2xl font-bold text-orange-700 tabular-nums">₱0.00</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md border border-blue-100 p-4 sm:col-span-2 xl:col-span-1">
+                            <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Grand Total Remaining Cost</p>
+                            <p id="totalRemainingCostCard" class="mt-1 text-2xl font-bold text-blue-700 tabular-nums">₱0.00</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Divider -->
                 <div class="border-t border-gray-200 my-4"></div>
@@ -191,6 +211,15 @@
                         <input type="number" name="initial_qty" id="initial_qty"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder="0" min="0" step="0.00001" required>
+                    </div>
+                    <div id="add_stock_wrapper" class="hidden">
+                        <label for="add_stock_qty" class="block text-sm font-medium text-emerald-700 mb-1">
+                            Add Stock
+                        </label>
+                        <input type="number" name="add_stock_qty" id="add_stock_qty"
+                            class="w-full px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-emerald-50"
+                            placeholder="0" min="0" step="0.00001" value="0">
+                        <span class="text-xs text-gray-500 mt-1 block">Auto-adds to Stock On Hand.</span>
                     </div>
                     <div id="qty_used_wrapper" class="hidden">
                         <label class="block text-sm font-medium text-orange-600 mb-1">

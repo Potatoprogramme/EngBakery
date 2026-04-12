@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\OwnerNotificationPreferences;
+
 class UserController extends BaseController
 {
     public function index()
@@ -42,9 +44,87 @@ class UserController extends BaseController
         // Remove sensitive password field
         unset($currentUserData['password']);
 
+        if (($currentUserData['employee_type'] ?? '') === 'owner') {
+            $currentUserData['notification_settings'] = OwnerNotificationPreferences::getForUser((int) $user['user_id']);
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $currentUserData
+        ]);
+    }
+
+    public function getNotificationSettings()
+    {
+        $user = $this->getSessionData();
+
+        if (!$user['user_id']) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        if (!$this->isOwner()) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Only owner accounts can manage email notification settings.'
+            ]);
+        }
+
+        $settings = OwnerNotificationPreferences::getForUser((int) $user['user_id']);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $settings
+        ]);
+    }
+
+    public function updateNotificationSettings()
+    {
+        $user = $this->getSessionData();
+
+        if (!$user['user_id']) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        if (!$this->isOwner()) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Only owner accounts can manage email notification settings.'
+            ]);
+        }
+
+        $data = $this->request->getPost();
+
+        if (!$this->validateData($data, [
+            'low_stock_enabled' => 'required|in_list[0,1]',
+            'inventory_enabled' => 'required|in_list[0,1]',
+            'remittance_enabled' => 'required|in_list[0,1]',
+        ])) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => $this->validator->listErrors(),
+            ]);
+        }
+
+        $validatedData = $this->validator->getValidated();
+        $saved = OwnerNotificationPreferences::upsertForUser((int) $user['user_id'], $validatedData);
+
+        if (!$saved) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to update notification settings. Please try again.'
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Notification settings updated successfully.',
+            'data' => OwnerNotificationPreferences::getForUser((int) $user['user_id'])
         ]);
     }
 

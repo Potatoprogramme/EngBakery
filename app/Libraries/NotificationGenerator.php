@@ -192,6 +192,7 @@ class NotificationGenerator
                     ->where('firstname', $firstName)
                     ->where('lastname', $lastName)
                     ->where('employee_type', 'staff')
+                    ->where('deleted_at', null)
                     ->get()
                     ->getRowArray();
 
@@ -269,6 +270,7 @@ class NotificationGenerator
 
         $pendingCount = $db->table('users')
             ->where('approved', 0)
+            ->where('deleted_at', null)
             ->countAllResults();
 
         if ($pendingCount === 0) {

@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class OrderModel extends Model
 {
+    private const MANUAL_DRINK_ADJ_PREFIX = 'MANUAL_DRINK_ADJ|';
+
     protected $table = 'orders';
     protected $primaryKey = 'order_id';
     protected $returnType = 'array';
@@ -16,6 +18,7 @@ class OrderModel extends Model
         'payment_method',
         'order_type',
         'distributed_note',
+        'cashier_id',
         'cashier_name',
         'date_created',
         'time_created',
@@ -24,14 +27,19 @@ class OrderModel extends Model
     ];
     protected $useTimestamps = false;
 
-    public function generateOrderNumber(): string
+    public function generateOrderNumber(?int $orderId = null, ?string $orderDate = null): string
     {
-        $today = date('Y-m-d');
+        $resolvedDate = $orderDate ?? date('Y-m-d');
 
-        $todayCount = $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
+        if ($orderId !== null) {
+            return "{$resolvedDate}-{$orderId}";
+        }
+
+        // Fallback for legacy callers when order ID is not available yet.
+        $todayCount = $this->where('date_created', $resolvedDate)->where('voided_at IS NULL')->countAllResults();
         $sequence = $todayCount + 1;
 
-        return "{$today} -{$sequence}";
+        return "{$resolvedDate}-{$sequence}";
     }
 
     public function createOrder(array $data): int|false
@@ -43,10 +51,17 @@ class OrderModel extends Model
             'payment_method' => $data['payment_method'],
             'order_type' => $data['order_type'],
             'distributed_note' => $data['distributed_note'] ?? null,
-            'cashier_name' => $data['cashier_name'] ?? 'Unknown',
             'date_created' => date('Y-m-d'),
             'time_created' => date('H:i:s')
         ];
+
+        // Backward-compatible cashier field mapping:
+        // older schema uses `cashier_name`, newer schema may use `cashier_id`.
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $orderData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        } elseif ($this->db->fieldExists('cashier_name', $this->table)) {
+            $orderData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'Unknown'));
+        }
 
         if ($this->insert($orderData)) {
             return $this->insertID();
@@ -58,8 +73,7 @@ class OrderModel extends Model
     {
         $builder = $this->builder();
         $builder->select("orders.*, orders.voided_at, orders.voided_by,
-            CONCAT(orders.date_created, ' -', 
-            (SELECT COUNT(*) FROM orders o2 WHERE o2.date_created = orders.date_created AND o2.order_id <= orders.order_id)) as order_number", false);
+            CONCAT(orders.date_created, '-', orders.order_id) as order_number", false);
 
         if ($dateFrom) {
             $builder->where('date_created >=', $dateFrom);
@@ -70,6 +84,11 @@ class OrderModel extends Model
         if ($orderType) {
             $builder->where('order_type', $orderType);
         }
+
+        $builder->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd();
 
         $builder->orderBy('date_created', 'DESC');
         $builder->orderBy('time_created', 'DESC');
@@ -85,10 +104,7 @@ class OrderModel extends Model
     {
         $order = $this->find($orderId);
         if ($order) {
-            $sequence = $this->where('date_created', $order['date_created'])
-                ->where('order_id <=', $orderId)
-                ->countAllResults();
-            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . " -{$sequence}";
+            $order['order_number'] = date('Y-m-d', strtotime($order['date_created'])) . "-{$orderId}";
         }
         return $order;
     }
@@ -119,6 +135,9 @@ class OrderModel extends Model
 
         $where = ['o.voided_at IS NULL'];
         $params = [];
+
+        $where[] = '(o.distributed_note IS NULL OR o.distributed_note NOT LIKE ?)';
+        $params[] = self::MANUAL_DRINK_ADJ_PREFIX . '%';
 
         if (!empty($dateFrom)) {
             $where[] = 'o.date_created >= ?';
@@ -192,7 +211,13 @@ class OrderModel extends Model
     public function getTodaysOrderCount(): int
     {
         $today = date('Y-m-d');
-        return $this->where('date_created', $today)->where('voided_at IS NULL')->countAllResults();
+        return $this->where('date_created', $today)
+            ->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
+            ->countAllResults();
     }
 
     /**
@@ -268,7 +293,7 @@ class OrderModel extends Model
 
         return [
             'order_id' => $orderId,
-            'order_number' => $this->generateOrderNumber(),
+            'order_number' => $this->generateOrderNumber($orderId),
             'order' => $this->getOrderById($orderId),
             'items' => $orderItemModel->getOrderItems($orderId)
         ];
@@ -365,7 +390,10 @@ class OrderModel extends Model
      */
     public function getTransactionDetailsByOrderId(int $orderId)
     {
-        return $this->where('order_id', $orderId)->first();
+        return $this->where('order_id', $orderId)
+            ->join('users', 'users.user_id = orders.cashier_id', 'left')
+            ->select('orders.*, CONCAT(users.firstname, \' \', COALESCE(users.middlename, \'\'), \' \', users.lastname) AS cashier_name, users.email AS cashier_email')
+            ->first();
     }
 
     /**
@@ -402,6 +430,130 @@ class OrderModel extends Model
             ->where('time_created >=', $shiftStart)
             ->where('time_created <=', $shiftEnd)
             ->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
             ->countAllResults();
+    }
+
+    /**
+     * Get sales for a payment method scoped to an inventory period.
+     */
+    public function getSalesByPaymentMethodForInventory(string $paymentMethod, int $dailyStockId): float
+    {
+        $transactionSubquery = $this->db->table('transactions')
+            ->select('DISTINCT transactions.order_id', false)
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->getCompiledSelect();
+
+        $result = $this->builder()
+            ->selectSum('total_payment_due', 'total')
+            ->where('LOWER(payment_method)', strtolower($paymentMethod))
+            ->where('voided_at IS NULL')
+            ->where("order_id IN ($transactionSubquery)", null, false)
+            ->get()
+            ->getRowArray();
+
+        return floatval($result['total'] ?? 0);
+    }
+
+    /**
+     * Get order count scoped to a specific inventory period.
+     */
+    public function getOrderCountForInventory(int $dailyStockId): int
+    {
+        $transactionSubquery = $this->db->table('transactions')
+            ->select('DISTINCT transactions.order_id', false)
+            ->join('daily_stock_items', 'daily_stock_items.item_id = transactions.item_id', 'inner')
+            ->join('remittance_items', 'remittance_items.transaction_id = transactions.sale_id', 'left')
+            ->where('daily_stock_items.daily_stock_id', $dailyStockId)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('remittance_items.remit_item_id IS NULL')
+            ->getCompiledSelect();
+
+        return $this->where('voided_at IS NULL')
+            ->groupStart()
+            ->where('distributed_note IS NULL', null, false)
+            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
+            ->groupEnd()
+            ->where("order_id IN ($transactionSubquery)", null, false)
+            ->countAllResults();
+    }
+
+    /**
+     * Find the active tagged manual drinks adjustment order.
+     */
+    public function findManualDrinkAdjustmentOrder(string $marker): ?array
+    {
+        return $this->where('distributed_note', $marker)
+            ->where('voided_at IS NULL')
+            ->orderBy('order_id', 'DESC')
+            ->first();
+    }
+
+    /**
+     * Create an internal manual drinks adjustment order using current schema only.
+     */
+    public function createManualDrinkAdjustmentOrder(array $data): int|false
+    {
+        $orderData = [
+            'total_payment_due' => floatval($data['total_payment_due'] ?? 0),
+            'amount_received' => floatval($data['amount_received'] ?? 0),
+            'amount_change' => floatval($data['amount_change'] ?? 0),
+            'payment_method' => (string) ($data['payment_method'] ?? 'cash'),
+            'order_type' => 'distributed',
+            'distributed_note' => (string) ($data['distributed_note'] ?? ''),
+            'date_created' => (string) ($data['date_created'] ?? date('Y-m-d')),
+            'time_created' => (string) ($data['time_created'] ?? date('H:i:s')),
+            'voided_at' => null,
+            'voided_by' => null,
+        ];
+
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $orderData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        }
+
+        if ($this->db->fieldExists('cashier_name', $this->table)) {
+            $orderData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'System'));
+        }
+
+        if (!$this->insert($orderData)) {
+            return false;
+        }
+
+        return intval($this->insertID());
+    }
+
+    /**
+     * Update a tagged manual drinks adjustment order.
+     */
+    public function updateManualDrinkAdjustmentOrder(int $orderId, array $data): bool
+    {
+        $updateData = [
+            'total_payment_due' => floatval($data['total_payment_due'] ?? 0),
+            'amount_received' => floatval($data['amount_received'] ?? 0),
+            'amount_change' => floatval($data['amount_change'] ?? 0),
+            'payment_method' => (string) ($data['payment_method'] ?? 'cash'),
+            'distributed_note' => (string) ($data['distributed_note'] ?? ''),
+            'date_created' => (string) ($data['date_created'] ?? date('Y-m-d')),
+            'time_created' => (string) ($data['time_created'] ?? date('H:i:s')),
+            'voided_at' => null,
+            'voided_by' => null,
+        ];
+
+        if ($this->db->fieldExists('cashier_id', $this->table)) {
+            $updateData['cashier_id'] = intval($data['cashier_id'] ?? 0);
+        }
+
+        if ($this->db->fieldExists('cashier_name', $this->table)) {
+            $updateData['cashier_name'] = trim((string) ($data['cashier_name'] ?? 'System'));
+        }
+
+        return $this->update($orderId, $updateData);
     }
 }

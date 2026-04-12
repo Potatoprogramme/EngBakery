@@ -5,37 +5,83 @@
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Inventory Lists</h2>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+
+                    <!-- LEFT: Navigation -->
                     <div class="flex flex-wrap gap-2">
                         <a href="<?= base_url('Inventory/History') ?>"
-                            class="hidden sm:inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                            <i class="fas fa-history mr-2"></i> History
+                            class="inline-flex h-10 items-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition">
+                            <i class="fas fa-clock-rotate-left mr-2 text-gray-500"></i>
+                            History
                         </a>
-                        <?php if ($isOwnerView): ?>
-                            <button id="btnSendInventoryReport" type="button"
-                                class="hidden sm:inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                                <i class="fas fa-paper-plane mr-2"></i> Send Inventory Report
-                            </button>
-                        <?php endif; ?>
-                        <button id="btnAddProductToInventory" type="button"
-                            class="hidden items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
-                            <i class="fas fa-plus mr-2"></i> Add Product
+                    </div>
+
+                    <!-- RIGHT: Actions -->
+                    <div class="flex flex-wrap items-center gap-2">
+
+                        <!-- Primary Action -->
+                        <button id="btnAddTodaysInventory"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            <i class="fas fa-plus sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Add Inventory</span>
                         </button>
-                        <button id="btnDistributions" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-truck-loading mr-2"></i> Distributions (<span id="distCount">0</span>)
+
+                        <!-- Secondary Actions -->
+                        <button id="btnAddProductToInventory"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            <i class="fas fa-box-open sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Add Product</span>
                         </button>
-                        <button id="btnAddTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Add Today's Inventory
+
+                        <button id="btnDistributions"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 transition">
+                            <i class="fas fa-truck-loading sm:mr-2 text-blue-500"></i>
+                            <span class="hidden sm:inline">Distributions</span>
+                            <span id="distCount"
+                                class="sm:ml-2 ml-1 inline-flex items-center justify-center rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                                0
+                            </span>
                         </button>
-                        <button id="btnDeleteTodaysInventory" type="button"
-                            class="hidden items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">
-                            Delete Today's Inventory
+
+                        <button id="btnSendInventoryReport"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
+                            <i class="fas fa-paper-plane sm:mr-2 text-indigo-500"></i>
+                            <span class="hidden sm:inline">Send Report</span>
                         </button>
+
+                        <button id="btnResetInventoryForNextShift" onclick="openResetModal()"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-yellow-200 bg-yellow-50 px-4 text-sm font-medium text-yellow-700 hover:bg-yellow-100 focus:ring-2 focus:ring-yellow-300 transition">
+                            <i class="fas fa-sync-alt sm:mr-2 text-yellow-500"></i>
+                            <span class="hidden sm:inline">Create New Inventory for new Shift</span>
+                        </button>
+
+                        <!-- Divider -->
+                        <div id="inventoryActionDivider" class="hidden h-6 w-px bg-gray-300 mx-1"></div>
+
+                        <!-- Destructive Actions -->
+                        <button id="btnCloseInventory" onclick="closeInventory()"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 transition">
+                            <i class="fas fa-lock sm:mr-2 text-gray-500"></i>
+                            <span class="hidden sm:inline">Close</span>
+                        </button>
+
+                        <button id="btnOpenInventory" onclick="openInventory()"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
+                            <i class="fas fa-lock-open sm:mr-2 text-green-500"></i>
+                            <span class="hidden sm:inline">Open</span>
+                        </button>
+
+                        <button id="btnDeleteTodaysInventory"
+                            class="hidden inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-300 transition">
+                            <i class="fas fa-trash sm:mr-2 text-red-500"></i>
+                            <span class="hidden sm:inline">Delete</span>
+                        </button>
+
+
                     </div>
                 </div>
+
 
                 <!-- Divider line -->
                 <div class="border-t border-gray-200 my-4"></div>
@@ -74,8 +120,16 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-                <div class="xl:col-span-8 min-w-0">
+            <div id="inventoryInteractionArea" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+                <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0 order-2 xl:order-1">
+                    <div id="inventoryLockOverlay" class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
+                        <div class="h-full w-full flex items-center justify-center p-3">
+                            <div
+                                class="bg-gray-900/55 text-white text-sm font-medium rounded-lg px-4 py-2 shadow text-center">
+                                Inventory is closed. Click Open to enable editing.
+                            </div>
+                        </div>
+                    </div>
                     <!-- Category Tabs -->
                     <div class="flex gap-2 mb-3">
                         <button type="button" data-tab="bakery" onclick="switchTab('bakery')"
@@ -90,6 +144,21 @@
                             class="tab-btn flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all border-2 border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-gray-400 cursor-pointer">
                             <i class="fas fa-shopping-basket mr-1.5 hidden sm:inline"></i> Grocery
                         </button>
+                    </div>
+
+                    <div class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Bakery Sales</p>
+                            <p id="salesCardBakeryAmount" class="text-lg font-semibold text-amber-800">₱0.00</p>
+                        </div>
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Drinks Sales</p>
+                            <p id="salesCardDrinksAmount" class="text-lg font-semibold text-blue-800">₱0.00</p>
+                        </div>
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Grocery Sales</p>
+                            <p id="salesCardGroceryAmount" class="text-lg font-semibold text-emerald-800">₱0.00</p>
+                        </div>
                     </div>
 
                     <!-- Tab Content: Bakery -->
@@ -115,9 +184,9 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
@@ -234,9 +303,9 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
@@ -271,11 +340,20 @@
                             </div>
                         </div>
                     </div>
-
+                    <div id="inventoryDisabledOverlay"
+                        class="fixed inset-0 bg-gray-200 bg-opacity-60 z-[100] flex items-center justify-center hidden"
+                        style="pointer-events: all;">
+                        <div class="text-center">
+                            <i class="fas fa-lock text-4xl text-gray-500 mb-4"></i>
+                            <div class="text-lg font-semibold text-gray-700">Inventory is closed</div>
+                            <div class="text-sm text-gray-500">You cannot make changes until it is reopened.</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="xl:col-span-4 min-w-0">
-                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md">
+                <div class="xl:col-span-4 min-w-0 order-1 xl:order-2">
+                    <!-- Today's Distribution Panel -->
+                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md mb-4 xl:mb-0">
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
@@ -355,6 +433,8 @@
                         </div>
                     </div>
                 </div>
+
+
             </div>
 
             <!-- Time Input Modal -->
@@ -366,7 +446,7 @@
                         <i class="fas fa-times text-lg"></i>
                     </button>
                     <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-2">Set the operating hours for today.</p>
+                    <p class="text-xs text-gray-500 mb-2">Create inventory now and start tracking this shift.</p>
 
                     <!-- Inventory Source Badge -->
                     <div id="inventoryModeBadge"
@@ -384,7 +464,7 @@
                     <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-boxes-stacked text-amber-600"></i>
-                            <span class="text-sm font-semibold text-amber-700">Yesterday's Remaining Stock</span>
+                            <span class="text-sm font-semibold text-amber-700">Previous Inventory Remaining Stock</span>
                         </div>
                         <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
                         <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be
@@ -393,24 +473,16 @@
                     <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-box-open text-gray-400"></i>
-                            <span class="text-xs text-gray-500">No remaining stock from previous day.</span>
+                            <span class="text-xs text-gray-500">No remaining stock from previous inventory.</span>
                         </div>
                     </div>
 
                     <form id="timeInputForm">
-                        <div class="mb-4">
-                            <label for="time_start" class="block mb-1.5 text-sm font-medium text-gray-700">Start
-                                Time</label>
-                            <input type="time" id="time_start" name="time_start" required
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <p class="text-xs text-gray-400 mt-1">Morning (AM)</p>
-                        </div>
-                        <div class="mb-6">
-                            <label for="time_end" class="block mb-1.5 text-sm font-medium text-gray-700">End
-                                Time</label>
-                            <input type="time" id="time_end" name="time_end" required
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <p class="text-xs text-gray-400 mt-1">Afternoon/Evening (PM)</p>
+                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-xs text-gray-600">
+                                <i class="fas fa-clock mr-1"></i>
+                                Start time will be recorded automatically when you create inventory.
+                            </p>
                         </div>
                         <div class="flex gap-3">
                             <button type="submit"
@@ -456,8 +528,10 @@
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
                 <input type="hidden" id="editOldQuantitySold" value="0">
+                <input type="hidden" id="editCurrentQuantitySold" value="0">
+                <input type="hidden" id="editIsRemitted" value="0">
 
-                <div class="mb-4">
+                <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
@@ -493,7 +567,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4" id="editPullOutGroup">
                     <label for="editPullOutQuantity" id="editPullOutLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
                         Quantity</label>
@@ -512,24 +586,24 @@
                     <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
                 </div>
 
+                <div class="mb-4 hidden" id="editPostRemitWarning">
+                    <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-amber-700">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>This inventory is already remitted. Saving will create a post-remittance
+                                correction.</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-4 hidden" id="editEndingGroup">
                     <label for="editEndingStock" id="editEndingLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Ending
                         Stock</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseEnding"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
-                            &minus;
-                        </button>
-                        <input type="number" id="editEndingStock" name="ending_stock" step="1"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                        <button type="button" id="btnIncreaseEnding"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
-                            +
-                        </button>
-                    </div>
-                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Use + to add or - to subtract from current
-                        ending stock</p>
+                    <input type="number" id="editEndingStock" name="ending_stock" step="1" min="0"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                    <p id="editEndingHint" class="text-xs text-gray-400 mt-1">Enter the actual final ending stock count.
+                    </p>
                 </div>
 
                 <div class="mb-4">
@@ -537,11 +611,11 @@
                         (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
                         class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
-                    <p id="editRemainingHint" class="text-xs text-gray-400 mt-1">Live preview while editing fields
-                        above.</p>
+                    <p id="editRemainingHint" class="text-xs text-gray-500 mt-1">This summary updates while you edit
+                        values above.</p>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-6" id="editNotesGroup">
                     <label for="editNotes" id="editNotesLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
@@ -647,56 +721,93 @@
         </div>
     </div>
 
-    <?php if ($isOwnerView): ?>
-        <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
-            <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
-                <button type="button" id="sendReportConfirmModalClose"
-                    class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                    <i class="fas fa-xmark"></i>
+    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
+            <button type="button" id="sendReportConfirmModalClose"
+                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
+                <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
+                <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
+                    emailed.</p>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" id="btnConfirmSendInventoryReport"
+                    class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Send Report
                 </button>
-                <div class="text-center">
-                    <i class="fas fa-paper-plane text-indigo-600 text-5xl mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Send Inventory Report?</h3>
-                    <p class="text-gray-600 mb-2">Send the current auto-generated inventory report now.</p>
-                    <p class="text-sm text-gray-500 mb-6">This may take a few moments while the report is prepared and
-                        emailed.</p>
-                </div>
-                <div class="mb-4">
-                    <label for="sendReportShiftSelect" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-                    <select id="sendReportShiftSelect"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400">
-                        <option value="shift_a">Shift A</option>
-                        <option value="shift_b">Shift B</option>
-                        <option value="shift_c">Shift C</option>
-                        <option value="shift_d">Shift D</option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500">The selected shift report will be sent.</p>
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" id="btnConfirmSendInventoryReport"
-                        class="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                        Send Report
-                    </button>
-                    <button type="button" id="sendReportConfirmModalCancel"
-                        class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
-                        Cancel
-                    </button>
-                </div>
+                <button type="button" id="sendReportConfirmModalCancel"
+                    class="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 border border-gray-300">
+                    Cancel
+                </button>
             </div>
         </div>
-    <?php endif; ?>
+    </div>
 
     <script>
         // Track if inventory exists for today
         let inventoryExistsToday = false;
+        let inventoryIsClosed = false;
+        let inventoryReportSent = false;
+
+        function isInventoryInteractionBlocked() {
+            return inventoryExistsToday && inventoryIsClosed;
+        }
+
+        function enforceInventoryLock() {
+            if (isInventoryInteractionBlocked()) {
+                showToast('warning', 'Inventory is closed. Click Open to continue.', 2200);
+                return true;
+            }
+            return false;
+        }
+
+        function syncNewShiftButtonState() {
+            const shouldDisable = inventoryExistsToday && (!inventoryIsClosed || !inventoryReportSent);
+            const $btn = $('#btnResetInventoryForNextShift');
+
+            $btn
+                .prop('disabled', shouldDisable)
+                .attr('aria-disabled', shouldDisable ? 'true' : 'false')
+                .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', shouldDisable);
+
+            if (shouldDisable) {
+                if (!inventoryIsClosed) {
+                    $btn.attr('title', 'Close inventory first before creating a new inventory.');
+                } else if (!inventoryReportSent) {
+                    $btn.attr('title', 'Send inventory report first before creating a new inventory.');
+                }
+            } else {
+                $btn.removeAttr('title');
+            }
+        }
+
+        function syncInventoryInteractionLock() {
+            const blocked = isInventoryInteractionBlocked();
+            $('#inventoryLockOverlay').toggleClass('hidden', !blocked);
+
+            const lockButtons = '#btnAddProductToInventory, #btnAddProductToInventoryMobile, #btnDeleteTodaysInventory';
+            $(lockButtons)
+                .prop('disabled', blocked)
+                .toggleClass('opacity-50 cursor-not-allowed', blocked);
+
+            syncNewShiftButtonState();
+        }
 
         $(document).ready(function () {
+            syncInventoryInteractionLock();
 
             // Delete Modal Script
             $('#btnDeleteTodaysInventory').on('click', function () {
                 if (!inventoryExistsToday) {
                     showToast('warning', 'No inventory exists for today to delete.', 2000);
+                    return;
+                }
+                if (enforceInventoryLock()) {
                     return;
                 }
                 $('#deleteConfirmModal').removeClass('hidden');
@@ -709,8 +820,16 @@
 
             // Confirm Delete
             $('#btnConfirmDelete').on('click', function () {
-                $('#deleteConfirmModal').addClass('hidden');
-                deleteTodaysInventory(); // This calls your function
+                const $confirmDeleteBtn = $(this);
+                if ($confirmDeleteBtn.prop('disabled')) {
+                    return;
+                }
+
+                setButtonLoading($confirmDeleteBtn, true, 'Deleting...');
+                deleteInventory(function () {
+                    setButtonLoading($confirmDeleteBtn, false);
+                    $('#deleteConfirmModal').addClass('hidden');
+                });
             });
 
             // Distributions button click — open distribution list modal
@@ -1027,6 +1146,7 @@
         let todayDistProductDetailPromiseCache = {};
         let todayDistHydrationToken = 0;
         let todayDistributionGroupedData = [];
+        let inventoryId = null;
 
         function getTodayDateForApi() {
             const now = new Date();
@@ -1043,6 +1163,80 @@
             const cleaned = String(value).replace(/[^0-9.-]/g, '');
             const parsed = parseFloat(cleaned);
             return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function setButtonLoading($button, isLoading, loadingLabel = '', options = {}) {
+            if (!$button || !$button.length) return;
+
+            if (isLoading) {
+                if (!$button.data('loading-original-html')) {
+                    $button.data('loading-original-html', $button.html());
+                }
+
+                const iconOnly = options.iconOnly === true;
+                const loadingHtml = iconOnly ?
+                    '<i class="fas fa-spinner fa-spin"></i>' :
+                    ('<i class="fas fa-spinner fa-spin mr-2"></i>' + (loadingLabel || 'Loading...'));
+
+                $button.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed')
+                    .html(loadingHtml);
+                return;
+            }
+
+            const originalHtml = $button.data('loading-original-html');
+            $button.prop('disabled', false)
+                .removeClass('opacity-70 cursor-not-allowed');
+            if (originalHtml) {
+                $button.html(originalHtml);
+                $button.removeData('loading-original-html');
+            }
+        }
+
+        function getInventoryItemSalesAmount(item) {
+            const category = ((item && item.category) || '').toString().toLowerCase();
+            const qtySold = parseInventoryNumericValue(item && item.quantity_sold);
+
+            if (category === 'drinks') {
+                const directSales = parseInventoryNumericValue(item && (item.sales ?? item.total_sales));
+                if (directSales > 0) return directSales;
+
+                const drinkPrice = parseInventoryNumericValue(item && (item.srp ?? item.selling_price));
+                return qtySold * drinkPrice;
+            }
+
+            if (category === 'bakery') {
+                const bakeryPrice = parseInventoryNumericValue(item && ((item.selling_price_per_piece > 0) ? item.selling_price_per_piece : item.selling_price));
+                return qtySold * bakeryPrice;
+            }
+
+            if (category === 'grocery') {
+                const groceryPrice = parseInventoryNumericValue(item && item.selling_price);
+                return qtySold * groceryPrice;
+            }
+
+            return 0;
+        }
+
+        function updateCategorySalesCards(items) {
+            const totals = {
+                bakery: 0,
+                drinks: 0,
+                grocery: 0
+            };
+
+            (Array.isArray(items) ? items : []).forEach(function (item) {
+                const category = ((item && item.category) || '').toString().toLowerCase();
+                if (!Object.prototype.hasOwnProperty.call(totals, category)) {
+                    return;
+                }
+
+                totals[category] += getInventoryItemSalesAmount(item);
+            });
+
+            $('#salesCardBakeryAmount').text(formatInventoryPeso(totals.bakery));
+            $('#salesCardDrinksAmount').text(formatInventoryPeso(totals.drinks));
+            $('#salesCardGroceryAmount').text(formatInventoryPeso(totals.grocery));
         }
 
         function formatInventoryPeso(amount) {
@@ -2051,12 +2245,14 @@
                     dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        shift: $('#sendReportShiftSelect').val()
+                        inventory_id: inventoryId,
+                        shift_key: ($('#sendReportShiftSelect').val() || '').trim()
                     }),
                     success: function (response) {
                         if (response && response.success) {
-                            showToast('success', response.message ||
-                                'Inventory report sent successfully.', 2500);
+                            const redirectUrl = (response && response.redirect_url) ? response.redirect_url :
+                                (baseUrl + '/Sales?daily_stock_id=' + encodeURIComponent(inventoryId));
+                            window.location.href = redirectUrl;
                         } else {
                             showToast('error', (response && response.message) ||
                                 'Failed to send inventory report.', 3000);
@@ -2082,10 +2278,8 @@
                 // Show badge immediately from current known source, then re-check in background
                 updateInventoryModeBadge(inventorySource);
                 checkIfDistributionExists(); // refreshes inventorySource + badge in background
-                fetchYesterdayRemaining(); // Load carryover preview
+                fetchYesterdayRemaining(); // Load carryover preview from previous inventory
                 $('#timeInputModal').removeClass('hidden');
-                $('#time_start').val('06:00'); // 6:00 AM (morning)
-                $('#time_end').val('20:00'); // 8:00 PM (evening)
             });
 
             // Close Inventory Modal
@@ -2103,25 +2297,28 @@
             // Submit Time Input Form
             $('#timeInputForm').on('submit', function (e) {
                 e.preventDefault();
-                const timeStart = $('#time_start').val();
-                const timeEnd = $('#time_end').val();
 
-                // Validate time range
-                if (timeStart >= timeEnd) {
-                    showToast('warning', 'End time must be after start time');
+                const $submitBtn = $('#timeInputForm button[type="submit"]');
+                if ($submitBtn.prop('disabled')) {
                     return;
                 }
 
-                $('#timeInputModal').addClass('hidden');
+                setButtonLoading($submitBtn, true, 'Creating...');
+
+                const onCreateDone = function (wasSuccessful) {
+                    setButtonLoading($submitBtn, false);
+                    if (wasSuccessful) {
+                        $('#timeInputModal').addClass('hidden');
+                        $('#timeInputForm')[0].reset();
+                    }
+                };
 
                 // Route to the correct endpoint based on whether distribution exists today
                 if (inventorySource === 'distribution') {
-                    addTodaysInventoryFromDistribution(timeStart, timeEnd);
+                    addTodaysInventoryFromDistribution(onCreateDone);
                 } else {
-                    addTodaysInventory(timeStart, timeEnd);
+                    addTodaysInventory(onCreateDone);
                 }
-
-                $('#timeInputForm')[0].reset();
             });
 
             function closeModal() {
@@ -2160,6 +2357,9 @@
 
             // Delete Inventory Item
             $(document).on('click', '.btn-delete', function () {
+                if (enforceInventoryLock()) {
+                    return;
+                }
                 const id = $(this).data('id');
                 Confirm.delete('Are you sure you want to delete this inventory item?', () => {
                     $.ajax({
@@ -2342,6 +2542,47 @@
             }
         }
 
+        function checkActiveInventoriesAndDisableButtons() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'Inventory/CheckActiveInventories',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                    const hasInventoryToProcess = inventoryExistsToday && !inventoryReportSent;
+
+                    // Keep existing endpoint check as a fallback signal for availability.
+                    const hasActiveInventory = response.success && response.has_active;
+                    const noActionableInventory = !hasInventoryToProcess && !hasActiveInventory;
+
+                    // Send Report must stay disabled while inventory is still open.
+                    const disableSendReport = noActionableInventory || inventoryIsOpen || inventoryReportSent;
+                    $('#btnSendInventoryReport')
+                        .prop('disabled', disableSendReport)
+                        .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+
+                    // Open button should remain available for closed, unsent inventory.
+                    const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+                    $('#btnOpenInventory')
+                        .prop('disabled', disableOpenButton)
+                        .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+                },
+                error: function () {
+                    const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
+                    const disableSendReport = !inventoryExistsToday || inventoryIsOpen || inventoryReportSent;
+                    const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
+
+                    $('#btnSendInventoryReport')
+                        .prop('disabled', disableSendReport)
+                        .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
+                    $('#btnOpenInventory')
+                        .prop('disabled', disableOpenButton)
+                        .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
+                }
+            });
+        }
+
         function checkIfInventoryExists() {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
@@ -2352,7 +2593,11 @@
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
-                        // showToast('info', response.message, 2000);
+                        inventoryIsClosed = response.data && (response.data.is_closed === true || response.data
+                            .is_closed === 1 || response.data.is_closed === '1');
+                        inventoryReportSent = response.data && (response.data.report_sent === true || response.data
+                            .report_sent === 1 || response.data.report_sent === '1');
+                        syncInventoryInteractionLock();
                         updateDateTime(response.data);
                         fetchAllStockitems();
                         if ($('#btnSendInventoryReport').length) {
@@ -2362,15 +2607,24 @@
                         $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
                         $('#btnAddProductToInventory').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#btnResetInventoryForNextShift').removeClass('hidden').addClass('sm:inline-flex');
+                        $('#inventoryActionDivider').removeClass('hidden').addClass('sm:block');
                         // Only show Load from Distribution if distribution exists for today
                         checkDistributionAndToggleButton();
                         // Hide add inventory buttons
                         $('#btnAddTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddTodaysInventoryMobile').addClass('hidden').removeClass('inline-flex');
+                        console.log('Closed? ' + response.data.is_closed);
+                        setInventoryState(response.data.is_closed);
                     } else {
                         inventoryExistsToday = false;
+                        inventoryIsClosed = false;
+                        inventoryReportSent = false;
+                        syncInventoryInteractionLock();
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
+                        $('#btnCloseInventory').addClass('hidden');
+                        $('#btnOpenInventory').addClass('hidden');
                         if ($('#btnSendInventoryReport').length) {
                             $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                         }
@@ -2381,12 +2635,20 @@
                         $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                         $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                         $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                        $('#inventoryActionDivider').addClass('hidden').removeClass('sm:block');
+                        checkActiveInventoriesAndDisableButtons();
                     }
                 },
                 error: function (xhr, status, error) {
                     inventoryExistsToday = false;
+                    inventoryIsClosed = false;
+                    inventoryReportSent = false;
+                    syncInventoryInteractionLock();
                     console.log('Error checking inventory: ' + error);
+                    $('#btnCloseInventory').addClass('hidden');
+                    $('#btnOpenInventory').addClass('hidden');
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                     }
@@ -2397,7 +2659,9 @@
                     $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
                     $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#btnResetInventoryForNextShift').addClass('hidden').removeClass('sm:inline-flex');
                     $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
+                    $('#inventoryActionDivider').addClass('hidden').removeClass('sm:block');
                 }
             });
         }
@@ -2415,8 +2679,11 @@
                 $('#todayDate').text(dateString);
             }
 
+            const hasStart = !!data.time_start;
+            const hasRealEnd = !!data.time_end && data.time_end !== '00:00:00';
+
             // Update time range display
-            if (data.time_start && data.time_end) {
+            if (hasStart && hasRealEnd) {
                 // Format time to 12-hour format with AM/PM
                 const formatTime = (time) => {
                     const [hours, minutes] = time.split(':');
@@ -2429,6 +2696,14 @@
                 const timeStart = formatTime(data.time_start);
                 const timeEnd = formatTime(data.time_end);
                 $('#timeRange').text(`${timeStart} - ${timeEnd}`);
+            } else if (hasStart) {
+                const [hours, minutes] = data.time_start.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                $('#timeRange').text(`Started ${displayHour}:${minutes} ${ampm}`);
+            } else {
+                $('#timeRange').text('-');
             }
         }
 
@@ -2795,17 +3070,14 @@
             });
         }
 
-        function addTodaysInventoryFromDistribution(time_start, time_end) {
+        function addTodaysInventoryFromDistribution(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddInventoryFromDistribution',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({
-                    time_start: time_start,
-                    time_end: time_end
-                }),
+                data: JSON.stringify({}),
                 success: function (response) {
                     if (response.success) {
                         let msg = response.message;
@@ -2815,8 +3087,14 @@
                         showToast('success', msg, 3000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 3000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr) {
@@ -2824,36 +3102,44 @@
                         xhr.responseJSON.message :
                         'An error occurred while creating inventory from distribution.';
                     showToast('danger', errorMessage, 4000);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
 
         // If no inventory, show button for creating inventory
-        function addTodaysInventory(time_start, time_end) {
+        function addTodaysInventory(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Inventory/AddTodaysInventory',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({
-                    time_start: time_start,
-                    time_end: time_end
-                }),
+                data: JSON.stringify({}),
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
                         fetchAllStockitems();
-                        console.log(response.message);
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 2000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
                         2000);
                     console.log(xhr.responseJSON);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
@@ -2865,11 +3151,10 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
-                    console.log(response);
                     if (response.success) {
-                        // showToast('success', response.message, 2000);
                         loadInventory(response.data);
-                        console.log('Inventory data:', response.data);
+                        console.log('Inventory data:', response);
+                        inventoryId = response.inventory_id || null;
                     } else {
                         console.log("Error: " + response.error);
                     }
@@ -2989,6 +3274,8 @@
             const drinksItems = normalizedItems.filter(i => i.category === 'drinks');
             const groceryItems = normalizedItems.filter(i => i.category === 'grocery');
 
+            updateCategorySalesCards(normalizedItems);
+
             // Render each category table
             renderBakeryTable(bakeryItems);
             renderDrinksTable(drinksItems);
@@ -3005,7 +3292,8 @@
             renderMobileCards();
         }
 
-        function applyEditedInventoryItemLocally(itemId, payload, isAdjustmentMode) {
+        function applyEditedInventoryItemLocally(itemId, payload, options) {
+            const opts = options || {};
             const index = allInventoryItems.findIndex(item => String(item.item_id) === String(itemId));
             if (index < 0) {
                 return false;
@@ -3015,37 +3303,68 @@
                 ...allInventoryItems[index]
             };
 
+            const category = (opts.category || item.category || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
+            const isAdjustmentMode = !!opts.isAdjustmentMode;
+            const responseData = opts.responseData || null;
+
             const beginningInput = parseInt(payload.beginning_stock) || 0;
             const pullOutInput = parseInt(payload.pull_out_quantity) || 0;
             const endingInput = parseInt(payload.ending_stock) || 0;
 
-            if (isAdjustmentMode) {
+            if (isDrinksMode) {
+                const dbQtyFromResponse = parseInt(responseData && responseData.baseline_qty_sold);
+                const targetQtyFromResponse = parseInt(responseData && responseData.target_qty_sold);
+                const targetQtyFromPayload = parseInt(payload.quantity_sold_target);
+
+                const dbQtySold = Number.isNaN(dbQtyFromResponse) ?
+                    Math.max(0, parseInt(item.quantity_sold_db) || 0) :
+                    Math.max(0, dbQtyFromResponse);
+
+                const targetQty = Number.isNaN(targetQtyFromResponse) ?
+                    (Number.isNaN(targetQtyFromPayload) ? dbQtySold : Math.max(dbQtySold, targetQtyFromPayload)) :
+                    Math.max(dbQtySold, targetQtyFromResponse);
+
+                item.quantity_sold = targetQty;
+                item.quantity_sold_db = dbQtySold;
+                item.discrepancy = Math.max(0, targetQty - dbQtySold);
+            } else if (isAdjustmentMode) {
+                const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
-                item.ending_stock = (parseInt(item.ending_stock) || 0) + beginningInput - pullOutInput + endingInput;
+                item.ending_stock = endingInput;
+                const inventoryQtySold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                const addedQtySold = Math.max(0, inventoryQtySold - dbQtySold);
+                item.quantity_sold = dbQtySold + addedQtySold;
+                item.quantity_sold_db = dbQtySold;
+                item.discrepancy = addedQtySold;
             } else {
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
-                const oldQtySold = Math.max(0, parseInt(item.quantity_sold) ||
-                    ((parseInt(item.beginning_stock) || 0) - (parseInt(item.pull_out_quantity) || 0) -
-                        (parseInt(item.ending_stock) || 0))
-                );
-                item.ending_stock = Math.max(0, item.beginning_stock - item.pull_out_quantity - oldQtySold);
-                item.quantity_sold = oldQtySold;
+                // Keep ending as the physical count; reconcile pull out into qty sold.
+                const currentEnding = Math.max(0, parseInt(item.ending_stock) || 0);
+                const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                const oldQtySold = Number.isNaN(dbQtySoldRaw) ? Math.max(0, parseInt(item.quantity_sold) || 0) : Math.max(
+                    0, dbQtySoldRaw);
+                item.ending_stock = currentEnding;
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                item.quantity_sold_db = oldQtySold;
+                item.discrepancy = item.quantity_sold - oldQtySold;
             }
 
             item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
             item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
             item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
-            if (isAdjustmentMode) {
-                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+            if (Object.prototype.hasOwnProperty.call(payload, 'notes')) {
+                item.notes = payload.notes || '';
             }
-            item.notes = payload.notes || '';
 
             // Keep sales columns in sync for immediate redraw.
-            const price = parseFloat(
-                (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) || item.srp || 0
-            ) || 0;
+            const price = category === 'drinks' ?
+                (parseFloat(item.srp ?? item.selling_price ?? 0) || 0) :
+                (parseFloat((item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price) ||
+                    item.srp || 0) || 0);
             item.sales = item.quantity_sold * price;
             item.total_sales = item.sales;
 
@@ -3100,8 +3419,8 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
@@ -3196,6 +3515,10 @@
                         '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
                         (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
                             'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
+                    rows += (isEnabled ?
+                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                            .item_id +
+                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
                     rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
                     rows += '</td>';
@@ -3255,8 +3578,8 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
@@ -3318,7 +3641,7 @@
             $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
 
             // Set notes or placeholder
-            if (notes && notes.trim()) {
+            if (String(notes) && String(notes).trim()) {
                 $('#itemDetailsNotes').text(notes);
             } else {
                 $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
@@ -3515,6 +3838,9 @@
 
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
+            if (enforceInventoryLock()) {
+                return;
+            }
             const itemId = $(this).data('id');
 
             // Always get data from stored items array (more reliable)
@@ -3522,24 +3848,57 @@
 
             if (item) {
                 const category = (item.category || '').toLowerCase();
-                const isAdjustmentMode = (category === 'bakery' || category === 'grocery');
+                const isDrinksMode = category === 'drinks';
+                const isAdjustmentMode = !isDrinksMode && (category === 'bakery' || category === 'grocery');
                 const beginningStock = parseInt(item.beginning_stock) || 0;
                 const pullOutQty = parseInt(item.pull_out_quantity) || 0;
                 const endingStock = parseInt(item.ending_stock) || 0;
+                const quantitySoldDisplay = Math.max(0, parseInt(item.quantity_sold) || 0);
+                const itemIsRemitted = item.is_remitted === true || item.is_remitted === 1 || item.is_remitted ===
+                    '1';
 
                 // Store item ID and populate modal
                 $('#editItemId').val(itemId);
                 $('#editCategory').val(category);
                 $('#editAdjustmentMode').val(isAdjustmentMode ? '1' : '0');
+                $('#editIsRemitted').val(itemIsRemitted ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
-                const quantitySold = parseInt(item.quantity_sold) || Math.max(0, beginningStock - pullOutQty -
-                    endingStock);
-                $('#editOldQuantitySold').val(quantitySold);
+                const dbQuantitySoldRaw = parseInt(item.quantity_sold_db);
+                const dbQuantitySold = Number.isNaN(dbQuantitySoldRaw) ? Math.max(0, quantitySoldDisplay) : Math.max(0, dbQuantitySoldRaw);
+                $('#editOldQuantitySold').val(dbQuantitySold);
+                $('#editCurrentQuantitySold').val(quantitySoldDisplay);
 
-                if (isAdjustmentMode) {
+                $('#editBeginningGroup').removeClass('hidden');
+                $('#editPullOutGroup').removeClass('hidden');
+                $('#editPostRemitWarning').addClass('hidden');
+                $('#editEndingGroup').addClass('hidden');
+
+                if (isDrinksMode) {
+                    $('#editBeginningLabel').text('Qty Sold Adjustment');
+                    $('#editBeginningHint').text('Use + to increase or - to decrease from current Qty Sold. Final Qty Sold cannot go below DB Qty Sold.');
+                    $('#editAdjustmentGuide').removeClass('hidden').html(
+                        '<strong>Drinks Mode:</strong> Enter an adjustment value. DB Qty Sold is the minimum/source-of-truth. Manual deltas become discrepancy.'
+                    );
+                    $('#editNotesGroup').addClass('hidden');
+                    $('#editNotes').val('');
+                    $('#editNotes').removeAttr('required').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+
+                    $('#editBeginningStock').val(0).removeAttr('min');
+                    $('#editPullOutQuantity').val(0).attr('min', 0);
+                    $('#editEndingStock').val(0).attr('min', 0);
+
+                    $('#editPullOutGroup').addClass('hidden');
+                    if (itemIsRemitted) {
+                        $('#editPostRemitWarning').removeClass('hidden');
+                    }
+                } else if (isAdjustmentMode) {
+                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
@@ -3547,14 +3906,16 @@
                     $('#editAdjustmentGuide').removeClass('hidden');
                     $('#editBeginningHint').text('Enter adjustment only (e.g. +10 or -5).');
                     $('#editPullOutHint').text('Enter added PO only (e.g. +5). No subtraction.');
-                    $('#editEndingHint').text('Enter adjustment only (e.g. +10 or -5).');
+                    $('#editEndingHint').text('Auto-fills from beginning/pull out adjustments, but you can still edit this value.');
 
-                    // Adjustment mode uses deltas, not absolute values.
+                    // Beginning/Pull Out are adjustments; Ending is editable final value.
                     $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
-                    $('#editEndingStock').val(0).removeAttr('min');
+                    $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
+                        'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
+                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock');
                     $('#editPullOutLabel').text('Pull Out Quantity');
                     $('#editEndingLabel').text('Ending Stock');
@@ -3562,11 +3923,12 @@
                     $('#editAdjustmentGuide').addClass('hidden');
                     $('#editBeginningHint').text('');
                     $('#editPullOutHint').text('');
-                    $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+                    $('#editEndingHint').text('Enter the actual final ending stock count.');
 
                     $('#editBeginningStock').val(beginningStock).attr('min', 0);
                     $('#editPullOutQuantity').val(pullOutQty).attr('min', 0);
-                    $('#editEndingStock').val(endingStock).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
+                        'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').addClass('hidden');
                 }
 
@@ -3583,8 +3945,7 @@
                 resetEditPreviewUiState();
 
                 // Update the distribution display and notes requirement
-                updateBeginningStockDisplay();
-                updateRemainingPreview();
+                runEditPreviewUpdate('modal-open');
 
                 // Show modal
                 $('#editInventoryModal').removeClass('hidden');
@@ -3613,100 +3974,170 @@
             };
         }
 
-        function runEditPreviewUpdate() {
+        function runEditPreviewUpdate(source = 'generic') {
             updateBeginningStockDisplay();
-            updateRemainingPreview();
+            updateRemainingPreview(source);
         }
 
-        function scheduleEditPreviewUpdate(delayMs = 60) {
+        function scheduleEditPreviewUpdate(source = 'generic', delayMs = 60) {
             if (editPreviewDebounceTimer) {
                 clearTimeout(editPreviewDebounceTimer);
             }
 
             editPreviewDebounceTimer = setTimeout(function () {
                 editPreviewDebounceTimer = null;
-                runEditPreviewUpdate();
+                runEditPreviewUpdate(source);
             }, delayMs);
         }
 
         $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            if (category === 'drinks') {
+                const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                const currentQty = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQty;
+                $('#editBeginningStock').val(Math.max(minDelta, current - 1));
+                runEditPreviewUpdate('beginning');
+                return;
+            }
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             $('#editBeginningStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('beginning');
         });
 
         $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('beginning');
         });
 
         $('#btnDecreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(Math.max(0, current - 1));
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('pullout');
         });
 
         $('#btnIncreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(current + 1);
-            runEditPreviewUpdate();
-        });
-
-        $('#btnDecreaseEnding').on('click', function () {
-            const current = parseInt($('#editEndingStock').val()) || 0;
-            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
-            $('#editEndingStock').val(isAdjustmentMode ? (current - 1) : Math.max(0, current - 1));
-            runEditPreviewUpdate();
-        });
-
-        $('#btnIncreaseEnding').on('click', function () {
-            const current = parseInt($('#editEndingStock').val()) || 0;
-            $('#editEndingStock').val(current + 1);
-            runEditPreviewUpdate();
+            runEditPreviewUpdate('pullout');
         });
 
         // Also update on manual input change
         $('#editBeginningStock').on('input change', function () {
-            scheduleEditPreviewUpdate();
+            scheduleEditPreviewUpdate('beginning');
         });
 
-        $('#editPullOutQuantity, #editEndingStock').on('input change', function () {
-            scheduleEditPreviewUpdate();
+        $('#editPullOutQuantity').on('input change', function () {
+            scheduleEditPreviewUpdate('pullout');
         });
 
-        function updateRemainingPreview() {
+        $('#editEndingStock').on('input change', function () {
+            scheduleEditPreviewUpdate('ending');
+        });
+
+        function updateRemainingPreview(source = 'generic') {
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
 
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
             const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
             const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
-
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
             const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
 
             let projectedRemaining = 0;
 
+            if (isDrinksMode) {
+                const dbFloorQty = Math.max(0, oldQtySold);
+                const currentQtySold = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQtySold;
+                const qtyAdjustment = Math.max(minDelta, beginningInput);
+                if (qtyAdjustment !== beginningInput) {
+                    $('#editBeginningStock').val(qtyAdjustment);
+                }
+                const targetQtySold = Math.max(dbFloorQty, currentQtySold + qtyAdjustment);
+                const deltaLabel = qtyAdjustment > 0 ? ('+' + qtyAdjustment) : String(qtyAdjustment);
+                const nextHint =
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-1">' +
+                    '  <div><span class="text-gray-500">DB Qty Sold (minimum):</span> <span class="font-semibold text-teal-700">' + dbFloorQty + '</span></div>' +
+                    '  <div><span class="text-gray-500">Current Qty Sold:</span> <span class="font-semibold text-gray-800">' + currentQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Adjustment:</span> <span class="font-semibold text-emerald-700">' + deltaLabel + '</span></div>' +
+                    '  <div><span class="text-gray-500">Final Qty Sold:</span> <span class="font-semibold text-indigo-700">' + targetQtySold + '</span></div>' +
+                    '  <div><span class="text-gray-500">Discrepancy:</span> <span class="font-semibold text-rose-700">+' + Math.max(0, targetQtySold - dbFloorQty) + '</span></div>' +
+                    '</div>';
+
+                if (editPreviewUiState.remainingHint !== nextHint) {
+                    $('#editRemainingHint').html(nextHint);
+                    editPreviewUiState.remainingHint = nextHint;
+                }
+
+                if (editPreviewUiState.remainingValue !== targetQtySold) {
+                    $('#editRemainingPreview').val(targetQtySold);
+                    editPreviewUiState.remainingValue = targetQtySold;
+                }
+                return;
+            }
+
             if (isAdjustmentMode) {
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                projectedRemaining = oldEnding + beginningInput - pullOutInput + endingInput;
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
+                const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput - pullOutInput));
+                if (source === 'beginning' || source === 'pullout' || source === 'modal-open') {
+                    $('#editEndingStock').val(autoProjectedEnding);
+                }
+
+                projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
+                $('#editEndingStock').attr('max', maxAllowedEnding);
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
+                const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
+                const adjustedQtySold = oldQtySold + addedQtySold;
+                const wouldExceedAllowedEnding = projectedRemaining > maxAllowedEnding;
+                const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
+                const statusHtml = wouldExceedAllowedEnding ?
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning - Pull Out).</div>' :
+                    wouldReduceDbQtySold ?
+                        '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' + oldQtySold + '), so it is not allowed.</div>' :
+                        '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
 
                 const nextHint =
-                    'Current End: ' + oldEnding + ' | Projected End: ' + Math.max(0, projectedRemaining) +
-                    ' (Beg Δ ' + beginningInput + ', Pull Out + ' + pullOutInput + ', End Adj ' + endingInput + ')';
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-2">' +
+                    '  <div class="grid grid-cols-2 gap-x-3 gap-y-1">' +
+                    '    <div><span class="text-gray-500">Current Beginning:</span> <span class="font-semibold text-gray-800">' + oldBeginning + '</span></div>' +
+                    '    <div><span class="text-gray-500">Updated Beginning:</span> <span class="font-semibold text-amber-700">' + Math.max(0, projectedBeginning) + '</span></div>' +
+                    '    <div><span class="text-gray-500">Current Ending:</span> <span class="font-semibold text-gray-800">' + oldEnding + '</span></div>' +
+                    '    <div><span class="text-gray-500">Updated Ending:</span> <span class="font-semibold text-blue-700">' + Math.max(0, projectedRemaining) + '</span></div>' +
+                    '  </div>' +
+                    '  <div class="h-px bg-gray-200"></div>' +
+                    '  <div class="grid grid-cols-2 gap-x-3 gap-y-1">' +
+                    '    <div><span class="text-gray-500">DB Qty Sold (minimum):</span> <span class="font-semibold text-teal-700">' + oldQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Stock-based Qty Sold:</span> <span class="font-semibold text-sky-700">' + projectedInventoryQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Added Qty Sold:</span> <span class="font-semibold text-emerald-700">+' + addedQtySold + '</span></div>' +
+                    '    <div><span class="text-gray-500">Final Qty Sold:</span> <span class="font-semibold text-indigo-700">' + adjustedQtySold + '</span></div>' +
+                    '  </div>' +
+                    '  <div class="text-gray-500">Rule: Pull Out affects Ending. Final Qty Sold cannot be less than DB Qty Sold.</div>' +
+                    statusHtml +
+                    '</div>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
-                    $('#editRemainingHint').text(nextHint);
+                    $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
                 }
             } else {
-                projectedRemaining = beginningInput - pullOutInput - oldQtySold;
-                const nextHint = 'Computed as Beginning - Pull Out - Qty Sold (' + oldQtySold + ').';
+                // In non-adjustment mode, ending is preserved and qty sold is reconciled.
+                projectedRemaining = oldEnding;
+                const projectedQtySold = Math.max(0, beginningInput - pullOutInput - projectedRemaining);
+                const nextHint =
+                    '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700">' +
+                    '  <div><span class="text-gray-500">Ending (fixed):</span> <span class="font-semibold text-gray-800">' + oldEnding + '</span></div>' +
+                    '  <div class="mt-1"><span class="text-gray-500">Projected Qty Sold:</span> <span class="font-semibold text-indigo-700">' + projectedQtySold + '</span></div>' +
+                    '</div>';
                 if (editPreviewUiState.remainingHint !== nextHint) {
-                    $('#editRemainingHint').text(nextHint);
+                    $('#editRemainingHint').html(nextHint);
                     editPreviewUiState.remainingHint = nextHint;
                 }
             }
@@ -3723,6 +4154,28 @@
          * based on current beginning stock vs expected (distribution + carryover).
          */
         function updateBeginningStockDisplay() {
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            if (category === 'drinks') {
+                if (editPreviewUiState.infoKey !== 'hidden') {
+                    $('#editDistributionInfo').addClass('hidden');
+                    editPreviewUiState.infoKey = 'hidden';
+                }
+                if (editPreviewUiState.warningKey !== 'hidden') {
+                    $('#editStockWarning').addClass('hidden');
+                    editPreviewUiState.warningKey = 'hidden';
+                }
+                if (editPreviewUiState.notesRequired !== false) {
+                    $('#editNotes').removeAttr('required');
+                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
+                    $('#editNotesLabel').text('Notes');
+                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
+                        'text-gray-400');
+                    editPreviewUiState.notesRequired = false;
+                }
+                $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
+                return;
+            }
+
             const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
@@ -3819,18 +4272,24 @@
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
             resetEditPreviewUiState();
+            $('#editIsRemitted').val('0');
             $('#editAdjustmentGuide').addClass('hidden');
             $('#editBeginningLabel').text('Beginning Stock');
             $('#editPullOutLabel').text('Pull Out Quantity');
             $('#editEndingLabel').text('Ending Stock');
             $('#editBeginningHint').text('');
             $('#editPullOutHint').text('');
-            $('#editEndingHint').text('Use + to add or - to subtract from current ending stock');
+            $('#editEndingHint').text('Enter the actual final ending stock count.');
             $('#editRemainingPreview').val('');
-            $('#editRemainingHint').text('Live preview while editing fields above.');
+            $('#editRemainingHint').text('This summary updates while you edit values above.');
+            $('#editBeginningGroup').removeClass('hidden');
+            $('#editPullOutGroup').removeClass('hidden');
             $('#editEndingGroup').addClass('hidden');
+            $('#editPostRemitWarning').addClass('hidden');
+            $('#editNotesGroup').removeClass('hidden');
             $('#editBeginningStock').attr('min', 0);
             $('#editPullOutQuantity').attr('min', 0);
+            $('#editEndingStock').prop('readonly', false).removeClass('bg-gray-50 cursor-not-allowed');
             // Reset distribution display state
             $('#editDistributionInfo').addClass('hidden');
             $('#editStockWarning').addClass('hidden');
@@ -3842,6 +4301,9 @@
         });
 
         $(document).on('click', '.btn-toggle-enabled', function () {
+            if (enforceInventoryLock()) {
+                return;
+            }
             const itemId = $(this).data('id');
             const currentEnabled = parseInt($(this).data('enabled'));
             const newEnabled = currentEnabled === 1 ? 0 : 1;
@@ -3873,6 +4335,10 @@
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
+            if (enforceInventoryLock()) {
+                return;
+            }
+
             const submitBtn = $('#btnSubmitEditInventory');
             if (submitBtn.prop('disabled')) {
                 return;
@@ -3890,11 +4356,13 @@
                 .html('<i class="fas fa-spinner fa-spin mr-2"></i>Updating...');
 
             const itemId = $('#editItemId').val();
-            const isAdjustmentMode = $('#editAdjustmentMode').val() === '1';
+            const category = ($('#editCategory').val() || '').toLowerCase();
+            const isDrinksMode = category === 'drinks';
+            const isAdjustmentMode = !isDrinksMode && $('#editAdjustmentMode').val() === '1';
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
             const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
-            const notes = $('#editNotes').val();
+            const notes = ($('#editNotes').val() || '').trim();
 
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
@@ -3902,14 +4370,51 @@
 
             let payload;
 
-            if (isAdjustmentMode) {
+            if (isDrinksMode) {
+                const qtyAdjustmentInput = parseInt($('#editBeginningStock').val());
+                const isRemitted = $('#editIsRemitted').val() === '1';
+                const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
+                const currentQtySold = Math.max(0, parseInt($('#editCurrentQuantitySold').val()) || dbFloorQty);
+                const minDelta = dbFloorQty - currentQtySold;
+
+                if (Number.isNaN(qtyAdjustmentInput)) {
+                    showToast('warning', 'Qty Sold adjustment must be a valid number.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (qtyAdjustmentInput < minDelta) {
+                    showToast('warning', 'Adjustment is too low. Final Qty Sold cannot go below DB Qty Sold (' + dbFloorQty + ').', 2800);
+                    $('#editBeginningStock').val(minDelta);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                const targetQtySold = Math.max(dbFloorQty, currentQtySold + qtyAdjustmentInput);
+
+                if (isRemitted) {
+                    const proceed = window.confirm(
+                        'This inventory is already remitted. Continue and save as a post-remittance correction?'
+                    );
+                    if (!proceed) {
+                        restoreSubmitButton();
+                        return;
+                    }
+                }
+
+                payload = {
+                    quantity_sold_target: targetQtySold
+                };
+            } else if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
-                const oldEnding = parseInt($('#editOldEndingStock').val()) || 0;
+                const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                const projectedEnding = oldEnding + beginningInput - pullOutInput + endingInput;
+                const projectedEnding = endingInput;
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedEnding);
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
@@ -3918,8 +4423,27 @@
                     return;
                 }
 
+                if (endingInput < 0) {
+                    showToast('warning', 'Ending stock cannot be negative.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
                 if (projectedBeginning < 0 || projectedPullOut < 0 || projectedEnding < 0) {
                     showToast('warning', 'Adjustment results cannot go below zero', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (projectedEnding > maxAllowedEnding) {
+                    showToast('warning', 'Ending cannot exceed Beginning minus Pull Out.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
+
+                if (projectedInventoryQtySold < oldQtySold) {
+                    showToast('warning', 'Ending value is too high. It would reduce Qty Sold below DB source-of-truth (' +
+                        oldQtySold + ').', 3500);
                     restoreSubmitButton();
                     return;
                 }
@@ -3971,8 +4495,12 @@
                 success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
-                        const patched = applyEditedInventoryItemLocally(itemId, payload,
-                            isAdjustmentMode);
+
+                        const patched = applyEditedInventoryItemLocally(itemId, payload, {
+                            isAdjustmentMode: isAdjustmentMode,
+                            category: category,
+                            responseData: response.data || null
+                        });
                         if (patched) {
                             loadInventory(allInventoryItems, {
                                 fetchCarryover: false
@@ -4004,57 +4532,49 @@
             });
         });
 
-        function deleteTodaysInventory() {
+        function deleteInventory(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
-            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
             $.ajax({
-                url: baseUrl + 'Inventory/DeleteTodaysInventory',
+                url: baseUrl + 'Inventory/DeleteInventory',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    date: today
+                    inventory_id: inventoryId
                 }),
                 success: function (response) {
                     if (response.success) {
-                        inventoryExistsToday = false;
                         showToast('success', response.message, 2000);
                         if ($('#btnSendInventoryReport').length) {
                             $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                         }
-                        // Clear the table
-                        $('#materialsTableBody').html(
-                            '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No inventory data available</td></tr>'
-                        );
-                        // Reset date/time display
-                        $('#timeRange').text('--:-- - --:--');
-                        // Show add inventory buttons since no inventory exists
-                        $('#btnAddTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
-                        $('#btnAddTodaysInventoryMobile').removeClass('hidden').addClass('inline-flex');
-                        // Hide delete and add product buttons
-                        $('#btnDeleteTodaysInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        $('#btnAddProductToInventoryMobile').addClass('hidden').removeClass('inline-flex');
-                        $('#btnAddProductToInventory').addClass('hidden').removeClass('sm:inline-flex');
-                        // Re-check distribution status for next inventory creation
+                        checkIfInventoryExists();
                         checkIfDistributionExists();
-                        // Hide distribution button
-                        $('#btnDistributions').addClass('hidden').removeClass('sm:inline-flex');
-                        // Reload the table
-                        fetchAllStockitems();
+                        if (typeof onDone === 'function') {
+                            onDone(true);
+                        }
                     } else {
                         showToast('error', response.message, 2000);
+                        if (typeof onDone === 'function') {
+                            onDone(false);
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
+                    if (typeof onDone === 'function') {
+                        onDone(false);
+                    }
                 }
             });
         }
 
         // Add Product to Inventory functionality
         $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function () {
+            if (enforceInventoryLock()) {
+                return;
+            }
             loadAvailableProducts();
             $('#addProductModal').removeClass('hidden');
         });
@@ -4220,7 +4740,7 @@
             card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
                 'Enabled' : 'Disabled');
             card += '    </button>';
-            if (isEnabled && category !== 'drinks') {
+            if (isEnabled) {
                 card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
                     item.item_id + '">';
                 card += '      <i class="fas fa-edit mr-1"></i>Edit';
@@ -4328,6 +4848,10 @@
         $('#addProductForm').on('submit', function (e) {
             e.preventDefault();
 
+            if (enforceInventoryLock()) {
+                return;
+            }
+
             const productId = $('#selectProduct').val();
             const beginningStock = $('#addBeginningStock').val() || 0;
 
@@ -4335,6 +4859,13 @@
                 showToast('warning', 'Please select a product', 2000);
                 return;
             }
+
+            const $submitBtn = $('#btnSubmitAddProduct');
+            if ($submitBtn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($submitBtn, true, 'Adding...');
 
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
@@ -4384,6 +4915,9 @@
                         showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
                             error), 2000);
                     }
+                },
+                complete: function () {
+                    setButtonLoading($submitBtn, false);
                 }
             });
         });
@@ -4516,8 +5050,167 @@
             $('#deductionWarningContent').html(html);
             $('#deductionWarningModal').removeClass('hidden');
         }
-    </script>
 
+        function closeInventory() {
+            const $btn = $('#btnCloseInventory');
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($btn, true, 'Closing...');
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/CloseInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        setInventoryState(true);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error closing inventory: ' + (xhr.responseJSON?.message || error),
+                        2000);
+                    console.log(xhr);
+                },
+                complete: function () {
+                    setButtonLoading($btn, false);
+                }
+            });
+        }
+
+        function openInventory() {
+            const $btn = $('#btnOpenInventory');
+            if ($btn.prop('disabled')) {
+                return;
+            }
+
+            setButtonLoading($btn, true, 'Opening...');
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/OpenInventory',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    inventory_id: inventoryId
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Refresh inventory data to reflect closed status
+                        setInventoryState(false);
+                    } else {
+                        showToast('error', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error opening inventory: ' + (xhr.responseJSON?.message || error),
+                        2000);
+                    console.log(xhr);
+                },
+                complete: function () {
+                    setButtonLoading($btn, false);
+                }
+            });
+        }
+
+        function setInventoryState(isClosed) {
+            isClosed = isClosed === true || isClosed === 1 || isClosed === '1'; // force boolean
+            inventoryIsClosed = isClosed;
+            if (isClosed) {
+                $('#btnCloseInventory').addClass('hidden');
+                $('#btnOpenInventory').removeClass('hidden');
+            } else {
+                $('#btnCloseInventory').removeClass('hidden');
+                $('#btnOpenInventory').addClass('hidden');
+            }
+
+            syncInventoryInteractionLock();
+            checkActiveInventoriesAndDisableButtons();
+        }
+
+        function resetInventory() {
+            if (!inventoryId) {
+                showToast('error', 'No inventory to reset!', 2000);
+                return;
+            }
+
+            $.ajax({
+                url: '<?= base_url() ?>' + 'Inventory/ResetInventory/' + inventoryId,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (response) {
+                    if (response.success) {
+                        showToast('success', response.message, 2000);
+                        // Refresh inventory data to reflect new inventory
+                        inventoryId = response.new_inventory_id || null;
+                        checkIfInventoryExists();
+                        fetchAllStockitems();
+                    } else {
+                        showToast('warning', response.message, 2000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('danger', 'Error resetting inventory: ' + (xhr.responseJSON?.message || error),
+                        2000);
+                    console.log(xhr);
+                }
+            });
+            // Instead of confirm(), open modal
+            closeResetModal();
+        }
+
+        function openResetModal() {
+            if (!inventoryExistsToday) {
+                showToast('warning', 'No inventory exists for today.', 2000);
+                return;
+            }
+
+            if (!inventoryIsClosed) {
+                showToast('warning', 'Close inventory first before creating a new shift.', 2200);
+                return;
+            }
+
+            document.getElementById('resetInventoryModal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetInventoryModal').classList.add('hidden');
+        }
+
+        function confirmResetInventory() {
+            closeResetModal();
+            resetInventory(); // call your existing function
+        }
+    </script>
+    <!-- Confirmation Modal -->
+    <div id="resetInventoryModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Confirm Reset</h2>
+            <p class="text-sm text-gray-600 mb-6">
+                Are you sure you want to create a new inventory for the next shift?
+                This will duplicate the current inventory and reset stock values.
+            </p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeResetModal()"
+                    class="px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                    Cancel
+                </button>
+                <button onclick="confirmResetInventory()"
+                    class="px-4 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-2 focus:ring-yellow-300 transition">
+                    Yes, Reset
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Deduction Warning Modal -->
     <div id="deductionWarningModal"
         class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">

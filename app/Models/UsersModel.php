@@ -8,6 +8,8 @@ class UsersModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'user_id';
+    protected $useSoftDeletes = true;
+    protected $deletedField = 'deleted_at';
 
     protected $returnType = 'array';
 
@@ -24,7 +26,17 @@ class UsersModel extends Model
         'phone_number',
         'approved',
         'created_at',
+        'deleted_at',
     ];
+
+    public function getFullName($user_id)
+    {
+        $user = $this->find($user_id);
+        if ($user) {
+            return trim($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname']);
+        }
+        return null;
+    }
 
     public function getAllEmployees()
     {

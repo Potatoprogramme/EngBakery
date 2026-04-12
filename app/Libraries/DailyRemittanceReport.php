@@ -5,34 +5,46 @@ namespace App\Libraries;
 use App\Models\RemittanceDetailsModel;
 use App\Models\RemittanceDenominationsModel;
 use App\Models\UsersModel;
+use App\Libraries\OwnerNotificationPreferences;
 
 class DailyRemittanceReport
 {
     /**
      * Generate and email today's remittance summary to all owners.
-     * Only sends once per day to avoid spam.
+     * Only sends once per inventory when an inventory id is provided.
      * 
      * @param string|null $date Date to generate report for (Y-m-d format)
      * @param bool $forceResend If true, ignores the daily throttle (for testing)
+     * @param int|null $dailyStockId Inventory id for inventory-scoped sending
      */
-    public static function sendReport(?string $date = null, bool $forceResend = false): bool
+    public static function sendReport(?string $date = null, bool $forceResend = false, ?int $dailyStockId = null): bool
     {
         $date = $date ?? date('Y-m-d');
 
-        // Daily throttle: only send once per calendar day
-        $flagFile = WRITEPATH . 'remittance_email_sent_' . $date . '.flag';
+        // Inventory-scoped throttle when an inventory id is provided.
+        $flagFile = $dailyStockId !== null
+            ? WRITEPATH . 'remittance_email_sent_inventory_' . $dailyStockId . '.flag'
+            : WRITEPATH . 'remittance_email_sent_' . $date . '.flag';
+
         if (!$forceResend && file_exists($flagFile)) {
-            return false; // Already sent today
+            return false;
         }
 
         $remittanceModel = new RemittanceDetailsModel();
         $denominationsModel = new RemittanceDenominationsModel();
 
-        // Fetch all remittances for the date with cashier names
-        $remittances = $remittanceModel->getRemittancesByDate($date);
+        // Fetch all remittances for the inventory when available, otherwise by date.
+        $remittances = $dailyStockId !== null
+            ? $remittanceModel->getRemittancesByInventory($dailyStockId)
+            : $remittanceModel->getRemittancesByDate($date);
 
         if (empty($remittances)) {
             return false;
+        }
+
+        if ($dailyStockId !== null) {
+            $inventoryDate = $remittances[0]['remittance_date'] ?? $date;
+            $date = date('Y-m-d', strtotime((string) $inventoryDate));
         }
 
         // Attach denomination breakdowns
@@ -50,7 +62,11 @@ class DailyRemittanceReport
             return false;
         }
 
-        $ownerEmails = array_column($owners, 'email');
+        $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType($owners, OwnerNotificationPreferences::TYPE_REMITTANCE);
+        if (empty($ownerEmails)) {
+            log_message('info', 'DailyRemittanceReport: All owner recipients have remittance email notifications turned off.');
+            return false;
+        }
         $emailBody = self::buildEmailBody($remittances, $date);
 
         try {
@@ -96,11 +112,16 @@ class DailyRemittanceReport
         $overCount = 0;
 
         foreach ($remittances as $r) {
-            $totalSales += floatval($r['total_sales']);
+            $rowTotalSales = floatval($r['total_sales']);
+            $rowBakery = floatval($r['bakery_sales']);
+            $rowCoffee = floatval($r['coffee_sales']);
+            $rowGrocery = floatval($r['grocery_sales']);
+
+            $totalSales += $rowTotalSales;
             $totalRemitted += floatval($r['amount_enclosed']);
-            $totalBakery += floatval($r['bakery_sales']);
-            $totalCoffee += floatval($r['coffee_sales']);
-            $totalGrocery += floatval($r['grocery_sales']);
+            $totalBakery += $rowBakery;
+            $totalCoffee += $rowCoffee;
+            $totalGrocery += $rowGrocery;
             $totalCashOut += floatval($r['cash_out']);
             $totalOnline += floatval($r['total_online_revenue'] ?? 0);
             $totalFoodpanda += floatval($r['foodpanda_revenue'] ?? 0);
@@ -115,20 +136,23 @@ class DailyRemittanceReport
             }
         }
 
-        $shiftCount = count($remittances);
+        $inventoryPeriodCount = count($remittances);
 
-        // Build individual shift cards
-        $shiftCards = '';
+        // Build individual inventory period cards
+        $periodCards = '';
         foreach ($remittances as $i => $r) {
-            $shiftNum = $i + 1;
+            $periodNum = $i + 1;
             $cashier = $r['cashier_name'] ?? 'Unknown';
             $outlet = $r['outlet_name'] ?? '—';
-            $shiftTime = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
+            $periodTime = date('h:i A', strtotime($r['shift_start'])) . ' – ' . date('h:i A', strtotime($r['shift_end']));
             $sales = number_format(floatval($r['total_sales']), 2);
             $enclosed = number_format(floatval($r['amount_enclosed']), 2);
             $cashOut = number_format(floatval($r['cash_out']), 2);
             $online = number_format(floatval($r['total_online_revenue'] ?? 0), 2);
             $foodpanda = number_format(floatval($r['foodpanda_revenue'] ?? 0), 2);
+            $bakery = number_format(floatval($r['bakery_sales'] ?? 0), 2);
+            $coffee = number_format(floatval($r['coffee_sales'] ?? 0), 2);
+            $grocery = number_format(floatval($r['grocery_sales'] ?? 0), 2);
             $variance = floatval($r['variance_amount']);
             $isShort = $r['is_short'];
 
@@ -153,11 +177,11 @@ class DailyRemittanceReport
                 ? '<div style="font-size:10px;color:#888;margin-top:2px;">' . htmlspecialchars($r['cashout_reason']) . '</div>'
                 : '';
 
-            $shiftCards .= "
+            $periodCards .= "
                 <div style='background:#fff;border:1px solid #ddd;border-radius:8px;padding:15px;margin-bottom:12px;'>
                     <div style='margin-bottom:12px;border-bottom:2px solid #007B4C;padding-bottom:10px;'>
                         <div style='display:inline-block;'>
-                            <span style='background:#007B4C;color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;'>#{$shiftNum}</span>
+                            <span style='background:#007B4C;color:white;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;'>#{$periodNum}</span>
                             <span style='font-size:16px;font-weight:bold;color:#333;margin-left:10px;'>{$cashier}</span>
                         </div>
                         <div style='float:right;'>
@@ -172,8 +196,8 @@ class DailyRemittanceReport
                                 <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$outlet}</div>
                             </td>
                             <td style='padding:8px 0;width:50%;border-bottom:1px solid #f0f0f0;'>
-                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Shift Time</div>
-                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$shiftTime}</div>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Inventory Period</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>{$periodTime}</div>
                             </td>
                         </tr>
                         <tr>
@@ -205,6 +229,16 @@ class DailyRemittanceReport
                             <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
                                 <div style='font-size:10px;color:#888;text-transform:uppercase;'>Foodpanda</div>
                                 <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$foodpanda}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Bakery / Coffee</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$bakery} / ₱{$coffee}</div>
+                            </td>
+                            <td style='padding:8px 0;border-top:1px solid #f0f0f0;'>
+                                <div style='font-size:10px;color:#888;text-transform:uppercase;'>Grocery</div>
+                                <div style='font-size:13px;font-weight:bold;color:#333;margin-top:2px;'>₱{$grocery}</div>
                             </td>
                         </tr>
                     </table>
@@ -277,8 +311,8 @@ class DailyRemittanceReport
                             <td style='padding:6px 0;font-size:13px;color:#333;'>{$reportTime}</td>
                         </tr>
                         <tr>
-                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Shifts:</strong></td>
-                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$shiftCount} remittance(s)</td>
+                            <td style='padding:6px 0;font-size:13px;color:#555;'><strong>Total Inventory Periods:</strong></td>
+                            <td style='padding:6px 0;font-size:13px;color:#333;'>{$inventoryPeriodCount} remittance(s)</td>
                         </tr>
                     </table>
 
@@ -342,9 +376,9 @@ class DailyRemittanceReport
                         </tr>
                     </table>
 
-                    <!-- Shift Details Cards -->
-                    <h3 style='font-size:16px;color:#333;margin:25px 0 15px;'>Shift Breakdown</h3>
-                    {$shiftCards}
+                    <!-- Inventory Period Details Cards -->
+                    <h3 style='font-size:16px;color:#333;margin:25px 0 15px;'>Inventory Period Breakdown</h3>
+                    {$periodCards}
                     
                     <!-- Summary Totals -->
                     <div style='background:#f8f9fa;border:2px solid #007B4C;border-radius:8px;padding:15px;margin-top:20px;'>
