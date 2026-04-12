@@ -50,7 +50,7 @@ class AutoReportScheduler
      */
     public static function runDueJobs(): void
     {
-        $nowH  = (int) date('G');   // 0–23, no leading zero
+        $nowH = (int) date('G');   // 0–23, no leading zero
         $today = date('Y-m-d');
 
         foreach (self::SLOTS as $slot => $window) {
@@ -147,12 +147,14 @@ class AutoReportScheduler
         }
 
         $shiftLabel = 'Shift (' . self::formatShiftTimeRange($shiftStart, $shiftEnd) . ')';
-        $shiftReports = self::buildShiftReports($allItems, $date, [[
-            'key' => 'inventory_' . $inventoryId,
-            'label' => $shiftLabel,
-            'start' => $shiftStart,
-            'end' => $shiftEnd,
-        ]], $cashierUserId);
+        $shiftReports = self::buildShiftReports($allItems, $date, [
+            [
+                'key' => 'inventory_' . $inventoryId,
+                'label' => $shiftLabel,
+                'start' => $shiftStart,
+                'end' => $shiftEnd,
+            ]
+        ], $cashierUserId);
 
         if (empty($shiftReports)) {
             return [
@@ -400,7 +402,7 @@ class AutoReportScheduler
                 <!-- Header -->
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
-                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Karangahan &mdash; {$slotSubtitle}</p>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Deca Sentrio &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
