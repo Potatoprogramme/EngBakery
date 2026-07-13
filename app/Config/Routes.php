@@ -216,6 +216,10 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
 });
 
+$routes->group('DistributionCategory', function (RouteCollection $routes) {
+    $routes->post('Add', 'DistributionController::addDistributionCategory');
+});
+
 // Notification System Routes
 $routes->group('Notifications', function (RouteCollection $routes) {
     $routes->get('GetNotifications', 'NotificationController::getNotifications');

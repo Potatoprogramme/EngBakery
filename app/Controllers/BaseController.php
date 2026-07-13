@@ -28,6 +28,7 @@ use App\Models\DistributionGroupModel;
 use App\Models\DistributionItemModel;
 use App\Models\UtilityExpensesModel;
 use App\Models\NotificationModel;
+use App\Models\DistributionCategory;
 use App\Libraries\NotificationGenerator;
 
 /**
@@ -71,6 +72,7 @@ abstract class BaseController extends Controller
     protected $distributionItemModel;
     protected $utilityExpensesModel;
     protected $notificationModel;
+    protected $distributionCategoryModel;
 
     // Database connection
     protected $db;
@@ -109,6 +111,8 @@ abstract class BaseController extends Controller
         $this->distributionItemModel = new DistributionItemModel();
         $this->utilityExpensesModel = new UtilityExpensesModel();
         $this->notificationModel = new NotificationModel();
+        $this->distributionCategoryModel = new DistributionCategory();
+        
         // Initialize database connection once
         $this->db = \Config\Database::connect();
 
@@ -183,16 +187,16 @@ abstract class BaseController extends Controller
         return false;
     }
 
-    
+
 
     protected function redirectIfLoggedIn(string $message = 'You are already logged in.')
     {
         if ($this->isLoggedIn()) {
-            if ($this->isStaff()){
+            if ($this->isStaff()) {
                 return redirect()->to(base_url('MaterialStock'))->with('success_message', $message);
             } else {
                 return redirect()->to(base_url('Dashboard'))->with('success_message', $message);
-            } 
+            }
         }
         return false;
     }
