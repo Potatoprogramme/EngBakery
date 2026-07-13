@@ -44,11 +44,11 @@
                             </span>
                         </button>
 
-                        <button id="btnSendInventoryReport"
+                        <!-- <button id="btnSendInventoryReport"
                             class="hidden inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
                             <i class="fas fa-paper-plane sm:mr-2 text-indigo-500"></i>
                             <span class="hidden sm:inline">Send Report</span>
-                        </button>
+                        </button> -->
 
                         <button id="btnResetInventoryForNextShift" onclick="openResetModal()"
                             class="hidden inline-flex h-10 items-center rounded-lg border border-yellow-200 bg-yellow-50 px-4 text-sm font-medium text-yellow-700 hover:bg-yellow-100 focus:ring-2 focus:ring-yellow-300 transition">
@@ -121,7 +121,7 @@
             </div>
 
             <div id="inventoryInteractionArea" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-                <div id="inventoryTableArea" class="relative xl:col-span-8 min-w-0 order-2 xl:order-1">
+                <div id="inventoryTableArea" class="relative xl:col-span-12 min-w-0 order-1">
                     <div id="inventoryLockOverlay" class="hidden absolute inset-0 z-20 rounded-lg pointer-events-none">
                         <div class="h-full w-full flex items-center justify-center p-3">
                             <div
@@ -350,153 +350,8 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="xl:col-span-4 min-w-0 order-1 xl:order-2">
-                    <!-- Today's Distribution Panel -->
-                    <div id="todayDistributionPanel" class="p-4 bg-white rounded-lg shadow-md mb-4 xl:mb-0">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-800">Today's Distribution</h3>
-                                <p class="text-xs text-gray-500">Groups, notes, and total cost</p>
-                            </div>
-                            <button id="btnRefreshTodayDistribution" type="button"
-                                class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
-                                <i class="fas fa-rotate-right mr-1.5"></i> Refresh
-                            </button>
-                        </div>
-
-                        <div id="todayDistributionLoading" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                            <p class="text-sm">Loading today's distribution...</p>
-                        </div>
-
-                        <div id="todayDistributionEmpty" class="hidden py-8 text-center text-gray-400">
-                            <i class="fas fa-box-open text-3xl mb-2"></i>
-                            <p id="todayDistributionEmptyText" class="text-sm">No distribution records for today.</p>
-                        </div>
-
-                        <div id="todayDistributionContent" class="hidden space-y-3">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Items</p>
-                                    <p id="todayDistSummaryItems" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Groups</p>
-                                    <p id="todayDistSummaryGroups" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Batches</p>
-                                    <p id="todayDistSummaryBatches" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                                <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <p class="text-[11px] text-gray-500">Pieces</p>
-                                    <p id="todayDistSummaryPieces" class="text-base font-semibold text-gray-800">0</p>
-                                </div>
-                            </div>
-
-                            <div id="todayDistributionSlideViewport"
-                                class="relative overflow-hidden border border-gray-200 rounded-lg bg-white">
-                                <div id="todayDistributionSlideTrack"
-                                    class="flex transition-transform duration-300 ease-in-out"
-                                    style="width: 200%; transform: translateX(0);">
-                                    <div class="flex-shrink-0 p-3" style="width: 50%;">
-                                        <p class="text-xs font-semibold text-gray-700 mb-2">
-                                            <i class="fas fa-layer-group mr-1 text-primary"></i> Distribution Groups
-                                        </p>
-                                        <div id="todayDistributionGroupList"
-                                            class="space-y-2 max-h-[340px] overflow-y-auto"></div>
-                                    </div>
-
-                                    <div class="flex-shrink-0 p-3 border-l border-gray-100" style="width: 50%;">
-                                        <div class="mb-2">
-                                            <button type="button" id="btnTodayDistBackToGroups"
-                                                class="inline-flex items-center text-xs font-medium text-primary hover:text-secondary">
-                                                <i class="fas fa-arrow-left mr-1"></i>Back to groups
-                                            </button>
-                                        </div>
-
-                                        <div class="mb-2.5">
-                                            <p id="todayDistSelectedGroupName"
-                                                class="text-sm font-semibold text-gray-800">Selected Group</p>
-                                            <p id="todayDistSelectedGroupMeta" class="text-[11px] text-gray-500">0
-                                                batches • 0 pcs</p>
-                                            <p id="todayDistSelectedGroupNote"
-                                                class="hidden text-[11px] text-amber-700 mt-1"></p>
-                                        </div>
-
-                                        <div id="todayDistributionGroupItems"
-                                            class="space-y-2 max-h-[300px] overflow-y-auto"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
             </div>
 
-            <!-- Time Input Modal -->
-            <div id="timeInputModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/40" id="timeInputModalBackdrop"></div>
-                <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
-                    <button type="button" id="timeInputModalClose"
-                        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">Create Today's Inventory</h3>
-                    <p class="text-xs text-gray-500 mb-2">Create inventory now and start tracking this shift.</p>
-
-                    <!-- Inventory Source Badge -->
-                    <div id="inventoryModeBadge"
-                        class="hidden mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-                        <i class="fas fa-truck-loading text-blue-500 text-xs"></i>
-                        <span class="text-xs font-medium text-blue-700">Using today's distribution data</span>
-                    </div>
-                    <div id="noDistributionModeBadge"
-                        class="hidden mb-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
-                        <i class="fas fa-boxes text-gray-400 text-xs"></i>
-                        <span class="text-xs text-gray-500">Using all active products (no distribution today)</span>
-                    </div>
-
-                    <!-- Carryover Preview -->
-                    <div id="carryoverPreview" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-boxes-stacked text-amber-600"></i>
-                            <span class="text-sm font-semibold text-amber-700">Previous Inventory Remaining Stock</span>
-                        </div>
-                        <div id="carryoverList" class="space-y-1 text-xs text-gray-700 max-h-32 overflow-y-auto"></div>
-                        <p class="text-xs text-amber-600 mt-2"><i class="fas fa-info-circle mr-1"></i>These will be
-                            automatically added to today's beginning stock.</p>
-                    </div>
-                    <div id="noCarryoverPreview" class="hidden mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-box-open text-gray-400"></i>
-                            <span class="text-xs text-gray-500">No remaining stock from previous inventory.</span>
-                        </div>
-                    </div>
-
-                    <form id="timeInputForm">
-                        <div class="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                            <p class="text-xs text-gray-600">
-                                <i class="fas fa-clock mr-1"></i>
-                                Start time will be recorded automatically when you create inventory.
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button type="submit"
-                                class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-                                Create Inventory
-                            </button>
-                            <button type="button" id="timeInputModalCancel"
-                                class="flex-1 text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -2273,52 +2128,25 @@
                 });
             });
 
-            // Open Add Inventory Modal (Desktop & Mobile)
+            // Create today's inventory immediately (Desktop & Mobile)
             $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
-                // Show badge immediately from current known source, then re-check in background
-                updateInventoryModeBadge(inventorySource);
-                checkIfDistributionExists(); // refreshes inventorySource + badge in background
-                fetchYesterdayRemaining(); // Load carryover preview from previous inventory
-                $('#timeInputModal').removeClass('hidden');
-            });
-
-            // Close Inventory Modal
-            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
-                closeModal();
-            });
-
-            // Close Time Input Modal
-            $('#timeInputModalClose, #timeInputModalCancel').on('click', function () {
-                $('#timeInputModal').addClass('hidden');
-                $('#timeInputForm')[0].reset();
-                inventorySource = 'all'; // Reset source on cancel
-            });
-
-            // Submit Time Input Form
-            $('#timeInputForm').on('submit', function (e) {
-                e.preventDefault();
-
-                const $submitBtn = $('#timeInputForm button[type="submit"]');
-                if ($submitBtn.prop('disabled')) {
+                const $btn = $(this);
+                if ($btn.prop('disabled')) {
                     return;
                 }
 
-                setButtonLoading($submitBtn, true, 'Creating...');
+                setButtonLoading($btn, true, 'Creating...');
+                checkIfDistributionExists(function (source) {
+                    const onDone = function () {
+                        setButtonLoading($btn, false);
+                    };
 
-                const onCreateDone = function (wasSuccessful) {
-                    setButtonLoading($submitBtn, false);
-                    if (wasSuccessful) {
-                        $('#timeInputModal').addClass('hidden');
-                        $('#timeInputForm')[0].reset();
+                    if (source === 'distribution') {
+                        addTodaysInventoryFromDistribution(onDone);
+                    } else {
+                        addTodaysInventory(onDone);
                     }
-                };
-
-                // Route to the correct endpoint based on whether distribution exists today
-                if (inventorySource === 'distribution') {
-                    addTodaysInventoryFromDistribution(onCreateDone);
-                } else {
-                    addTodaysInventory(onCreateDone);
-                }
+                });
             });
 
             function closeModal() {
@@ -2453,40 +2281,6 @@
             });
         });
 
-        function fetchYesterdayRemaining() {
-            const baseUrl = '<?= base_url() ?>';
-            $('#carryoverPreview').addClass('hidden');
-            $('#noCarryoverPreview').addClass('hidden');
-            $('#carryoverList').empty();
-
-            $.ajax({
-                url: baseUrl + 'Inventory/GetYesterdayRemaining',
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success && response.data && response.data.length > 0) {
-                        let html = '';
-                        response.data.forEach(function (item) {
-                            html +=
-                                '<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">';
-                            html += '<span class="text-gray-700">' + item.product_name +
-                                ' <span class="text-gray-400">(' + item.category + ')</span></span>';
-                            html += '<span class="font-semibold text-amber-700">' + item
-                                .remaining_stock + ' pcs</span>';
-                            html += '</div>';
-                        });
-                        $('#carryoverList').html(html);
-                        $('#carryoverPreview').removeClass('hidden');
-                    } else {
-                        $('#noCarryoverPreview').removeClass('hidden');
-                    }
-                },
-                error: function () {
-                    $('#noCarryoverPreview').removeClass('hidden');
-                }
-            });
-        }
-
         function checkDistributionAndToggleButton() {
             const baseUrl = '<?= base_url() ?>';
             // Check if distribution exists for today and show Distributions button with count
@@ -2510,7 +2304,7 @@
             });
         }
 
-        function checkIfDistributionExists() {
+        function checkIfDistributionExists(onDone = null) {
             const baseUrl = '<?= base_url() ?>';
             $.ajax({
                 url: baseUrl + 'Distribution/CheckDistributionToday',
@@ -2523,11 +2317,17 @@
                         inventorySource = 'all';
                     }
                     updateInventoryModeBadge(inventorySource);
+                    if (typeof onDone === 'function') {
+                        onDone(inventorySource);
+                    }
                 },
                 error: function () {
                     // On error, default to 'all' to be safe
                     inventorySource = 'all';
                     updateInventoryModeBadge(inventorySource);
+                    if (typeof onDone === 'function') {
+                        onDone(inventorySource);
+                    }
                 }
             });
         }
