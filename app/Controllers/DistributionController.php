@@ -11,27 +11,29 @@ class DistributionController extends BaseController
         $sessionData = $this->getSessionData();
         $data = array_merge($sessionData, ['title' => 'Distribution']);
 
-        if ($redirect = $this->redirectIfNotLoggedIn())          return $redirect;
-        if ($redirect = $this->redirectIfNotOwnerAndAdmin())     return $redirect;
+        if ($redirect = $this->redirectIfNotLoggedIn())
+            return $redirect;
+        if ($redirect = $this->redirectIfNotOwnerAndAdmin())
+            return $redirect;
 
-        return view('Template/Header',       $data)
-             . view('Template/SideNav',      $data)
-             . view('Template/Notification')
-             . view('Distribution/Distribution', $data)
-             . view('Template/Footer');
+        return view('Template/Header', $data)
+            . view('Template/SideNav', $data)
+            . view('Template/Notification')
+            . view('Distribution/Distribution', $data)
+            . view('Template/Footer');
     }
 
     public function getDistributionByDate()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
 
-        $groups          = model('DistributionGroupModel')->getGroupsByDate($date);
+        $groups = model('DistributionGroupModel')->getGroupsByDate($date);
         $inventoryLocked = (bool) $this->dailyStockModel->checkInventoryExists($date);
 
         return $this->response->setJSON([
-            'success'          => true,
-            'message'          => $groups ? 'Distribution groups retrieved' : 'No distribution groups for this date',
-            'data'             => $groups,
+            'success' => true,
+            'message' => $groups ? 'Distribution groups retrieved' : 'No distribution groups for this date',
+            'data' => $groups,
             'inventory_locked' => $inventoryLocked,
         ]);
     }
@@ -39,12 +41,12 @@ class DistributionController extends BaseController
     public function getDistributionByDateRange()
     {
         $startDate = $this->request->getGet('start_date');
-        $endDate   = $this->request->getGet('end_date');
+        $endDate = $this->request->getGet('end_date');
 
         if (!$startDate || !$endDate) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'error'   => 'start_date and end_date are required',
+                'error' => 'start_date and end_date are required',
             ]);
         }
 
@@ -53,7 +55,7 @@ class DistributionController extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Distribution groups retrieved',
-            'data'    => $groups,
+            'data' => $groups,
         ]);
     }
 
@@ -64,13 +66,13 @@ class DistributionController extends BaseController
         if (!$group) {
             return $this->response->setStatusCode(404)->setJSON([
                 'success' => false,
-                'error'   => 'Distribution group not found',
+                'error' => 'Distribution group not found',
             ]);
         }
 
         return $this->response->setJSON([
             'success' => true,
-            'data'    => $group,
+            'data' => $group,
         ]);
     }
 
@@ -88,11 +90,11 @@ class DistributionController extends BaseController
         }
 
         $insertData = [
-            'title'               => trim($data->title),
-            'distribution_date'   => $data->distribution_date,
+            'title' => trim($data->title),
+            'distribution_date' => $data->distribution_date,
             'distributed_to_note' => $data->distributed_to_note ?? null,
-            'forecasted_sales'    => $data->forecasted_sales    ?? 0,
-            'total_cost'          => $data->total_cost          ?? 0,
+            'forecasted_sales' => $data->forecasted_sales ?? 0,
+            'total_cost' => $data->total_cost ?? 0,
         ];
 
         try {
@@ -101,13 +103,13 @@ class DistributionController extends BaseController
             $groupId = $groupModel->getInsertID();
 
             log_message('info', 'DISTRIBUTION GROUP ADD: Created group ID {id} for {date}', [
-                'id'   => $groupId,
+                'id' => $groupId,
                 'date' => $data->distribution_date,
             ]);
 
             return $this->response->setJSON([
-                'success'  => true,
-                'message'  => 'Distribution group created successfully',
+                'success' => true,
+                'message' => 'Distribution group created successfully',
                 'group_id' => $groupId,
             ]);
         } catch (\Exception $e) {
@@ -124,18 +126,23 @@ class DistributionController extends BaseController
         }
 
         $groupModel = model('DistributionGroupModel');
-        $group      = $groupModel->find($id);
+        $group = $groupModel->find($id);
 
         if (!$group) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
         }
 
         $updateData = [];
-        if (isset($data->title))               $updateData['title']               = trim($data->title);
-        if (isset($data->distribution_date))   $updateData['distribution_date']   = $data->distribution_date;
-        if (isset($data->distributed_to_note)) $updateData['distributed_to_note'] = $data->distributed_to_note;
-        if (isset($data->forecasted_sales))    $updateData['forecasted_sales']    = $data->forecasted_sales;
-        if (isset($data->total_cost))          $updateData['total_cost']          = $data->total_cost;
+        if (isset($data->title))
+            $updateData['title'] = trim($data->title);
+        if (isset($data->distribution_date))
+            $updateData['distribution_date'] = $data->distribution_date;
+        if (isset($data->distributed_to_note))
+            $updateData['distributed_to_note'] = $data->distributed_to_note;
+        if (isset($data->forecasted_sales))
+            $updateData['forecasted_sales'] = $data->forecasted_sales;
+        if (isset($data->total_cost))
+            $updateData['total_cost'] = $data->total_cost;
 
         if (empty($updateData)) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'No updatable fields provided']);
@@ -159,7 +166,7 @@ class DistributionController extends BaseController
     public function deleteGroup(int $id)
     {
         $groupModel = model('DistributionGroupModel');
-        $itemModel  = model('DistributionItemModel');
+        $itemModel = model('DistributionItemModel');
 
         $group = $groupModel->find($id);
         if (!$group) {
@@ -171,15 +178,15 @@ class DistributionController extends BaseController
         try {
             // Restore raw materials for every item in the group
             foreach ($items as $item) {
-                $productId    = intval($item['product_id']);
-                $quantity     = intval($item['product_qnty']);
-                $qtyMode      = $item['qty_mode'] ?? 'batch';
+                $productId = intval($item['product_id']);
+                $quantity = intval($item['product_qnty']);
+                $qtyMode = $item['qty_mode'] ?? 'batch';
                 $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
                 if ($actualPieces > 0) {
                     $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
                     log_message('info', 'DISTRIBUTION GROUP DELETE: Restored {p} pieces for product {pid}', [
-                        'p'   => $actualPieces,
+                        'p' => $actualPieces,
                         'pid' => $productId,
                     ]);
                 }
@@ -191,7 +198,7 @@ class DistributionController extends BaseController
 
             log_message('info', 'DISTRIBUTION GROUP DELETE: Deleted group ID {id} with {c} items', [
                 'id' => $id,
-                'c'  => count($items),
+                'c' => count($items),
             ]);
 
             return $this->response->setJSON([
@@ -216,13 +223,13 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'distribution_id, product_id, and product_qnty are required']);
         }
 
-        $groupId   = intval($data->distribution_id);
+        $groupId = intval($data->distribution_id);
         $productId = intval($data->product_id);
-        $quantity  = intval($data->product_qnty);
-        $qtyMode   = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+        $quantity = intval($data->product_qnty);
+        $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
 
         $groupModel = model('DistributionGroupModel');
-        $itemModel  = model('DistributionItemModel');
+        $itemModel = model('DistributionItemModel');
 
         // Group must exist
         $group = $groupModel->find($groupId);
@@ -233,7 +240,7 @@ class DistributionController extends BaseController
         // Duplicate check within the group
         if ($itemModel->existsInGroup($groupId, $productId)) {
             return $this->response->setStatusCode(409)->setJSON([
-                'error'     => 'This product is already in the selected distribution group.',
+                'error' => 'This product is already in the selected distribution group.',
                 'duplicate' => true,
             ]);
         }
@@ -255,10 +262,10 @@ class DistributionController extends BaseController
             if (!empty($preview['has_insufficient'])) {
                 $shortages = $this->buildShortageMessages($preview['deductions']);
                 return $this->response->setStatusCode(400)->setJSON([
-                    'success'               => false,
-                    'error'                 => 'Cannot add — insufficient raw material stock.',
+                    'success' => false,
+                    'error' => 'Cannot add — insufficient raw material stock.',
                     'insufficient_materials' => $shortages,
-                    'preview'               => $preview,
+                    'preview' => $preview,
                 ]);
             }
         }
@@ -267,15 +274,15 @@ class DistributionController extends BaseController
             // Compute inventory_amount_used (raw-material units consumed)
             $inventoryAmountUsed = 0;
             if ($actualPieces > 0) {
-                $deductResult        = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, false);
+                $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, false);
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
             $insertData = [
-                'distribution_id'      => $groupId,
-                'product_id'           => $productId,
-                'product_qnty'         => $quantity,
-                'qty_mode'             => $qtyMode,
+                'distribution_id' => $groupId,
+                'product_id' => $productId,
+                'product_qnty' => $quantity,
+                'qty_mode' => $qtyMode,
                 'inventory_amount_used' => $inventoryAmountUsed,
             ];
 
@@ -319,16 +326,16 @@ class DistributionController extends BaseController
         }
 
         $itemModel = model('DistributionItemModel');
-        $existing  = $itemModel->find($id);
+        $existing = $itemModel->find($id);
 
         if (!$existing) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
         }
 
         $newProductId = intval($data->product_id);
-        $newQtyMode   = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
-        $newQty       = intval($data->product_qnty);
-        $groupId      = intval($existing['distribution_id']);
+        $newQtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+        $newQty = intval($data->product_qnty);
+        $groupId = intval($existing['distribution_id']);
 
         // Category enforcement
         $product = $this->productModel->find($newProductId);
@@ -356,8 +363,8 @@ class DistributionController extends BaseController
                 }
                 $shortages = $this->buildShortageMessages($preview['deductions']);
                 return $this->response->setStatusCode(400)->setJSON([
-                    'success'               => false,
-                    'error'                 => 'Cannot update — insufficient raw material stock.',
+                    'success' => false,
+                    'error' => 'Cannot update — insufficient raw material stock.',
                     'insufficient_materials' => $shortages,
                 ]);
             }
@@ -366,14 +373,14 @@ class DistributionController extends BaseController
         try {
             $inventoryAmountUsed = 0;
             if ($newPieces > 0) {
-                $deductResult        = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, false);
+                $deductResult = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, false);
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
             $itemModel->update($id, [
-                'product_id'           => $newProductId,
-                'product_qnty'         => $newQty,
-                'qty_mode'             => $newQtyMode,
+                'product_id' => $newProductId,
+                'product_qnty' => $newQty,
+                'qty_mode' => $newQtyMode,
                 'inventory_amount_used' => $inventoryAmountUsed,
             ]);
 
@@ -382,7 +389,7 @@ class DistributionController extends BaseController
 
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
-            $group       = model('DistributionGroupModel')->find($groupId);
+            $group = model('DistributionGroupModel')->find($groupId);
             $productName = $product['product_name'] ?? 'Unknown Product';
             $this->notify('notifyDistributionUpdated', $productName, intval($existing['product_qnty']), $newQty, $group['distribution_date'] ?? '');
 
@@ -401,16 +408,16 @@ class DistributionController extends BaseController
     public function deleteItem(int $id)
     {
         $itemModel = model('DistributionItemModel');
-        $item      = $itemModel->find($id);
+        $item = $itemModel->find($id);
 
         if (!$item) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
         }
 
-        $groupId      = intval($item['distribution_id']);
-        $productId    = intval($item['product_id']);
-        $quantity     = intval($item['product_qnty']);
-        $qtyMode      = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+        $groupId = intval($item['distribution_id']);
+        $productId = intval($item['product_id']);
+        $quantity = intval($item['product_qnty']);
+        $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
         $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
         try {
@@ -423,13 +430,13 @@ class DistributionController extends BaseController
             // Recompute group-level totals
             model('DistributionGroupModel')->recalculateTotals($groupId);
 
-            $product     = $this->productModel->find($productId);
+            $product = $this->productModel->find($productId);
             $productName = $product['product_name'] ?? 'Unknown Product';
-            $group       = model('DistributionGroupModel')->find($groupId);
+            $group = model('DistributionGroupModel')->find($groupId);
             $this->notify('notifyDistributionDeleted', $productName, $quantity, $group['distribution_date'] ?? '');
 
             log_message('info', 'DISTRIBUTION ITEM DELETE: Item ID {id} deleted from group {gid}', [
-                'id'  => $id,
+                'id' => $id,
                 'gid' => $groupId,
             ]);
 
@@ -445,25 +452,25 @@ class DistributionController extends BaseController
 
     public function checkInventoryByDate()
     {
-        $date      = $this->request->getGet('date') ?? date('Y-m-d');
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
         $inventory = $this->dailyStockModel->checkInventoryExists($date);
 
         return $this->response->setJSON([
-            'success'          => true,
+            'success' => true,
             'inventory_exists' => (bool) $inventory,
-            'date'             => $date,
+            'date' => $date,
         ]);
     }
 
     public function checkDistributionToday()
     {
-        $today  = date('Y-m-d');
+        $today = date('Y-m-d');
         $groups = model('DistributionGroupModel')->getGroupsByDate($today);
 
         return $this->response->setJSON([
             'success' => true,
             'message' => $groups ? 'Distribution groups retrieved' : 'No distribution groups for today',
-            'data'    => $groups,
+            'data' => $groups,
         ]);
     }
 
@@ -486,7 +493,8 @@ class DistributionController extends BaseController
     {
         $shortByMaterial = [];
         foreach ($deductions as $d) {
-            if (empty($d['insufficient'])) continue;
+            if (empty($d['insufficient']))
+                continue;
             $mid = $d['material_id'];
             if (!isset($shortByMaterial[$mid])) {
                 $shortByMaterial[$mid] = $d['material_name']
@@ -508,8 +516,127 @@ class DistributionController extends BaseController
     {
         $total = 0.0;
         foreach ($deductResult['deductions'] ?? [] as $d) {
-            $total += (float)($d['deduct_amount'] ?? 0);
+            $total += (float) ($d['deduct_amount'] ?? 0);
         }
         return $total;
+    }
+
+    public function addDistributionCategory()
+    {
+        $data = $this->request->getJSON();
+        $name = trim((string) ($data->name ?? $data->category_name ?? ''));
+
+        if ($name === '') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'Category name is required'
+            ]);
+        }
+
+        $insert = $this->distributionCategoryModel->insert([
+            'name' => $name
+        ]);
+
+        if ($insert) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution category added successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'error' => 'Failed to add distribution category'
+        ]);
+    }
+
+    public function fetchAllDistributionCategories()
+    {
+        $categories = $this->distributionCategoryModel
+            ->orderBy('name', 'ASC')
+            ->findAll();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $categories,
+        ]);
+    }
+
+    public function updateDistributionCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        $categoryId = (int) ($data['category_id'] ?? 0);
+        $name = trim((string) ($data['name'] ?? $data['category_name'] ?? ''));
+
+        if ($categoryId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required'
+            ]);
+        }
+
+        if ($name === '') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category name is required'
+            ]);
+        }
+
+        if (!$this->distributionCategoryModel->find($categoryId)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Distribution category not found'
+            ]);
+        }
+
+        $updated = $this->distributionCategoryModel->update($categoryId, [
+            'name' => $name,
+        ]);
+
+        if ($updated) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution category updated successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to update distribution category'
+        ]);
+    }
+
+    public function deleteDistributionCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        $categoryId = (int) ($data['category_id'] ?? 0);
+
+        if ($categoryId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required'
+            ]);
+        }
+
+        if (!$this->distributionCategoryModel->find($categoryId)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Distribution category not found'
+            ]);
+        }
+
+        $deleted = $this->distributionCategoryModel->delete($categoryId);
+
+        if ($deleted) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution category deleted successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to delete distribution category'
+        ]);
     }
 }

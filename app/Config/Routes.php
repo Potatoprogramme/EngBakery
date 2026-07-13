@@ -216,6 +216,13 @@ $routes->group('Distribution', function (RouteCollection $routes) {
     $routes->get('GetProducts', 'ProductsController::getAllBakeryDoughDrinksGrocery');
 });
 
+$routes->group('DistributionCategory', function (RouteCollection $routes) {
+    $routes->post('Add', 'DistributionController::addDistributionCategory');
+    $routes->post('Update', 'DistributionController::updateDistributionCategory');
+    $routes->post('Delete', 'DistributionController::deleteDistributionCategory');
+    $routes->get('FetchAll', 'DistributionController::fetchAllDistributionCategories');
+});
+
 // Notification System Routes
 $routes->group('Notifications', function (RouteCollection $routes) {
     $routes->get('GetNotifications', 'NotificationController::getNotifications');
