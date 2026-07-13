@@ -569,13 +569,13 @@ class SalesController extends BaseController
 
         // Allow save if total sales is > 0 (covers both DB transactions and discrepancies folded into categories).
         // Reject only if no transactions exist AND reported total sales is 0 (no data).
-        // if ($reportedTotalSales <= 0 && count($serverTransactionIds) === 0) {
-        //     $this->db->transRollback();
-        //     return $this->response->setStatusCode(409)->setJSON([
-        //         'success' => false,
-        //         'message' => 'No sales or discrepancies found for the selected inventory. Please reload the page and select the inventory again.'
-        //     ]);
-        // }
+        if ($reportedTotalSales <= 0 && count($serverTransactionIds) === 0) {
+            $this->db->transRollback();
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'No sales or discrepancies found for the selected inventory. Please reload the page and select the inventory again.'
+            ]);
+        }
 
         if (count($serverTransactionIds) > 0) {
             foreach ($serverTransactionIds as $item) {
