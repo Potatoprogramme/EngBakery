@@ -987,9 +987,8 @@
             // Duplicate button in card menu
             $(document).on('click', '.card-duplicate-btn', function (e) {
                 e.stopPropagation();
-                const productId = $(this).data('id');
                 $('.card-menu').addClass('hidden');
-                openDuplicateModal(productId);
+                // Front-end only: duplicate stays visual-only in this view.
             });
 
             // Click on card to view (excluding menu area)
@@ -2421,33 +2420,43 @@
                                 rows += '<td class="px-6 py-4 text-sm leading-relaxed">' +
                                     recPricesHtml + '</td>';
                                 rows += '<td class="px-6 py-4 w-px whitespace-nowrap">';
-                                rows += '<div class="flex items-center gap-2">';
+                                rows += '<div class="relative flex justify-end">';
                                 rows +=
-                                    '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' +
+                                    '<button type="button" class="card-menu-btn inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700" data-id="' +
                                     product.product_id +
-                                    '" title="Duplicate"><i class="fas fa-copy"></i></button>';
+                                    '" title="Actions" aria-label="Open actions menu"><i class="fas fa-ellipsis-v"></i></button>';
                                 rows +=
-                                    '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' +
-                                    product.product_id +
-                                    '" title="Edit"><i class="fas fa-edit"></i></button>';
-                                // Delete button (commented out)
+                                    '<div class="card-menu hidden absolute right-0 top-11 z-20 min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">';
                                 rows +=
-                                    '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' +
+                                    '<button type="button" class="card-view-btn flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="' +
                                     product.product_id +
-                                    '" title="Delete"><i class="fas fa-trash"></i></button>';
+                                    '"><i class="fas fa-eye text-gray-400"></i> View</button>';
+                                rows +=
+                                    '<button type="button" class="btn-edit flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50" data-id="' +
+                                    product.product_id +
+                                    '"><i class="fas fa-edit"></i> Edit</button>';
+                                rows +=
+                                    '<button type="button" class="card-duplicate-btn flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="' +
+                                    product.product_id +
+                                    '"><i class="fas fa-copy text-gray-400"></i> Duplicate</button>';
+                                rows +=
+                                    '<button type="button" class="btn-delete flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50" data-id="' +
+                                    product.product_id +
+                                    '"><i class="fas fa-trash"></i> Delete</button>';
+                                rows += '<div class="my-1 border-t border-gray-100"></div>';
                                 // Toggle Enable/Disable button (is_disabled: 1 = disabled, 0 = enabled)
                                 var isEnabled = !product.is_disabled || product.is_disabled ==
                                     0 || product.is_disabled === '0';
                                 if (isEnabled) {
                                     rows +=
-                                        '<button class="text-green-600 h-10 w-12 flex items-center justify-center bg-green-50 rounded border border-green-300 hover:bg-green-100 btn-toggle" data-id="' +
+                                        '<button type="button" class="btn-toggle flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50" data-id="' +
                                         product.product_id +
-                                        '" data-enabled="true" title="Click to Disable"><i class="fas fa-toggle-on text-lg"></i></button>';
+                                        '" data-enabled="true"><i class="fas fa-toggle-on text-base"></i> Disable</button>';
                                 } else {
                                     rows +=
-                                        '<button class="text-gray-400 h-10 w-12 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:bg-gray-200 btn-toggle" data-id="' +
+                                        '<button type="button" class="btn-toggle flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-500 hover:bg-gray-50" data-id="' +
                                         product.product_id +
-                                        '" data-enabled="false" title="Click to Enable"><i class="fas fa-toggle-off text-lg"></i></button>';
+                                        '" data-enabled="false"><i class="fas fa-toggle-off text-base"></i> Enable</button>';
                                 }
                                 rows += '</div>';
                                 rows += '</td>';
