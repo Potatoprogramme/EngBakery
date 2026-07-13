@@ -524,8 +524,9 @@ class DistributionController extends BaseController
     public function addDistributionCategory()
     {
         $data = $this->request->getJSON();
-        $name = $data->name ?? null;
-        if (empty($data->name)) {
+        $name = trim((string) ($data->name ?? $data->category_name ?? ''));
+
+        if ($name === '') {
             return $this->response->setStatusCode(400)->setJSON([
                 'error' => 'Category name is required'
             ]);
@@ -544,6 +545,98 @@ class DistributionController extends BaseController
 
         return $this->response->setStatusCode(500)->setJSON([
             'error' => 'Failed to add distribution category'
+        ]);
+    }
+
+    public function fetchAllDistributionCategories()
+    {
+        $categories = $this->distributionCategoryModel
+            ->orderBy('name', 'ASC')
+            ->findAll();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $categories,
+        ]);
+    }
+
+    public function updateDistributionCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        $categoryId = (int) ($data['category_id'] ?? 0);
+        $name = trim((string) ($data['name'] ?? $data['category_name'] ?? ''));
+
+        if ($categoryId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required'
+            ]);
+        }
+
+        if ($name === '') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category name is required'
+            ]);
+        }
+
+        if (!$this->distributionCategoryModel->find($categoryId)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Distribution category not found'
+            ]);
+        }
+
+        $updated = $this->distributionCategoryModel->update($categoryId, [
+            'name' => $name,
+        ]);
+
+        if ($updated) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution category updated successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to update distribution category'
+        ]);
+    }
+
+    public function deleteDistributionCategory()
+    {
+        $data = $this->request->getJSON(true);
+
+        $categoryId = (int) ($data['category_id'] ?? 0);
+
+        if ($categoryId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Category ID is required'
+            ]);
+        }
+
+        if (!$this->distributionCategoryModel->find($categoryId)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Distribution category not found'
+            ]);
+        }
+
+        $deleted = $this->distributionCategoryModel->delete($categoryId);
+
+        if ($deleted) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution category deleted successfully'
+            ]);
+        }
+
+        return $this->response->setStatusCode(500)->setJSON([
+            'success' => false,
+            'message' => 'Failed to delete distribution category'
         ]);
     }
 }
