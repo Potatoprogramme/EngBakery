@@ -3,7 +3,7 @@
 <!-- ════════════════════════════════════════════════════════════ -->
 
 <!-- Bell Button -->
-<div class="relative" id="notification-wrapper">
+<div class="relative shrink-0" id="notification-wrapper">
     <button id="notification-bell" type="button"
         class="relative p-2 text-gray-500 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors duration-200"
         aria-label="Notifications">

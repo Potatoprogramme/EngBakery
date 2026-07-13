@@ -71,7 +71,7 @@ class DailyRemittanceReport
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject('📋 Daily Remittance Report — ' . date('F d, Y', strtotime($date)));
             $emailService->setMessage($emailBody);
@@ -293,7 +293,7 @@ class DailyRemittanceReport
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;'>Daily Remittance Report</h1>
-                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery - Karangahan — End-of-Day Summary</p>
+                    <p style='margin:5px 0 0;font-size:14px;'>E n' G Bakery - Deca Sentrio — End-of-Day Summary</p>
                 </div>
                 <div class='content'>
                     <!-- Report Metadata -->
@@ -424,11 +424,11 @@ class DailyRemittanceReport
                     </p>
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery - Karangahan Sales System</strong>
+                        <strong>E n' G Bakery - Deca Sentrio Sales System</strong>
                     </p>
                 </div>
                 <div class='footer'>
-                    <p>&copy; {$year} E n' G Bakery - Karangahan. All rights reserved.</p>
+                    <p>&copy; {$year} E n' G Bakery - Deca Sentrio. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
             </div>

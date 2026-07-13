@@ -27,9 +27,11 @@ class PasswordResetController extends BaseController
         $email = $this->request->getPost('email');
 
         // Validate email
-        if (!$this->validateData(['email' => $email], [
-            'email' => 'required|valid_email'
-        ])) {
+        if (
+            !$this->validateData(['email' => $email], [
+                'email' => 'required|valid_email'
+            ])
+        ) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Please provide a valid email address'
@@ -109,7 +111,7 @@ class PasswordResetController extends BaseController
         if (time() > $otpExpiry) {
             // Clear expired OTP
             $session->remove(['password_reset_otp', 'password_reset_otp_expiry']);
-            
+
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Verification code has expired. Please request a new one.'
@@ -153,15 +155,17 @@ class PasswordResetController extends BaseController
         $confirmPassword = $this->request->getPost('confirm_password');
 
         // Validate input
-        if (!$this->validateData([
-            'email' => $email,
-            'new_password' => $newPassword,
-            'confirm_password' => $confirmPassword
-        ], [
-            'email' => 'required|valid_email',
-            'new_password' => 'required|min_length[6]|max_length[255]',
-            'confirm_password' => 'required|matches[new_password]'
-        ])) {
+        if (
+            !$this->validateData([
+                'email' => $email,
+                'new_password' => $newPassword,
+                'confirm_password' => $confirmPassword
+            ], [
+                'email' => 'required|valid_email',
+                'new_password' => 'required|min_length[6]|max_length[255]',
+                'confirm_password' => 'required|matches[new_password]'
+            ])
+        ) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => $this->validator->listErrors()
@@ -248,7 +252,7 @@ class PasswordResetController extends BaseController
             <body>
                 <div class='container'>
                     <div class='header'>
-                        <h1>E n' G Bakery - Karangahan</h1>
+                        <h1>E n' G Bakery - Deca Sentrio</h1>
                         <p>Password Reset Request</p>
                     </div>
                     <div class='content'>
@@ -269,7 +273,7 @@ class PasswordResetController extends BaseController
                         </div>
                     </div>
                     <div class='footer'>
-                        <p>&copy; " . date('Y') . " E n' G Bakery - Karangahan. All rights reserved.</p>
+                        <p>&copy; " . date('Y') . " E n' G Bakery - Deca Sentrio. All rights reserved.</p>
                         <p>This is an automated message, please do not reply to this email.</p>
                     </div>
                 </div>

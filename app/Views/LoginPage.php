@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E n' G Bakery - Karangahan</title>
+    <title>E n' G Bakery - Deca Sentrio</title>
     <link rel="icon" href="<?= base_url("assets/pictures/En'G Bakery Logo.png") ?>" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,7 +35,7 @@
                 <div class="hidden md:flex md:w-1/2 bg-cover bg-center items-center justify-center p-8 bg-primary">
                     <div class="text-center">
                         <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>"
-                            alt="E n' G Bakery - Karangahan" class="mx-auto w-40 md:w-48 mb-4" />
+                            alt="E n' G Bakery - Deca Sentrio" class="mx-auto w-40 md:w-48 mb-4" />
                         <h2 class="text-2xl font-extrabold text-white">Welcome back!</h2>
                         <p class="mt-2 text-sm text-white">Sign in to manage orders and bakery settings.</p>
                     </div>
@@ -45,7 +45,7 @@
                 <div class="w-full md:w-1/2 p-6 sm:p-8">
                     <div class="max-w-md mx-auto">
                         <h1 class="text-center text-4xl font-bold text-primary mb-6 hidden md:block">E n' G Bakery -
-                            Karangahan</h1>
+                            Deca Sentrio</h1>
                         <a href="<?= base_url() ?>"
                             class="flex items-center mb-6 justify-center md:justify-start md:hidden">
                             <img class="w-36 md:w-40 mr-2"
@@ -56,15 +56,15 @@
 
                         <!-- Flash Messages -->
                         <?php if (session()->has('error_message')): ?>
-                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                                <span class="block sm:inline"><?= session('error_message') ?></span>
-                            </div>
+                                    <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                                        <span class="block sm:inline"><?= session('error_message') ?></span>
+                                    </div>
                         <?php endif; ?>
 
                         <?php if (session()->has('success_message')): ?>
-                            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                                <span class="block sm:inline"><?= session('success_message') ?></span>
-                            </div>
+                                    <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                        <span class="block sm:inline"><?= session('success_message') ?></span>
+                                    </div>
                         <?php endif; ?>
 
                         <form class="space-y-4" action="<?= base_url('Login/Manual') ?>" method="post" novalidate>

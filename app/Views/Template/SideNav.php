@@ -5,8 +5,8 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
 <!-- Navbar -->
 <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
     <div class="px-3 py-3 lg:px-5 lg:pl-3">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center justify-start rtl:justify-end">
+        <div class="flex items-center justify-between gap-2 min-w-0">
+            <div class="flex items-center justify-start rtl:justify-end flex-1 min-w-0">
                 <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar"
                     type="button"
                     class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
@@ -18,16 +18,16 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                         </path>
                     </svg>
                 </button>
-                <a href="<?= base_url("/Dashboard") ?>" class="flex items-center justify-center ms-2 sm:ms-4 md:me-24 min-w-0">
-                    <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" class="h-6 me-1 sm:me-2 shrink-0"
-                        alt="En'G Bakery Logo" />
-                    <span
-                        class="self-center text-base sm:text-xl lg:text-2xl leading-tight font-semibold whitespace-nowrap text-primary max-w-[170px] sm:max-w-none truncate">
-                        E n' G Bakery - Karangahan
+                <a href="<?= base_url("/Dashboard") ?>"
+                    class="flex items-center justify-start ms-2 sm:ms-4 min-w-0 flex-1 overflow-hidden">
+                    <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>"
+                        class="h-6 me-1 sm:me-2 shrink-0" alt="En'G Bakery Logo" />
+                    <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary truncate min-w-0">
+                        E n' G Bakery - Deca Sentrio
                     </span>
                 </a>
             </div>
-            <div class="flex items-center">
+            <div class="flex items-center shrink-0">
                 <div class="flex items-center gap-2 sm:gap-3 ms-3">
                     <!-- Notification Bell -->
                     <?= view('Template/NotificationBell') ?>

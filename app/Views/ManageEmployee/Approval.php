@@ -124,7 +124,7 @@
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Outlet</label>
-                            <p class="text-sm font-medium text-gray-900" id="modalOutlet">Karangahan</p>
+                            <p class="text-sm font-medium text-gray-900" id="modalOutlet">Deca Sentrio</p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Shift</label>
@@ -396,12 +396,12 @@
                 // Prevent double-click
                 if (approvingUserId === userId) return;
                 approvingUserId = userId;
-                
+
                 const $btn = $(`.btn-approve[data-user-id="${userId}"]`);
                 if (typeof ButtonLoader !== 'undefined') {
                     ButtonLoader.start($btn, 'Approving...');
                 }
-                
+
                 $.ajax({
                     url: window.BASE_URL + 'Approval/ApproveUser',
                     method: 'POST',
@@ -420,7 +420,7 @@
                         console.log(xhr);
                         showToast('error', response.message || 'Error approving user.');
                     },
-                    complete: function() {
+                    complete: function () {
                         approvingUserId = null;
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop($btn, 'Approve');
@@ -434,12 +434,12 @@
                 // Prevent double-click
                 if (rejectingUserId === userId) return;
                 rejectingUserId = userId;
-                
+
                 const $btn = $(`.btn-reject[data-user-id="${userId}"]`);
                 if (typeof ButtonLoader !== 'undefined') {
                     ButtonLoader.start($btn, 'Rejecting...');
                 }
-                
+
                 $.ajax({
                     url: window.BASE_URL + 'Approval/RejectUser',
                     method: 'POST',
@@ -458,7 +458,7 @@
                         console.log(xhr);
                         showToast('error', 'Error rejecting user.');
                     },
-                    complete: function() {
+                    complete: function () {
                         rejectingUserId = null;
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop($btn, 'Reject');

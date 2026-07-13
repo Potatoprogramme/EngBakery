@@ -87,8 +87,8 @@ class LowStockNotifier
         // Get all owner emails
         $usersModel = new UsersModel();
         $owners = $usersModel->where('employee_type', 'owner')
-                             ->where('approved', 1)
-                             ->findAll();
+            ->where('approved', 1)
+            ->findAll();
 
         if (empty($owners)) {
             log_message('warning', 'Combined low stock alert: No owner accounts found to notify.');
@@ -104,14 +104,14 @@ class LowStockNotifier
 
         // Build the email
         $emailBody = self::buildEmailBody($criticalItems, $warningItems, $rawCriticalItems, $rawWarningItems, $today);
-        
+
         $subjectPrefix = $hasCritical ? '🚨 LOW' : '⚠';
         $emailSubject = $subjectPrefix . ' Stock Alert — ' . count($lowProductItems) . ' product(s), ' . count($lowRawItems) . ' raw material(s) running low';
 
         // Send
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($emailSubject);
             $emailService->setMessage($emailBody);
@@ -161,7 +161,7 @@ class LowStockNotifier
     {
         $reportDate = date('F d, Y', strtotime($inventoryDate));
         $reportTime = date('h:i A');
-        $reportRef  = 'LSA-' . date('Ymd-His');
+        $reportRef = 'LSA-' . date('Ymd-His');
         $allItems = array_merge($criticalItems, $warningItems);
 
         usort($allItems, static function ($a, $b) {
@@ -203,8 +203,8 @@ class LowStockNotifier
         }
 
         $totalCritical = count($criticalItems);
-        $totalWarning  = count($warningItems);
-        $totalItems    = $totalCritical + $totalWarning;
+        $totalWarning = count($warningItems);
+        $totalItems = $totalCritical + $totalWarning;
 
         $rawAllItems = array_merge($rawCriticalItems, $rawWarningItems);
         usort($rawAllItems, static function ($a, $b) {
@@ -267,7 +267,7 @@ class LowStockNotifier
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin: 0; font-size: 24px;'>Low Stock Alert</h1>
-                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery - Karangahan — Products and Raw Materials Report</p>
+                    <p style='margin: 5px 0 0; font-size: 14px;'>E n' G Bakery - Deca Sentrio — Products and Raw Materials Report</p>
                 </div>
                 <div class='content'>
                     <!-- Report Details -->
@@ -358,11 +358,11 @@ class LowStockNotifier
                     </p>
                     <p style='font-size: 14px; margin-top: 20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery - Karangahan Inventory System</strong>
+                        <strong>E n' G Bakery - Deca Sentrio Inventory System</strong>
                     </p>
                 </div>
                 <div class='footer'>
-                    <p>&copy; " . date('Y') . " E n' G Bakery - Karangahan. All rights reserved.</p>
+                    <p>&copy; " . date('Y') . " E n' G Bakery - Deca Sentrio. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
             </div>

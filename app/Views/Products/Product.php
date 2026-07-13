@@ -984,6 +984,14 @@
                 openViewModal(productId);
             });
 
+            // Duplicate button in card menu
+            $(document).on('click', '.card-duplicate-btn', function (e) {
+                e.stopPropagation();
+                const productId = $(this).data('id');
+                $('.card-menu').addClass('hidden');
+                openDuplicateModal(productId);
+            });
+
             // Click on card to view (excluding menu area)
             $(document).on('click', '.product-card', function (e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
@@ -2417,6 +2425,10 @@
                                 rows +=
                                     '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' +
                                     product.product_id +
+                                    '" title="Duplicate"><i class="fas fa-copy"></i></button>';
+                                rows +=
+                                    '<button class="text-blue-600 h-10 w-10 flex items-center justify-center bg-gray-100 rounded border border-gray-300 hover:text-blue-800 btn-edit" data-id="' +
+                                    product.product_id +
                                     '" title="Edit"><i class="fas fa-edit"></i></button>';
                                 // Delete button (commented out)
                                 rows +=
@@ -2548,6 +2560,11 @@
                     cards += '      </button>';
                     cards +=
                         '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] py-1">';
+                    cards +=
+                        '        <button class="card-duplicate-btn w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2" data-id="' +
+                        product.product_id + '">';
+                    cards += '          <i class="fas fa-copy text-gray-400"></i> Duplicate';
+                    cards += '        </button>';
                     cards +=
                         '        <button class="card-view-btn w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2" data-id="' +
                         product.product_id + '">';

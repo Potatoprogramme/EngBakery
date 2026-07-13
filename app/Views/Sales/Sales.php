@@ -77,7 +77,7 @@
                                 <div class="flex-1 relative">
                                     <input type="text" id="outletName"
                                         class="w-full border-b border-gray-300 px-2 py-1 pr-7 text-sm font-semibold rounded text-gray-900 focus:outline-none focus:border-primary"
-                                        placeholder="Enter outlet name" value="Karangahan">
+                                        placeholder="Enter outlet name" value="Deca Sentrio">
                                     <button type="button" id="btnClearOutlet"
                                         class="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition"
                                         title="Clear outlet name">

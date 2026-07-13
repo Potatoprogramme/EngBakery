@@ -50,7 +50,7 @@ class AutoReportScheduler
      */
     public static function runDueJobs(): void
     {
-        $nowH  = (int) date('G');   // 0–23, no leading zero
+        $nowH = (int) date('G');   // 0–23, no leading zero
         $today = date('Y-m-d');
 
         foreach (self::SLOTS as $slot => $window) {
@@ -147,12 +147,14 @@ class AutoReportScheduler
         }
 
         $shiftLabel = 'Shift (' . self::formatShiftTimeRange($shiftStart, $shiftEnd) . ')';
-        $shiftReports = self::buildShiftReports($allItems, $date, [[
-            'key' => 'inventory_' . $inventoryId,
-            'label' => $shiftLabel,
-            'start' => $shiftStart,
-            'end' => $shiftEnd,
-        ]], $cashierUserId);
+        $shiftReports = self::buildShiftReports($allItems, $date, [
+            [
+                'key' => 'inventory_' . $inventoryId,
+                'label' => $shiftLabel,
+                'start' => $shiftStart,
+                'end' => $shiftEnd,
+            ]
+        ], $cashierUserId);
 
         if (empty($shiftReports)) {
             return [
@@ -218,7 +220,7 @@ class AutoReportScheduler
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($subject);
             $emailService->setMessage($emailBody);
@@ -301,9 +303,9 @@ class AutoReportScheduler
      */
     private static function buildEmailBody(array $shiftReports, string $slot, string $date, array $slotMeta, ?array $resendMeta = null): string
     {
-        $reportDate   = date('F d, Y', strtotime($date));
-        $reportTime   = date('h:i A');
-        $reportRef    = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
+        $reportDate = date('F d, Y', strtotime($date));
+        $reportTime = date('h:i A');
+        $reportRef = 'INV-' . strtoupper($slot) . '-' . date('Ymd-His');
         $slotTitle = $slotMeta['title'] ?? 'Inventory Report';
         $slotSubtitle = $slotMeta['subtitle'] ?? 'Manually Generated Snapshot';
         $headerColor = $slotMeta['header_color'] ?? '#dbeafe';
@@ -400,7 +402,7 @@ class AutoReportScheduler
                 <!-- Header -->
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
-                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Karangahan &mdash; {$slotSubtitle}</p>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Deca Sentrio &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
@@ -492,13 +494,13 @@ class AutoReportScheduler
 
                     <p style='font-size:14px;margin-top:20px;'>
                         Respectfully,<br>
-                        <strong>E n' G Bakery - Karangahan Inventory System</strong>
+                        <strong>E n' G Bakery - Deca Sentrio Inventory System</strong>
                     </p>
 
                 </div>
 
                 <div class='footer'>
-                    <p>&copy; {$year} E n' G Bakery - Karangahan. All rights reserved.</p>
+                    <p>&copy; {$year} E n' G Bakery - Deca Sentrio. All rights reserved.</p>
                     <p>This is a system-generated report. Please do not reply to this email.</p>
                 </div>
 
