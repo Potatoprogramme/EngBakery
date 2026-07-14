@@ -66,12 +66,6 @@
                             <span class="hidden sm:inline">Close</span>
                         </button>
 
-                        <button id="btnOpenInventory" onclick="openInventory()"
-                            class="hidden inline-flex h-10 items-center rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-medium text-green-700 hover:bg-green-100 focus:ring-2 focus:ring-green-300 transition">
-                            <i class="fas fa-lock-open sm:mr-2 text-green-500"></i>
-                            <span class="hidden sm:inline">Open</span>
-                        </button>
-
                         <button id="btnDeleteTodaysInventory"
                             class="hidden inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-300 transition">
                             <i class="fas fa-trash sm:mr-2 text-red-500"></i>
@@ -356,8 +350,7 @@
     </div>
 
     <!-- Edit Inventory Modal -->
-    <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40" id="editInventoryModalBackdrop"></div>
+    <div id="editInventoryModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div
             class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
             <button type="button" id="editInventoryModalClose"
@@ -493,8 +486,7 @@
     </div>
 
     <!-- Add Product to Inventory Modal -->
-    <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40 " id="addProductModalBackdrop"></div>
+    <div id="addProductModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="addProductModalClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
@@ -550,8 +542,7 @@
         </div>
     </div>
     <!-- Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="deleteConfirmModalBackdrop"></div>
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
             <button type="button" id="deleteConfirmModalClose"
                 class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
@@ -576,8 +567,7 @@
         </div>
     </div>
 
-    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50" id="sendReportConfirmModalBackdrop"></div>
+    <div id="sendReportConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 z-10">
             <button type="button" id="sendReportConfirmModalClose"
                 class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
@@ -616,14 +606,14 @@
 
         function enforceInventoryLock() {
             if (isInventoryInteractionBlocked()) {
-                showToast('warning', 'Inventory is closed. Click Open to continue.', 2200);
+                showToast('warning', 'Inventory is closed.', 2200);
                 return true;
             }
             return false;
         }
 
         function syncNewShiftButtonState() {
-            const shouldDisable = inventoryExistsToday && (!inventoryIsClosed || !inventoryReportSent);
+            const shouldDisable = inventoryExistsToday && !inventoryIsClosed;
             const $btn = $('#btnResetInventoryForNextShift');
 
             $btn
@@ -750,8 +740,7 @@
     </script>
 
     <!-- Distribution Items List Modal -->
-    <div id="distributionListModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40" id="distributionListModalBackdrop"></div>
+    <div id="distributionListModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div
             class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col z-10">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
@@ -783,8 +772,7 @@
     </div>
 
     <!-- Load Single Distribution Item Modal -->
-    <div id="loadSingleItemModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40" id="loadSingleItemBackdrop"></div>
+    <div id="loadSingleItemModal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
             <button type="button" id="loadSingleItemClose"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
@@ -853,8 +841,7 @@
     </div>
 
     <!-- Item Details Modal -->
-    <div id="itemDetailsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/40" id="itemDetailsModalBackdrop"></div>
+    <div id="itemDetailsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10">
             <div class="sticky top-0 bg-gradient-to-r from-primary to-secondary p-6 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-white" id="itemDetailsProductName">Product Details</h3>
@@ -2073,7 +2060,7 @@
                 closeAfterSendReport = false;
             }
 
-            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel, #sendReportConfirmModalBackdrop').on(
+            $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel').on(
                 'click',
                 function() {
                     closeSendReportConfirmModal();
@@ -2094,6 +2081,8 @@
                 const confirmBtn = $(this);
                 const shouldCloseInventory = closeAfterSendReport;
                 const closeBtn = $('#btnCloseInventory');
+                const cancelBtn = $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel');
+
 
                 if (btn.prop('disabled') || confirmBtn.prop('disabled')) {
                     return;
@@ -2114,6 +2103,8 @@
                     .html(shouldCloseInventory ?
                         '<i class="fas fa-spinner fa-spin mr-2"></i>Closing & Sending...' :
                         '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...');
+                cancelBtn.prop('disabled', true)
+                    .addClass('opacity-70 cursor-not-allowed');
 
                 if (shouldCloseInventory && closeBtn.length) {
                     setButtonLoading(closeBtn, true, 'Closing...');
@@ -2128,6 +2119,8 @@
                         setButtonLoading(closeBtn, false);
                     }
 
+                    cancelBtn.prop('disabled', false)
+                        .removeClass('opacity-70 cursor-not-allowed');
                     closeSendReportConfirmModal();
                 };
 
@@ -2321,7 +2314,7 @@
             });
 
             // Close Item Details Modal
-            $('#itemDetailsModalClose, #itemDetailsModalCancel, #itemDetailsModalBackdrop').on('click', function() {
+            $('#itemDetailsModalClose, #itemDetailsModalCancel').on('click', function() {
                 $('#itemDetailsModal').addClass('hidden');
             });
 
@@ -2432,17 +2425,6 @@
                     const hasActiveInventory = response.success && response.has_active;
                     const noActionableInventory = !hasInventoryToProcess && !hasActiveInventory;
 
-                    // Send Report must stay disabled while inventory is still open.
-                    const disableSendReport = noActionableInventory || inventoryIsOpen || inventoryReportSent;
-                    $('#btnSendInventoryReport')
-                        .prop('disabled', disableSendReport)
-                        .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
-
-                    // Open button should remain available for closed, unsent inventory.
-                    const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed || inventoryReportSent;
-                    $('#btnOpenInventory')
-                        .prop('disabled', disableOpenButton)
-                        .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
                 },
                 error: function() {
                     const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
@@ -2452,9 +2434,6 @@
                     $('#btnSendInventoryReport')
                         .prop('disabled', disableSendReport)
                         .toggleClass('opacity-50 cursor-not-allowed', disableSendReport);
-                    $('#btnOpenInventory')
-                        .prop('disabled', disableOpenButton)
-                        .toggleClass('opacity-50 cursor-not-allowed', disableOpenButton);
                 }
             });
         }
@@ -2500,7 +2479,6 @@
                         showToast('warning', response.message, 2000);
                         loadInventory([]);
                         $('#btnCloseInventory').addClass('hidden');
-                        $('#btnOpenInventory').addClass('hidden');
                         if ($('#btnSendInventoryReport').length) {
                             $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                         }
@@ -2524,7 +2502,6 @@
                     syncInventoryInteractionLock();
                     console.log('Error checking inventory: ' + error);
                     $('#btnCloseInventory').addClass('hidden');
-                    $('#btnOpenInventory').addClass('hidden');
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');
                     }
@@ -4937,50 +4914,13 @@
             openSendReportConfirmModal();
         }
 
-        function openInventory() {
-            const $btn = $('#btnOpenInventory');
-            if ($btn.prop('disabled')) {
-                return;
-            }
-
-            setButtonLoading($btn, true, 'Opening...');
-            $.ajax({
-                url: '<?= base_url() ?>' + 'Inventory/OpenInventory',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    inventory_id: inventoryId
-                }),
-                success: function(response) {
-                    if (response.success) {
-                        showToast('success', response.message, 2000);
-                        // Refresh inventory data to reflect closed status
-                        setInventoryState(false);
-                    } else {
-                        showToast('error', response.message, 2000);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    showToast('danger', 'Error opening inventory: ' + (xhr.responseJSON?.message || error),
-                        2000);
-                    console.log(xhr);
-                },
-                complete: function() {
-                    setButtonLoading($btn, false);
-                }
-            });
-        }
-
         function setInventoryState(isClosed) {
             isClosed = isClosed === true || isClosed === 1 || isClosed === '1'; // force boolean
             inventoryIsClosed = isClosed;
             if (isClosed) {
                 $('#btnCloseInventory').addClass('hidden');
-                $('#btnOpenInventory').removeClass('hidden');
             } else {
                 $('#btnCloseInventory').removeClass('hidden');
-                $('#btnOpenInventory').addClass('hidden');
             }
 
             syncInventoryInteractionLock();
