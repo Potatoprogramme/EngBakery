@@ -967,7 +967,26 @@
 
                 // Toggle this menu
                 $menu.toggleClass('hidden');
+
+                if (!$menu.hasClass('hidden')) {
+                    positionActionMenu($(this), $menu);
+                }
             });
+
+            function positionActionMenu($button, $menu) {
+                const buttonRect = $button[0].getBoundingClientRect();
+                const menuHeight = $menu.outerHeight();
+                const spaceBelow = window.innerHeight - buttonRect.bottom;
+                const spaceAbove = buttonRect.top;
+
+                $menu.removeClass('top-full mt-2 bottom-full mb-2 top-8 top-11 top-auto');
+
+                if (spaceBelow < menuHeight + 12 && spaceAbove > menuHeight) {
+                    $menu.addClass('bottom-full mb-2 top-auto');
+                } else {
+                    $menu.addClass('top-full mt-2');
+                }
+            }
 
             // Close card menus when clicking outside
             $(document).on('click', function(e) {
@@ -2453,7 +2472,7 @@
                                     product.product_id +
                                     '" title="Actions" aria-label="Open actions menu"><i class="fas fa-ellipsis-v"></i></button>';
                                 rows +=
-                                    '<div class="card-menu hidden absolute right-0 top-11 z-20 min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">';
+                                    '<div class="card-menu hidden absolute right-0 top-full mt-2 z-20 min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">';
                                 rows +=
                                     '<button type="button" class="card-view-btn flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="' +
                                     product.product_id +
@@ -2595,7 +2614,7 @@
                     cards += '        <i class="fas fa-ellipsis-v"></i>';
                     cards += '      </button>';
                     cards +=
-                        '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-40 min-w-[140px] py-1">';
+                        '      <div class="card-menu hidden absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-40 min-w-[140px] py-1">';
                     cards +=
                         '        <button class="btn-duplicate w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' +
                         product.product_id + '">';
