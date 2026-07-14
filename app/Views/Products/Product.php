@@ -2595,7 +2595,7 @@
                     cards += '        <i class="fas fa-ellipsis-v"></i>';
                     cards += '      </button>';
                     cards +=
-                        '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] py-1">';
+                        '      <div class="card-menu hidden absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-40 min-w-[140px] py-1">';
                     cards +=
                         '        <button class="btn-duplicate w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2" data-id="' +
                         product.product_id + '">';

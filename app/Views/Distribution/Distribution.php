@@ -21,9 +21,9 @@
 
             <!-- Header Section -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between w-full">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Baking Schedule</h2>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2 self-start sm:self-auto">
                         <button type="button" id="btnManageDistributionCategories"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                             <i class="fas fa-tags mr-2"></i>Manage Categories
@@ -34,12 +34,18 @@
                         </button>
                     </div>
                 </div>
+                <div class="mt-3 sm:hidden">
+                    <button type="button" id="btnManageDistributionCategoriesMobile"
+                        class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                        <i class="fas fa-tags mr-2"></i>Manage Categories
+                    </button>
+                </div>
             </div>
 
             <!-- Floating Add Items button for mobile -->
-            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex justify-center z-30 lg:hidden">
+            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex flex-col items-center gap-2 z-30 lg:hidden">
                 <button type="button" id="btnAddItemsMobile"
-                    class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
+                    class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     <i class="fas fa-plus mr-2"></i>Add Items
                 </button>
             </div>

@@ -386,6 +386,50 @@
                 <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
+                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Product Group</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editProductGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Product group quantity">
+                        <button type="button" id="btnIncreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editDistributionGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Distribution group quantity">
+                        <button type="button" id="btnIncreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <label class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution Category</label>
+                        <select
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <option value="">Select distribution category</option>
+                            <option value="bakery">Bakery</option>
+                            <option value="drinks">Drinks</option>
+                            <option value="grocery">Grocery</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
@@ -470,13 +514,13 @@
                         values above.</p>
                 </div>
 
-                <div class="mb-6" id="editNotesGroup">
+                <!-- <div class="mb-6" id="editNotesGroup">
                     <label for="editNotes" id="editNotesLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
                     <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
                     <p id="editNotesHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
-                </div>
+                </div> -->
 
                 <div class="flex gap-3">
                     <button type="submit" id="btnSubmitEditInventory"
@@ -3636,6 +3680,31 @@
             $('#grandTotalQty').text(grandQty);
         }
 
+        function adjustQuantityField(inputSelector, delta) {
+            const $input = $(inputSelector);
+            if (!$input.length) return;
+
+            const current = parseInt($input.val(), 10) || 0;
+            const nextValue = Math.max(0, current + delta);
+            $input.val(nextValue).trigger('input');
+        }
+
+        $('#btnDecreaseProductGroup').on('click', function () {
+            adjustQuantityField('#editProductGroupQty', -1);
+        });
+
+        $('#btnIncreaseProductGroup').on('click', function () {
+            adjustQuantityField('#editProductGroupQty', 1);
+        });
+
+        $('#btnDecreaseDistributionGroup').on('click', function () {
+            adjustQuantityField('#editDistributionGroupQty', -1);
+        });
+
+        $('#btnIncreaseDistributionGroup').on('click', function () {
+            adjustQuantityField('#editDistributionGroupQty', 1);
+        });
+
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function () {
             if (enforceInventoryLock()) {
@@ -3682,13 +3751,6 @@
                     $('#editAdjustmentGuide').removeClass('hidden').html(
                         '<strong>Drinks Mode:</strong> Enter an adjustment value. DB Qty Sold is the minimum/source-of-truth. Manual deltas become discrepancy.'
                     );
-                    $('#editNotesGroup').addClass('hidden');
-                    $('#editNotes').val('');
-                    $('#editNotes').removeAttr('required').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-                    $('#editNotesLabel').text('Notes');
-                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass('text-gray-400');
-                    editPreviewUiState.notesRequired = false;
-
                     $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(0).attr('min', 0);
@@ -3698,7 +3760,6 @@
                         $('#editPostRemitWarning').removeClass('hidden');
                     }
                 } else if (isAdjustmentMode) {
-                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
@@ -3715,7 +3776,6 @@
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').removeClass('hidden');
                 } else {
-                    $('#editNotesGroup').removeClass('hidden');
                     $('#editBeginningLabel').text('Beginning Stock');
                     $('#editPullOutLabel').text('Pull Out Quantity');
                     $('#editEndingLabel').text('Ending Stock');
@@ -3759,7 +3819,6 @@
         let editPreviewUiState = {
             infoKey: '',
             warningKey: '',
-            notesRequired: null,
             remainingHint: '',
             remainingValue: null
         };
@@ -3768,7 +3827,6 @@
             editPreviewUiState = {
                 infoKey: '',
                 warningKey: '',
-                notesRequired: null,
                 remainingHint: '',
                 remainingValue: null
             };
@@ -3964,15 +4022,6 @@
                     $('#editStockWarning').addClass('hidden');
                     editPreviewUiState.warningKey = 'hidden';
                 }
-                if (editPreviewUiState.notesRequired !== false) {
-                    $('#editNotes').removeAttr('required');
-                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
-                    $('#editNotesLabel').text('Notes');
-                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                        'text-gray-400');
-                    editPreviewUiState.notesRequired = false;
-                }
-                $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 return;
             }
 
@@ -4010,35 +4059,19 @@
                 }
             }
 
-            // Over/Under warning and notes requirement
+            // Over/Under warning
             if (expected > 0 && currentBeginning !== expected) {
                 const delta = currentBeginning - expected;
                 let warningText = '';
                 if (delta > 0) {
-                    warningText = 'Exceeds expected by <strong>' + delta + '</strong> — note required';
+                    warningText = 'Exceeds expected by <strong>' + delta + '</strong>';
                 } else {
-                    warningText = 'Short by <strong>' + Math.abs(delta) + '</strong> — note required';
+                    warningText = 'Short by <strong>' + Math.abs(delta) + '</strong>';
                 }
                 if (editPreviewUiState.warningKey !== warningText) {
                     $('#editStockWarningText').html(warningText);
                     $('#editStockWarning').removeClass('hidden');
                     editPreviewUiState.warningKey = warningText;
-                }
-
-                // Make notes required
-                if (editPreviewUiState.notesRequired !== true) {
-                    $('#editNotes').attr('required', true);
-                    $('#editNotes').attr('placeholder', 'Explain why beginning stock differs from expected');
-                    $('#editNotesLabel').html('Notes <span class="text-red-500">*</span>');
-                    $('#editNotesHint').text('Required — explain the stock adjustment').removeClass('text-gray-400')
-                        .addClass(
-                            'text-red-500');
-                    editPreviewUiState.notesRequired = true;
-                }
-                if (!$('#editNotes').val()) {
-                    $('#editNotes').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-                } else {
-                    $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
                 }
             } else {
                 // No deviation or no expected baseline
@@ -4046,26 +4079,8 @@
                     $('#editStockWarning').addClass('hidden');
                     editPreviewUiState.warningKey = 'hidden';
                 }
-                if (editPreviewUiState.notesRequired !== false) {
-                    $('#editNotes').removeAttr('required');
-                    $('#editNotes').attr('placeholder', 'Add notes (optional)');
-                    $('#editNotesLabel').text('Notes');
-                    $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                        'text-gray-400');
-                    editPreviewUiState.notesRequired = false;
-                }
-                $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
             }
         }
-
-        // Update notes border styling on input
-        $('#editNotes').on('input', function () {
-            if ($('#editNotes').is('[required]') && !$(this).val().trim()) {
-                $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            } else {
-                $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            }
-        });
 
         // Close Edit Modal
         $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
@@ -4086,18 +4101,12 @@
             $('#editPullOutGroup').removeClass('hidden');
             $('#editEndingGroup').addClass('hidden');
             $('#editPostRemitWarning').addClass('hidden');
-            $('#editNotesGroup').removeClass('hidden');
             $('#editBeginningStock').attr('min', 0);
             $('#editPullOutQuantity').attr('min', 0);
             $('#editEndingStock').prop('readonly', false).removeClass('bg-gray-50 cursor-not-allowed');
             // Reset distribution display state
             $('#editDistributionInfo').addClass('hidden');
             $('#editStockWarning').addClass('hidden');
-            $('#editNotes').removeAttr('required');
-            $('#editNotesLabel').text('Notes');
-            $('#editNotesHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                'text-gray-400');
-            $('#editNotes').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         });
 
         $(document).on('click', '.btn-toggle-enabled', function () {
@@ -4248,14 +4257,6 @@
                     return;
                 }
 
-                if (expected > 0 && projectedBeginning !== expected && !notes.trim()) {
-                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
-                        expected + ')', 3000);
-                    $('#editNotes').focus();
-                    restoreSubmitButton();
-                    return;
-                }
-
                 payload = {
                     adjustment_mode: true,
                     beginning_stock: beginningInput,
@@ -4266,14 +4267,6 @@
             } else {
                 if (beginningInput < 0 || pullOutInput < 0) {
                     showToast('warning', 'Values cannot be negative', 2000);
-                    restoreSubmitButton();
-                    return;
-                }
-
-                if (expected > 0 && beginningInput !== expected && !notes.trim()) {
-                    showToast('warning', 'Notes are required when beginning stock differs from expected (' +
-                        expected + ')', 3000);
-                    $('#editNotes').focus();
                     restoreSubmitButton();
                     return;
                 }
