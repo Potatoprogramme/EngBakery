@@ -506,14 +506,14 @@
 
                 <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
                     <div class="mb-3">
+                        <script src="<?= asset_url('js/DistributionDropdown.js') ?>"></script>
                         <label for="distributionGroupName" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-layer-group text-primary mr-1"></i>Distribution Group Name
-                            <span class="text-xs text-gray-400 font-normal ml-1">(optional)</span>
+                            <i class="fas fa-layer-group text-primary mr-1"></i>Store
                         </label>
-                        <input type="text" id="distributionGroupName" maxlength="191"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
-                            placeholder="e.g. Morning Batch, Outlet A, Group 1">
-                        <p class="mt-1 text-[11px] text-gray-500">Leave blank to auto-name this group.</p>
+                        <select id="distributionGroupName" onclick="loadStores()" name="distribution_group_name"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-white">
+                            <option value=""></option>
+                        </select>
                     </div>
 
                     <div>

@@ -7,17 +7,17 @@ use CodeIgniter\Model;
 
 class DistributionGroupModel extends Model
 {
-    protected $table      = 'distribution_group';
+    protected $table = 'distribution_group';
     protected $primaryKey = 'id';
 
-    protected $returnType     = 'array';
+    protected $returnType = 'array';
     protected $useSoftDeletes = false;
-    protected $useTimestamps  = true;
-    protected $createdField   = 'created_at';
-    protected $updatedField   = 'updated_at';
+    protected $useTimestamps = true;
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
 
     protected $allowedFields = [
-        'title',
+        'dist_category_id',
         'distribution_date',
         'distributed_to_note',
         'forecasted_sales',
@@ -52,8 +52,8 @@ class DistributionGroupModel extends Model
     public function getGroupsByDate(string $date): array
     {
         $groups = $this->where('distribution_date', $date)
-                       ->orderBy('created_at', 'ASC')
-                       ->findAll();
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
 
         return $this->attachItems($groups);
     }
@@ -65,9 +65,9 @@ class DistributionGroupModel extends Model
     public function getGroupsByDateRange(string $startDate, string $endDate): array
     {
         $groups = $this->where('distribution_date >=', $startDate)
-                       ->where('distribution_date <=', $endDate)
-                       ->orderBy('distribution_date', 'ASC')
-                       ->findAll();
+            ->where('distribution_date <=', $endDate)
+            ->orderBy('distribution_date', 'ASC')
+            ->findAll();
 
         return $this->attachItems($groups);
     }
@@ -95,25 +95,25 @@ class DistributionGroupModel extends Model
         $itemModel = model('DistributionItemModel');
         $productModel = model('ProductModel');
         $productCostModel = model('ProductCostModel');
-        
+
         $items = $itemModel->getItemsByGroup($groupId);
 
         $forecastedSales = 0.0;
-        $totalCost       = 0.0;
+        $totalCost = 0.0;
 
         foreach ($items as $item) {
             $productId = (int) $item['product_id'];
             $quantity = (int) $item['product_qnty'];
             $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
-            
+
             // Get product and pricing data
             $product = $productModel->find($productId);
             $costData = $productCostModel->getCostByProductId($productId);
-            
+
             if (!$product || !$costData) {
                 continue;
             }
-            
+
             // ─────────────────────────────────────────────────────────────
             // Calculate forecasted sales
             // Priority: use selling_price_per_piece for pieces, selling_price for batch
@@ -121,20 +121,20 @@ class DistributionGroupModel extends Model
             $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($quantity, $qtyMode, $product, $costData);
 
             $forecastedSales += $quantity * (float) $metrics['unit_price'];
-            
+
             // ─────────────────────────────────────────────────────────────
             // Calculate total cost
             // Use the product's total_cost_per_yield multiplied by yield units.
             // For pieces/box modes, metrics already converts quantity to yield units.
             // ─────────────────────────────────────────────────────────────
-            $costPerYield = (float)($costData['total_cost'] ?? 0);
+            $costPerYield = (float) ($costData['total_cost'] ?? 0);
             if ($costPerYield <= 0) {
-                $directCost = (float)($costData['direct_cost'] ?? 0);
-                $combinedRecipeCost = (float)($costData['combined_recipe_cost'] ?? 0);
-                $overheadCostAmount = (float)($costData['overhead_cost_amount'] ?? 0);
+                $directCost = (float) ($costData['direct_cost'] ?? 0);
+                $combinedRecipeCost = (float) ($costData['combined_recipe_cost'] ?? 0);
+                $overheadCostAmount = (float) ($costData['overhead_cost_amount'] ?? 0);
 
                 if ($overheadCostAmount <= 0) {
-                    $overheadCostPercentage = (float)($costData['overhead_cost_percentage'] ?? 0);
+                    $overheadCostPercentage = (float) ($costData['overhead_cost_percentage'] ?? 0);
                     if ($directCost > 0 && $overheadCostPercentage > 0) {
                         $overheadCostAmount = $directCost * ($overheadCostPercentage / 100);
                     }
@@ -147,7 +147,7 @@ class DistributionGroupModel extends Model
 
         $this->update($groupId, [
             'forecasted_sales' => $forecastedSales,
-            'total_cost'       => $totalCost,
+            'total_cost' => $totalCost,
         ]);
     }
 
@@ -165,7 +165,7 @@ class DistributionGroupModel extends Model
         }
 
         $itemModel = model('DistributionItemModel');
-        $groupIds  = array_column($groups, 'id');
+        $groupIds = array_column($groups, 'id');
 
         // Bulk-fetch all items for every group in one query
         $allItems = $itemModel->getItemsByGroups($groupIds);
