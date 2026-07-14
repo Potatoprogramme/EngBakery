@@ -73,6 +73,8 @@ class ProductsController extends BaseController
 
             // Check if product name already exists
             if ($this->productModel->nameExists($productName)) {
+                log_message('debug', 'Product name already exists: ' . $productName);
+                
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'A product with this name already exists.',

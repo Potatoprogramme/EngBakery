@@ -10,7 +10,7 @@ class DistributionCategory extends Model
     protected $primaryKey = 'dist_cat_id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $useSoftDeletes = false;
+    protected $useSoftDeletes = true;
     protected $protectFields = true;
     protected $allowedFields = ['name'];
 

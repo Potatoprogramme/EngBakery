@@ -24,9 +24,9 @@
                 <div class="flex flex-wrap items-center justify-between w-full gap-2">
                     <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Daily Baking Schedule</h2>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" id="manageStoresBtn" onclick="createStore()"
+                        <button type="button" id="btnManageDistributionCategories"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            Manage Stores
+                            <i class="fas fa-tags mr-2"></i>Manage Categories
                         </button>
                         <button type="button" id="btnAddItems"
                             class="hidden sm:inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
@@ -779,6 +779,7 @@
             }
 
             baseUrl = '<?= base_url() ?>';
+            window.BASE_URL = baseUrl;
 
             initializeModalBodyScrollLock();
 
@@ -5191,26 +5192,65 @@
             $('#insufficientMaterialModal').removeClass('hidden');
         }
 
-        function createStore() {
-            $.ajax({
-                url: baseUrl + 'DistributionCategory/Add',
-                method: 'POST',
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify({
-                    'name': 'sample'
-                }),
-                success: function (response) {
-                    if (response && response.success) {
-                        showToast('success', 'Store created successfully!', 3000);
-                        // Optionally, refresh the store list or perform other actions
-                    } else {
-                        showToast('danger', 'Failed to create store. Please try again.', 3000);
-                    }
-                },
-            })
-        }
     </script>
+
+    <!-- Manage Distribution Categories Modal -->
+    <div id="manageDistributionCategoriesModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-tags mr-2 text-primary"></i>Manage Distribution Categories
+                </h3>
+                <button type="button" id="btnCloseDistributionCategoryModal"
+                    class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 overflow-y-auto">
+                <form id="distributionCategoryForm" class="space-y-4">
+                    <input type="hidden" id="edit_distribution_category_id" value="">
+                    <div>
+                        <label for="distribution_category_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Category Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="distribution_category_name" name="name" maxlength="191" required
+                            placeholder="e.g., Morning Delivery"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="btnCancelDistributionCategory"
+                            class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" id="btnSaveDistributionCategory"
+                            class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary">
+                            Save
+                        </button>
+                    </div>
+                </form>
+
+                <div class="my-5 border-t border-gray-200"></div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Categories</h4>
+                        <button type="button" id="btnRefreshDistributionCategories"
+                            class="text-xs font-medium text-primary hover:text-secondary">
+                            Refresh
+                        </button>
+                    </div>
+                    <div id="distributionCategoriesList" class="space-y-2">
+                        <div class="text-sm text-gray-500 text-center py-4">Loading categories...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="<?= asset_url('js/DistributionCategoryModal.js') ?>?v=<?= time() ?>"></script>
 
     <!-- Insufficient Materials Modal -->
     <div id="insufficientMaterialModal"
