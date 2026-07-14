@@ -2463,7 +2463,7 @@
                                     product.product_id +
                                     '"><i class="fas fa-edit"></i> Edit</button>';
                                 rows +=
-                                    '<button type="button" class="card-duplicate-btn flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="' +
+                                    '<button type="button" class="btn-duplicate flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" data-id="' +
                                     product.product_id +
                                     '"><i class="fas fa-copy text-gray-400"></i> Duplicate</button>';
                                 rows +=
