@@ -382,7 +382,7 @@
                 <input type="hidden" id="editIsRemitted" value="0">
 
                 <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Product Group</label>
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseProductGroup"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
@@ -399,7 +399,7 @@
                 </div>
 
                 <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseDistributionGroup"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
@@ -905,14 +905,7 @@
             </div>
 
             <div class="p-6 space-y-6">
-                <!-- Product Notes -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        <i class="fas fa-sticky-note text-blue-600 mr-2"></i> Notes
-                    </h4>
-                    <p id="itemDetailsNotes" class="text-sm text-gray-600 whitespace-pre-wrap">—</p>
-                </div>
-
+                
                 <!-- Shift Production Summary -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
