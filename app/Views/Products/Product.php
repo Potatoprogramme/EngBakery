@@ -958,40 +958,172 @@
             }
 
             // Mobile card menu toggle
+            let activeCardMenu = null;
+            let activeCardMenuButton = null;
+
             $(document).on('click', '.card-menu-btn', function(e) {
                 e.stopPropagation();
                 const $menu = $(this).siblings('.card-menu');
+                const isDesktopRowMenu = $(this).closest('tr').length > 0;
 
                 // Close all other menus first
                 $('.card-menu').not($menu).addClass('hidden');
+                restoreActionMenu($menu);
 
                 // Toggle this menu
                 $menu.toggleClass('hidden');
 
                 if (!$menu.hasClass('hidden')) {
-                    positionActionMenu($(this), $menu);
+                    activeCardMenu = $menu;
+                    activeCardMenuButton = $(this);
+                    if (isDesktopRowMenu) {
+                        positionDesktopActionMenu($(this), $menu);
+                    } else {
+                        positionActionMenu($(this), $menu);
+                    }
+                } else if (activeCardMenu && activeCardMenu[0] === $menu[0]) {
+                    activeCardMenu = null;
+                    activeCardMenuButton = null;
                 }
             });
+
+            function restoreActionMenu($menu) {
+                const $host = $menu.data('action-menu-host');
+                if ($host && $host.length && !$host.has($menu).length) {
+                    $menu.css({
+                        position: '',
+                        top: '',
+                        bottom: '',
+                        left: '',
+                        right: '',
+                        maxWidth: '',
+                        zIndex: ''
+                    });
+                    $host.append($menu);
+                }
+            }
+
+            function positionDesktopActionMenu($button, $menu) {
+                const buttonRect = $button[0].getBoundingClientRect();
+                const menuHeight = $menu.outerHeight();
+                const menuWidth = $menu.outerWidth();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const gap = 8;
+                const $navBar = $('nav.fixed.top-0').first();
+                const $toastContainer = $('#toast-container');
+                const navBottom = $navBar.length ? $navBar[0].getBoundingClientRect().bottom : 0;
+                const toastBottom = $toastContainer.length && $toastContainer.children().length > 0 ?
+                    $toastContainer[0].getBoundingClientRect().bottom : 0;
+                const safeTopBoundary = Math.max(gap, navBottom + gap, toastBottom + gap);
+
+                const $host = $menu.parent();
+                if (!$menu.data('action-menu-host')) {
+                    $menu.data('action-menu-host', $host);
+                }
+
+                if (!$menu.parent().is('body')) {
+                    $('body').append($menu);
+                }
+
+                let top = buttonRect.bottom + gap;
+                let left = buttonRect.right - menuWidth;
+
+                if (left < gap) {
+                    left = gap;
+                }
+
+                if (left + menuWidth > viewportWidth - gap) {
+                    left = viewportWidth - menuWidth - gap;
+                }
+
+                if (top < safeTopBoundary) {
+                    top = safeTopBoundary;
+                }
+
+                if (top + menuHeight > viewportHeight - gap && buttonRect.top - menuHeight - gap > safeTopBoundary) {
+                    top = buttonRect.top - menuHeight - gap;
+                }
+
+                if (top < safeTopBoundary) {
+                    top = safeTopBoundary;
+                }
+
+                $menu.css({
+                    position: 'fixed',
+                    top: top + 'px',
+                    left: left + 'px',
+                    right: 'auto',
+                    bottom: 'auto',
+                    maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
+                    zIndex: 9999
+                });
+            }
 
             function positionActionMenu($button, $menu) {
                 const buttonRect = $button[0].getBoundingClientRect();
                 const menuHeight = $menu.outerHeight();
-                const spaceBelow = window.innerHeight - buttonRect.bottom;
-                const spaceAbove = buttonRect.top;
+                const menuWidth = $menu.outerWidth();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const gap = 8;
 
                 $menu.removeClass('top-full mt-2 bottom-full mb-2 top-8 top-11 top-auto');
 
-                if (spaceBelow < menuHeight + 12 && spaceAbove > menuHeight) {
-                    $menu.addClass('bottom-full mb-2 top-auto');
+                let useAbove = false;
+                if (buttonRect.bottom + menuHeight + gap > viewportHeight && buttonRect.top - menuHeight - gap > gap) {
+                    useAbove = true;
+                }
+
+                if (useAbove) {
+                    $menu.css({
+                        position: 'absolute',
+                        top: 'auto',
+                        bottom: 'calc(100% + 0.5rem)',
+                        left: 'auto',
+                        right: '0',
+                        maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
+                        zIndex: 9999
+                    });
                 } else {
-                    $menu.addClass('top-full mt-2');
+                    $menu.css({
+                        position: 'absolute',
+                        top: 'calc(100% + 0.5rem)',
+                        bottom: 'auto',
+                        left: 'auto',
+                        right: '0',
+                        maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
+                        zIndex: 9999
+                    });
                 }
             }
+
+            $(window).on('resize', function() {
+                if (activeCardMenu && activeCardMenuButton && !activeCardMenu.hasClass('hidden')) {
+                    if (activeCardMenuButton.closest('tr').length > 0) {
+                        positionDesktopActionMenu(activeCardMenuButton, activeCardMenu);
+                    } else {
+                        positionActionMenu(activeCardMenuButton, activeCardMenu);
+                    }
+                }
+            });
+
+            $(window).on('scroll', function() {
+                if (activeCardMenu && activeCardMenuButton && !activeCardMenu.hasClass('hidden') &&
+                    activeCardMenuButton.closest('tr').length > 0) {
+                    positionDesktopActionMenu(activeCardMenuButton, activeCardMenu);
+                }
+            });
 
             // Close card menus when clicking outside
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
                     $('.card-menu').addClass('hidden');
+                    $('.card-menu').each(function() {
+                        restoreActionMenu($(this));
+                    });
+                    activeCardMenu = null;
+                    activeCardMenuButton = null;
                 }
             });
 
@@ -1000,6 +1132,9 @@
                 e.stopPropagation();
                 const productId = $(this).data('id');
                 $('.card-menu').addClass('hidden');
+                $('.card-menu').each(function() {
+                    restoreActionMenu($(this));
+                });
                 openViewModal(productId);
             });
 
@@ -1007,6 +1142,9 @@
             $(document).on('click', '.card-duplicate-btn', function(e) {
                 e.stopPropagation();
                 $('.card-menu').addClass('hidden');
+                $('.card-menu').each(function() {
+                    restoreActionMenu($(this));
+                });
                 // Front-end only: duplicate stays visual-only in this view.
             });
 
