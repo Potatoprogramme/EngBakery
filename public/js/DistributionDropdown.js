@@ -1,13 +1,13 @@
 let storesCache = null;
 
 function loadStores() {
-  // If already cached, just populate and return a resolved promise.
+  // If already cached, just populate and return
   if (storesCache) {
     populateStoreDropdown(storesCache);
-    return Promise.resolve(storesCache);
+    return;
   }
 
-  return $.ajax({
+  $.ajax({
     url: baseUrl + "DistributionCategory/FetchAll",
     type: "GET",
     dataType: "json",
@@ -32,7 +32,7 @@ function populateStoreDropdown(data) {
   const $select = $("#distributionGroupName");
   const currentVal = $select.val();
 
-  $select.find("option").not(":first").remove();
+  $select.find("option:not(:first)").remove();
 
   $.each(data, function (_, store) {
     $select.append(

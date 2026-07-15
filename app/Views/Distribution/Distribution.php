@@ -514,13 +514,12 @@
                     <div class="mb-3">
                         <script src="<?= asset_url('js/DistributionDropdown.js') ?>"></script>
                         <label for="distributionGroupName" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-layer-group text-primary mr-1"></i>Destination Category
+                            <i class="fas fa-layer-group text-primary mr-1"></i>Store
                         </label>
-                        <select id="distributionGroupName" name="dist_category_id" onclick="loadStores()"
+                        <select id="distributionGroupName" onclick="loadStores()"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-white">
-                            <option value="">Select a destination category</option>
+                            <option value=""></option>
                         </select>
-                        <p class="mt-1 text-[11px] text-gray-500">This category will be stored with the distribution group for the selected day.</p>
                     </div>
 
                     <div>
@@ -3665,7 +3664,6 @@
                 }
 
                 $('#scheduleDate').val(dateValue || $('#selectedDate').val());
-                loadStores();
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
                 renderAddedItemsList();
@@ -3747,7 +3745,6 @@
                 editingGroupContext = {
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
-                    category_id: String(group.dist_category_id || ''),
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
                     existing_items: groupItems.map(function (item) {
@@ -3781,9 +3778,7 @@
                 });
                 renderAddedItemsList();
 
-                await loadStores();
-                $('#distributionGroupName').val(editingGroupContext.category_id || '');
-
+                $('#distributionGroupName').val(editingGroupContext.original_name);
                 $('#overallDistributionNote').val(editingGroupContext.original_note);
                 $('#calendarDayModal').addClass('hidden');
                 $('#addItemsModal').removeClass('hidden');
@@ -4330,8 +4325,7 @@
                 e.preventDefault();
 
                 const scheduleDate = ($('#scheduleDate').val() || '').toString();
-                const selectedCategoryId = ($('#distributionGroupName').val() || '').toString().trim();
-                const selectedCategoryName = selectedCategoryId ? ($('#distributionGroupName option:selected').text() || '').toString().trim() : '';
+                const distributionGroupName = ($('#distributionGroupName').val() || '').trim();
                 const distributionGroupNote = ($('#overallDistributionNote').val() || '').trim();
                 const isEditMode = addItemsModalMode === 'edit' && editingGroupContext;
                 let createdGroupId = null;
@@ -4339,7 +4333,7 @@
                 logDistributionFlow('log', 'Add items form submit started.', {
                     mode: isEditMode ? 'edit-group' : 'create-group',
                     schedule_date: scheduleDate,
-                    entered_group_name: selectedCategoryName,
+                    entered_group_name: distributionGroupName,
                     entered_group_note_length: distributionGroupNote.length,
                     list_item_count: itemsToAddList.length,
                     list_items: itemsToAddList.map(function (item) {
@@ -4373,7 +4367,7 @@
                         const context = editingGroupContext;
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
-                        const savedGroupName = selectedCategoryName ||
+                        const savedGroupName = distributionGroupName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
                         const normalizedTargetGroupId = normalizeDistributionGroupIdForApi(
@@ -4398,7 +4392,6 @@
 
                         const updateGroupPayload = {
                             title: savedGroupName,
-                            dist_category_id: selectedCategoryId ? parseInt(selectedCategoryId, 10) : null,
                             distributed_to_note: distributionGroupNote || null,
                         };
 
@@ -4408,10 +4401,9 @@
                             payload: updateGroupPayload,
                         });
 
-                        const savedGroupName = selectedCategoryName || getNextAutoGroupName(scheduleDate);
+                        await updateDistributionGroupRequest(normalizedTargetGroupId,
                             updateGroupPayload);
 
-                            dist_category_id: selectedCategoryId ? parseInt(selectedCategoryId, 10) : null,
                         logDistributionFlow('log', 'Update group metadata request completed.', {
                             endpoint: 'Distribution/UpdateGroup/:id',
                             group_id: normalizedTargetGroupId,
@@ -4614,7 +4606,7 @@
 
                         const attemptedAdds = addPayloads.length;
                         if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length >
-                            0 && (selectedCategoryName || distributionGroupNote !== context
+                            0 && (distributionGroupName || distributionGroupNote !== context
                                 .original_note))) {
                             let message = `Distribution group "${savedGroupName}" updated.`;
                             if (deletedCount > 0) {
@@ -4686,7 +4678,7 @@
                         };
                     });
 
-                    const savedGroupName = selectedCategoryName || getNextAutoGroupName(scheduleDate);
+                    const savedGroupName = distributionGroupName || getNextAutoGroupName(scheduleDate);
                     const addGroupPayload = {
                         title: savedGroupName,
                         distribution_date: scheduleDate,

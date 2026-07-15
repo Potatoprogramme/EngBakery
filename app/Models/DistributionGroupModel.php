@@ -17,7 +17,6 @@ class DistributionGroupModel extends Model
     protected $updatedField = 'updated_at';
 
     protected $allowedFields = [
-        'title',
         'dist_category_id',
         'distribution_date',
         'distributed_to_note',
