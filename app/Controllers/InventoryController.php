@@ -99,6 +99,16 @@ class InventoryController extends BaseController
         $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
+        $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
+            $category = strtolower(trim((string) ($item['category'] ?? '')));
+            $beginningStock = intval($item['beginning_stock'] ?? 0);
+
+            if (in_array($category, ['bakery', 'grocery'], true)) {
+                return $beginningStock > 0;
+            }
+
+            return true;
+        }));
 
         // Get all sales data in a single batch query instead of N+1 queries
         $salesDataMap = [];

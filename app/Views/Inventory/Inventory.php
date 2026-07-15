@@ -3142,12 +3142,6 @@
                 grocery: captureRowPositions('groceryTableBody')
             };
             const normalizedItems = (items || []).slice().sort(function(a, b) {
-                const enabledA = parseInt(a.is_enabled) === 1 ? 1 : 0;
-                const enabledB = parseInt(b.is_enabled) === 1 ? 1 : 0;
-                if (enabledA !== enabledB) {
-                    return enabledB - enabledA;
-                }
-
                 const nameA = (a.product_name || a.item || '').toString().toLowerCase();
                 const nameB = (b.product_name || b.item || '').toString().toLowerCase();
                 if (nameA !== nameB) {
@@ -3298,21 +3292,16 @@
                     const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
                     const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
                     const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
-                    const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
 
                     rows +=
-                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (
-                            !isEnabled ? ' opacity-50' :
-                            '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
+                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
                         '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(
                             price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g,
                             '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '')
                         .replace(/"/g, '&quot;') + '">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
-                            isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
-                        '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
@@ -3330,17 +3319,11 @@
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
-                            'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ?
-                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
                         .item_id +
-                        '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                        '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3378,21 +3361,17 @@
                     const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
                     const overheadTotal = (overheadPerPiece * qtySold).toFixed(5);
                     const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
-                    const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
                     totalSales += sales;
 
                     rows +=
-                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (
-                            !isEnabled ? ' opacity-50' :
-                            '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
+                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
                         '" data-qty-sold="' + qtySold + '" data-price="' + srp + '" data-product-name="' + (item
                             .item || item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' +
                         sales.toFixed(2) + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
-                        'N/A') + (!isEnabled ?
-                        ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</td>';
+                        'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     <?php if ($isOwnerView): ?>
@@ -3407,17 +3386,11 @@
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
-                            'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ?
-                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
                         .item_id +
-                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3457,21 +3430,16 @@
                     const overheadPerPiece = piecesPerBatch > 0 ? overheadPerYield / piecesPerBatch : 0;
                     const overheadTotal = (overheadPerPiece * (qtySold + pullOut)).toFixed(5);
                     const formattedOverhead = '₱' + parseFloat(overheadTotal).toFixed(5);
-                    const isEnabled = parseInt(item.is_enabled) === 1;
 
                     totalQty += qtySold;
 
                     rows +=
-                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row' + (
-                            !isEnabled ? ' opacity-50' :
-                            '') + '" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
+                        '<tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer inventory-item-row" data-item-id="' + item.item_id + '" data-product-id="' + item.product_id +
                         '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(item
                             .selling_price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(
                             /"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item
                             .notes || '').replace(/"/g, '&quot;') + '">';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + (!
-                            isEnabled ? ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') +
-                        '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
@@ -3489,17 +3457,11 @@
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="me-2 btn-toggle-enabled ' + (isEnabled ?
-                            'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600') +
-                        '" data-id="' + item.item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '" title="' +
-                        (isEnabled ? 'Disable item' : 'Enable item') + '"><i class="fas ' + (isEnabled ?
-                            'fa-toggle-on' : 'fa-toggle-off') + ' text-lg"></i></button>';
-                    rows += (isEnabled ?
-                        '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
                         .item_id +
-                        '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>' : '');
-                    rows += (isEnabled ? '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '');
+                        '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
+                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -4162,38 +4124,6 @@
             $('#editStockWarning').addClass('hidden');
         });
 
-        $(document).on('click', '.btn-toggle-enabled', function() {
-            if (enforceInventoryLock()) {
-                return;
-            }
-            const itemId = $(this).data('id');
-            const currentEnabled = parseInt($(this).data('enabled'));
-            const newEnabled = currentEnabled === 1 ? 0 : 1;
-            const baseUrl = '<?= base_url() ?>';
-
-            $.ajax({
-                url: baseUrl + 'Inventory/ToggleStockItem/' + itemId,
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    is_enabled: newEnabled
-                }),
-                success: function(response) {
-                    if (response.success) {
-                        showToast('success', response.message, 2000);
-                        fetchAllStockitems();
-                    } else {
-                        showToast('error', response.message, 2000);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    showToast('danger', 'Error toggling item: ' + (xhr.responseJSON?.message || error),
-                        2000);
-                }
-            });
-        });
-
         $('#editInventoryForm').on('submit', function(e) {
             e.preventDefault();
 
@@ -4540,7 +4470,6 @@
                 (item.srp ?? item.selling_price);
             const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
             const ending_stock = parseInt(item.ending_stock) || 0;
-            const isEnabled = parseInt(item.is_enabled) === 1;
             const notes = item.notes || '';
 
             let borderColor = 'border-gray-200';
@@ -4548,11 +4477,9 @@
             else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
             else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3' + (!isEnabled ? ' opacity-50' : '') +
-                '" data-id="' + item.item_id + '">';
+            let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '">';
             card += '  <div class="flex items-center justify-between mb-2">';
-            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + (!isEnabled ?
-                ' <span class="text-xs text-red-400 font-medium">(Disabled)</span>' : '') + '</span>';
+            card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + '</span>';
             card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
             card += '  </div>';
 
@@ -4580,24 +4507,14 @@
             }
 
             card += '  <div class="flex gap-2 pt-2 border-t border-gray-100">';
-            card += '    <button class="flex-1 text-xs py-1 btn-toggle-enabled ' + (isEnabled ?
-                    'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600') + '" data-id="' + item
-                .item_id + '" data-enabled="' + (isEnabled ? '1' : '0') + '">';
-            card += '      <i class="fas ' + (isEnabled ? 'fa-toggle-on' : 'fa-toggle-off') + ' mr-1"></i>' + (isEnabled ?
-                'Enabled' : 'Disabled');
+            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
+                item.item_id + '">';
+            card += '      <i class="fas fa-edit mr-1"></i>Edit';
             card += '    </button>';
-            if (isEnabled) {
-                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-amber-600 py-1 btn-edit" data-id="' +
-                    item.item_id + '">';
-                card += '      <i class="fas fa-edit mr-1"></i>Edit';
-                card += '    </button>';
-            }
-            if (isEnabled) {
-                card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' +
-                    item.item_id + '">';
-                card += '      <i class="fas fa-trash mr-1"></i>Delete';
-                card += '    </button>';
-            }
+            card += '    <button class="flex-1 text-xs text-gray-500 hover:text-red-600 py-1 btn-delete" data-id="' +
+                item.item_id + '">';
+            card += '      <i class="fas fa-trash mr-1"></i>Delete';
+            card += '    </button>';
             card += '  </div>';
             card += '</div>';
 
