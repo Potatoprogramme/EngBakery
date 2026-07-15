@@ -163,9 +163,15 @@ class InventoryController extends BaseController
             ]);
         } else {
             return $this->response->setStatusCode(200)->setJSON([
-                'success' => false,
-                'message' => 'No inventory items found.',
-                'data' => []
+                'success' => true,
+                'data' => $daily_stock_items,
+                'inventory_id' => $daily_stock['daily_stock_id'],
+                'is_closed' => $daily_stock['is_closed'] ?? 0,
+                'report_sent' => $daily_stock['report_sent'] ?? 0,
+                'is_remitted' => $daily_stock['is_remitted'] ?? 0,
+                'message' => $daily_stock_items
+                    ? 'Inventory fetched successfully.'
+                    : 'No inventory items found.',
             ]);
         }
     }
@@ -217,7 +223,6 @@ class InventoryController extends BaseController
             'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
 
-
         if ($this->dailyStockModel->checkInventoryExists($today)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -229,18 +234,31 @@ class InventoryController extends BaseController
             $lastInsertId = $this->dailyStockModel->getInsertID();
 
             // fetch ALL products for inventory tracking
-            $productIds = $this->productModel->where('category !=', 'dough')->where('is_disabled', 0)->findColumn("product_id");
+            $productIds = $this->productModel
+                ->where('category !=', 'dough')
+                ->where('is_disabled', 0)
+                ->findColumn("product_id");
 
             // Get remaining stock from the previous inventory ending stock (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
-            // insert all products into daily stock items model
-            if ($productIds && $this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $productIds, $carryover)) {
-                $carryoverCount = count(array_filter($carryover, fn($qty) => $qty > 0));
+            // Only include products that have a carryover quantity greater than 0
+            $filteredProductIds = array_values(array_filter($productIds, fn($id) => !empty($carryover[$id]) && $carryover[$id] > 0));
+            $filteredCarryover = array_filter($carryover, fn($qty) => $qty > 0);
+
+            if (empty($filteredProductIds)) {
+                return $this->response->setStatusCode(201)->setJSON([
+                    'success' => true,
+                    'message' => 'Today\'s inventory added successfully. No carryover stock to carry over.',
+                    'carryover_count' => 0
+                ]);
+            }
+
+            // insert only products with carryover stock into daily stock items
+            if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $filteredProductIds, $filteredCarryover)) {
+                $carryoverCount = count($filteredProductIds);
                 $message = 'Today\'s inventory added successfully.';
-                if ($carryoverCount > 0) {
-                    $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous inventory.";
-                }
+                $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous inventory.";
 
                 // Immediate notification: inventory created
                 $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
@@ -856,6 +874,7 @@ class InventoryController extends BaseController
 
         $remittance = $this->remittanceDetailsModel
             ->where('DATE(remittance_date)', $today)
+            ->where('daily_stock_id', $id)
             ->get()
             ->getRow();
 
