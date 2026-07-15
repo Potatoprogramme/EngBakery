@@ -1865,6 +1865,7 @@ class InventoryController extends BaseController
                 $resendReason,
                 $cashierUserId > 0 ? $cashierUserId : null
             );
+
             if (empty($sendResult['success'])) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
@@ -1931,21 +1932,28 @@ class InventoryController extends BaseController
             'time_start' => date('H:i:s'),
             'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
+
         if ($this->dailyStockModel->insert($insertData)) {
             $newInventoryId = (int) $this->dailyStockModel->getInsertID();
-            $this->dailyStockItemsModel->insertBatch(
-                array_map(function ($item) use ($newInventoryId) {
-                    return [
-                        'daily_stock_id' => $newInventoryId,
-                        'product_id' => $item['product_id'],
-                        'beginning_stock' => $item['ending_stock'], // carry over ending stock as new beginning
-                        'pull_out_quantity' => 0,
-                        'ending_stock' => $item['ending_stock'], // initial ending same as beginning
-                        'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
-                        'is_enabled' => ($item['ending_stock'] > 0) ? 1 : 0 || $item['is_enabled'], // disable if no stock carried over
-                    ];
-                }, $duplicate_item)
-            );
+
+            if (!empty($duplicate_item)) {
+                $this->dailyStockItemsModel->insertBatch(
+                    array_map(function ($item) use ($newInventoryId) {
+                        $endingStock = intval($item['ending_stock'] ?? 0);
+
+                        return [
+                            'daily_stock_id' => $newInventoryId,
+                            'product_id' => $item['product_id'],
+                            'beginning_stock' => $endingStock, // carry over ending stock as new beginning
+                            'pull_out_quantity' => 0,
+                            'ending_stock' => $endingStock, // initial ending same as beginning
+                            'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
+                            'is_enabled' => ($endingStock > 0 || !empty($item['is_enabled'])) ? 1 : 0,
+                        ];
+                    }, $duplicate_item)
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory reset successfully with carryover stock.',

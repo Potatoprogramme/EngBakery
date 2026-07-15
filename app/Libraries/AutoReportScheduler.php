@@ -139,12 +139,12 @@ class AutoReportScheduler
 
         $itemsModel = new DailyStockItemsModel();
         $allItems = $itemsModel->fetchAllStockItems($inventoryId);
-        if (empty($allItems)) {
-            return [
-                'success' => false,
-                'message' => 'No inventory products found for this shift.',
-            ];
-        }
+        // if (empty($allItems)) {
+        //     return [
+        //         'success' => false,
+        //         'message' => 'No inventory products found for this shift.',
+        //     ];
+        // }
 
         $shiftLabel = 'Shift (' . self::formatShiftTimeRange($shiftStart, $shiftEnd) . ')';
         $shiftReports = self::buildShiftReports($allItems, $date, [
