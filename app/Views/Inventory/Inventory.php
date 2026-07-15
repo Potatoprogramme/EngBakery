@@ -399,7 +399,7 @@
                 </div>
 
                 <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseDistributionGroup"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
@@ -429,8 +429,7 @@
 
                 <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
-                        class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
-                        Stock</label>
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseBeginning"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
@@ -3775,7 +3774,7 @@
                         $('#editPostRemitWarning').removeClass('hidden');
                     }
                 } else if (isAdjustmentMode) {
-                    $('#editBeginningLabel').text('Beginning Stock ');
+                    $('#editBeginningLabel').text('Adjust Beginning Quantity ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
 
