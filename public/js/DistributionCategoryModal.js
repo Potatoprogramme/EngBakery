@@ -16,7 +16,7 @@
     }
 
     function bindEvents() {
-        $(document).on('click', '#btnManageDistributionCategories', function () {
+        $(document).on('click', '#btnManageDistributionCategories, #btnManageDistributionCategoriesMobile', function () {
             open();
         });
 
