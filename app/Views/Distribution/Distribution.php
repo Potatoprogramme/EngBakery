@@ -514,11 +514,11 @@
                     <div class="mb-3">
                         <script src="<?= asset_url('js/DistributionDropdown.js') ?>"></script>
                         <label for="distributionGroupName" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-layer-group text-primary mr-1"></i>Store
+                            <i class="fas fa-layer-group text-primary mr-1"></i>Destination Category
                         </label>
-                        <select id="distributionGroupName" onclick="loadStores()"
+                        <select id="distributionGroupName"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-white">
-                            <option value=""></option>
+                            <option value="">Select a category</option>
                         </select>
                     </div>
 
@@ -3745,6 +3745,7 @@
                 editingGroupContext = {
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
+                    dist_category_id: parseInt(group.dist_category_id || 0, 10) || 0,
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
                     existing_items: groupItems.map(function (item) {
@@ -3762,7 +3763,7 @@
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-
+                loadDistributionCategoryOptions(editingGroupContext.dist_category_id || '');
                 itemsToAddList = editingGroupContext.existing_items.map(function (item) {
                     return {
                         product_id: item.product_id,
@@ -4325,7 +4326,8 @@
                 e.preventDefault();
 
                 const scheduleDate = ($('#scheduleDate').val() || '').toString();
-                const distributionGroupName = ($('#distributionGroupName').val() || '').trim();
+                const distributionCategoryId = parseInt($('#distributionGroupName').val() || '0', 10) || 0;
+                const selectedCategoryName = ($('#distributionGroupName option:selected').text() || '').trim();
                 const distributionGroupNote = ($('#overallDistributionNote').val() || '').trim();
                 const isEditMode = addItemsModalMode === 'edit' && editingGroupContext;
                 let createdGroupId = null;
@@ -4333,7 +4335,8 @@
                 logDistributionFlow('log', 'Add items form submit started.', {
                     mode: isEditMode ? 'edit-group' : 'create-group',
                     schedule_date: scheduleDate,
-                    entered_group_name: distributionGroupName,
+                    selected_category_id: distributionCategoryId,
+                    selected_category_name: selectedCategoryName,
                     entered_group_note_length: distributionGroupNote.length,
                     list_item_count: itemsToAddList.length,
                     list_items: itemsToAddList.map(function (item) {
@@ -4358,6 +4361,11 @@
                     return;
                 }
 
+                if (!distributionCategoryId) {
+                    showToast('warning', 'Please select a destination category.', 3000);
+                    return;
+                }
+
                 $('#btnSaveItems').prop('disabled', true).html(
                     '<i class=\"fas fa-spinner fa-spin mr-2\"></i>Saving...');
 
@@ -4367,7 +4375,7 @@
                         const context = editingGroupContext;
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
-                        const savedGroupName = distributionGroupName ||
+                        const savedGroupName = selectedCategoryName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
                         const normalizedTargetGroupId = normalizeDistributionGroupIdForApi(
@@ -4383,6 +4391,7 @@
                             target_date: targetDate,
                             target_group_key: targetGroupKey,
                             target_group_id: normalizedTargetGroupId,
+                            target_category_id: distributionCategoryId,
                             original_group_name: (context.original_name || '').toString(),
                             original_note_length: ((context.original_note || '').toString())
                                 .length,
@@ -4391,7 +4400,7 @@
                         });
 
                         const updateGroupPayload = {
-                            title: savedGroupName,
+                            dist_category_id: distributionCategoryId,
                             distributed_to_note: distributionGroupNote || null,
                         };
 
@@ -4598,7 +4607,6 @@
                         $('#addItemsModal').addClass('hidden');
                         clearGroupEditContext();
                         resetAddItemsModalForm(targetDate);
-                        $('#distributionGroupName').val('');
                         $('#overallDistributionNote').val('');
                         $('#selectedDate').val(targetDate).trigger('change');
                         loadMonthDistributions();
@@ -4606,8 +4614,8 @@
 
                         const attemptedAdds = addPayloads.length;
                         if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length >
-                            0 && (distributionGroupName || distributionGroupNote !== context
-                                .original_note))) {
+                            0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
+                                distributionGroupNote !== context.original_note))) {
                             let message = `Distribution group "${savedGroupName}" updated.`;
                             if (deletedCount > 0) {
                                 message += ` Removed ${deletedCount} item(s).`;
@@ -4678,9 +4686,9 @@
                         };
                     });
 
-                    const savedGroupName = distributionGroupName || getNextAutoGroupName(scheduleDate);
+                    const savedGroupName = selectedCategoryName || getNextAutoGroupName(scheduleDate);
                     const addGroupPayload = {
-                        title: savedGroupName,
+                        dist_category_id: distributionCategoryId,
                         distribution_date: scheduleDate,
                         distributed_to_note: distributionGroupNote || null,
                     };
@@ -4809,7 +4817,6 @@
                         $('#addItemsModal').addClass('hidden');
                         clearGroupEditContext();
                         resetAddItemsModalForm(scheduleDate);
-                        $('#distributionGroupName').val('');
                         $('#overallDistributionNote').val('');
                         $('#selectedDate').val(scheduleDate).trigger('change');
                         loadMonthDistributions();
