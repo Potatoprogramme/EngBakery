@@ -123,6 +123,7 @@
                 });
 
                 $('#distributionCategoriesList').html(html);
+                $(document).trigger('distribution-categories-updated');
             },
             error: function () {
                 $('#distributionCategoriesList').html(

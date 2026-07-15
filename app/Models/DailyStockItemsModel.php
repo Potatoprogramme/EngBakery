@@ -287,6 +287,36 @@ class DailyStockItemsModel extends Model
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
     }
+    
+    /**
+     * Get products that can be added or restored in today's inventory.
+     * Includes products not yet in inventory and products whose current ending stock is 0.
+     */
+    public function getProductsAvailableForInventory(int $dailyStockId): array
+    {
+        $db = \Config\Database::connect();
+
+        return $db->query("
+            SELECT
+                p.product_id,
+                p.product_name,
+                p.category,
+                COALESCE(current_stock.ending_stock, 0) AS ending_stock
+            FROM products p
+            LEFT JOIN (
+                SELECT
+                    dsi.product_id,
+                    SUM(COALESCE(dsi.ending_stock, 0)) AS ending_stock
+                FROM daily_stock_items dsi
+                WHERE dsi.daily_stock_id = ?
+                GROUP BY dsi.product_id
+            ) current_stock ON current_stock.product_id = p.product_id
+                        WHERE p.deleted_at IS NULL
+                            AND p.category != 'drinks'
+                            AND (current_stock.product_id IS NULL OR current_stock.ending_stock = 0)
+            ORDER BY p.category, p.product_name
+        ", [$dailyStockId])->getResultArray();
+    }
 
     /**
      * Get carryover stock from the most recent previous inventory record.

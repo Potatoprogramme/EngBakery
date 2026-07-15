@@ -38,6 +38,8 @@ class DistributionGroupModel extends Model
             return null;
         }
 
+        $group = $this->attachCategoryName($group);
+
         $group['items'] = model('DistributionItemModel')->getItemsByGroup($groupId);
         return $group;
     }
@@ -55,7 +57,7 @@ class DistributionGroupModel extends Model
             ->orderBy('created_at', 'ASC')
             ->findAll();
 
-        return $this->attachItems($groups);
+        return $this->attachItems($this->attachCategoryNames($groups));
     }
 
     /**
@@ -69,7 +71,7 @@ class DistributionGroupModel extends Model
             ->orderBy('distribution_date', 'ASC')
             ->findAll();
 
-        return $this->attachItems($groups);
+        return $this->attachItems($this->attachCategoryNames($groups));
     }
 
     /**
@@ -182,6 +184,57 @@ class DistributionGroupModel extends Model
         unset($group);
 
         return $groups;
+    }
+
+    /**
+     * Attach category names to a set of groups so existing view code can keep
+     * reading `title` while the real foreign key remains `dist_category_id`.
+     */
+    private function attachCategoryNames(array $groups): array
+    {
+        if (empty($groups)) {
+            return [];
+        }
+
+        $categoryModel = model('DistributionCategory');
+        $categories = $categoryModel->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[intval($category['dist_cat_id'] ?? 0)] = trim((string) ($category['name'] ?? ''));
+        }
+
+        foreach ($groups as &$group) {
+            $group = $this->attachCategoryName($group, $categoryMap);
+        }
+        unset($group);
+
+        return $groups;
+    }
+
+    /**
+     * Attach a single category name to one group row.
+     */
+    private function attachCategoryName(array $group, ?array $categoryMap = null): array
+    {
+        $categoryId = intval($group['dist_category_id'] ?? 0);
+
+        if ($categoryMap === null) {
+            $categoryModel = model('DistributionCategory');
+            $categoryMap = [];
+
+            $category = $categoryModel->find($categoryId);
+            if ($category) {
+                $categoryMap[$categoryId] = trim((string) ($category['name'] ?? ''));
+            }
+        }
+
+        $categoryName = trim((string) ($categoryMap[$categoryId] ?? ''));
+        $group['title'] = $categoryName !== '' ? $categoryName : 'Default Group';
+        $group['group_title'] = $group['title'];
+        $group['distribution_category_name'] = $group['title'];
+
+        return $group;
     }
 
     /**

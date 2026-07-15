@@ -78,23 +78,34 @@ class DistributionController extends BaseController
 
     public function addGroup()
     {
-        $data = $this->request->getJSON();
+        $data = $this->request->getJSON(true);
         if (!$data) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
 
-        if (empty($data->title) || empty($data->distribution_date)) {
+        $categoryId = (int) ($data['dist_category_id'] ?? $data['category_id'] ?? 0);
+        $distributionDate = trim((string) ($data['distribution_date'] ?? ''));
+        $note = isset($data['distributed_to_note']) ? trim((string) $data['distributed_to_note']) : null;
+
+        if ($categoryId <= 0 || $distributionDate === '') {
             return $this->response->setStatusCode(400)->setJSON([
-                'error' => 'title and distribution_date are required',
+                'error' => 'dist_category_id and distribution_date are required',
+            ]);
+        }
+
+        $category = model('DistributionCategory')->find($categoryId);
+        if (!$category) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'error' => 'Distribution category not found',
             ]);
         }
 
         $insertData = [
-            'title' => trim($data->title),
-            'distribution_date' => $data->distribution_date,
-            'distributed_to_note' => $data->distributed_to_note ?? null,
-            'forecasted_sales' => $data->forecasted_sales ?? 0,
-            'total_cost' => $data->total_cost ?? 0,
+            'dist_category_id' => $categoryId,
+            'distribution_date' => $distributionDate,
+            'distributed_to_note' => $note !== '' ? $note : null,
+            'forecasted_sales' => (float) ($data['forecasted_sales'] ?? 0),
+            'total_cost' => (float) ($data['total_cost'] ?? 0),
         ];
 
         try {
@@ -111,6 +122,7 @@ class DistributionController extends BaseController
                 'success' => true,
                 'message' => 'Distribution group created successfully',
                 'group_id' => $groupId,
+                'category_name' => trim((string) ($category['name'] ?? '')),
             ]);
         } catch (\Exception $e) {
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
@@ -120,7 +132,7 @@ class DistributionController extends BaseController
 
     public function updateGroup(int $id)
     {
-        $data = $this->request->getJSON();
+        $data = $this->request->getJSON(true);
         if (!$data) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
@@ -133,16 +145,30 @@ class DistributionController extends BaseController
         }
 
         $updateData = [];
-        if (isset($data->title))
-            $updateData['title'] = trim($data->title);
-        if (isset($data->distribution_date))
-            $updateData['distribution_date'] = $data->distribution_date;
-        if (isset($data->distributed_to_note))
-            $updateData['distributed_to_note'] = $data->distributed_to_note;
-        if (isset($data->forecasted_sales))
-            $updateData['forecasted_sales'] = $data->forecasted_sales;
-        if (isset($data->total_cost))
-            $updateData['total_cost'] = $data->total_cost;
+        if (isset($data['dist_category_id'])) {
+            $categoryId = (int) $data['dist_category_id'];
+            if ($categoryId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'error' => 'dist_category_id is required',
+                ]);
+            }
+
+            if (!model('DistributionCategory')->find($categoryId)) {
+                return $this->response->setStatusCode(404)->setJSON([
+                    'error' => 'Distribution category not found',
+                ]);
+            }
+
+            $updateData['dist_category_id'] = $categoryId;
+        }
+        if (isset($data['distribution_date']))
+            $updateData['distribution_date'] = $data['distribution_date'];
+        if (array_key_exists('distributed_to_note', $data))
+            $updateData['distributed_to_note'] = $data['distributed_to_note'];
+        if (isset($data['forecasted_sales']))
+            $updateData['forecasted_sales'] = $data['forecasted_sales'];
+        if (isset($data['total_cost']))
+            $updateData['total_cost'] = $data['total_cost'];
 
         if (empty($updateData)) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'No updatable fields provided']);

@@ -239,8 +239,13 @@ const InventoryModal = {
      */
     validateAddProductForm: function() {
         const productId = $('#selectProduct').val();
+        const beginningStock = parseInt($('#addBeginningStock').val(), 10) || 0;
         if (!productId) {
             modalToast('warning', 'Please select a product', 2000);
+            return false;
+        }
+        if (beginningStock <= 0) {
+            modalToast('warning', 'Beginning stock must be at least 1 so the item can be shown in inventory.', 2600);
             return false;
         }
         return true;
@@ -253,7 +258,7 @@ const InventoryModal = {
     getAddProductFormValues: function() {
         return {
             productId: $('#selectProduct').val(),
-            beginningStock: $('#addBeginningStock').val() || 0
+            beginningStock: parseInt($('#addBeginningStock').val(), 10) || 0
         };
     }
 };
