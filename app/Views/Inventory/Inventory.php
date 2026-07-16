@@ -557,9 +557,9 @@
                 <div class="mb-6">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0" step="1"
+                    <input type="number" id="addBeginningStock" name="beginning_stock" min="1" value="1" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
+                    <p class="text-xs text-gray-400 mt-1">Optional - defaults to 1</p>
                 </div>
 
                 <!-- Deduction Preview -->
@@ -904,7 +904,7 @@
             </div>
 
             <div class="p-6 space-y-6">
-                
+
                 <!-- Shift Production Summary -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
