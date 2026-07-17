@@ -43,7 +43,8 @@
             </div>
 
             <!-- Floating Add Items button for mobile -->
-            <div id="mobileAddBtnContainer" class="fixed bottom-6 left-0 right-0 flex flex-col items-center gap-2 z-30 lg:hidden">
+            <div id="mobileAddBtnContainer"
+                class="fixed bottom-6 left-0 right-0 flex flex-col items-center gap-2 z-30 lg:hidden">
                 <button type="button" id="btnAddItemsMobile"
                     class="w-5/6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
                     <i class="fas fa-plus mr-2"></i>Add Items
@@ -3763,7 +3764,7 @@
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-                loadDistributionCategoryOptions(editingGroupContext.dist_category_id || '');
+                loadStores(editingGroupContext.dist_category_id || ''); // the function for this is in an external js file
                 itemsToAddList = editingGroupContext.existing_items.map(function (item) {
                     return {
                         product_id: item.product_id,
