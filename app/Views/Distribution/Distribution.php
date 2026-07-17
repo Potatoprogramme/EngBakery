@@ -751,6 +751,36 @@
                 return /^group-\d+$/i.test(String(groupKey || '').trim());
             }
 
+            function getDistributionDisplayGroupKey(group) {
+                const categoryId = parseInt(group && (group.dist_category_id ?? group.category_id), 10);
+                if (Number.isFinite(categoryId) && categoryId > 0) {
+                    return 'category-' + categoryId;
+                }
+
+                const groupId = String(group && group.id != null ? group.id : '').trim();
+                return groupId ? ('group-' + groupId) : 'group-unknown';
+            }
+
+            function getItemSourceGroupIds(item) {
+                const sourceIds = new Set();
+
+                if (item && Array.isArray(item.distribution_group_ids)) {
+                    item.distribution_group_ids.forEach(function (groupId) {
+                        const parsed = parseInt(groupId, 10);
+                        if (Number.isFinite(parsed) && parsed > 0) {
+                            sourceIds.add(parsed);
+                        }
+                    });
+                }
+
+                const parsedDistributionId = parseInt(item && item.distribution_id, 10);
+                if (Number.isFinite(parsedDistributionId) && parsedDistributionId > 0) {
+                    sourceIds.add(parsedDistributionId);
+                }
+
+                return Array.from(sourceIds);
+            }
+
             const modalScrollLockSelectors = [
                 '#calendarDayModal',
                 '#addItemsModal',
@@ -1401,6 +1431,9 @@
             }
 
             function getDistributionGroupKey(item, fallbackDate = '') {
+                const displayKey = ((item && item.distribution_display_group_key) || '').toString().trim();
+                if (displayKey) return displayKey;
+
                 const explicit = ((item && item.distribution_group_key) || '').toString().trim();
                 if (explicit) return explicit;
 
@@ -1457,9 +1490,17 @@
                             total_cost: 0,
                             raw_material_usage_total: [],
                             _raw_material_usage_map: {},
+                            source_group_ids: [],
                             items: [],
                         };
                     }
+
+                    const sourceGroupIds = getItemSourceGroupIds(item);
+                    sourceGroupIds.forEach(function (groupId) {
+                        if (groupedMap[groupKey].source_group_ids.indexOf(groupId) === -1) {
+                            groupedMap[groupKey].source_group_ids.push(groupId);
+                        }
+                    });
 
                     const quantity = parseNumericValue(item.product_qnty);
                     const qtyMode = (item.qty_mode || 'batch').toLowerCase();
@@ -1496,6 +1537,8 @@
                     normalizedGroup.raw_material_usage_total = materialUsageMapToArray(normalizedGroup
                         ._raw_material_usage_map);
                     delete normalizedGroup._raw_material_usage_map;
+                    normalizedGroup.items = mergeGroupItemsByProduct(normalizedGroup.items);
+                    normalizedGroup.total_items = normalizedGroup.items.length;
                     return normalizedGroup;
                 });
             }
@@ -1725,7 +1768,63 @@
                 });
             }
 
-            function fetchProductDetail(productId) {
+            function mergeGroupItemsByProduct(items) {
+    const mergedMap = {};
+    const order = [];
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+        const productId = String(item && item.product_id || '').trim();
+        const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
+        const mergeKey = productId + '::' + qtyMode;
+
+        if (!mergedMap[mergeKey]) {
+            const clonedItem = Object.assign({}, item);
+            clonedItem.product_qnty = parseNumericValue(item.product_qnty);
+            clonedItem.forecasted_sales = parseNumericValue(item.forecasted_sales);
+            clonedItem.total_cost = parseNumericValue(item.total_cost);
+            clonedItem.overhead_cost = parseNumericValue(item.overhead_cost);
+            clonedItem.additional_cost = parseNumericValue(item.additional_cost);
+            clonedItem.raw_material_usage = Array.isArray(item.raw_material_usage) ?
+                item.raw_material_usage.slice() : [];
+
+            const mergedIds = [];
+            const initialId = getDistributionItemId(item);
+            if (initialId) mergedIds.push(initialId);
+            clonedItem._merged_item_ids = mergedIds;
+
+            mergedMap[mergeKey] = clonedItem;
+            order.push(mergeKey);
+        } else {
+            const existing = mergedMap[mergeKey];
+            existing.product_qnty += parseNumericValue(item.product_qnty);
+            existing.forecasted_sales += parseNumericValue(item.forecasted_sales);
+            existing.total_cost += parseNumericValue(item.total_cost);
+            existing.overhead_cost += parseNumericValue(item.overhead_cost);
+            existing.additional_cost += parseNumericValue(item.additional_cost);
+
+            const materialMap = {};
+            existing.raw_material_usage.forEach(function (material) {
+                mergeMaterialUsageEntry(materialMap, material);
+            });
+            (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
+                function (material) {
+                    mergeMaterialUsageEntry(materialMap, material);
+                });
+            existing.raw_material_usage = materialUsageMapToArray(materialMap);
+
+            const mergeId = getDistributionItemId(item);
+            if (mergeId && existing._merged_item_ids.indexOf(mergeId) === -1) {
+                existing._merged_item_ids.push(mergeId);
+            }
+        }
+    });
+
+    return order.map(function (key) {
+        return mergedMap[key];
+    });
+}
+            
+function fetchProductDetail(productId) {
                 const key = String(productId || '').trim();
                 if (!key) {
                     return Promise.resolve(null);
@@ -2184,6 +2283,8 @@
                                         distribution_id: group.id,
                                         distribution_group_key: 'group-' +
                                             String(group.id),
+                                        distribution_display_group_key:
+                                            getDistributionDisplayGroupKey(group),
                                         distribution_group_name: group.title,
                                         distribution_group_note: group
                                             .distributed_to_note || '',
@@ -2373,6 +2474,8 @@
                                         .toString(),
                                     distribution_id: group.id,
                                     distribution_group_key: 'group-' + String(group.id),
+                                    distribution_display_group_key:
+                                        getDistributionDisplayGroupKey(group),
                                     distribution_group_name: group.title ||
                                         'Default Group',
                                     distribution_group_note: group
@@ -2713,7 +2816,7 @@
                             groupedData = dayData.map(function (apiGroup) {
                                 const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
                                 return {
-                                    group_key: 'group-' + String(apiGroup.id),
+                                    group_key: getDistributionDisplayGroupKey(apiGroup),
                                     group_name: (apiGroup.title || 'Default Group').toString(),
                                     group_note: (apiGroup.distributed_to_note || '').toString(),
                                     forecasted_sales: parseNumericValue(apiGroup.forecasted_sales),
@@ -3177,12 +3280,14 @@
 
                         // Use group ID as the distribution_group_key to preserve grouping during regroup phase
                         const groupKey = 'group-' + String(group.id);
+                        const displayGroupKey = getDistributionDisplayGroupKey(group);
 
                         groupItems.forEach(function (item) {
                             flatItems.push(Object.assign({}, item, {
                                 distribution_date: groupDate,
                                 distribution_id: group.id,
                                 distribution_group_key: groupKey, // Preserve original group
+                                distribution_display_group_key: displayGroupKey,
                                 distribution_group_name: group.title,
                                 distribution_group_note: group.distributed_to_note,
                                 group_title: group.title,
@@ -3225,7 +3330,7 @@
                         const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                         return {
-                            group_key: 'group-' + String(apiGroup.id),
+                            group_key: getDistributionDisplayGroupKey(apiGroup),
                             group_name: (apiGroup.title || 'Default Group').toString(),
                             group_note: (apiGroup.distributed_to_note || '').toString(),
                             total_items: groupItems.length,
@@ -3746,6 +3851,11 @@
                 editingGroupContext = {
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
+                    group_ids: Array.isArray(group.source_group_ids) && group.source_group_ids.length > 0 ?
+                        group.source_group_ids.slice() :
+                        Array.from(new Set(groupItems.map(function (item) {
+                            return getDistributionItemId(item);
+                        }).filter(Boolean))),
                     dist_category_id: parseInt(group.dist_category_id || 0, 10) || 0,
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
@@ -3796,20 +3906,29 @@
                 const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items :
                     [];
 
-                const groupIdFromResolvedKey = normalizeDistributionGroupIdForApi(resolved.groupKey);
-                const groupIdFromMatchedGroup = normalizeDistributionGroupIdForApi(
-                    resolved.matchedGroup && (
-                        resolved.matchedGroup._apiId ??
-                        resolved.matchedGroup.id ??
-                        resolved.matchedGroup.group_key
-                    )
-                );
-                const resolvedGroupId = groupIdFromMatchedGroup || groupIdFromResolvedKey;
+                const resolvedGroupIds = Array.isArray(resolved.matchedGroup.source_group_ids) &&
+                    resolved.matchedGroup.source_group_ids.length > 0 ?
+                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function (groupId) {
+                        return normalizeDistributionGroupIdForApi(groupId);
+                    }).filter(Boolean))) :
+                    Array.from(new Set(groupItems.map(function (item) {
+                        return normalizeDistributionGroupIdForApi(item && item.distribution_id);
+                    }).filter(Boolean)));
 
-                if (resolvedGroupId) {
+                if (resolvedGroupIds.length > 0) {
                     try {
-                        const deleteGroupResponse = await deleteDistributionGroupRequest(resolvedGroupId);
-                        if (deleteGroupResponse && deleteGroupResponse.success === false) {
+                        const deleteGroupResults = await Promise.allSettled(
+                            resolvedGroupIds.map(function (groupId) {
+                                return deleteDistributionGroupRequest(groupId);
+                            })
+                        );
+
+                        const hasFailedDelete = deleteGroupResults.some(function (result) {
+                            return result.status === 'rejected' ||
+                                (result.status === 'fulfilled' && result.value && result.value.success === false);
+                        });
+
+                        if (hasFailedDelete) {
                             showToast('danger', 'Failed to delete distribution group.', 3200);
                             return;
                         }
@@ -4376,13 +4495,13 @@
                         const context = editingGroupContext;
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
+                        const targetGroupIds = Array.isArray(context.group_ids) && context.group_ids.length > 0 ?
+                            context.group_ids :
+                            [normalizeDistributionGroupIdForApi(targetGroupKey)].filter(Boolean);
                         const savedGroupName = selectedCategoryName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
-                        const normalizedTargetGroupId = normalizeDistributionGroupIdForApi(
-                            targetGroupKey);
-
-                        if (!normalizedTargetGroupId) {
+                        if (targetGroupIds.length === 0) {
                             showToast('danger', 'Unable to resolve distribution group for update.',
                                 3600);
                             return;
@@ -4391,7 +4510,7 @@
                         logDistributionFlow('log', 'Update group flow started.', {
                             target_date: targetDate,
                             target_group_key: targetGroupKey,
-                            target_group_id: normalizedTargetGroupId,
+                            target_group_ids: targetGroupIds,
                             target_category_id: distributionCategoryId,
                             original_group_name: (context.original_name || '').toString(),
                             original_note_length: ((context.original_note || '').toString())
@@ -4407,16 +4526,17 @@
 
                         logDistributionFlow('log', 'Update group metadata request started.', {
                             endpoint: 'Distribution/UpdateGroup/:id',
-                            group_id: normalizedTargetGroupId,
+                            group_ids: targetGroupIds,
                             payload: updateGroupPayload,
                         });
 
-                        await updateDistributionGroupRequest(normalizedTargetGroupId,
-                            updateGroupPayload);
+                        await Promise.all(targetGroupIds.map(function (groupId) {
+                            return updateDistributionGroupRequest(groupId, updateGroupPayload);
+                        }));
 
                         logDistributionFlow('log', 'Update group metadata request completed.', {
                             endpoint: 'Distribution/UpdateGroup/:id',
-                            group_id: normalizedTargetGroupId,
+                            group_ids: targetGroupIds,
                         });
 
                         const normalizedItems = itemsToAddList.map(function (item) {
@@ -4592,11 +4712,11 @@
 
                         if (finalProductIds.length > 0) {
                             setLocalDistributionGroupMetaForItems(targetDate, finalProductIds, {
-                                group_key: 'group-' + normalizedTargetGroupId,
+                                group_key: 'category-' + distributionCategoryId,
                                 group_name: savedGroupName,
                                 group_note: distributionGroupNote,
                             });
-                            setSelectedGroupFilter(targetDate, 'group-' + normalizedTargetGroupId);
+                            setSelectedGroupFilter(targetDate, 'category-' + distributionCategoryId);
                         } else {
                             clearSelectedGroupFilter(targetDate);
                         }
@@ -4724,7 +4844,7 @@
                     const newGroupId = String(groupResponse.group_id).trim();
                     createdGroupId = newGroupId;
                     const groupMeta = {
-                        group_key: newGroupId,
+                        group_key: 'category-' + distributionCategoryId,
                         group_name: savedGroupName,
                         group_note: distributionGroupNote,
                     };
@@ -4937,11 +5057,10 @@
 
 
         function getDistinctGroupCount(items, fallbackDate = '') {
-            // Simply count distinct distribution_group_key values
-            // (items now have group keys set from loadDistributionByDate via flattenGroupedDataIfNeeded)
+            // Count distinct display group keys so same-category rows collapse into one group.
             const set = new Set();
             (items || []).forEach(function (item) {
-                const key = (item && item.distribution_group_key) || '';
+                const key = (item && (item.distribution_display_group_key || item.distribution_group_key)) || '';
                 if (key) {
                     set.add(key);
                 }
