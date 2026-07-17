@@ -109,13 +109,12 @@ class DistributionController extends BaseController
         ];
 
         try {
-            $groupModel = model('DistributionGroupModel');
-            $groupModel->insert($insertData);
-            $groupId = $groupModel->getInsertID();
+            $this->distributionGroupModel->insert($insertData);
+            $groupId = $this->distributionGroupModel->getInsertID();
 
             log_message('info', 'DISTRIBUTION GROUP ADD: Created group ID {id} for {date}', [
                 'id' => $groupId,
-                'date' => $data->distribution_date,
+                'date' => $distributionDate, // ✅ use the already-extracted variable
             ]);
 
             return $this->response->setJSON([
@@ -126,7 +125,12 @@ class DistributionController extends BaseController
             ]);
         } catch (\Exception $e) {
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to create distribution group']);
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' =>
+                    $e->getMessage() ?: 'Failed to create distribution group',
+                'insert_data' => $insertData,
+                'data' => $data,
+            ]);
         }
     }
 
