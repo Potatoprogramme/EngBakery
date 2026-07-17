@@ -114,7 +114,7 @@ class DistributionController extends BaseController
 
             log_message('info', 'DISTRIBUTION GROUP ADD: Created group ID {id} for {date}', [
                 'id' => $groupId,
-                'date' => $distributionDate, // ✅ use the already-extracted variable
+                'date' => $distributionDate,
             ]);
 
             return $this->response->setJSON([
