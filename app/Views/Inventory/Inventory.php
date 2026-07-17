@@ -417,12 +417,9 @@
                         <label
                             class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
                             Category</label>
-                        <select
+                        <select id="editDistributionCategorySelect" name="distribution_category_id"
                             class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <option value="">Select distribution category</option>
-                            <option value="bakery">Bakery</option>
-                            <option value="drinks">Drinks</option>
-                            <option value="grocery">Grocery</option>
+                            <option value="">Loading categories...</option>
                         </select>
                     </div>
                 </div>
@@ -3808,6 +3805,14 @@
 
                 $('#editNotes').val(item.notes || '');
 
+                // Load distribution categories for the Distribute action dropdown
+                loadDistributionCategoriesForModal();
+
+                // Reset Store/Distribute fields
+                $('#editProductGroupQty').val(0);
+                $('#editDistributionGroupQty').val(0);
+                $('#editDistributionCategorySelect').val('');
+
                 // Populate distribution and carryover info
                 const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
                 const distQty = distQtyFromDistribution > 0 ? distQtyFromDistribution : (parseInt(item
@@ -4123,6 +4128,32 @@
             $('#editStockWarning').addClass('hidden');
         });
 
+        // Load distribution categories for the modal
+        function loadDistributionCategoriesForModal() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'DistributionCategory/FetchAll',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const select = $('#editDistributionCategorySelect');
+                    select.html('<option value="">Select distribution category...</option>');
+                    
+                    if (response.success && response.data && response.data.length > 0) {
+                        response.data.forEach(function (cat) {
+                            select.append(
+                                `<option value="${cat.dist_cat_id}">${cat.name}</option>`
+                            );
+                        });
+                    }
+                },
+                error: function () {
+                    console.warn('Failed to load distribution categories');
+                    $('#editDistributionCategorySelect').html('<option value="">Error loading categories</option>');
+                }
+            });
+        }
+
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -4155,13 +4186,48 @@
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
             const notes = ($('#editNotes').val() || '').trim();
 
+            // NEW: Capture Store/Distribute fields
+            const productGroupQty = parseInt($('#editProductGroupQty').val()) || 0;
+            const distributionGroupQty = parseInt($('#editDistributionGroupQty').val()) || 0;
+            const distributionCategoryId = parseInt($('#editDistributionCategorySelect').val()) || 0;
+
+            // Validation: mutually exclusive
+            if (productGroupQty > 0 && distributionGroupQty > 0) {
+                showToast('warning', 'Choose either "Add More" (Store) OR "Distribution Group", not both.', 2500);
+                restoreSubmitButton();
+                return;
+            }
+
+            // Validation: if Distribute, category must be selected
+            if (distributionGroupQty > 0 && distributionCategoryId <= 0) {
+                showToast('warning', 'Please select a distribution destination category.', 2500);
+                restoreSubmitButton();
+                return;
+            }
+
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
             const expected = distQty + carryQty;
 
             let payload;
 
-            if (isDrinksMode) {
+            // NEW: Handle Store action (Add More)
+            if (productGroupQty > 0) {
+                payload = {
+                    action: 'store',
+                    product_group_qty: productGroupQty
+                };
+            }
+            // NEW: Handle Distribute action
+            else if (distributionGroupQty > 0) {
+                payload = {
+                    action: 'distribute',
+                    distribution_group_qty: distributionGroupQty,
+                    distribution_category_id: distributionCategoryId
+                };
+            }
+            // Existing logic for beginning/ending adjustments
+            else if (isDrinksMode) {
                 const qtyAdjustmentInput = parseInt($('#editBeginningStock').val());
                 const isRemitted = $('#editIsRemitted').val() === '1';
                 const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
