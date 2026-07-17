@@ -381,7 +381,7 @@
                 <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
-                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
                     <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseProductGroup"
@@ -398,7 +398,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                <div id="editDistributionGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
                     <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseDistributionGroup"
@@ -3812,6 +3812,18 @@
                 $('#editProductGroupQty').val(0);
                 $('#editDistributionGroupQty').val(0);
                 $('#editDistributionCategorySelect').val('');
+
+                // Show Add More / Distribution Group only for bakery items
+                if (category === 'bakery') {
+                    $('#editAddMoreGroup').removeClass('hidden');
+                    $('#editDistributionGroup').removeClass('hidden');
+                } else {
+                    $('#editAddMoreGroup').addClass('hidden');
+                    $('#editDistributionGroup').addClass('hidden');
+                    // clear values when hidden
+                    $('#editProductGroupQty').val(0);
+                    $('#editDistributionGroupQty').val(0);
+                }
 
                 // Populate distribution and carryover info
                 const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
