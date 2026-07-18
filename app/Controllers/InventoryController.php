@@ -941,6 +941,76 @@ class InventoryController extends BaseController
         $product = $productId > 0 ? $this->productModel->find($productId) : null;
         $productCategory = strtolower(trim((string) ($product['category'] ?? '')));
 
+        // NEW: Handle Store vs Distribute actions
+        $action = $json->action ?? null;
+        
+        if ($action === 'store') {
+            // Store action: Add to inventory (beginning_stock) + create distribution entry
+            $productGroupQty = intval($json->product_group_qty ?? 0);
+            if ($productGroupQty <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Store quantity must be greater than 0'
+                ]);
+            }
+            
+            // Update inventory item's beginning_stock
+            $oldBeginning = intval($item['beginning_stock']);
+            $newBeginning = $oldBeginning + $productGroupQty;
+            $newEnding = intval($item['ending_stock']) + $productGroupQty;
+            
+            $this->dailyStockItemsModel->update($item_id, [
+                'beginning_stock' => $newBeginning,
+                'ending_stock' => $newEnding,
+            ]);
+            
+            // Create distribution entry under "Store" category
+            $dailyStockId = intval($item['daily_stock_id']);
+            $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
+            
+            // Deduct raw materials
+            $this->deductRawMaterialsForProduct($productId, $productGroupQty);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Product added to store inventory and distribution',
+                'data' => ['item_id' => $item_id]
+            ]);
+        }
+        
+        else if ($action === 'distribute') {
+            // Distribute action: Add to distribution ONLY (not inventory)
+            $distributionGroupQty = intval($json->distribution_group_qty ?? 0);
+            $distCategoryId = intval($json->distribution_category_id ?? 0);
+            
+            if ($distributionGroupQty <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Distribution quantity must be greater than 0'
+                ]);
+            }
+            
+            if ($distCategoryId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Distribution category is required'
+                ]);
+            }
+            
+            // Create distribution entry under selected destination category
+            $dailyStockId = intval($item['daily_stock_id']);
+            $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
+            
+            // Deduct raw materials
+            $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Product added to distribution',
+                'data' => ['item_id' => $item_id]
+            ]);
+        }
+
         if ($productCategory === 'drinks') {
             return $this->updateDrinksStockItem(intval($item_id), $item, $json);
         }
@@ -1865,6 +1935,7 @@ class InventoryController extends BaseController
                 $resendReason,
                 $cashierUserId > 0 ? $cashierUserId : null
             );
+
             if (empty($sendResult['success'])) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
@@ -1931,21 +2002,28 @@ class InventoryController extends BaseController
             'time_start' => date('H:i:s'),
             'time_end' => $this->getOpenShiftTimeEndValue(),
         ];
+
         if ($this->dailyStockModel->insert($insertData)) {
             $newInventoryId = (int) $this->dailyStockModel->getInsertID();
-            $this->dailyStockItemsModel->insertBatch(
-                array_map(function ($item) use ($newInventoryId) {
-                    return [
-                        'daily_stock_id' => $newInventoryId,
-                        'product_id' => $item['product_id'],
-                        'beginning_stock' => $item['ending_stock'], // carry over ending stock as new beginning
-                        'pull_out_quantity' => 0,
-                        'ending_stock' => $item['ending_stock'], // initial ending same as beginning
-                        'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
-                        'is_enabled' => ($item['ending_stock'] > 0) ? 1 : 0 || $item['is_enabled'], // disable if no stock carried over
-                    ];
-                }, $duplicate_item)
-            );
+
+            if (!empty($duplicate_item)) {
+                $this->dailyStockItemsModel->insertBatch(
+                    array_map(function ($item) use ($newInventoryId) {
+                        $endingStock = intval($item['ending_stock'] ?? 0);
+
+                        return [
+                            'daily_stock_id' => $newInventoryId,
+                            'product_id' => $item['product_id'],
+                            'beginning_stock' => $endingStock, // carry over ending stock as new beginning
+                            'pull_out_quantity' => 0,
+                            'ending_stock' => $endingStock, // initial ending same as beginning
+                            'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
+                            'is_enabled' => ($endingStock > 0 || !empty($item['is_enabled'])) ? 1 : 0,
+                        ];
+                    }, $duplicate_item)
+                );
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Inventory reset successfully with carryover stock.',
@@ -2073,5 +2151,172 @@ class InventoryController extends BaseController
             'inventory_state' => $new_data['is_closed'],
             'message' => 'Inventory opened successfully.'
         ]);
+    }
+
+    /**
+     * NEW: Create or update distribution entry for Store action
+     * Store action creates distribution under category ID 1 ("Store")
+     */
+    private function createOrUpdateDistributionEntryForStore(int $dailyStockId, int $productId, int $quantity)
+    {
+        try {
+            $distributionGroupModel = model('DistributionGroupModel');
+            $distributionItemModel = model('DistributionItemModel');
+            
+            $today = date('Y-m-d');
+            $distCategoryId = 1; // "Store" category
+            
+            // Find or create distribution group for today + Store category
+            $existingGroup = $distributionGroupModel
+                ->where('distribution_date', $today)
+                ->where('dist_category_id', $distCategoryId)
+                ->first();
+            
+            if ($existingGroup) {
+                $groupId = $existingGroup['id'];
+            } else {
+                // Create new distribution group
+                $groupId = $distributionGroupModel->insert([
+                    'distribution_date' => $today,
+                    'dist_category_id' => $distCategoryId,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+            
+            // Find or create distribution item for this product in the group
+            $existingItem = $distributionItemModel
+                ->where('distribution_id', $groupId)
+                ->where('product_id', $productId)
+                ->first();
+            
+            if ($existingItem) {
+                // Update existing item quantity
+                $newQty = intval($existingItem['product_qnty']) + $quantity;
+                $distributionItemModel->update($existingItem['id'], [
+                    'product_qnty' => $newQty,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            } else {
+                // Create new item
+                $distributionItemModel->insert([
+                    'distribution_id' => $groupId,
+                    'product_id' => $productId,
+                    'product_qnty' => $quantity,
+                    'qty_mode' => 'batch',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+            
+            // Recalculate totals for the group
+            $distributionGroupModel->recalculateTotals($groupId);
+            
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * NEW: Create or update distribution entry for Distribute action
+     * Distribute action creates distribution under specified destination category
+     */
+    private function createOrUpdateDistributionEntryForDistribute(int $dailyStockId, int $productId, int $quantity, int $distCategoryId)
+    {
+        try {
+            $distributionGroupModel = model('DistributionGroupModel');
+            $distributionItemModel = model('DistributionItemModel');
+            
+            $today = date('Y-m-d');
+            
+            // Find or create distribution group for today + destination category
+            $existingGroup = $distributionGroupModel
+                ->where('distribution_date', $today)
+                ->where('dist_category_id', $distCategoryId)
+                ->first();
+            
+            if ($existingGroup) {
+                $groupId = $existingGroup['id'];
+            } else {
+                // Create new distribution group
+                $groupId = $distributionGroupModel->insert([
+                    'distribution_date' => $today,
+                    'dist_category_id' => $distCategoryId,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+            
+            // Find or create distribution item for this product in the group
+            $existingItem = $distributionItemModel
+                ->where('distribution_id', $groupId)
+                ->where('product_id', $productId)
+                ->first();
+            
+            if ($existingItem) {
+                // Update existing item quantity
+                $newQty = intval($existingItem['product_qnty']) + $quantity;
+                $distributionItemModel->update($existingItem['id'], [
+                    'product_qnty' => $newQty,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            } else {
+                // Create new item
+                $distributionItemModel->insert([
+                    'distribution_id' => $groupId,
+                    'product_id' => $productId,
+                    'product_qnty' => $quantity,
+                    'qty_mode' => 'batch',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+            
+            // Recalculate totals for the group
+            $distributionGroupModel->recalculateTotals($groupId);
+            
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * NEW: Deduct raw materials for a product
+     * Handles both direct recipes and combined recipes
+     */
+    private function deductRawMaterialsForProduct(int $productId, int $quantity)
+    {
+        try {
+            if ($productId <= 0 || $quantity <= 0) {
+                return;
+            }
+
+            $productRecipeModel = model('ProductRecipeModel');
+            $productCombinedRecipeModel = model('ProductCombinedRecipeModel');
+            $rawMaterialModel = model('RawMaterialModel');
+
+            // Check for direct recipes
+            $directRecipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
+            if (!empty($directRecipe)) {
+                foreach ($directRecipe as $material) {
+                    $materialId = intval($material['material_id'] ?? 0);
+                    $requiredQty = floatval($material['required_quantity'] ?? 0);
+                    if ($materialId > 0 && $requiredQty > 0) {
+                        $totalDeduction = $requiredQty * $quantity;
+                        $rawMaterialModel->deductMaterial($materialId, $totalDeduction);
+                    }
+                }
+            }
+
+            // Check for combined recipes
+            $combinedRecipes = $productCombinedRecipeModel->getCombinedRecipesByProductId($productId);
+            foreach ($combinedRecipes as $recipe) {
+                $componentProductId = intval($recipe['component_product_id'] ?? 0);
+                $componentQty = intval($recipe['component_quantity'] ?? 0);
+                if ($componentProductId > 0 && $componentQty > 0) {
+                    // Recursively deduct materials for component products
+                    $this->deductRawMaterialsForProduct($componentProductId, $componentQty * $quantity);
+                }
+            }
+
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
+        }
     }
 }

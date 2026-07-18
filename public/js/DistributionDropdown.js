@@ -1,12 +1,6 @@
 let storesCache = null;
 
 function loadStores() {
-  // If already cached, just populate and return
-  if (storesCache) {
-    populateStoreDropdown(storesCache);
-    return;
-  }
-
   $.ajax({
     url: baseUrl + "DistributionCategory/FetchAll",
     type: "GET",

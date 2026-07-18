@@ -93,6 +93,15 @@ class DistributionController extends BaseController
             ]);
         }
 
+        if ($checkData = $this->distributionGroupModel->checkIfGroupExists($categoryId, $distributionDate)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution group created successfully',
+                'group_id' => $checkData['group_id'],
+                'category_name' => trim((string) ($category['name'] ?? '')),
+            ]);
+        }
+
         $category = model('DistributionCategory')->find($categoryId);
         if (!$category) {
             return $this->response->setStatusCode(404)->setJSON([
@@ -109,13 +118,12 @@ class DistributionController extends BaseController
         ];
 
         try {
-            $groupModel = model('DistributionGroupModel');
-            $groupModel->insert($insertData);
-            $groupId = $groupModel->getInsertID();
+            $this->distributionGroupModel->insert($insertData);
+            $groupId = $this->distributionGroupModel->getInsertID();
 
             log_message('info', 'DISTRIBUTION GROUP ADD: Created group ID {id} for {date}', [
                 'id' => $groupId,
-                'date' => $data->distribution_date,
+                'date' => $distributionDate,
             ]);
 
             return $this->response->setJSON([
@@ -126,7 +134,12 @@ class DistributionController extends BaseController
             ]);
         } catch (\Exception $e) {
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to create distribution group']);
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' =>
+                    $e->getMessage() ?: 'Failed to create distribution group',
+                'insert_data' => $insertData,
+                'data' => $data,
+            ]);
         }
     }
 
@@ -264,12 +277,12 @@ class DistributionController extends BaseController
         }
 
         // Duplicate check within the group
-        if ($itemModel->existsInGroup($groupId, $productId)) {
-            return $this->response->setStatusCode(409)->setJSON([
-                'error' => 'This product is already in the selected distribution group.',
-                'duplicate' => true,
-            ]);
-        }
+        // if ($itemModel->existsInGroup($groupId, $productId)) {
+        //     return $this->response->setStatusCode(409)->setJSON([
+        //         'error' => 'This product is already in the selected distribution group.',
+        //         'duplicate' => true,
+        //     ]);
+        // }
 
         // Category enforcement: grocery/drinks/dough → pieces only
         $product = $this->productModel->find($productId);

@@ -246,4 +246,13 @@ class DistributionGroupModel extends Model
             return !empty($group['items']) && is_array($group['items']);
         }));
     }
+
+    public function checkIfGroupExists(int $distCategoryId, string $distributionDate): array|false
+    {
+        $group = $this->where('dist_category_id', $distCategoryId)
+            ->where('distribution_date', $distributionDate)
+            ->first();
+
+        return $group ? ['exists' => true, 'group_id' => $group['id']] : false;
+    }
 }

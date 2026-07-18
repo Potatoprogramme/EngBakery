@@ -381,8 +381,8 @@
                 <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
-                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Product Group</label>
+                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseProductGroup"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
@@ -398,7 +398,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                <div id="editDistributionGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
                     <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseDistributionGroup"
@@ -417,20 +417,16 @@
                         <label
                             class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
                             Category</label>
-                        <select
+                        <select id="editDistributionCategorySelect" name="distribution_category_id"
                             class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <option value="">Select distribution category</option>
-                            <option value="bakery">Bakery</option>
-                            <option value="drinks">Drinks</option>
-                            <option value="grocery">Grocery</option>
+                            <option value="">Loading categories...</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
-                        class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
-                        Stock</label>
+                        class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnDecreaseBeginning"
                             class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none">
@@ -558,9 +554,9 @@
                 <div class="mb-6">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
-                    <input type="number" id="addBeginningStock" name="beginning_stock" min="0" value="0" step="1"
+                    <input type="number" id="addBeginningStock" name="beginning_stock" min="1" value="1" step="1"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <p class="text-xs text-gray-400 mt-1">Optional - defaults to 0</p>
+                    <p class="text-xs text-gray-400 mt-1">Optional - defaults to 1</p>
                 </div>
 
                 <!-- Deduction Preview -->
@@ -905,13 +901,6 @@
             </div>
 
             <div class="p-6 space-y-6">
-                <!-- Product Notes -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        <i class="fas fa-sticky-note text-blue-600 mr-2"></i> Notes
-                    </h4>
-                    <p id="itemDetailsNotes" class="text-sm text-gray-600 whitespace-pre-wrap">—</p>
-                </div>
 
                 <!-- Shift Production Summary -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
@@ -3782,7 +3771,7 @@
                         $('#editPostRemitWarning').removeClass('hidden');
                     }
                 } else if (isAdjustmentMode) {
-                    $('#editBeginningLabel').text('Beginning Stock ');
+                    $('#editBeginningLabel').text('Adjust Beginning Quantity ');
                     $('#editPullOutLabel').text('Pull Out Quantity (add only)');
                     $('#editEndingLabel').text('Ending Stock ');
 
@@ -3815,6 +3804,26 @@
                 }
 
                 $('#editNotes').val(item.notes || '');
+
+                // Load distribution categories for the Distribute action dropdown
+                loadDistributionCategoriesForModal();
+
+                // Reset Store/Distribute fields
+                $('#editProductGroupQty').val(0);
+                $('#editDistributionGroupQty').val(0);
+                $('#editDistributionCategorySelect').val('');
+
+                // Show Add More / Distribution Group only for bakery items
+                if (category === 'bakery') {
+                    $('#editAddMoreGroup').removeClass('hidden');
+                    $('#editDistributionGroup').removeClass('hidden');
+                } else {
+                    $('#editAddMoreGroup').addClass('hidden');
+                    $('#editDistributionGroup').addClass('hidden');
+                    // clear values when hidden
+                    $('#editProductGroupQty').val(0);
+                    $('#editDistributionGroupQty').val(0);
+                }
 
                 // Populate distribution and carryover info
                 const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
@@ -4131,6 +4140,32 @@
             $('#editStockWarning').addClass('hidden');
         });
 
+        // Load distribution categories for the modal
+        function loadDistributionCategoriesForModal() {
+            const baseUrl = '<?= base_url() ?>';
+            $.ajax({
+                url: baseUrl + 'DistributionCategory/FetchAll',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    const select = $('#editDistributionCategorySelect');
+                    select.html('<option value="">Select distribution category...</option>');
+                    
+                    if (response.success && response.data && response.data.length > 0) {
+                        response.data.forEach(function (cat) {
+                            select.append(
+                                `<option value="${cat.dist_cat_id}">${cat.name}</option>`
+                            );
+                        });
+                    }
+                },
+                error: function () {
+                    console.warn('Failed to load distribution categories');
+                    $('#editDistributionCategorySelect').html('<option value="">Error loading categories</option>');
+                }
+            });
+        }
+
         $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -4163,13 +4198,48 @@
             const endingInput = parseInt($('#editEndingStock').val()) || 0;
             const notes = ($('#editNotes').val() || '').trim();
 
+            // NEW: Capture Store/Distribute fields
+            const productGroupQty = parseInt($('#editProductGroupQty').val()) || 0;
+            const distributionGroupQty = parseInt($('#editDistributionGroupQty').val()) || 0;
+            const distributionCategoryId = parseInt($('#editDistributionCategorySelect').val()) || 0;
+
+            // Validation: mutually exclusive
+            if (productGroupQty > 0 && distributionGroupQty > 0) {
+                showToast('warning', 'Choose either "Add More" (Store) OR "Distribution Group", not both.', 2500);
+                restoreSubmitButton();
+                return;
+            }
+
+            // Validation: if Distribute, category must be selected
+            if (distributionGroupQty > 0 && distributionCategoryId <= 0) {
+                showToast('warning', 'Please select a distribution destination category.', 2500);
+                restoreSubmitButton();
+                return;
+            }
+
             const distQty = parseInt($('#editDistributionQty').val()) || 0;
             const carryQty = parseInt($('#editCarryoverQty').val()) || 0;
             const expected = distQty + carryQty;
 
             let payload;
 
-            if (isDrinksMode) {
+            // NEW: Handle Store action (Add More)
+            if (productGroupQty > 0) {
+                payload = {
+                    action: 'store',
+                    product_group_qty: productGroupQty
+                };
+            }
+            // NEW: Handle Distribute action
+            else if (distributionGroupQty > 0) {
+                payload = {
+                    action: 'distribute',
+                    distribution_group_qty: distributionGroupQty,
+                    distribution_category_id: distributionCategoryId
+                };
+            }
+            // Existing logic for beginning/ending adjustments
+            else if (isDrinksMode) {
                 const qtyAdjustmentInput = parseInt($('#editBeginningStock').val());
                 const isRemitted = $('#editIsRemitted').val() === '1';
                 const dbFloorQty = Math.max(0, parseInt($('#editOldQuantitySold').val()) || 0);
