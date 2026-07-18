@@ -93,6 +93,15 @@ class DistributionController extends BaseController
             ]);
         }
 
+        if ($checkData = $this->distributionGroupModel->checkIfGroupExists($categoryId, $distributionDate)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Distribution group created successfully',
+                'group_id' => $checkData['group_id'],
+                'category_name' => trim((string) ($category['name'] ?? '')),
+            ]);
+        }
+
         $category = model('DistributionCategory')->find($categoryId);
         if (!$category) {
             return $this->response->setStatusCode(404)->setJSON([
@@ -268,12 +277,12 @@ class DistributionController extends BaseController
         }
 
         // Duplicate check within the group
-        if ($itemModel->existsInGroup($groupId, $productId)) {
-            return $this->response->setStatusCode(409)->setJSON([
-                'error' => 'This product is already in the selected distribution group.',
-                'duplicate' => true,
-            ]);
-        }
+        // if ($itemModel->existsInGroup($groupId, $productId)) {
+        //     return $this->response->setStatusCode(409)->setJSON([
+        //         'error' => 'This product is already in the selected distribution group.',
+        //         'duplicate' => true,
+        //     ]);
+        // }
 
         // Category enforcement: grocery/drinks/dough → pieces only
         $product = $this->productModel->find($productId);
