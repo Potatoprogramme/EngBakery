@@ -752,7 +752,7 @@
             }
 
             function getDistributionDisplayGroupKey(group) {
-                const categoryId = parseInt(group && (group.dist_category_id ?? group.category_id), 10);
+                const categoryId = parseInt(group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id), 10);
                 if (Number.isFinite(categoryId) && categoryId > 0) {
                     return 'category-' + categoryId;
                 }
@@ -1477,12 +1477,14 @@
 
                 (items || []).forEach(function (item) {
                     const groupKey = getDistributionGroupKey(item, fallbackDate);
+                    const categoryId = parseInt((item && (item.dist_category_id ?? item.distribution_category_id ?? item.category_id ?? item.dist_cat_id)) || 0, 10);
 
                     if (!groupedMap[groupKey]) {
                         groupedMap[groupKey] = {
                             group_key: groupKey,
                             group_name: getDistributionGroupName(item, fallbackDate),
                             group_note: getDistributionGroupNote(item),
+                            dist_category_id: categoryId > 0 ? categoryId : 0,
                             total_items: 0,
                             total_batches: 0,
                             total_pieces: 0,
@@ -1493,6 +1495,10 @@
                             source_group_ids: [],
                             items: [],
                         };
+                    }
+
+                    if (categoryId > 0 && (!groupedMap[groupKey].dist_category_id || groupedMap[groupKey].dist_category_id <= 0)) {
+                        groupedMap[groupKey].dist_category_id = categoryId;
                     }
 
                     const sourceGroupIds = getItemSourceGroupIds(item);
@@ -2281,6 +2287,7 @@ function fetchProductDetail(productId) {
                                     const itemWithGroup = Object.assign({}, item, {
                                         // Group metadata
                                         distribution_id: group.id,
+                                        dist_category_id: group.dist_category_id || group.category_id || group.dist_cat_id || item.dist_category_id || item.category_id || item.dist_cat_id,
                                         distribution_group_key: 'group-' +
                                             String(group.id),
                                         distribution_display_group_key:
@@ -3754,11 +3761,14 @@ function fetchProductDetail(productId) {
 
                 $('#scheduleDate').prop('disabled', isEditMode);
                 $('.schedule-quick-btn').prop('disabled', isEditMode);
+                $('#distributionGroupName').prop('disabled', isEditMode);
 
                 if (isEditMode) {
                     $('.schedule-quick-btn').addClass('opacity-50 cursor-not-allowed');
+                    $('#distributionGroupName').addClass('bg-gray-100 cursor-not-allowed opacity-70');
                 } else {
                     $('.schedule-quick-btn').removeClass('opacity-50 cursor-not-allowed');
+                    $('#distributionGroupName').removeClass('bg-gray-100 cursor-not-allowed opacity-70');
                 }
             }
 
@@ -3847,6 +3857,7 @@ function fetchProductDetail(productId) {
                 const groupItems = Array.isArray(group.items) ? group.items : [];
                 const normalizedDate = resolved.date;
                 const normalizedGroupKey = resolved.groupKey;
+                const groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)) )) || 0, 10);
 
                 editingGroupContext = {
                     date: normalizedDate,
@@ -3856,7 +3867,7 @@ function fetchProductDetail(productId) {
                         Array.from(new Set(groupItems.map(function (item) {
                             return getDistributionItemId(item);
                         }).filter(Boolean))),
-                    dist_category_id: parseInt(group.dist_category_id || 0, 10) || 0,
+                    dist_category_id: groupCategoryId > 0 ? groupCategoryId : parseInt(group.dist_category_id || 0, 10) || 0,
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
                     existing_items: groupItems.map(function (item) {
@@ -3874,7 +3885,7 @@ function fetchProductDetail(productId) {
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-                loadStores(editingGroupContext.dist_category_id || ''); // the function for this is in an external js file
+                loadStores(editingGroupContext.dist_category_id || '');
                 itemsToAddList = editingGroupContext.existing_items.map(function (item) {
                     return {
                         product_id: item.product_id,
@@ -3890,7 +3901,7 @@ function fetchProductDetail(productId) {
                 });
                 renderAddedItemsList();
 
-                $('#distributionGroupName').val(editingGroupContext.original_name);
+                $('#distributionGroupName').val(editingGroupContext.dist_category_id || '');
                 $('#overallDistributionNote').val(editingGroupContext.original_note);
                 $('#calendarDayModal').addClass('hidden');
                 $('#addItemsModal').removeClass('hidden');
