@@ -1,7 +1,7 @@
 let storesCache = null;
 
 function loadStores(selectedCategoryId = null) {
-  $.ajax({
+  return $.ajax({
     url: baseUrl + "DistributionCategory/FetchAll",
     type: "GET",
     dataType: "json",
@@ -44,6 +44,7 @@ function populateStoreDropdown(data, selectedCategoryId = null) {
 
   if (currentVal) {
     $select.val(currentVal);
+    $select.find(`option[value="${currentVal}"]`).prop("selected", true);
   } else {
     $select.val("");
   }

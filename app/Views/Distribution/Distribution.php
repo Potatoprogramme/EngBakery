@@ -1346,7 +1346,9 @@
                     allMeta[dateKey]['product_' + productKey] = {
                         group_key: (groupMeta.group_key || '').toString(),
                         group_name: (groupMeta.group_name || '').toString() || 'Default Group',
-                        group_note: (groupMeta.group_note || '').toString()
+                        group_note: (groupMeta.group_note || '').toString(),
+                        dist_category_id: (groupMeta.dist_category_id != null ? String(groupMeta.dist_category_id) : ''),
+                        dist_category_name: (groupMeta.dist_category_name || '').toString()
                     };
                 });
 
@@ -1423,6 +1425,12 @@
                         }
                         if (!enrichedItem.distribution_group_note) {
                             enrichedItem.distribution_group_note = localMeta.group_note;
+                        }
+                        if (!enrichedItem.dist_category_id && localMeta.dist_category_id) {
+                            enrichedItem.dist_category_id = localMeta.dist_category_id;
+                        }
+                        if (!enrichedItem.distribution_category_name && localMeta.dist_category_name) {
+                            enrichedItem.distribution_category_name = localMeta.dist_category_name;
                         }
                     }
 
@@ -3857,7 +3865,24 @@ function fetchProductDetail(productId) {
                 const groupItems = Array.isArray(group.items) ? group.items : [];
                 const normalizedDate = resolved.date;
                 const normalizedGroupKey = resolved.groupKey;
-                const groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)) )) || 0, 10);
+                let groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)) )) || 0, 10);
+
+                if (!groupCategoryId) {
+                    const groupKeyMatch = normalizedGroupKey.match(/^category-(\d+)$/i);
+                    if (groupKeyMatch) {
+                        groupCategoryId = parseInt(groupKeyMatch[1], 10) || 0;
+                    }
+                }
+
+                if (!groupCategoryId && Array.isArray(groupItems) && groupItems.length > 0) {
+                    const fallbackProductId = String((groupItems.find(function (item) {
+                        return item && item.product_id;
+                    }) || {}).product_id || '').trim();
+                    const fallbackMeta = fallbackProductId ? getLocalDistributionGroupMeta(normalizedDate, fallbackProductId) : null;
+                    if (fallbackMeta && fallbackMeta.dist_category_id) {
+                        groupCategoryId = parseInt(fallbackMeta.dist_category_id, 10) || 0;
+                    }
+                }
 
                 editingGroupContext = {
                     date: normalizedDate,
@@ -3885,7 +3910,7 @@ function fetchProductDetail(productId) {
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-                loadStores(editingGroupContext.dist_category_id || '');
+                const categoryLoad = loadStores(editingGroupContext.dist_category_id || '');
                 itemsToAddList = editingGroupContext.existing_items.map(function (item) {
                     return {
                         product_id: item.product_id,
@@ -3902,6 +3927,16 @@ function fetchProductDetail(productId) {
                 renderAddedItemsList();
 
                 $('#distributionGroupName').val(editingGroupContext.dist_category_id || '');
+                if (categoryLoad && typeof categoryLoad.always === 'function') {
+                    categoryLoad.always(function () {
+                        if (editingGroupContext && editingGroupContext.dist_category_id) {
+                            $('#distributionGroupName').val(String(editingGroupContext.dist_category_id));
+                            $('#distributionGroupName').find(
+                                'option[value="' + String(editingGroupContext.dist_category_id) + '"]'
+                            ).prop('selected', true);
+                        }
+                    });
+                }
                 $('#overallDistributionNote').val(editingGroupContext.original_note);
                 $('#calendarDayModal').addClass('hidden');
                 $('#addItemsModal').removeClass('hidden');
@@ -4726,6 +4761,8 @@ function fetchProductDetail(productId) {
                                 group_key: 'category-' + distributionCategoryId,
                                 group_name: savedGroupName,
                                 group_note: distributionGroupNote,
+                                dist_category_id: distributionCategoryId,
+                                dist_category_name: selectedCategoryName,
                             });
                             setSelectedGroupFilter(targetDate, 'category-' + distributionCategoryId);
                         } else {
@@ -4858,6 +4895,8 @@ function fetchProductDetail(productId) {
                         group_key: 'category-' + distributionCategoryId,
                         group_name: savedGroupName,
                         group_note: distributionGroupNote,
+                        dist_category_id: distributionCategoryId,
+                        dist_category_name: selectedCategoryName,
                     };
 
                     const payloads = itemsToAdd.map(function (item) {
