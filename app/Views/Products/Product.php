@@ -961,29 +961,54 @@
             let activeCardMenu = null;
             let activeCardMenuButton = null;
 
+            function getActionMenuForButton($button) {
+                let $menu = $button.data('action-menu-ref');
+
+                if ($menu && $menu.length) {
+                    return $menu;
+                }
+
+                $menu = $button.siblings('.card-menu').first();
+                if ($menu.length) {
+                    $button.data('action-menu-ref', $menu);
+                }
+
+                return $menu;
+            }
+
             $(document).on('click', '.card-menu-btn', function(e) {
                 e.stopPropagation();
-                const $menu = $(this).siblings('.card-menu');
-                const isDesktopRowMenu = $(this).closest('tr').length > 0;
+                const $button = $(this);
+                const $menu = getActionMenuForButton($button);
+
+                if (!$menu || !$menu.length) {
+                    return;
+                }
+
+                const isDesktopRowMenu = $button.closest('tr').length > 0;
 
                 // Close all other menus first
-                $('.card-menu').not($menu).addClass('hidden');
-                restoreActionMenu($menu);
+                $('.card-menu').not($menu).each(function() {
+                    const $otherMenu = $(this);
+                    $otherMenu.addClass('hidden');
+                    restoreActionMenu($otherMenu);
+                });
 
                 // Toggle this menu
                 $menu.toggleClass('hidden');
 
                 if (!$menu.hasClass('hidden')) {
                     activeCardMenu = $menu;
-                    activeCardMenuButton = $(this);
+                    activeCardMenuButton = $button;
                     if (isDesktopRowMenu) {
-                        positionDesktopActionMenu($(this), $menu);
+                        positionDesktopActionMenu($button, $menu);
                     } else {
-                        positionActionMenu($(this), $menu);
+                        positionActionMenu($button, $menu);
                     }
                 } else if (activeCardMenu && activeCardMenu[0] === $menu[0]) {
                     activeCardMenu = null;
                     activeCardMenuButton = null;
+                    restoreActionMenu($menu);
                 }
             });
 
@@ -1003,6 +1028,32 @@
                 }
             }
 
+            function getActionMenuZIndex() {
+                let highestFixedTopZ = NaN;
+
+                $('nav.fixed.top-0, header.fixed.top-0, .fixed.top-0').each(function() {
+                    const z = parseInt($(this).css('z-index'), 10);
+                    if (!Number.isNaN(z)) {
+                        highestFixedTopZ = Number.isNaN(highestFixedTopZ) ? z : Math.max(highestFixedTopZ, z);
+                    }
+                });
+
+                if (!Number.isNaN(highestFixedTopZ)) {
+                    return Math.max(1, highestFixedTopZ - 1);
+                }
+
+                return 30;
+            }
+
+            function closeAllActionMenus() {
+                $('.card-menu').addClass('hidden');
+                $('.card-menu').each(function() {
+                    restoreActionMenu($(this));
+                });
+                activeCardMenu = null;
+                activeCardMenuButton = null;
+            }
+
             function positionDesktopActionMenu($button, $menu) {
                 const buttonRect = $button[0].getBoundingClientRect();
                 const menuHeight = $menu.outerHeight();
@@ -1010,12 +1061,9 @@
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
                 const gap = 8;
-                const $navBar = $('nav.fixed.top-0').first();
-                const $toastContainer = $('#toast-container');
-                const navBottom = $navBar.length ? $navBar[0].getBoundingClientRect().bottom : 0;
-                const toastBottom = $toastContainer.length && $toastContainer.children().length > 0 ?
-                    $toastContainer[0].getBoundingClientRect().bottom : 0;
-                const safeTopBoundary = Math.max(gap, navBottom + gap, toastBottom + gap);
+                const menuZIndex = getActionMenuZIndex();
+
+                $button.data('action-menu-ref', $menu);
 
                 const $host = $menu.parent();
                 if (!$menu.data('action-menu-host')) {
@@ -1037,16 +1085,8 @@
                     left = viewportWidth - menuWidth - gap;
                 }
 
-                if (top < safeTopBoundary) {
-                    top = safeTopBoundary;
-                }
-
-                if (top + menuHeight > viewportHeight - gap && buttonRect.top - menuHeight - gap > safeTopBoundary) {
+                if (top + menuHeight > viewportHeight - gap && buttonRect.top - menuHeight - gap >= gap) {
                     top = buttonRect.top - menuHeight - gap;
-                }
-
-                if (top < safeTopBoundary) {
-                    top = safeTopBoundary;
                 }
 
                 $menu.css({
@@ -1056,7 +1096,7 @@
                     right: 'auto',
                     bottom: 'auto',
                     maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
-                    zIndex: 9999
+                    zIndex: menuZIndex
                 });
             }
 
@@ -1067,6 +1107,9 @@
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
                 const gap = 8;
+                const menuZIndex = getActionMenuZIndex();
+
+                $button.data('action-menu-ref', $menu);
 
                 $menu.removeClass('top-full mt-2 bottom-full mb-2 top-8 top-11 top-auto');
 
@@ -1083,7 +1126,7 @@
                         left: 'auto',
                         right: '0',
                         maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
-                        zIndex: 9999
+                        zIndex: menuZIndex
                     });
                 } else {
                     $menu.css({
@@ -1093,7 +1136,7 @@
                         left: 'auto',
                         right: '0',
                         maxWidth: Math.max(140, Math.min(menuWidth, viewportWidth - gap * 2)) + 'px',
-                        zIndex: 9999
+                        zIndex: menuZIndex
                     });
                 }
             }
@@ -1118,12 +1161,7 @@
             // Close card menus when clicking outside
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
-                    $('.card-menu').addClass('hidden');
-                    $('.card-menu').each(function() {
-                        restoreActionMenu($(this));
-                    });
-                    activeCardMenu = null;
-                    activeCardMenuButton = null;
+                    closeAllActionMenus();
                 }
             });
 
@@ -1131,20 +1169,14 @@
             $(document).on('click', '.card-view-btn', function(e) {
                 e.stopPropagation();
                 const productId = $(this).data('id');
-                $('.card-menu').addClass('hidden');
-                $('.card-menu').each(function() {
-                    restoreActionMenu($(this));
-                });
+                closeAllActionMenus();
                 openViewModal(productId);
             });
 
             // Duplicate button in card menu
             $(document).on('click', '.card-duplicate-btn', function(e) {
                 e.stopPropagation();
-                $('.card-menu').addClass('hidden');
-                $('.card-menu').each(function() {
-                    restoreActionMenu($(this));
-                });
+                closeAllActionMenus();
                 // Front-end only: duplicate stays visual-only in this view.
             });
 
@@ -3097,6 +3129,7 @@
             // Delete button in table row / mobile card
             $(document).on('click', '.btn-delete', function(e) {
                 e.stopPropagation();
+                closeAllActionMenus();
                 const btn = $(this);
                 const id = btn.data('id');
 
@@ -3186,6 +3219,7 @@
             // Toggle Enable/Disable Product (Frontend only - no backend)
             $(document).on('click', '.btn-toggle', function(e) {
                 e.stopPropagation(); // Prevent event bubbling to parent elements
+                closeAllActionMenus();
 
                 const btn = $(this);
                 const productId = btn.data('id');
@@ -3370,7 +3404,9 @@
             // =====================================================
 
             // Open Edit Product Modal: reuse Add modal
-            $(document).on('click', '.btn-edit', function() {
+            $(document).on('click', '.btn-edit', function(e) {
+                e.stopPropagation();
+                closeAllActionMenus();
                 const productId = $(this).data('id');
                 if (productId) openEditModal(productId);
             });
@@ -3547,7 +3583,9 @@
             // =====================================================
 
             // Open Duplicate Product Modal: reuse Add modal
-            $(document).on('click', '.btn-duplicate', function() {
+            $(document).on('click', '.btn-duplicate', function(e) {
+                e.stopPropagation();
+                closeAllActionMenus();
                 const productId = $(this).data('id');
                 if (productId) openDuplicateModal(productId);
             });

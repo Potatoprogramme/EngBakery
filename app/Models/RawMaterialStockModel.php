@@ -644,9 +644,9 @@ class RawMaterialStockModel extends Model
             }
 
         } catch (\Exception $e) {
-            if (!$preview) {
-                $this->db->transRollback();
-            }
+            // if (!$preview) {
+            //     $this->db->transRollback();
+            // }
             log_message('error', 'deductForProduction error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage(), 'deductions' => []];
         }
