@@ -1094,9 +1094,9 @@ class InventoryController extends BaseController
             'ending_stock' => $newEndingStock,
         ];
 
-        // Only explicit beginning adjustments affect raw materials.
-        // Pull-out adjustments have no raw-material effect.
-        $netRawMaterialChange = $isAdjustmentMode ? $inputBeginning : $beginningDelta;
+        // Add More / Distribute actions already deduct materials separately.
+        // Adjust Beginning Quantity edits should not consume raw materials.
+        $netRawMaterialChange = $isAdjustmentMode ? 0 : $beginningDelta;
 
         $deductionResult = null;
 
