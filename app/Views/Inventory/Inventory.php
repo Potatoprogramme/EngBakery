@@ -508,14 +508,6 @@
                         values above.</p>
                 </div>
 
-                <!-- <div class="mb-6" id="editNotesGroup">
-                    <label for="editNotes" id="editNotesLabel"
-                        class="block mb-1.5 text-sm font-medium text-gray-700">Notes</label>
-                    <textarea id="editNotes" name="notes" rows="3" maxlength="500" placeholder="Add notes (optional)"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
-                    <p id="editNotesHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
-                </div> -->
-
                 <div class="flex gap-3">
                     <button type="submit" id="btnSubmitEditInventory"
                         class="flex-1 text-white bg-primary hover:bg-primary/90 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">
@@ -769,15 +761,6 @@
             updateLoadQuantityDisplay();
         });
 
-        // Update note border on input
-        $('#loadItemNote').on('input', function() {
-            if ($('#loadItemNote').is('[required]') && !$(this).val().trim()) {
-                $(this).addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            } else {
-                $(this).removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            }
-        });
-
         // Submit Load Single Item
         $('#loadSingleItemForm').on('submit', function(e) {
             e.preventDefault();
@@ -866,14 +849,6 @@
                         <i class="fas fa-exclamation-triangle mr-1.5"></i>
                         <span id="loadItemDeviationText"></span>
                     </p>
-                </div>
-
-                <div class="mb-5">
-                    <label for="loadItemNote" id="loadItemNoteLabel"
-                        class="block mb-1.5 text-sm font-medium text-gray-700">Note</label>
-                    <textarea id="loadItemNote" name="note" rows="3" maxlength="500" placeholder="Add note (optional)"
-                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"></textarea>
-                    <p id="loadItemNoteHint" class="text-xs text-gray-400 mt-1">Optional — max 500 characters</p>
                 </div>
 
                 <div class="flex gap-3">
@@ -2340,8 +2315,7 @@
                 $(this).data('qty-sold'),
                 $(this).data('po') || 0,
                 $(this).data('price') || 0,
-                $(this).data('total-sales'),
-                $(this).data('notes')
+                $(this).data('total-sales')
             );
         });
 
@@ -2356,9 +2330,8 @@
             const po = parseInt(row.data('po')) || 0;
             const price = parseFloat(row.data('price')) || 0;
             const totalSales = parseFloat(row.data('total-sales')) || 0;
-            const notes = row.data('notes');
 
-            openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes);
+            openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales);
         });
 
         // Close Item Details Modal
@@ -2826,31 +2799,13 @@
         if (expected > 0 && totalAfter !== expected) {
             const delta = totalAfter - expected;
             const warningText = delta > 0 ?
-                'Exceeds distribution by <strong>' + delta + '</strong> pcs — note required' :
-                'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs — note required';
+                'Exceeds distribution by <strong>' + delta + '</strong> pcs' :
+                'Under distribution by <strong>' + Math.abs(delta) + '</strong> pcs';
             $('#loadItemDeviationText').html(warningText);
             $('#loadItemDeviationWarning').removeClass('hidden');
-
-            // Make note required
-            $('#loadItemNote').attr('required', true);
-            $('#loadItemNote').attr('placeholder', 'Explain why quantity differs from distribution');
-            $('#loadItemNoteLabel').html('Note <span class="text-red-500">*</span>');
-            $('#loadItemNoteHint').text('Required — explain the quantity adjustment').removeClass('text-gray-400')
-                .addClass('text-red-500');
-            if (!$('#loadItemNote').val()) {
-                $('#loadItemNote').addClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            } else {
-                $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
-            }
         } else {
             // Matches expected or no expected baseline
             $('#loadItemDeviationWarning').addClass('hidden');
-            $('#loadItemNote').removeAttr('required');
-            $('#loadItemNote').attr('placeholder', 'Add note (optional)');
-            $('#loadItemNoteLabel').text('Note');
-            $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-                'text-gray-400');
-            $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
         }
     }
 
@@ -2859,12 +2814,6 @@
      */
     function resetLoadItemModalState() {
         $('#loadItemDeviationWarning').addClass('hidden');
-        $('#loadItemNote').removeAttr('required');
-        $('#loadItemNote').attr('placeholder', 'Add note (optional)');
-        $('#loadItemNoteLabel').text('Note');
-        $('#loadItemNoteHint').text('Optional — max 500 characters').removeClass('text-red-500').addClass(
-            'text-gray-400');
-        $('#loadItemNote').removeClass('border-red-300 focus:border-red-400 focus:ring-red-200');
     }
 
     /**
@@ -2875,19 +2824,8 @@
         const productId = parseInt($('#loadItemProductId').val());
         const quantity = parseInt($('#loadItemQuantity').val());
         const expectedPieces = parseInt($('#loadItemExpectedPieces').val());
-        const note = $('#loadItemNote').val().trim();
-
         if (!productId || quantity <= 0) {
             showToast('warning', 'Please enter a valid quantity.', 2000);
-            return;
-        }
-
-        // Client-side note validation
-        const alreadyLoaded = parseInt($('#loadItemAlreadyLoaded').val()) || 0;
-        if (expectedPieces > 0 && (alreadyLoaded + quantity) !== expectedPieces && !note) {
-            showToast('warning', 'A note is required when total loaded differs from distribution (' + expectedPieces +
-                ' pcs).', 3000);
-            $('#loadItemNote').focus();
             return;
         }
 
@@ -2903,8 +2841,7 @@
             data: JSON.stringify({
                 product_id: productId,
                 quantity: quantity,
-                expected_pieces: expectedPieces,
-                note: note
+                expected_pieces: expectedPieces
             }),
             success: function(response) {
                 if (response.success) {
@@ -3255,10 +3192,6 @@
         item.beginning_stock = Math.max(0, parseInt(item.beginning_stock) || 0);
         item.pull_out_quantity = Math.max(0, parseInt(item.pull_out_quantity) || 0);
         item.ending_stock = Math.max(0, parseInt(item.ending_stock) || 0);
-        if (Object.prototype.hasOwnProperty.call(payload, 'notes')) {
-            item.notes = payload.notes || '';
-        }
-
         // Keep sales columns in sync for immediate redraw.
         const price = category === 'drinks' ?
             (parseFloat(item.srp ?? item.selling_price ?? 0) || 0) :
@@ -3308,8 +3241,7 @@
                     item.item_id + '" data-product-id="' + item.product_id +
                     '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(
                         price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g,
-                        '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item.notes || '')
-                    .replace(/"/g, '&quot;') + '">';
+                        '&quot;') + '" data-total-sales="' + totalSales + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                     '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
@@ -3380,7 +3312,7 @@
                     item.item_id + '" data-product-id="' + item.product_id +
                     '" data-qty-sold="' + qtySold + '" data-price="' + srp + '" data-product-name="' + (item
                         .item || item.product_name || 'N/A').replace(/"/g, '&quot;') + '" data-total-sales="' +
-                    sales.toFixed(2) + '" data-notes="' + (item.notes || '').replace(/"/g, '&quot;') + '">';
+                    sales.toFixed(2) + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.item || item.product_name ||
                     'N/A') + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
@@ -3449,8 +3381,7 @@
                     item.item_id + '" data-product-id="' + item.product_id +
                     '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(item
                         .selling_price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(
-                        /"/g, '&quot;') + '" data-total-sales="' + totalSales + '" data-notes="' + (item
-                        .notes || '').replace(/"/g, '&quot;') + '">';
+                        /"/g, '&quot;') + '" data-total-sales="' + totalSales + '">';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                     '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
@@ -3490,7 +3421,7 @@
     /**
      * Open the Item Details Modal and load data
      */
-    function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales, notes) {
+    function openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales) {
         const baseUrl = '<?= base_url() ?>';
 
         // Normalize values
@@ -3511,13 +3442,6 @@
         $('#itemDetailsTotalUnits').text(totalUnits);
         $('#itemDetailsSRP').text('₱' + srp.toFixed(2));
         $('#itemDetailsTotalSales').text('₱' + salesRevenue.toFixed(2));
-
-        // Set notes or placeholder
-        if (String(notes) && String(notes).trim()) {
-            $('#itemDetailsNotes').text(notes);
-        } else {
-            $('#itemDetailsNotes').html('<span class="text-gray-400">No notes added</span>');
-        }
 
         // Show loading state for materials
         $('#itemDetailsMaterialsList').html(
@@ -3824,8 +3748,6 @@
                 $('#editEndingGroup').addClass('hidden');
             }
 
-            $('#editNotes').val(item.notes || '');
-
             // Load distribution categories for the Distribute action dropdown
             loadDistributionCategoriesForModal();
 
@@ -3856,7 +3778,7 @@
 
             resetEditPreviewUiState();
 
-            // Update the distribution display and notes requirement
+            // Update the distribution display
             runEditPreviewUpdate('modal-open');
 
             // Show modal
@@ -4077,7 +3999,7 @@
     }
 
     /**
-     * Update the distribution limit display and notes requirement
+     * Update the distribution limit display
      * based on current beginning stock vs expected (distribution + carryover).
      */
     function updateBeginningStockDisplay() {
@@ -4262,7 +4184,6 @@
         const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
         const pullOutInput = parseInt($('#editPullOutQuantity').val()) || 0;
         const endingInput = parseInt($('#editEndingStock').val()) || 0;
-        const notes = ($('#editNotes').val() || '').trim();
 
         // NEW: Capture Store/Distribute fields
         const productGroupQty = parseInt($('#editProductGroupQty').val()) || 0;
@@ -4390,8 +4311,7 @@
                 adjustment_mode: true,
                 beginning_stock: beginningInput,
                 pull_out_quantity: pullOutInput,
-                ending_stock: endingInput,
-                notes: notes
+                ending_stock: endingInput
             };
         } else {
             if (beginningInput < 0 || pullOutInput < 0) {
@@ -4402,8 +4322,7 @@
 
             payload = {
                 beginning_stock: beginningInput,
-                pull_out_quantity: pullOutInput,
-                notes: notes
+                pull_out_quantity: pullOutInput
             };
         }
 
@@ -4616,7 +4535,6 @@
             (item.srp ?? item.selling_price);
         const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
         const ending_stock = parseInt(item.ending_stock) || 0;
-        const notes = item.notes || '';
 
         let borderColor = 'border-gray-200';
         if (category === 'bakery') borderColor = 'border-l-2 border-l-amber-400 border-gray-200';
@@ -4643,12 +4561,6 @@
             card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
             card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
                 .total_sales).toFixed(2) || 0) + '</span></span>';
-            card += '  </div>';
-        }
-
-        if (notes && category !== 'drinks') {
-            card += '  <div class="text-xs text-gray-500 mb-2 px-2 py-1.5 bg-gray-50 rounded">';
-            card += '    <i class="fas fa-sticky-note mr-1 text-amber-400"></i>' + notes;
             card += '  </div>';
         }
 
