@@ -1,4 +1,5 @@
 let storesCache = null;
+let unusedStoresCache = null;
 
 function loadStores(selectedCategoryId = null) {
   return $.ajax({
@@ -9,6 +10,31 @@ function loadStores(selectedCategoryId = null) {
       if (response && response.success) {
         storesCache = response.data; // cache the data
         populateStoreDropdown(storesCache, selectedCategoryId);
+        if (typeof window.syncDistributionCategoryUi === "function") {
+          window.syncDistributionCategoryUi();
+        }
+      }
+    },
+    error: function (xhr) {
+      console.error(
+        "Error fetching stores:",
+        xhr.responseJSON?.message ||
+          xhr.responseJSON?.error ||
+          "Failed to fetch stores.",
+      );
+    },
+  });
+}
+
+function loadUnusedStores(selectedCategoryId = null) {
+  return $.ajax({
+    url: baseUrl + "DistributionCategory/FetchUnused",
+    type: "GET",
+    dataType: "json",
+    success: function (response) {
+      if (response && response.success) {
+        unusedStoresCache = response.data; // cache the data
+        populateStoreDropdown(unusedStoresCache, selectedCategoryId);
         if (typeof window.syncDistributionCategoryUi === "function") {
           window.syncDistributionCategoryUi();
         }

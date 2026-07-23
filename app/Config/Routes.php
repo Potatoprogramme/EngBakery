@@ -221,6 +221,7 @@ $routes->group('DistributionCategory', function (RouteCollection $routes) {
     $routes->post('Update', 'DistributionController::updateDistributionCategory');
     $routes->post('Delete', 'DistributionController::deleteDistributionCategory');
     $routes->get('FetchAll', 'DistributionController::fetchAllDistributionCategories');
+    $routes->get('FetchUnused', 'DistributionController::fetchUnusedDistributionCategories');
 });
 
 // Notification System Routes

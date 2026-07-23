@@ -517,7 +517,7 @@
                         <label for="distributionGroupName" class="block text-sm font-medium text-gray-700 mb-1">
                             <i class="fas fa-layer-group text-primary mr-1"></i>Destination Category
                         </label>
-                        <select id="distributionGroupName" onclick="loadStores()"
+                        <select id="distributionGroupName" onclick="loadUnusedStores()"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-white">
                             <option value="">Select a category</option>
                         </select>
