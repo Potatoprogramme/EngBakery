@@ -30,6 +30,7 @@ function loadUnusedStores(selectedCategoryId = null) {
   return $.ajax({
     url: baseUrl + "DistributionCategory/FetchUnused",
     type: "GET",
+    data: { date: $('#scheduleDate').val() },
     dataType: "json",
     success: function (response) {
       if (response && response.success) {

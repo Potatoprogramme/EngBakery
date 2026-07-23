@@ -612,38 +612,45 @@ class DistributionController extends BaseController
         ]);
     }
 
-    // New: only categories that DON'T have items yet (whatever screen needed the "exempt" behavior)
-    public function fetchUnusedDistributionCategories()
-    {
-        $idsWithItems = $this->getDistributionCategoryIdsWithItems();
+    // New: only categories that DON'T have items yet for the given date
+public function fetchUnusedDistributionCategories()
+{
+    $date = $this->request->getGet('date') ?? $this->request->getGet('distribution_date');
 
-        $builder = $this->distributionCategoryModel->orderBy('name', 'ASC');
+    $idsWithItems = $this->getDistributionCategoryIdsWithItems($date);
 
-        if (!empty($idsWithItems)) {
-            $builder->whereNotIn('dist_cat_id', $idsWithItems);
-        }
+    $builder = $this->distributionCategoryModel->orderBy('name', 'ASC');
 
-        $categories = $builder->findAll();
-
-        log_message('info', 'Fetching distribution categories with no items');
-        log_message('debug', 'Excluded category IDs (have items): ' . json_encode($idsWithItems));
-
-        return $this->response->setJSON([
-            'success' => true,
-            'data' => $categories,
-        ]);
+    if (!empty($idsWithItems)) {
+        $builder->whereNotIn('dist_cat_id', $idsWithItems);
     }
 
-    private function getDistributionCategoryIdsWithItems(): array
-    {
-        $groups = $this->distributionGroupModel
-            ->select('distribution_group.dist_category_id')
-            ->join('distribution_item', 'distribution_group.id = distribution_item.distribution_id', 'inner')
-            ->groupBy('distribution_group.dist_category_id')
-            ->findAll();
+    $categories = $builder->findAll();
 
-        return array_column($groups, 'dist_category_id');
+    log_message('info', 'Fetching distribution categories with no items for date: ' . ($date ?? 'ALL DATES'));
+    log_message('debug', 'Excluded category IDs (have items): ' . json_encode($idsWithItems));
+
+    return $this->response->setJSON([
+        'success' => true,
+        'data' => $categories,
+    ]);
+}
+
+private function getDistributionCategoryIdsWithItems(?string $date = null): array
+{
+    $builder = $this->distributionGroupModel
+        ->select('distribution_group.dist_category_id')
+        ->join('distribution_item', 'distribution_group.id = distribution_item.distribution_id', 'inner')
+        ->groupBy('distribution_group.dist_category_id');
+
+    if (!empty($date)) {
+        $builder->where('distribution_group.distribution_date', $date);
     }
+
+    $groups = $builder->findAll();
+
+    return array_column($groups, 'dist_category_id');
+}
 
     public function updateDistributionCategory()
     {

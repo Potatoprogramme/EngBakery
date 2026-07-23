@@ -724,7 +724,7 @@
 
 
 
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             function logDistributionFlow(level, message, details = {}) {
                 if (!enableApiDebugLogs) return;
@@ -765,7 +765,7 @@
                 const sourceIds = new Set();
 
                 if (item && Array.isArray(item.distribution_group_ids)) {
-                    item.distribution_group_ids.forEach(function (groupId) {
+                    item.distribution_group_ids.forEach(function(groupId) {
                         const parsed = parseInt(groupId, 10);
                         if (Number.isFinite(parsed) && parsed > 0) {
                             sourceIds.add(parsed);
@@ -789,7 +789,7 @@
             ];
 
             function syncModalBodyScrollLock() {
-                const hasOpenModal = modalScrollLockSelectors.some(function (selector) {
+                const hasOpenModal = modalScrollLockSelectors.some(function(selector) {
                     const modal = $(selector);
                     return modal.length > 0 && !modal.hasClass('hidden');
                 });
@@ -798,11 +798,11 @@
             }
 
             function initializeModalBodyScrollLock() {
-                modalScrollLockSelectors.forEach(function (selector) {
+                modalScrollLockSelectors.forEach(function(selector) {
                     const modalElement = document.querySelector(selector);
                     if (!modalElement) return;
 
-                    const observer = new MutationObserver(function () {
+                    const observer = new MutationObserver(function() {
                         syncModalBodyScrollLock();
                     });
 
@@ -833,7 +833,7 @@
                     url: baseUrl + 'Distribution/GetProducts',
                     method: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             productsData = response.data;
                             mergeProductCostRecords(productsData, {
@@ -863,7 +863,7 @@
                             updateModalForecastedSales(modalItems, modalSummary);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error('Error fetching products:', error);
                     }
                 });
@@ -889,7 +889,7 @@
                     console.log('   Sample product:', recordArray[0].product_id, recordArray[0].product_name, '| combined_recipe_cost:', recordArray[0].combined_recipe_cost);
                 }
 
-                recordArray.forEach(function (record) {
+                recordArray.forEach(function(record) {
                     const productId = String(record.product_id || '').trim();
                     if (!productId) return;
 
@@ -897,7 +897,7 @@
                     const mergedRecord = Object.assign({}, record);
 
                     if (preserveExistingCostFields) {
-                        protectedCostFields.forEach(function (field) {
+                        protectedCostFields.forEach(function(field) {
                             const existingRaw = existingRecord[field];
                             const incomingRaw = mergedRecord[field];
                             const existingValue = parseNumericValue(existingRaw);
@@ -921,7 +921,7 @@
                     url: baseUrl + 'Products/GetAll',
                     method: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response && response.success && Array.isArray(response.data)) {
                             console.log('\ud83d\udd04 [loadProductCostData] Merging', response.data.length, 'products with cost details');
                             mergeProductCostRecords(response.data, {
@@ -952,7 +952,7 @@
 
                         renderAllDistributionsList();
                     },
-                    error: function () {
+                    error: function() {
                         // Keep using lightweight product data fallback.
                     }
                 });
@@ -968,7 +968,7 @@
                     return productCostMap[key];
                 }
 
-                const fromList = productsData.find(function (product) {
+                const fromList = productsData.find(function(product) {
                     return String(product.product_id) === key;
                 });
 
@@ -1018,7 +1018,7 @@
             }
 
             function calculateTotalDistributionPieces(items) {
-                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     const productData = getProductAnalyticsData(item && item.product_id);
                     return sum + getDistributionPieces(item, productData);
                 }, 0);
@@ -1138,7 +1138,7 @@
             function decorateDistributionItems(items, fallbackDate = '') {
                 const normalizedItems = applyLocalDistributionGroupMeta(items, fallbackDate);
 
-                return normalizedItems.map(function (item) {
+                return normalizedItems.map(function(item) {
                     const decoratedItem = Object.assign({}, item);
                     const productData = getProductAnalyticsData(decoratedItem.product_id);
                     const quantity = parseNumericValue(decoratedItem.product_qnty);
@@ -1339,7 +1339,7 @@
                     allMeta[dateKey] = {};
                 }
 
-                productIds.forEach(function (productId) {
+                productIds.forEach(function(productId) {
                     const productKey = String(productId || '').trim();
                     if (!productKey) return;
 
@@ -1393,8 +1393,8 @@
                 const dateMeta = allMeta[dateKey] || {};
                 const usedNames = new Set(
                     Object.values(dateMeta)
-                        .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
-                        .filter(Boolean)
+                    .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
+                    .filter(Boolean)
                 );
 
                 let sequence = 1;
@@ -1406,7 +1406,7 @@
             }
 
             function applyLocalDistributionGroupMeta(items, fallbackDate = '') {
-                return (Array.isArray(items) ? items : []).map(function (item) {
+                return (Array.isArray(items) ? items : []).map(function(item) {
                     const enrichedItem = Object.assign({}, item);
                     const dateValue = ((enrichedItem && enrichedItem.distribution_date) || fallbackDate ||
                         '').toString().trim();
@@ -1483,7 +1483,7 @@
             function groupDistributionsByGroup(items, fallbackDate = '') {
                 const groupedMap = {};
 
-                (items || []).forEach(function (item) {
+                (items || []).forEach(function(item) {
                     const groupKey = getDistributionGroupKey(item, fallbackDate);
                     const categoryId = parseInt((item && (item.dist_category_id ?? item.distribution_category_id ?? item.category_id ?? item.dist_cat_id)) || 0, 10);
 
@@ -1510,7 +1510,7 @@
                     }
 
                     const sourceGroupIds = getItemSourceGroupIds(item);
-                    sourceGroupIds.forEach(function (groupId) {
+                    sourceGroupIds.forEach(function(groupId) {
                         if (groupedMap[groupKey].source_group_ids.indexOf(groupId) === -1) {
                             groupedMap[groupKey].source_group_ids.push(groupId);
                         }
@@ -1532,13 +1532,13 @@
                     );
 
                     groupedMap[groupKey].forecasted_sales += hasPersistedNumericValue(item,
-                        'forecasted_sales') ?
+                            'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
                         fallbackForecast;
                     groupedMap[groupKey].total_cost += parseNumericValue(item.total_cost);
 
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(groupedMap[groupKey]._raw_material_usage_map,
                                 material);
                         });
@@ -1546,7 +1546,7 @@
                     groupedMap[groupKey].items.push(item);
                 });
 
-                return Object.values(groupedMap).map(function (group) {
+                return Object.values(groupedMap).map(function(group) {
                     const normalizedGroup = Object.assign({}, group);
                     normalizedGroup.raw_material_usage_total = materialUsageMapToArray(normalizedGroup
                         ._raw_material_usage_map);
@@ -1569,7 +1569,7 @@
 
                 const totalBatches = group ?
                     parseNumericValue(group.total_batches) :
-                    groupItems.reduce(function (sum, item) {
+                    groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
                             .product_qnty) : 0);
                     }, 0);
@@ -1625,7 +1625,7 @@
                     return parseNumericValue(group.total_cost);
                 }
 
-                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     return sum + parseNumericValue(item.total_cost);
                 }, 0);
             }
@@ -1635,7 +1635,7 @@
                     return parseNumericValue(group.overhead_cost);
                 }
 
-                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     return sum + parseNumericValue(item.overhead_cost);
                 }, 0);
             }
@@ -1694,7 +1694,7 @@
                     };
                 }
 
-                const matchedGroup = normalizedGroups.find(function (group) {
+                const matchedGroup = normalizedGroups.find(function(group) {
                     return String(group.group_key || '').trim() === activeKey;
                 });
 
@@ -1732,7 +1732,7 @@
                     return '<p class="text-[11px] text-gray-400">No material usage data.</p>';
                 }
 
-                return materials.map(function (material) {
+                return materials.map(function(material) {
                     const amount = formatMaterialAmount(material.amount);
                     const unit = (material.unit || '').toString().trim();
                     const lineCost = parseNumericValue(material.line_cost);
@@ -1777,68 +1777,68 @@
             }
 
             function materialUsageMapToArray(materialMap) {
-                return Object.values(materialMap || {}).sort(function (a, b) {
+                return Object.values(materialMap || {}).sort(function(a, b) {
                     return String(a.material_name || '').localeCompare(String(b.material_name || ''));
                 });
             }
 
             function mergeGroupItemsByProduct(items) {
-    const mergedMap = {};
-    const order = [];
+                const mergedMap = {};
+                const order = [];
 
-    (Array.isArray(items) ? items : []).forEach(function (item) {
-        const productId = String(item && item.product_id || '').trim();
-        const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
-        const mergeKey = productId + '::' + qtyMode;
+                (Array.isArray(items) ? items : []).forEach(function(item) {
+                    const productId = String(item && item.product_id || '').trim();
+                    const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
+                    const mergeKey = productId + '::' + qtyMode;
 
-        if (!mergedMap[mergeKey]) {
-            const clonedItem = Object.assign({}, item);
-            clonedItem.product_qnty = parseNumericValue(item.product_qnty);
-            clonedItem.forecasted_sales = parseNumericValue(item.forecasted_sales);
-            clonedItem.total_cost = parseNumericValue(item.total_cost);
-            clonedItem.overhead_cost = parseNumericValue(item.overhead_cost);
-            clonedItem.additional_cost = parseNumericValue(item.additional_cost);
-            clonedItem.raw_material_usage = Array.isArray(item.raw_material_usage) ?
-                item.raw_material_usage.slice() : [];
+                    if (!mergedMap[mergeKey]) {
+                        const clonedItem = Object.assign({}, item);
+                        clonedItem.product_qnty = parseNumericValue(item.product_qnty);
+                        clonedItem.forecasted_sales = parseNumericValue(item.forecasted_sales);
+                        clonedItem.total_cost = parseNumericValue(item.total_cost);
+                        clonedItem.overhead_cost = parseNumericValue(item.overhead_cost);
+                        clonedItem.additional_cost = parseNumericValue(item.additional_cost);
+                        clonedItem.raw_material_usage = Array.isArray(item.raw_material_usage) ?
+                            item.raw_material_usage.slice() : [];
 
-            const mergedIds = [];
-            const initialId = getDistributionItemId(item);
-            if (initialId) mergedIds.push(initialId);
-            clonedItem._merged_item_ids = mergedIds;
+                        const mergedIds = [];
+                        const initialId = getDistributionItemId(item);
+                        if (initialId) mergedIds.push(initialId);
+                        clonedItem._merged_item_ids = mergedIds;
 
-            mergedMap[mergeKey] = clonedItem;
-            order.push(mergeKey);
-        } else {
-            const existing = mergedMap[mergeKey];
-            existing.product_qnty += parseNumericValue(item.product_qnty);
-            existing.forecasted_sales += parseNumericValue(item.forecasted_sales);
-            existing.total_cost += parseNumericValue(item.total_cost);
-            existing.overhead_cost += parseNumericValue(item.overhead_cost);
-            existing.additional_cost += parseNumericValue(item.additional_cost);
+                        mergedMap[mergeKey] = clonedItem;
+                        order.push(mergeKey);
+                    } else {
+                        const existing = mergedMap[mergeKey];
+                        existing.product_qnty += parseNumericValue(item.product_qnty);
+                        existing.forecasted_sales += parseNumericValue(item.forecasted_sales);
+                        existing.total_cost += parseNumericValue(item.total_cost);
+                        existing.overhead_cost += parseNumericValue(item.overhead_cost);
+                        existing.additional_cost += parseNumericValue(item.additional_cost);
 
-            const materialMap = {};
-            existing.raw_material_usage.forEach(function (material) {
-                mergeMaterialUsageEntry(materialMap, material);
-            });
-            (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                function (material) {
-                    mergeMaterialUsageEntry(materialMap, material);
+                        const materialMap = {};
+                        existing.raw_material_usage.forEach(function(material) {
+                            mergeMaterialUsageEntry(materialMap, material);
+                        });
+                        (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
+                            function(material) {
+                                mergeMaterialUsageEntry(materialMap, material);
+                            });
+                        existing.raw_material_usage = materialUsageMapToArray(materialMap);
+
+                        const mergeId = getDistributionItemId(item);
+                        if (mergeId && existing._merged_item_ids.indexOf(mergeId) === -1) {
+                            existing._merged_item_ids.push(mergeId);
+                        }
+                    }
                 });
-            existing.raw_material_usage = materialUsageMapToArray(materialMap);
 
-            const mergeId = getDistributionItemId(item);
-            if (mergeId && existing._merged_item_ids.indexOf(mergeId) === -1) {
-                existing._merged_item_ids.push(mergeId);
+                return order.map(function(key) {
+                    return mergedMap[key];
+                });
             }
-        }
-    });
 
-    return order.map(function (key) {
-        return mergedMap[key];
-    });
-}
-            
-function fetchProductDetail(productId) {
+            function fetchProductDetail(productId) {
                 const key = String(productId || '').trim();
                 if (!key) {
                     return Promise.resolve(null);
@@ -1852,12 +1852,12 @@ function fetchProductDetail(productId) {
                     return productDetailPromiseCache[key];
                 }
 
-                productDetailPromiseCache[key] = new Promise(function (resolve) {
+                productDetailPromiseCache[key] = new Promise(function(resolve) {
                     $.ajax({
                         url: baseUrl + 'Products/GetProduct/' + key,
                         method: 'GET',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response && response.success && response.data) {
                                 const productData = response.data;
                                 productDetailCache[key] = productData;
@@ -1868,10 +1868,10 @@ function fetchProductDetail(productId) {
 
                             resolve(null);
                         },
-                        error: function () {
+                        error: function() {
                             resolve(null);
                         },
-                        complete: function () {
+                        complete: function() {
                             delete productDetailPromiseCache[key];
                         }
                     });
@@ -1893,7 +1893,7 @@ function fetchProductDetail(productId) {
                 nextVisited.add(key);
 
                 const ingredients = Array.isArray(currentProduct.ingredients) ? currentProduct.ingredients : [];
-                ingredients.forEach(function (ingredient) {
+                ingredients.forEach(function(ingredient) {
                     const quantityPerYield = parseNumericValue(ingredient.quantity ?? ingredient
                         .quantity_needed);
                     if (quantityPerYield <= 0) return;
@@ -1989,7 +1989,7 @@ function fetchProductDetail(productId) {
 
                 const requestToken = ++ownerRawUsageHydrationToken;
 
-                const usagePromises = decoratedItems.map(async function (item) {
+                const usagePromises = decoratedItems.map(async function(item) {
                     try {
                         const usage = await computeRawMaterialUsageForItem(item);
                         return Object.assign({}, item, {
@@ -2013,9 +2013,9 @@ function fetchProductDetail(productId) {
                 }
 
                 const dayMaterialMap = {};
-                ownerDecoratedItems.forEach(function (item) {
+                ownerDecoratedItems.forEach(function(item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(dayMaterialMap, material);
                         });
                 });
@@ -2042,7 +2042,7 @@ function fetchProductDetail(productId) {
                 renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data(
-                    'selected-date') === targetDate) {
+                        'selected-date') === targetDate) {
                     $('#calendarDayModal').data('day-items', ownerDecoratedItems);
                     $('#calendarDayModal').data('day-summary', ownerSummary);
                     updateModalForecastedSales(ownerDecoratedItems, ownerSummary);
@@ -2100,7 +2100,7 @@ function fetchProductDetail(productId) {
                         `<p class="text-xs text-gray-400">${isGroupScoped ? 'No raw material usage for this selected group.' : 'No raw material usage for this date.'}</p>`
                     );
                 } else {
-                    materialsContainer.html(dayMaterials.map(function (material) {
+                    materialsContainer.html(dayMaterials.map(function(material) {
                         return `
                             <div class="flex items-center justify-between text-xs text-gray-700 border-b border-gray-100 pb-1">
                                 <span class="truncate pr-2">${material.material_name}: ${formatMaterialAmount(material.amount)}${material.unit ? ' ' + material.unit : ''}</span>
@@ -2115,13 +2115,13 @@ function fetchProductDetail(productId) {
                     return;
                 }
 
-                const html = normalizedGroups.map(function (group) {
+                const html = normalizedGroups.map(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupForecast = parseNumericValue(group.forecasted_sales);
                     const groupTotal = parseNumericValue(group.total_cost);
                     const groupNote = (group.group_note || '').toString().trim();
 
-                    const itemsHtml = groupItems.map(function (item) {
+                    const itemsHtml = groupItems.map(function(item) {
                         const quantity = parseNumericValue(item.product_qnty);
                         const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                             parseNumericValue(item.forecasted_sales) :
@@ -2176,7 +2176,7 @@ function fetchProductDetail(productId) {
 
             function groupDistributionsByDate(items) {
                 const grouped = {};
-                (items || []).forEach(function (item) {
+                (items || []).forEach(function(item) {
                     if (!grouped[item.distribution_date]) {
                         grouped[item.distribution_date] = [];
                     }
@@ -2204,10 +2204,10 @@ function fetchProductDetail(productId) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const dates = Object.keys(allDistributionData).filter(function (dateStr) {
+                const dates = Object.keys(allDistributionData).filter(function(dateStr) {
                     const parsed = new Date(dateStr + 'T00:00:00');
                     return !isNaN(parsed.getTime()) && parsed >= today;
-                }).sort(function (a, b) {
+                }).sort(function(a, b) {
                     return new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00');
                 });
 
@@ -2220,16 +2220,16 @@ function fetchProductDetail(productId) {
 
                 $('#allDistributionsEmptyState').addClass('hidden');
 
-                dates.forEach(function (dateStr) {
+                dates.forEach(function(dateStr) {
                     const dayItems = allDistributionData[dateStr] || [];
-                    const actualItems = dayItems.filter(function (item) {
+                    const actualItems = dayItems.filter(function(item) {
                         return !(item && item.__empty_group_placeholder);
                     });
-                    const batchQty = actualItems.reduce(function (sum, item) {
+                    const batchQty = actualItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
-                    const piecesQty = actualItems.reduce(function (sum, item) {
+                    const piecesQty = actualItems.reduce(function(sum, item) {
                         const productData = getProductAnalyticsData(item.product_id);
                         return sum + getDistributionPieces(item, productData);
                     }, 0);
@@ -2276,10 +2276,10 @@ function fetchProductDetail(productId) {
                         date: date
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         const responseNote = extractDistributionNote([], response.distribution_note ||
                             response.overall_note || response.note || response
-                                .place_distributed_to || response.place_distributed || '');
+                            .place_distributed_to || response.place_distributed || '');
 
                         if (response.success) {
                             // Flatten nested groups into a single array of items
@@ -2287,10 +2287,9 @@ function fetchProductDetail(productId) {
                             const flattenedItems = [];
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
 
-                            apiGroups.forEach(function (group) {
-                                const groupItems = Array.isArray(group.items) ? group.items :
-                                    [];
-                                groupItems.forEach(function (item) {
+                            apiGroups.forEach(function(group) {
+                                const groupItems = Array.isArray(group.items) ? group.items : [];
+                                groupItems.forEach(function(item) {
                                     // Attach group-level information to each item
                                     const itemWithGroup = Object.assign({}, item, {
                                         // Group metadata
@@ -2298,8 +2297,7 @@ function fetchProductDetail(productId) {
                                         dist_category_id: group.dist_category_id || group.category_id || group.dist_cat_id || item.dist_category_id || item.category_id || item.dist_cat_id,
                                         distribution_group_key: 'group-' +
                                             String(group.id),
-                                        distribution_display_group_key:
-                                            getDistributionDisplayGroupKey(group),
+                                        distribution_display_group_key: getDistributionDisplayGroupKey(group),
                                         distribution_group_name: group.title,
                                         distribution_group_note: group
                                             .distributed_to_note || '',
@@ -2318,19 +2316,19 @@ function fetchProductDetail(productId) {
                             const items = decorateDistributionItems(flattenedItems, date);
                             const groupedData = groupDistributionsByGroup(items, date);
                             const summary = Object.assign({
-                                date: date,
-                                total_items: items.length,
-                                total_groups: getDistinctGroupCount(items, date),
-                                total_batches: items.reduce((sum, item) => sum + (((item
-                                    .qty_mode || 'batch') !== 'pieces') ?
-                                    parseNumericValue(item.product_qnty) : 0), 0),
-                                total_pieces: calculateTotalDistributionPieces(items),
-                                forecasted_sales_total: calculateForecastedSalesTotal(items),
-                                total_cost_total: items.reduce((sum, item) => sum +
-                                    parseNumericValue(item.total_cost), 0),
-                                additional_cost_total: calculateAdditionalCostTotal(items),
-                                raw_material_usage_total: []
-                            },
+                                    date: date,
+                                    total_items: items.length,
+                                    total_groups: getDistinctGroupCount(items, date),
+                                    total_batches: items.reduce((sum, item) => sum + (((item
+                                            .qty_mode || 'batch') !== 'pieces') ?
+                                        parseNumericValue(item.product_qnty) : 0), 0),
+                                    total_pieces: calculateTotalDistributionPieces(items),
+                                    forecasted_sales_total: calculateForecastedSalesTotal(items),
+                                    total_cost_total: items.reduce((sum, item) => sum +
+                                        parseNumericValue(item.total_cost), 0),
+                                    additional_cost_total: calculateAdditionalCostTotal(items),
+                                    raw_material_usage_total: []
+                                },
                                 response.daily_summary || {}
                             );
 
@@ -2338,7 +2336,7 @@ function fetchProductDetail(productId) {
                             summary.total_groups = getDistinctGroupCount(items, date);
                             summary.total_batches = items.reduce((sum, item) => sum + (((item
                                 .qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
-                                    .product_qnty) : 0), 0);
+                                .product_qnty) : 0), 0);
                             summary.total_pieces = calculateTotalDistributionPieces(items);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.total_cost_total = items.reduce((sum, item) => sum +
@@ -2372,7 +2370,7 @@ function fetchProductDetail(productId) {
                                 hydrateOwnerRawMaterialAnalytics(date, items, summary);
                             }
 
-                            setTimeout(function () {
+                            setTimeout(function() {
                                 console.log('[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...');
                                 const freshItems = decorateDistributionItems(currentDayDistributionItems, date);
                                 const freshGrouped = groupDistributionsByGroup(freshItems, date);
@@ -2409,7 +2407,7 @@ function fetchProductDetail(productId) {
                             updateMainDistributionNotePanels([]);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error('%c[DISTRIBUTION ERROR]', 'color: #FF0000; font-weight: bold', {
                             status: xhr.status,
                             statusText: xhr.statusText,
@@ -2444,7 +2442,7 @@ function fetchProductDetail(productId) {
                         end_date: formatDate(endDate)
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             const flattenedItems = flattenGroupedDataIfNeeded(response.data, '');
                             const decoratedItems = decorateDistributionItems(flattenedItems);
@@ -2455,7 +2453,7 @@ function fetchProductDetail(productId) {
                         }
                         renderCalendar();
                     },
-                    error: function () {
+                    error: function() {
                         calendarData = {};
                         renderCalendar();
                     }
@@ -2473,15 +2471,14 @@ function fetchProductDetail(productId) {
                         end_date: '2100-12-31'
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
                             const flattenedItems = flattenGroupedDataIfNeeded(apiGroups, '');
                             const placeholderItems = [];
 
-                            apiGroups.forEach(function (group) {
-                                const groupItems = Array.isArray(group.items) ? group.items :
-                                    [];
+                            apiGroups.forEach(function(group) {
+                                const groupItems = Array.isArray(group.items) ? group.items : [];
                                 if (groupItems.length > 0) return;
 
                                 placeholderItems.push({
@@ -2489,8 +2486,7 @@ function fetchProductDetail(productId) {
                                         .toString(),
                                     distribution_id: group.id,
                                     distribution_group_key: 'group-' + String(group.id),
-                                    distribution_display_group_key:
-                                        getDistributionDisplayGroupKey(group),
+                                    distribution_display_group_key: getDistributionDisplayGroupKey(group),
                                     distribution_group_name: group.title ||
                                         'Default Group',
                                     distribution_group_note: group
@@ -2516,7 +2512,7 @@ function fetchProductDetail(productId) {
                         }
                         renderAllDistributionsList();
                     },
-                    error: function () {
+                    error: function() {
                         allDistributionData = {};
                         renderAllDistributionsList();
                     }
@@ -2526,7 +2522,7 @@ function fetchProductDetail(productId) {
             // OLD → Distribution/AddDistribution
             // NEW → Distribution/AddItem
             function addDistributionItemRequest(payload, rawQtyMode = null) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const requestId = `add-item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     const normalizedDistributionId = normalizeDistributionGroupIdForApi(payload
                         .distribution_id);
@@ -2552,26 +2548,26 @@ function fetchProductDetail(productId) {
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(requestPayload),
-                        success: function (response) {
+                        success: function(response) {
                             logDistributionFlow('log',
                                 'Add distribution item request succeeded.', {
-                                request_id: requestId,
-                                endpoint: 'Distribution/AddItem',
-                                response: response || {},
-                            });
+                                    request_id: requestId,
+                                    endpoint: 'Distribution/AddItem',
+                                    response: response || {},
+                                });
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             logDistributionFlow('error',
                                 'Add distribution item request failed.', {
-                                request_id: requestId,
-                                endpoint: 'Distribution/AddItem',
-                                status: xhr.status,
-                                status_text: xhr.statusText,
-                                response: xhr.responseJSON,
-                                payload: requestPayload,
-                                raw_qty_mode: rawQtyMode
-                            });
+                                    request_id: requestId,
+                                    endpoint: 'Distribution/AddItem',
+                                    status: xhr.status,
+                                    status_text: xhr.statusText,
+                                    response: xhr.responseJSON,
+                                    payload: requestPayload,
+                                    raw_qty_mode: rawQtyMode
+                                });
                             reject(xhr);
                         }
                     });
@@ -2581,15 +2577,15 @@ function fetchProductDetail(productId) {
             // OLD → Distribution/DeleteDistribution/:id
             // NEW → Distribution/DeleteItem/:id
             function deleteDistributionItemRequest(itemId) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to delete item:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2602,17 +2598,17 @@ function fetchProductDetail(productId) {
             }
 
             function deleteDistributionGroupRequest(groupId) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteGroup/' + normalizedGroupId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to delete group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2626,7 +2622,7 @@ function fetchProductDetail(productId) {
             }
 
             function updateDistributionGroupRequest(groupId, payload) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
@@ -2635,10 +2631,10 @@ function fetchProductDetail(productId) {
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(payload || {}),
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to update group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2653,7 +2649,7 @@ function fetchProductDetail(productId) {
             }
 
             function fetchDistributionItemsByDateRequest(dateStr) {
-                return new Promise(function (resolve) {
+                return new Promise(function(resolve) {
                     $.ajax({
                         url: baseUrl + 'Distribution/GetDistributionByDate',
                         method: 'GET',
@@ -2661,7 +2657,7 @@ function fetchProductDetail(productId) {
                             date: dateStr
                         },
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response && response.success) {
                                 // Flatten grouped data before decorating
                                 const flattenedData = flattenGroupedDataIfNeeded(response
@@ -2671,7 +2667,7 @@ function fetchProductDetail(productId) {
                             }
                             resolve([]);
                         },
-                        error: function () {
+                        error: function() {
                             resolve([]);
                         }
                     });
@@ -2689,6 +2685,14 @@ function fetchProductDetail(productId) {
                 return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
             }
 
+            function getMergedDistributionItemIds(item) {
+                if (item && Array.isArray(item._merged_item_ids) && item._merged_item_ids.length > 0) {
+                    return item._merged_item_ids.filter(id => Number.isFinite(id) && id > 0);
+                }
+                const singleId = getDistributionItemId(item);
+                return singleId ? [singleId] : [];
+            }
+
             function getDistributionItemIdentityKey(item) {
                 const distributionItemId = getDistributionItemId(item);
                 if (distributionItemId) {
@@ -2703,7 +2707,7 @@ function fetchProductDetail(productId) {
                     url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                     method: 'POST',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (productId != null) {
                             removeLocalDistributionGroupMeta(dateValue || $('#selectedDate').val(),
                                 productId);
@@ -2713,7 +2717,7 @@ function fetchProductDetail(productId) {
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         showToast('danger', 'Failed to delete item. Please try again.', 3000);
                         console.error('Error deleting item:', error);
                     }
@@ -2749,7 +2753,7 @@ function fetchProductDetail(productId) {
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify(requestPayload),
-                    success: function (response) {
+                    success: function(response) {
                         logDistributionFlow('log', 'Update distribution item request succeeded.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2761,7 +2765,7 @@ function fetchProductDetail(productId) {
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         logDistributionFlow('error', 'Update distribution item request failed.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2826,9 +2830,9 @@ function fetchProductDetail(productId) {
                         // Determine if data is already grouped
                         let groupedData = [];
                         if (dayData.length > 0 && dayData[0] && typeof dayData[0] === 'object' && Array.isArray(
-                            dayData[0].items)) {
+                                dayData[0].items)) {
                             // Already grouped (from calendar API) - transform to expected format
-                            groupedData = dayData.map(function (apiGroup) {
+                            groupedData = dayData.map(function(apiGroup) {
                                 const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
                                 return {
                                     group_key: getDistributionDisplayGroupKey(apiGroup),
@@ -2882,7 +2886,7 @@ function fetchProductDetail(productId) {
             }
 
             // Calendar navigation
-            $('#btnPrevMonth').on('click', function () {
+            $('#btnPrevMonth').on('click', function() {
                 currentCalendarMonth--;
                 if (currentCalendarMonth < 0) {
                     currentCalendarMonth = 11;
@@ -2891,7 +2895,7 @@ function fetchProductDetail(productId) {
                 loadMonthDistributions();
             });
 
-            $('#btnNextMonth').on('click', function () {
+            $('#btnNextMonth').on('click', function() {
                 currentCalendarMonth++;
                 if (currentCalendarMonth > 11) {
                     currentCalendarMonth = 0;
@@ -2936,10 +2940,9 @@ function fetchProductDetail(productId) {
                 const totalPieces = parseNumericValue(groupSummary.total_pieces);
                 const isMaterialLoading = Boolean(options && options.materialLoading);
 
-                const materialUsageByItemHtml = groupItems.map(function (item) {
+                const materialUsageByItemHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
-                    const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage :
-                        [];
+                    const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
                     const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0) ?
                         '<p class="text-[11px] text-gray-400">Loading ingredients used...</p>' :
                         renderMaterialUsageList(itemMaterials);
@@ -2955,7 +2958,7 @@ function fetchProductDetail(productId) {
                     `;
                 }).join('');
 
-                const itemsHtml = groupItems.map(function (item) {
+                const itemsHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
                     const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
@@ -3031,7 +3034,7 @@ function fetchProductDetail(productId) {
             async function hydrateGroupItemsRawMaterialUsageForModal(items) {
                 const normalizedItems = Array.isArray(items) ? items : [];
 
-                const hydratedItems = await Promise.all(normalizedItems.map(async function (item) {
+                const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
                     const existingUsage = Array.isArray(item && item.raw_material_usage) ?
                         item.raw_material_usage : [];
 
@@ -3054,9 +3057,9 @@ function fetchProductDetail(productId) {
                 }));
 
                 const materialMap = {};
-                hydratedItems.forEach(function (item) {
+                hydratedItems.forEach(function(item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(materialMap, material);
                         });
                 });
@@ -3076,7 +3079,7 @@ function fetchProductDetail(productId) {
                         normalizedDate] || []), normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function (group) {
+                const matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3096,7 +3099,7 @@ function fetchProductDetail(productId) {
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
-                const needsHydration = groupItems.some(function (item) {
+                const needsHydration = groupItems.some(function(item) {
                     return !Array.isArray(item && item.raw_material_usage) || item.raw_material_usage
                         .length === 0;
                 });
@@ -3105,8 +3108,8 @@ function fetchProductDetail(productId) {
 
                 $('#calendarDayGroupDetailContent').html(renderCalendarModalGroupDetail(normalizedDate,
                     matchedGroup, {
-                    materialLoading: needsHydration
-                }));
+                        materialLoading: needsHydration
+                    }));
                 $('#calendarDayModal').data('day-summary', groupSummary);
                 updateModalForecastedSales(groupItems, groupSummary);
                 setCalendarDaySelectButtonScope('group', normalizedGroupKey);
@@ -3158,7 +3161,7 @@ function fetchProductDetail(productId) {
                         normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function (group) {
+                const matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3185,7 +3188,7 @@ function fetchProductDetail(productId) {
             }
 
             // Calendar date click - show all groups so user can choose one
-            $(document).on('click', '.calendar-day', function (e) {
+            $(document).on('click', '.calendar-day', function(e) {
                 if ($(e.target).closest('.calendar-group-chip').length) {
                     return;
                 }
@@ -3198,7 +3201,7 @@ function fetchProductDetail(productId) {
             });
 
             // Calendar group chip click - open selected group directly
-            $(document).on('click', '.calendar-group-chip', function (e) {
+            $(document).on('click', '.calendar-group-chip', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -3208,7 +3211,7 @@ function fetchProductDetail(productId) {
             });
 
             // Group picker inside modal - open selected group
-            $(document).on('click', '.modal-group-picker-btn', function () {
+            $(document).on('click', '.modal-group-picker-btn', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3217,7 +3220,7 @@ function fetchProductDetail(productId) {
             });
 
             // Group list (non-picker mode) - open selected group detail pane
-            $(document).on('click', '.modal-group-detail-btn', function () {
+            $(document).on('click', '.modal-group-detail-btn', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3225,7 +3228,7 @@ function fetchProductDetail(productId) {
                 openCalendarModalGroupDetail(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-edit-group', function () {
+            $(document).on('click', '.btn-modal-edit-group', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3233,18 +3236,18 @@ function fetchProductDetail(productId) {
                 openDistributionGroupEditModal(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-delete-group', function () {
+            $(document).on('click', '.btn-modal-delete-group', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
 
-                Confirm.delete('Delete this distribution group and all its items?', async function () {
+                Confirm.delete('Delete this distribution group and all its items?', async function() {
                     await deleteDistributionGroupByKey(dateStr, groupKey, dayItems);
                 });
             });
 
-            $(document).on('click', '#btnCalendarDayBackToGroups', function () {
+            $(document).on('click', '#btnCalendarDayBackToGroups', function() {
                 const dayItems = $('#calendarDayModal').data('day-items') || [];
                 const baseSummary = $('#calendarDayModal').data('base-day-summary') || {};
                 const baseScope = ($('#calendarDayModal').data('base-selection-scope') || 'date')
@@ -3263,8 +3266,8 @@ function fetchProductDetail(productId) {
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                        'Select Distribution Group' :
-                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                    'Select Distribution Group' :
+                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formattedDate} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3289,7 +3292,7 @@ function fetchProductDetail(productId) {
                 if (data[0] && typeof data[0] === 'object' && Array.isArray(data[0].items)) {
 
                     const flatItems = [];
-                    data.forEach(function (group) {
+                    data.forEach(function(group) {
                         const groupDate = (group.distribution_date || dateStr || '').toString();
                         const groupItems = Array.isArray(group.items) ? group.items : [];
 
@@ -3297,7 +3300,7 @@ function fetchProductDetail(productId) {
                         const groupKey = 'group-' + String(group.id);
                         const displayGroupKey = getDistributionDisplayGroupKey(group);
 
-                        groupItems.forEach(function (item) {
+                        groupItems.forEach(function(item) {
                             flatItems.push(Object.assign({}, item, {
                                 distribution_date: groupDate,
                                 distribution_id: group.id,
@@ -3336,9 +3339,9 @@ function fetchProductDetail(productId) {
                     .isArray(items[0].items)) {
 
                     // Transform API groups to match expected format
-                    groupedData = items.map(function (apiGroup) {
+                    groupedData = items.map(function(apiGroup) {
                         const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
-                        const totalBatches = groupItems.reduce(function (sum, item) {
+                        const totalBatches = groupItems.reduce(function(sum, item) {
                             return sum + (((item.qty_mode || 'batch') !== 'pieces') ?
                                 parseNumericValue(item.product_qnty) : 0);
                         }, 0);
@@ -3362,9 +3365,9 @@ function fetchProductDetail(productId) {
 
                     // Extract all items for calculations (preserve original group key)
                     flatItems = [];
-                    groupedData.forEach(function (group) {
+                    groupedData.forEach(function(group) {
                         if (Array.isArray(group.items)) {
-                            group.items.forEach(function (item) {
+                            group.items.forEach(function(item) {
                                 flatItems.push(Object.assign({}, item, {
                                     distribution_date: group._apiDate || dateStr,
                                     distribution_id: group._apiId,
@@ -3388,11 +3391,11 @@ function fetchProductDetail(productId) {
                     null;
                 const isGroupPickerMode = Boolean(modalOptions && modalOptions.groupPicker);
                 const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope ===
-                    'group') ?
+                        'group') ?
                     'group' :
                     'date';
                 const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions
-                    .groupKey) ?
+                        .groupKey) ?
                     String(modalOptions.groupKey) :
                     '';
                 const shouldOpenSpecificGroup = requestedScope === 'group' && providedGroupKey !== '';
@@ -3412,8 +3415,8 @@ function fetchProductDetail(productId) {
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                        'Select Distribution Group' :
-                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                    'Select Distribution Group' :
+                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3461,7 +3464,7 @@ function fetchProductDetail(productId) {
                     $('#calendarDayEmptyState').addClass('hidden');
 
                     if (isGroupPickerMode) {
-                        const pickerHtml = groupedData.map(function (group) {
+                        const pickerHtml = groupedData.map(function(group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
@@ -3494,13 +3497,13 @@ function fetchProductDetail(productId) {
                             '<p class="text-xs text-gray-400">No groups available.</p>');
                     } else {
 
-                        groupedData.forEach(function (group) {
+                        groupedData.forEach(function(group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
                             const groupKey = escapeHtml((group.group_key || '').toString());
 
-                            const rowsHtml = groupItems.map(function (item) {
+                            const rowsHtml = groupItems.map(function(item) {
                                 return `
                                     <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                                         <div class="flex items-center gap-2 min-w-0">
@@ -3551,12 +3554,12 @@ function fetchProductDetail(productId) {
             }
 
             // Close calendar day modal
-            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function () {
+            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function() {
                 $('#calendarDayModal').addClass('hidden');
             });
 
             // Go to selected date from modal
-            $('#btnCalendarDaySelect').on('click', function () {
+            $('#btnCalendarDaySelect').on('click', function() {
                 const dateStr = $('#calendarDayModal').data('selected-date');
                 const selectionScope = ($('#calendarDayModal').data('selection-scope') || 'date')
                     .toString();
@@ -3580,13 +3583,13 @@ function fetchProductDetail(productId) {
                 $('#calendarDayModal').addClass('hidden');
             });
 
-            $(document).on('click', '.all-distribution-entry', function () {
+            $(document).on('click', '.all-distribution-entry', function() {
                 const dateStr = $(this).data('date');
                 const dayData = allDistributionData[dateStr] || [];
                 showCalendarDayModal(dateStr, dayData);
             });
 
-            $(document).on('click', '.distribution-group-entry', function () {
+            $(document).on('click', '.distribution-group-entry', function() {
                 const dateStr = ($(this).data('date') || $('#selectedDate').val() || '').toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 openSpecificGroupView(dateStr, groupKey, currentDayDistributionItems);
@@ -3604,7 +3607,7 @@ function fetchProductDetail(productId) {
                 if (groupEntries.length < 3) return;
 
                 let maxHeight = 0;
-                groupEntries.slice(0, 3).each(function () {
+                groupEntries.slice(0, 3).each(function() {
                     maxHeight += ($(this).outerHeight(true) || 0);
                 });
 
@@ -3630,14 +3633,14 @@ function fetchProductDetail(productId) {
                 const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
                 const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
-                normalizedGroups.forEach(function (group) {
+                normalizedGroups.forEach(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                     const groupNoteRaw = (group.group_note || '').toString().trim();
                     const groupNote = escapeHtml(groupNoteRaw);
                     const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    const totalBatches = groupItems.reduce(function (sum, item) {
+                    const totalBatches = groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
@@ -3682,14 +3685,14 @@ function fetchProductDetail(productId) {
                 const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
                 const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
-                normalizedGroups.forEach(function (group) {
+                normalizedGroups.forEach(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                     const groupNoteRaw = (group.group_note || '').toString().trim();
                     const groupNote = escapeHtml(groupNoteRaw);
                     const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    const totalBatches = groupItems.reduce(function (sum, item) {
+                    const totalBatches = groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
@@ -3715,13 +3718,13 @@ function fetchProductDetail(productId) {
                 });
             }
 
-            $(window).on('resize', function () {
+            $(window).on('resize', function() {
                 updateDistributionListScrollLimit();
             });
 
             // ===== DATE NAVIGATION =====
 
-            $('#selectedDate').on('change', function () {
+            $('#selectedDate').on('change', function() {
                 const selectedDate = ($('#selectedDate').val() || '').toString();
                 if ((selectedGroupFilter.date || '') !== selectedDate) {
                     clearSelectedGroupFilter();
@@ -3732,13 +3735,13 @@ function fetchProductDetail(productId) {
                 renderCalendar();
             });
 
-            $('#btnPrevDay').on('click', function () {
+            $('#btnPrevDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() - 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
             });
 
-            $('#btnNextDay').on('click', function () {
+            $('#btnNextDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() + 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
@@ -3763,8 +3766,8 @@ function fetchProductDetail(productId) {
                 );
                 $('#btnSaveItems').html(
                     isEditMode ?
-                        '<i class="fas fa-save mr-2"></i>Save Group Changes' :
-                        '<i class="fas fa-save mr-2"></i>Save to Schedule'
+                    '<i class="fas fa-save mr-2"></i>Save Group Changes' :
+                    '<i class="fas fa-save mr-2"></i>Save to Schedule'
                 );
 
                 $('#scheduleDate').prop('disabled', isEditMode);
@@ -3827,17 +3830,17 @@ function fetchProductDetail(productId) {
                         normalizedDate] || []), normalizedDate);
 
                 let groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                let matchedGroup = groupedData.find(function (group) {
+                let matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
                 if (!matchedGroup || (ensureIds && Array.isArray(matchedGroup.items) && matchedGroup.items.some(
-                    function (item) {
-                        return !getDistributionItemId(item);
-                    }))) {
+                        function(item) {
+                            return !getDistributionItemId(item);
+                        }))) {
                     const byDateItems = await fetchDistributionItemsByDateRequest(normalizedDate);
                     groupedData = normalizeGroupedData(byDateItems, null, normalizedDate);
-                    matchedGroup = groupedData.find(function (group) {
+                    matchedGroup = groupedData.find(function(group) {
                         return String(group.group_key || '') === normalizedGroupKey;
                     });
 
@@ -3865,7 +3868,7 @@ function fetchProductDetail(productId) {
                 const groupItems = Array.isArray(group.items) ? group.items : [];
                 const normalizedDate = resolved.date;
                 const normalizedGroupKey = resolved.groupKey;
-                let groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)) )) || 0, 10);
+                let groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)))) || 0, 10);
 
                 if (!groupCategoryId) {
                     const groupKeyMatch = normalizedGroupKey.match(/^category-(\d+)$/i);
@@ -3875,7 +3878,7 @@ function fetchProductDetail(productId) {
                 }
 
                 if (!groupCategoryId && Array.isArray(groupItems) && groupItems.length > 0) {
-                    const fallbackProductId = String((groupItems.find(function (item) {
+                    const fallbackProductId = String((groupItems.find(function(item) {
                         return item && item.product_id;
                     }) || {}).product_id || '').trim();
                     const fallbackMeta = fallbackProductId ? getLocalDistributionGroupMeta(normalizedDate, fallbackProductId) : null;
@@ -3888,16 +3891,16 @@ function fetchProductDetail(productId) {
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
                     group_ids: Array.isArray(group.source_group_ids) && group.source_group_ids.length > 0 ?
-                        group.source_group_ids.slice() :
-                        Array.from(new Set(groupItems.map(function (item) {
+                        group.source_group_ids.slice() : Array.from(new Set(groupItems.map(function(item) {
                             return getDistributionItemId(item);
                         }).filter(Boolean))),
                     dist_category_id: groupCategoryId > 0 ? groupCategoryId : parseInt(group.dist_category_id || 0, 10) || 0,
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
-                    existing_items: groupItems.map(function (item) {
+                    existing_items: groupItems.map(function(item) {
                         return {
                             item_id: getDistributionItemId(item),
+                            item_ids: getMergedDistributionItemIds(item), // NEW
                             identity_key: getDistributionItemIdentityKey(item),
                             product_id: String(item.product_id || '').trim(),
                             product_name: (item.product_name || '').toString(),
@@ -3911,16 +3914,16 @@ function fetchProductDetail(productId) {
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
                 const categoryLoad = loadStores(editingGroupContext.dist_category_id || '');
-                itemsToAddList = editingGroupContext.existing_items.map(function (item) {
+                itemsToAddList = editingGroupContext.existing_items.map(function(item) {
                     return {
                         product_id: item.product_id,
                         product_name: item.product_name,
                         quantity: item.quantity,
                         qty_mode: item.qty_mode,
-                        pieces_per_yield: parseNumericValue((getProductAnalyticsData(item.product_id) ||
-                            {}).pieces_per_yield),
+                        pieces_per_yield: parseNumericValue((getProductAnalyticsData(item.product_id) || {}).pieces_per_yield),
                         existing: true,
                         item_id: item.item_id,
+                        item_ids: item.item_ids, // NEW
                         identity_key: item.identity_key,
                     };
                 });
@@ -3928,7 +3931,7 @@ function fetchProductDetail(productId) {
 
                 $('#distributionGroupName').val(editingGroupContext.dist_category_id || '');
                 if (categoryLoad && typeof categoryLoad.always === 'function') {
-                    categoryLoad.always(function () {
+                    categoryLoad.always(function() {
                         if (editingGroupContext && editingGroupContext.dist_category_id) {
                             $('#distributionGroupName').val(String(editingGroupContext.dist_category_id));
                             $('#distributionGroupName').find(
@@ -3949,27 +3952,26 @@ function fetchProductDetail(productId) {
                     return;
                 }
 
-                const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items :
-                    [];
+                const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items : [];
 
                 const resolvedGroupIds = Array.isArray(resolved.matchedGroup.source_group_ids) &&
                     resolved.matchedGroup.source_group_ids.length > 0 ?
-                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function (groupId) {
+                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function(groupId) {
                         return normalizeDistributionGroupIdForApi(groupId);
                     }).filter(Boolean))) :
-                    Array.from(new Set(groupItems.map(function (item) {
+                    Array.from(new Set(groupItems.map(function(item) {
                         return normalizeDistributionGroupIdForApi(item && item.distribution_id);
                     }).filter(Boolean)));
 
                 if (resolvedGroupIds.length > 0) {
                     try {
                         const deleteGroupResults = await Promise.allSettled(
-                            resolvedGroupIds.map(function (groupId) {
+                            resolvedGroupIds.map(function(groupId) {
                                 return deleteDistributionGroupRequest(groupId);
                             })
                         );
 
-                        const hasFailedDelete = deleteGroupResults.some(function (result) {
+                        const hasFailedDelete = deleteGroupResults.some(function(result) {
                             return result.status === 'rejected' ||
                                 (result.status === 'fulfilled' && result.value && result.value.success === false);
                         });
@@ -3979,7 +3981,7 @@ function fetchProductDetail(productId) {
                             return;
                         }
 
-                        groupItems.forEach(function (item) {
+                        groupItems.forEach(function(item) {
                             if (item && item.product_id != null) {
                                 removeLocalDistributionGroupMeta(resolved.date, item.product_id);
                             }
@@ -4008,13 +4010,13 @@ function fetchProductDetail(productId) {
                 }
 
                 const deletableItems = groupItems
-                    .map(function (item) {
+                    .map(function(item) {
                         return {
                             item_id: getDistributionItemId(item),
                             product_id: item.product_id,
                         };
                     })
-                    .filter(function (item) {
+                    .filter(function(item) {
                         return item.item_id != null;
                     });
 
@@ -4023,16 +4025,16 @@ function fetchProductDetail(productId) {
                     return;
                 }
 
-                const results = await Promise.allSettled(deletableItems.map(function (item) {
+                const results = await Promise.allSettled(deletableItems.map(function(item) {
                     return deleteDistributionItemRequest(item.item_id);
                 }));
 
                 let deletedCount = 0;
                 let failedCount = 0;
 
-                results.forEach(function (result, index) {
+                results.forEach(function(result, index) {
                     if (result.status === 'fulfilled' && !(result.value && result.value.success ===
-                        false)) {
+                            false)) {
                         deletedCount += 1;
                         removeLocalDistributionGroupMeta(resolved.date, deletableItems[index]
                             .product_id);
@@ -4059,7 +4061,7 @@ function fetchProductDetail(productId) {
                 }
             }
 
-            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function () {
+            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
                 clearGroupEditContext();
                 resetAddItemsModalForm($('#selectedDate').val());
                 $('#distributionGroupName').val('');
@@ -4067,31 +4069,31 @@ function fetchProductDetail(productId) {
                 $('#addItemsModal').removeClass('hidden');
             });
 
-            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function () {
+            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function() {
                 $('#addItemsModal').addClass('hidden');
                 clearGroupEditContext();
             });
 
             // Product search input events
-            $('#productSearch').on('focus', function () {
+            $('#productSearch').on('focus', function() {
                 showProductDropdown($(this).val());
             });
 
-            $('#productSearch').on('input', function () {
+            $('#productSearch').on('input', function() {
                 const searchTerm = $(this).val();
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
                 showProductDropdown(searchTerm);
             });
 
-            $('#addProductQty').on('keypress', function (e) {
+            $('#addProductQty').on('keypress', function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#btnAddProductToList').click();
                 }
             });
 
-            $(document).on('click', '.product-option', function () {
+            $(document).on('click', '.product-option', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 $('#selectedProductId').val(id);
@@ -4124,7 +4126,7 @@ function fetchProductDetail(productId) {
                 $('#addProductQty').focus();
             });
 
-            $('#btnClearProduct').on('click', function () {
+            $('#btnClearProduct').on('click', function() {
                 $('#selectedProductId').val('');
                 $('#productSearch').val('');
                 $(this).addClass('hidden');
@@ -4135,7 +4137,7 @@ function fetchProductDetail(productId) {
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', function (e) {
+            $(document).on('click', function(e) {
                 if (!$(e.target).closest('#productSearch, #productDropdown').length) {
                     hideProductDropdown();
                 }
@@ -4149,7 +4151,7 @@ function fetchProductDetail(productId) {
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No products found</div>';
                 } else {
-                    filtered.forEach(function (product) {
+                    filtered.forEach(function(product) {
                         const alreadyAdded = itemsToAddList.some(i => i.product_id == product.product_id);
                         const disabledClass = alreadyAdded ? 'opacity-50 pointer-events-none' :
                             'hover:bg-primary/10 cursor-pointer';
@@ -4218,7 +4220,7 @@ function fetchProductDetail(productId) {
                 $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
             }
 
-            $('.qty-mode-btn').on('click', function () {
+            $('.qty-mode-btn').on('click', function() {
                 if ($(this).prop('disabled')) return;
                 const mode = $(this).data('mode');
                 $('#selectedQtyMode').val(mode);
@@ -4242,7 +4244,7 @@ function fetchProductDetail(productId) {
             });
 
             // Update conversion hint when quantity changes
-            $('#addProductQty').on('input', function () {
+            $('#addProductQty').on('input', function() {
                 updateConversionHint();
             });
 
@@ -4305,7 +4307,7 @@ function fetchProductDetail(productId) {
                 }
             }
 
-            $('#btnAddProductToList').on('click', function () {
+            $('#btnAddProductToList').on('click', function() {
                 const productId = $('#selectedProductId').val();
                 const productName = $('#productSearch').val();
                 const quantity = parseNumericValue($('#addProductQty').val());
@@ -4350,7 +4352,7 @@ function fetchProductDetail(productId) {
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', '.btn-remove-added-item', function () {
+            $(document).on('click', '.btn-remove-added-item', function() {
                 const idx = $(this).data('index');
                 itemsToAddList.splice(idx, 1);
                 renderAddedItemsList();
@@ -4368,7 +4370,7 @@ function fetchProductDetail(productId) {
                     return;
                 }
 
-                itemsToAddList.forEach(function (item, index) {
+                itemsToAddList.forEach(function(item, index) {
                     const modeLabel = getQtyModeShortLabel(item.qty_mode);
                     const modeBadgeColor = item.qty_mode === 'pieces' ?
                         'bg-blue-100 text-blue-700' :
@@ -4402,11 +4404,11 @@ function fetchProductDetail(productId) {
 
             // ===== EDIT QTY MODAL =====
 
-            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function () {
+            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function() {
                 $('#editQtyModal').addClass('hidden');
             });
 
-            $('.schedule-quick-btn').on('click', function () {
+            $('.schedule-quick-btn').on('click', function() {
                 const days = parseInt($(this).data('days'));
                 const newDate = new Date();
                 newDate.setDate(newDate.getDate() + days);
@@ -4414,18 +4416,18 @@ function fetchProductDetail(productId) {
                 updateScheduleQuickBtns();
             });
 
-            $('#btnEditQtyInc').on('click', function () {
+            $('#btnEditQtyInc').on('click', function() {
                 const input = $('#editQuantity');
                 input.val(parseInt(input.val() || 0) + 5);
             });
 
-            $('#btnEditQtyDec').on('click', function () {
+            $('#btnEditQtyDec').on('click', function() {
                 const input = $('#editQuantity');
                 const val = parseInt(input.val() || 0);
                 if (val > 5) input.val(val - 5);
             });
 
-            $(document).on('click', '.btn-edit-qty', function () {
+            $(document).on('click', '.btn-edit-qty', function() {
                 const row = $(this).closest('[data-id]');
                 const productName = row.find('span.font-medium, span.truncate').first().text();
                 const qty = row.find('.font-bold').first().text();
@@ -4436,15 +4438,15 @@ function fetchProductDetail(productId) {
                 $('#editItemId').val(row.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                )
+                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                    )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-edit-qty-mobile', function () {
+            $(document).on('click', '.btn-edit-qty-mobile', function() {
                 const card = $(this).closest('[data-id]');
                 const productName = card.find('h4').text();
                 const qtyText = card.find('.text-xs.text-gray-500').first().text();
@@ -4456,39 +4458,39 @@ function fetchProductDetail(productId) {
                 $('#editItemId').val(card.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                )
+                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                    )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-delete', function () {
+            $(document).on('click', '.btn-delete', function() {
                 const row = $(this).closest('[data-id]');
                 const itemId = row.data('id');
                 const productId = row.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function () {
+                Confirm.delete('Are you sure you want to remove this item?', function() {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
-            $(document).on('click', '.btn-delete-mobile', function () {
+            $(document).on('click', '.btn-delete-mobile', function() {
                 const card = $(this).closest('[data-id]');
                 const itemId = card.data('id');
                 const productId = card.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function () {
+                Confirm.delete('Are you sure you want to remove this item?', function() {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
             // ===== FORM SUBMISSIONS =====
 
-            $('#addItemsForm').on('submit', async function (e) {
+            $('#addItemsForm').on('submit', async function(e) {
                 e.preventDefault();
 
                 const scheduleDate = ($('#scheduleDate').val() || '').toString();
@@ -4505,15 +4507,14 @@ function fetchProductDetail(productId) {
                     selected_category_name: selectedCategoryName,
                     entered_group_note_length: distributionGroupNote.length,
                     list_item_count: itemsToAddList.length,
-                    list_items: itemsToAddList.map(function (item) {
+                    list_items: itemsToAddList.map(function(item) {
                         return {
                             product_id: item.product_id,
                             product_name: item.product_name,
                             quantity: parseNumericValue(item.quantity),
                             qty_mode: item.qty_mode,
                             existing: Boolean(item.existing),
-                            item_id: item.item_id != null ? parseInt(item.item_id, 10) :
-                                null,
+                            item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
                         };
                     }),
                 });
@@ -4542,8 +4543,7 @@ function fetchProductDetail(productId) {
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
                         const targetGroupIds = Array.isArray(context.group_ids) && context.group_ids.length > 0 ?
-                            context.group_ids :
-                            [normalizeDistributionGroupIdForApi(targetGroupKey)].filter(Boolean);
+                            context.group_ids : [normalizeDistributionGroupIdForApi(targetGroupKey)].filter(Boolean);
                         const savedGroupName = selectedCategoryName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
@@ -4576,7 +4576,7 @@ function fetchProductDetail(productId) {
                             payload: updateGroupPayload,
                         });
 
-                        await Promise.all(targetGroupIds.map(function (groupId) {
+                        await Promise.all(targetGroupIds.map(function(groupId) {
                             return updateDistributionGroupRequest(groupId, updateGroupPayload);
                         }));
 
@@ -4585,78 +4585,93 @@ function fetchProductDetail(productId) {
                             group_ids: targetGroupIds,
                         });
 
-                        const normalizedItems = itemsToAddList.map(function (item) {
+                        const normalizedItems = itemsToAddList.map(function(item) {
                             return {
                                 product_id: String(item.product_id || '').trim(),
                                 quantity: parseNumericValue(item.quantity),
                                 qty_mode: ((item.qty_mode || 'batch').toString().toLowerCase()),
                                 existing: Boolean(item.existing),
-                                item_id: item.item_id != null ? parseInt(item.item_id, 10) :
-                                    null,
+                                item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
+                                item_ids: Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
+                                    item.item_ids : (item.item_id != null ? [parseInt(item.item_id, 10)] : []),
                                 identity_key: (item.identity_key ||
-                                    `product-${String(item.product_id || '').trim()}`)
+                                        `product-${String(item.product_id || '').trim()}`)
                                     .toString(),
                             };
                         });
 
-                        const existingItemsNow = normalizedItems.filter(function (item) {
+                        const existingItemsNow = normalizedItems.filter(function(item) {
                             return item.existing;
                         });
-                        const existingIdentitySet = new Set(existingItemsNow.map(function (item) {
+                        const existingIdentitySet = new Set(existingItemsNow.map(function(item) {
                             return item.identity_key;
                         }));
                         const existingBefore = Array.isArray(context.existing_items) ? context
                             .existing_items : [];
-                        const removedExisting = existingBefore.filter(function (item) {
+
+                        const removedExisting = existingBefore.filter(function(item) {
                             return !existingIdentitySet.has(String(item.identity_key || ''));
                         });
 
-                        const removableWithIds = removedExisting.filter(function (item) {
-                            return item.item_id != null;
+                        const removableIdPairs = [];
+                        removedExisting.forEach(function(item) {
+                            const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
+                                item.item_ids :
+                                (item.item_id != null ? [item.item_id] : []);
+                            ids.forEach(function(id) {
+                                removableIdPairs.push({
+                                    item_id: id,
+                                    product_id: item.product_id
+                                });
+                            });
                         });
-                        const removedMissingIdCount = Math.max(0, removedExisting.length -
-                            removableWithIds.length);
+                        const removedMissingIdCount = removedExisting.filter(function(item) {
+                            const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
+                                item.item_ids :
+                                (item.item_id != null ? [item.item_id] : []);
+                            return ids.length === 0;
+                        }).length;
 
                         logDistributionFlow('log', 'Update group diff summary.', {
                             normalized_item_count: normalizedItems.length,
                             existing_now_count: existingItemsNow.length,
                             existing_before_count: existingBefore.length,
                             removed_existing_count: removedExisting.length,
-                            removable_with_ids_count: removableWithIds.length,
+                            removable_id_pairs_count: removableIdPairs.length,
                             removed_missing_id_count: removedMissingIdCount,
                         });
 
-                        const deleteResults = await Promise.allSettled(removableWithIds.map(function (
-                            item) {
-                            return deleteDistributionItemRequest(item.item_id);
+                        const deleteResults = await Promise.allSettled(removableIdPairs.map(function(
+                            pair) {
+                            return deleteDistributionItemRequest(pair.item_id);
                         }));
 
                         let deletedCount = 0;
                         let deleteFailedCount = 0;
                         const deletedProductIds = [];
 
-                        deleteResults.forEach(function (result, index) {
+                        deleteResults.forEach(function(result, index) {
                             if (result.status === 'fulfilled' && !(result.value && result.value
-                                .success === false)) {
+                                    .success === false)) {
                                 deletedCount += 1;
-                                deletedProductIds.push(removableWithIds[index].product_id);
+                                deletedProductIds.push(removableIdPairs[index].product_id);
                             } else {
                                 deleteFailedCount += 1;
                             }
                         });
 
                         logDistributionFlow('log', 'Update group removed-item delete results.', {
-                            attempted: removableWithIds.length,
+                            attempted: removableIdPairs.length,
                             deleted_count: deletedCount,
                             failed_count: deleteFailedCount,
                             deleted_product_ids: deletedProductIds,
                         });
 
-                        const newItems = normalizedItems.filter(function (item) {
+                        const newItems = normalizedItems.filter(function(item) {
                             return !item.existing;
                         });
 
-                        const addPayloads = newItems.map(function (item) {
+                        const addPayloads = newItems.map(function(item) {
                             return {
                                 distribution_id: targetGroupKey,
                                 product_id: item.product_id,
@@ -4671,7 +4686,7 @@ function fetchProductDetail(productId) {
                             add_payloads: addPayloads,
                         });
 
-                        const addResults = await Promise.allSettled(addPayloads.map(function (payload) {
+                        const addResults = await Promise.allSettled(addPayloads.map(function(payload) {
                             return addDistributionItemRequest(payload);
                         }));
 
@@ -4681,7 +4696,7 @@ function fetchProductDetail(productId) {
                         let sawInsufficient = false;
                         let insufficientMaterials = [];
 
-                        addResults.forEach(function (result, index) {
+                        addResults.forEach(function(result, index) {
                             const currentPayload = addPayloads[index];
 
                             if (result.status === 'fulfilled') {
@@ -4715,7 +4730,7 @@ function fetchProductDetail(productId) {
                                     // Convert object to array of strings
                                     insufficientMaterials = insufficientMaterials.concat(
                                         Object.values(responseJson.insufficient_materials)
-                                            .flat()
+                                        .flat()
                                     );
                                 }
                                 return;
@@ -4733,19 +4748,19 @@ function fetchProductDetail(productId) {
                             insufficient_count: insufficientMaterials.length,
                         });
 
-                        deletedProductIds.forEach(function (productId) {
+                        deletedProductIds.forEach(function(productId) {
                             removeLocalDistributionGroupMeta(targetDate, productId);
                         });
 
-                        const remainingExistingProductIds = existingItemsNow.map(function (item) {
+                        const remainingExistingProductIds = existingItemsNow.map(function(item) {
                             return item.product_id;
                         });
-                        const succeededAddProductIds = succeededAdds.map(function (item) {
+                        const succeededAddProductIds = succeededAdds.map(function(item) {
                             return item.product_id;
                         });
                         const finalProductIds = Array.from(new Set(
                             remainingExistingProductIds.concat(succeededAddProductIds).map(
-                                function (productId) {
+                                function(productId) {
                                     return String(productId || '').trim();
                                 }).filter(Boolean)
                         ));
@@ -4783,8 +4798,8 @@ function fetchProductDetail(productId) {
 
                         const attemptedAdds = addPayloads.length;
                         if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length >
-                            0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
-                                distributionGroupNote !== context.original_note))) {
+                                0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
+                                    distributionGroupNote !== context.original_note))) {
                             let message = `Distribution group "${savedGroupName}" updated.`;
                             if (deletedCount > 0) {
                                 message += ` Removed ${deletedCount} item(s).`;
@@ -4793,7 +4808,7 @@ function fetchProductDetail(productId) {
                                 message += ` Added ${succeededAdds.length} item(s).`;
                             }
                             if (attemptedAdds > 0 && (duplicateCount > 0 || addFailedCount > 0 ||
-                                sawInsufficient)) {
+                                    sawInsufficient)) {
                                 message += ' Some items were not added.';
                             }
                             if (removedMissingIdCount > 0 || deleteFailedCount > 0) {
@@ -4802,34 +4817,34 @@ function fetchProductDetail(productId) {
 
                             logDistributionFlow('log', 'Update group completed with changes.', {
                                 toast_type: (duplicateCount > 0 || addFailedCount > 0 ||
-                                    deleteFailedCount > 0 || removedMissingIdCount > 0) ?
+                                        deleteFailedCount > 0 || removedMissingIdCount > 0) ?
                                     'warning' : 'success',
                                 message: message,
                             });
 
                             showToast((duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount >
-                                0 || removedMissingIdCount > 0) ? 'warning' : 'success',
+                                    0 || removedMissingIdCount > 0) ? 'warning' : 'success',
                                 message, 4500);
                         } else if (attemptedAdds > 0 && duplicateCount === attemptedAdds) {
                             logDistributionFlow('warn',
                                 'Update group completed with no new adds due to duplicates.', {
-                                attempted_adds: attemptedAdds,
-                                duplicate_count: duplicateCount,
-                            });
+                                    attempted_adds: attemptedAdds,
+                                    duplicate_count: duplicateCount,
+                                });
                             showToast('warning', 'All selected products already exist for that date.',
                                 4000);
                         } else if (finalProductIds.length === 0 && removedExisting.length > 0) {
                             logDistributionFlow('log',
                                 'Update group completed with empty group result.', {
-                                removed_existing_count: removedExisting.length,
-                            });
+                                    removed_existing_count: removedExisting.length,
+                                });
                             showToast('success', 'Distribution group is now empty.', 3200);
                         } else {
                             logDistributionFlow('warn',
                                 'Update group completed with no effective changes.', {
-                                attempted_adds: attemptedAdds,
-                                final_product_count: finalProductIds.length,
-                            });
+                                    attempted_adds: attemptedAdds,
+                                    final_product_count: finalProductIds.length,
+                                });
                             showToast('warning', 'No changes were made to this group.', 3200);
                         }
 
@@ -4846,7 +4861,7 @@ function fetchProductDetail(productId) {
                         return;
                     }
 
-                    const itemsToAdd = itemsToAddList.map(function (item) {
+                    const itemsToAdd = itemsToAddList.map(function(item) {
                         return {
                             product_id: item.product_id,
                             quantity: parseNumericValue(item.quantity),
@@ -4899,7 +4914,7 @@ function fetchProductDetail(productId) {
                         dist_category_name: selectedCategoryName,
                     };
 
-                    const payloads = itemsToAdd.map(function (item) {
+                    const payloads = itemsToAdd.map(function(item) {
                         return {
                             distribution_id: newGroupId,
                             product_id: item.product_id,
@@ -4915,7 +4930,7 @@ function fetchProductDetail(productId) {
                         payloads: payloads,
                     });
 
-                    const results = await Promise.allSettled(payloads.map(function (payload) {
+                    const results = await Promise.allSettled(payloads.map(function(payload) {
                         return addDistributionItemRequest(payload, payload.raw_qty_mode);
                     }));
 
@@ -4925,7 +4940,7 @@ function fetchProductDetail(productId) {
                     let sawInsufficient = false;
                     let insufficientMaterials = [];
 
-                    results.forEach(function (result, index) {
+                    results.forEach(function(result, index) {
                         const currentPayload = payloads[index];
 
                         if (result.status === 'fulfilled') {
@@ -4959,7 +4974,7 @@ function fetchProductDetail(productId) {
                                 // Convert object to array of strings
                                 insufficientMaterials = insufficientMaterials.concat(
                                     Object.values(responseJson.insufficient_materials)
-                                        .flat()
+                                    .flat()
                                 );
                             }
                             return;
@@ -4979,7 +4994,7 @@ function fetchProductDetail(productId) {
                     });
 
                     if (succeededPayloads.length > 0) {
-                        const productIds = succeededPayloads.map(function (payload) {
+                        const productIds = succeededPayloads.map(function(payload) {
                             return payload.product_id;
                         });
 
@@ -5034,12 +5049,12 @@ function fetchProductDetail(productId) {
                         newGroupId);
                     logDistributionFlow('warn',
                         'Create group add-item phase fully failed; rollback started.', {
-                        group_id: newGroupId,
-                        attempted: totalAttempted,
-                        duplicate_count: duplicateCount,
-                        saw_insufficient: sawInsufficient,
-                        generic_error_count: genericErrorCount,
-                    });
+                            group_id: newGroupId,
+                            attempted: totalAttempted,
+                            duplicate_count: duplicateCount,
+                            saw_insufficient: sawInsufficient,
+                            generic_error_count: genericErrorCount,
+                        });
                     try {
                         await deleteDistributionGroupRequest(newGroupId);
                         logDistributionFlow('log', 'Create group rollback succeeded.', {
@@ -5095,7 +5110,7 @@ function fetchProductDetail(productId) {
                 }
             });
 
-            $('#editQtyForm').on('submit', function (e) {
+            $('#editQtyForm').on('submit', function(e) {
                 e.preventDefault();
                 const itemId = $('#editItemId').val();
                 const quantity = $('#editQuantity').val();
@@ -5109,7 +5124,7 @@ function fetchProductDetail(productId) {
         function getDistinctGroupCount(items, fallbackDate = '') {
             // Count distinct display group keys so same-category rows collapse into one group.
             const set = new Set();
-            (items || []).forEach(function (item) {
+            (items || []).forEach(function(item) {
                 const key = (item && (item.distribution_display_group_key || item.distribution_group_key)) || '';
                 if (key) {
                     set.add(key);
@@ -5168,7 +5183,7 @@ function fetchProductDetail(productId) {
         function updateScheduleQuickBtns() {
             const selectedDate = $('#scheduleDate').val();
 
-            $('.schedule-quick-btn').each(function () {
+            $('.schedule-quick-btn').each(function() {
                 const days = parseInt($(this).data('days'));
                 const btnDate = new Date();
                 btnDate.setDate(btnDate.getDate() + days);
@@ -5186,12 +5201,12 @@ function fetchProductDetail(productId) {
             const hasSummary = summary && typeof summary === 'object';
             const totalPiecesCalculator = (typeof window.calculateTotalDistributionPieces === 'function') ?
                 window.calculateTotalDistributionPieces :
-                function () {
+                function() {
                     return 0;
                 };
 
             const computedTotalItems = distributionItems.length;
-            const computedTotalBatches = distributionItems.reduce(function (sum, item) {
+            const computedTotalBatches = distributionItems.reduce(function(sum, item) {
                 return sum + (((item.qty_mode || 'batch') === 'pieces') ? 0 : parseNumericValue(item.product_qnty));
             }, 0);
             const computedTotalPieces = totalPiecesCalculator(distributionItems);
@@ -5302,7 +5317,7 @@ function fetchProductDetail(productId) {
             const distributionItems = Array.isArray(items) ? items : [];
             let forecastedTotal = 0;
 
-            distributionItems.forEach(function (item) {
+            distributionItems.forEach(function(item) {
                 const quantity = parseNumericValue(item.product_qnty);
                 if (quantity <= 0) return;
 
@@ -5312,7 +5327,7 @@ function fetchProductDetail(productId) {
                     return;
                 }
 
-                const matchedProduct = productsData.find(function (product) {
+                const matchedProduct = productsData.find(function(product) {
                     return String(product.product_id) === String(item.product_id);
                 }) || getProductAnalyticsData(item.product_id);
 
@@ -5326,7 +5341,7 @@ function fetchProductDetail(productId) {
         function calculateAdditionalCostTotal(items) {
             const distributionItems = Array.isArray(items) ? items : [];
 
-            return distributionItems.reduce(function (sum, item) {
+            return distributionItems.reduce(function(sum, item) {
                 return sum + parseNumericValue(item.additional_cost);
             }, 0);
         }
@@ -5362,7 +5377,7 @@ function fetchProductDetail(productId) {
             html += '</div>';
             html += '<p class="text-sm text-gray-600 mb-2">The following raw materials are short:</p>';
             html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-            materials.forEach(function (detail) {
+            materials.forEach(function(detail) {
                 html += '<li class="text-red-700">' + detail + '</li>';
             });
             html += '</ul>';
@@ -5374,7 +5389,6 @@ function fetchProductDetail(productId) {
             $('#insufficientMaterialContent').html(html);
             $('#insufficientMaterialModal').removeClass('hidden');
         }
-
     </script>
 
     <!-- Manage Distribution Categories Modal -->
