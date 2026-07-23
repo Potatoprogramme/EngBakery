@@ -595,7 +595,7 @@ class InventoryController extends BaseController
 
     /**
      * Load a single distribution item into today's inventory.
-     * Accepts a custom quantity and optional note.
+     * Accepts a custom quantity.
      */
     public function loadSingleDistributionItem()
     {
@@ -613,7 +613,6 @@ class InventoryController extends BaseController
         $productId = intval($json->product_id ?? 0);
         $quantity = intval($json->quantity ?? 0);
         $expectedPieces = intval($json->expected_pieces ?? 0);
-        $note = trim($json->note ?? '');
 
         if ($productId <= 0 || $quantity <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -634,12 +633,6 @@ class InventoryController extends BaseController
 
         $currentDistQty = $existingItem ? intval($existingItem['distribution_qty'] ?? 0) : 0;
         $totalAfter = $currentDistQty + $quantity;
-        if ($expectedPieces > 0 && $totalAfter !== $expectedPieces && empty($note)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'A note is required when the total loaded differs from the distribution amount (' . $expectedPieces . ' pcs).'
-            ]);
-        }
 
         if ($existingItem) {
             $currentBeginning = intval($existingItem['beginning_stock'] ?? 0);
@@ -649,18 +642,12 @@ class InventoryController extends BaseController
             $newDistQty = $currentDistQty + $quantity;
             $newBeginning = $currentBeginning + $quantity;
             $newEnding = max(0, $newBeginning - $pullOut - $quantitySold);
-            $existingNotes = trim($existingItem['notes'] ?? '');
-            $updatedNotes = $existingNotes;
-            if (!empty($note)) {
-                $updatedNotes = $existingNotes ? $existingNotes . ' | ' . $note : $note;
-            }
 
             $this->dailyStockItemsModel->update($existingItem['item_id'], [
                 'beginning_stock' => $newBeginning,
                 'ending_stock' => $newEnding,
                 'distribution_qty' => $newDistQty,
                 'is_enabled' => ($newBeginning > 0) ? 1 : 0,
-                'notes' => $updatedNotes,
             ]);
 
             log_message('info', 'LOAD SINGLE DISTRIBUTION: Updated Product {product} - added {qty} pcs (expected {expected}), new beginning: {new}', [
@@ -678,7 +665,6 @@ class InventoryController extends BaseController
                 'ending_stock' => $carryoverQty + $quantity,
                 'distribution_qty' => $quantity,
                 'is_enabled' => ($carryoverQty + $quantity > 0) ? 1 : 0,
-                'notes' => $note,
             ]);
 
             log_message('info', 'LOAD SINGLE DISTRIBUTION: Added Product {product} - {qty} pcs (expected {expected})', [
@@ -1052,7 +1038,6 @@ class InventoryController extends BaseController
         $inputBeginning = intval($json->beginning_stock);
         $inputPullOut = intval($json->pull_out_quantity);
         $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
-        $notes = isset($json->notes) ? trim($json->notes) : null;
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         if ($isAdjustmentMode) {
@@ -1094,21 +1079,6 @@ class InventoryController extends BaseController
             $newPullOut = $inputPullOut;
         }
 
-        // Validate notes requirement when beginning stock deviates from expected
-        $distributionQty = intval($item['distribution_qty'] ?? 0);
-        $dailyStock = $this->dailyStockModel->find($item['daily_stock_id']);
-        $carryover = $this->dailyStockItemsModel->getCarryoverStock($dailyStock['inventory_date']);
-        $carryoverQty = intval($carryover[intval($item['product_id'])] ?? 0);
-        $expectedBeginning = $distributionQty + $carryoverQty;
-
-        if ($expectedBeginning > 0 && $newBeginning != $expectedBeginning && empty($notes)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Notes are required when beginning stock differs from expected amount (Distribution: ' . $distributionQty . ' + Carryover: ' . $carryoverQty . ' = ' . $expectedBeginning . ').',
-                'notes_required' => true
-            ]);
-        }
-
         if (!$isAdjustmentMode) {
             // Preserve ending as the current physical count in non-adjustment mode.
             // Pull out changes are reflected by the computed qty sold on fetch/render.
@@ -1122,12 +1092,11 @@ class InventoryController extends BaseController
             'beginning_stock' => $newBeginning,
             'pull_out_quantity' => $newPullOut,
             'ending_stock' => $newEndingStock,
-            'notes' => $notes
         ];
 
-        // Only explicit beginning adjustments affect raw materials.
-        // Pull-out adjustments have no raw-material effect.
-        $netRawMaterialChange = $isAdjustmentMode ? $inputBeginning : $beginningDelta;
+        // Add More / Distribute actions already deduct materials separately.
+        // Adjust Beginning Quantity edits should not consume raw materials.
+        $netRawMaterialChange = $isAdjustmentMode ? 0 : $beginningDelta;
 
         $deductionResult = null;
 

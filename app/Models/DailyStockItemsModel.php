@@ -19,7 +19,6 @@ class DailyStockItemsModel extends Model
         'ending_stock', // can be calculated
         'distribution_qty', // pieces sourced from distribution (0 if none)
         'is_enabled', // for enabling stock item
-        'notes'
     ];
 
     // Dates
@@ -161,7 +160,6 @@ class DailyStockItemsModel extends Model
                 'ending_stock' => array_sum(array_map(static fn($row) => intval($row['ending_stock'] ?? 0), $allRows)),
                 'distribution_qty' => array_sum(array_map(static fn($row) => intval($row['distribution_qty'] ?? 0), $allRows)),
                 'is_enabled' => max(array_map(static fn($row) => intval($row['is_enabled'] ?? 0), $allRows)),
-                'notes' => $this->mergeInventoryNotes(array_map(static fn($row) => $row['notes'] ?? null, $allRows)),
             ];
 
             if (!empty($duplicateIds)) {
@@ -429,17 +427,4 @@ class DailyStockItemsModel extends Model
         return array_values($aggregated);
     }
 
-    private function mergeInventoryNotes(array $notes): ?string
-    {
-        $filteredNotes = array_values(array_unique(array_filter(array_map(static function ($note) {
-            $value = trim((string) $note);
-            return $value !== '' ? $value : null;
-        }, $notes))));
-
-        if (empty($filteredNotes)) {
-            return null;
-        }
-
-        return implode(' | ', $filteredNotes);
-    }
 }
