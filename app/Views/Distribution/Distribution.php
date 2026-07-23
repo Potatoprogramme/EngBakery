@@ -558,12 +558,12 @@
                     </div>
 
                     <!-- Product Info (pieces per yield) -->
-                    <div id="productYieldInfo" class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <!-- <div id="productYieldInfo" class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
                         <div class="flex items-center gap-2 text-sm text-blue-700">
                             <i class="fas fa-info-circle"></i>
                             <span>1 batch = <strong id="piecesPerYieldDisplay">0</strong> pieces</span>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Quantity Mode & Quantity (shown after product is selected) -->
                     <div id="qtyModeSection" class="hidden">
@@ -572,29 +572,31 @@
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Per</label>
                             <div class="flex rounded-lg border border-gray-300 overflow-hidden">
-                                <button type="button" id="btnModeBatch"
-                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors"
-                                    data-mode="batch">
-                                    <i class="fas fa-boxes mr-1"></i>Batch
-                                </button>
-                                <button type="button" id="btnModeBox"
-                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-                                    data-mode="box">
-                                    <i class="fas fa-box-open mr-1"></i>Box
-                                </button>
+                                <!--
+    <button type="button" id="btnModeBatch"
+        class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+        data-mode="batch">
+        <i class="fas fa-boxes mr-1"></i>Batch
+    </button>
+    <button type="button" id="btnModeBox"
+        class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+        data-mode="box">
+        <i class="fas fa-box-open mr-1"></i>Box
+    </button>
+    -->
                                 <button type="button" id="btnModePieces"
-                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors"
                                     data-mode="pieces">
                                     <i class="fas fa-puzzle-piece mr-1"></i>Piece
                                 </button>
                             </div>
-                            <input type="hidden" id="selectedQtyMode" value="batch">
+                            <input type="hidden" id="selectedQtyMode" value="pieces">
                         </div>
 
                         <!-- Quantity -->
                         <div class="mb-3">
                             <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (per
-                                batch) <span class="text-red-500">*</span></label>
+                                piece) <span class="text-red-500">*</span></label>
                             <input type="number" id="addProductQty" min="1" value="10" step="0.00001"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                 placeholder="10">
@@ -3806,12 +3808,12 @@
                 $('#btnModePieces').removeClass('pointer-events-none w-full');
                 $('.qty-mode-btn').prop('disabled', false).removeClass(
                     'cursor-not-allowed bg-gray-200 text-gray-400');
-                $('#selectedQtyMode').val('batch');
+                $('#selectedQtyMode').val('pieces');
                 $('.qty-mode-btn').removeClass('bg-primary text-white').addClass(
                     'bg-white text-gray-600 hover:bg-gray-50');
-                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
+                $('#btnModePieces').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
                     'bg-primary text-white');
-                $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
+                $('#addQtyLabel').html('Quantity (per piece) <span class="text-red-500">*</span>');
                 hideProductDropdown();
             }
 
@@ -4205,19 +4207,17 @@
              * Unlock the qty mode toggle buttons so the user can freely switch.
              */
             function unlockQtyModeToggle() {
-                // Restore both buttons to normal interactive state
-                $('#btnModeBatch').removeClass('hidden');
-                $('#btnModeBox').removeClass('hidden');
-                $('#btnModePieces').removeClass('pointer-events-none w-full');
+                // Restore toggle to normal interactive state
+                $('#btnModePieces').removeClass('pointer-events-none w-full hidden');
                 $('.qty-mode-btn').prop('disabled', false).removeClass(
                     'cursor-not-allowed bg-gray-200 text-gray-400');
-                // Reset to batch mode when unlocking
-                $('#selectedQtyMode').val('batch');
+                // Reset to pieces mode when unlocking (batch/box are commented out)
+                $('#selectedQtyMode').val('pieces');
                 $('.qty-mode-btn').removeClass('bg-primary text-white').addClass(
                     'bg-white text-gray-600 hover:bg-gray-50');
-                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
+                $('#btnModePieces').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
                     'bg-primary text-white');
-                $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
+                $('#addQtyLabel').html('Quantity (per piece) <span class="text-red-500">*</span>');
             }
 
             $('.qty-mode-btn').on('click', function() {
@@ -4297,9 +4297,11 @@
                             ' piece(s) total (pieces-only product)');
                     } else {
                         const batches = qty / batchPiecesPerYield;
-                        $('#conversionText').text(formatQuantityValue(qty) + ' pieces ÷ ' +
-                            formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
-                            formatQuantityValue(batches) + ' batch(es) of raw materials used');
+                        $('#conversionText').text(formatQuantityValue(qty) + ' pieces'
+                        // ÷ ' +
+                        //     formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
+                        //     formatQuantityValue(batches) + ' batch(es) of raw materials used'
+                        );
                     }
                     $('#piecesConversionHint').removeClass('hidden');
                 } else {
