@@ -103,10 +103,12 @@ class InventoryController extends BaseController
             $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
 
+            // Only filter out zero-stock items for bakery and grocery
             if (in_array($category, ['bakery', 'grocery'], true)) {
                 return $beginningStock > 0;
             }
 
+            // Drinks, dough, and everything else always included regardless of stock
             return true;
         }));
 
@@ -929,7 +931,7 @@ class InventoryController extends BaseController
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
-        
+
         if ($action === 'store') {
             // Store action: Add to inventory (beginning_stock) + create distribution entry
             $productGroupQty = intval($json->product_group_qty ?? 0);
@@ -939,57 +941,55 @@ class InventoryController extends BaseController
                     'message' => 'Store quantity must be greater than 0'
                 ]);
             }
-            
+
             // Update inventory item's beginning_stock
             $oldBeginning = intval($item['beginning_stock']);
             $newBeginning = $oldBeginning + $productGroupQty;
             $newEnding = intval($item['ending_stock']) + $productGroupQty;
-            
+
             $this->dailyStockItemsModel->update($item_id, [
                 'beginning_stock' => $newBeginning,
                 'ending_stock' => $newEnding,
             ]);
-            
+
             // Create distribution entry under "Store" category
             $dailyStockId = intval($item['daily_stock_id']);
             $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
-            
+
             // Deduct raw materials
             $this->deductRawMaterialsForProduct($productId, $productGroupQty);
-            
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to store inventory and distribution',
                 'data' => ['item_id' => $item_id]
             ]);
-        }
-        
-        else if ($action === 'distribute') {
+        } else if ($action === 'distribute') {
             // Distribute action: Add to distribution ONLY (not inventory)
             $distributionGroupQty = intval($json->distribution_group_qty ?? 0);
             $distCategoryId = intval($json->distribution_category_id ?? 0);
-            
+
             if ($distributionGroupQty <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Distribution quantity must be greater than 0'
                 ]);
             }
-            
+
             if ($distCategoryId <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Distribution category is required'
                 ]);
             }
-            
+
             // Create distribution entry under selected destination category
             $dailyStockId = intval($item['daily_stock_id']);
             $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
-            
+
             // Deduct raw materials
             $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
-            
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to distribution',
@@ -1065,6 +1065,13 @@ class InventoryController extends BaseController
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+
+            if ($newBeginning <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Beginning stock must be greater than zero. Delete the item if you want to remove it from inventory.'
                 ]);
             }
 
@@ -2131,16 +2138,16 @@ class InventoryController extends BaseController
         try {
             $distributionGroupModel = model('DistributionGroupModel');
             $distributionItemModel = model('DistributionItemModel');
-            
+
             $today = date('Y-m-d');
             $distCategoryId = 1; // "Store" category
-            
+
             // Find or create distribution group for today + Store category
             $existingGroup = $distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
-            
+
             if ($existingGroup) {
                 $groupId = $existingGroup['id'];
             } else {
@@ -2151,13 +2158,13 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-            
+
             // Find or create distribution item for this product in the group
             $existingItem = $distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
-            
+
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
@@ -2175,10 +2182,10 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-            
+
             // Recalculate totals for the group
             $distributionGroupModel->recalculateTotals($groupId);
-            
+
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
         }
@@ -2193,15 +2200,15 @@ class InventoryController extends BaseController
         try {
             $distributionGroupModel = model('DistributionGroupModel');
             $distributionItemModel = model('DistributionItemModel');
-            
+
             $today = date('Y-m-d');
-            
+
             // Find or create distribution group for today + destination category
             $existingGroup = $distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
-            
+
             if ($existingGroup) {
                 $groupId = $existingGroup['id'];
             } else {
@@ -2212,13 +2219,13 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-            
+
             // Find or create distribution item for this product in the group
             $existingItem = $distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
-            
+
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
@@ -2236,10 +2243,10 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-            
+
             // Recalculate totals for the group
             $distributionGroupModel->recalculateTotals($groupId);
-            
+
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
         }
