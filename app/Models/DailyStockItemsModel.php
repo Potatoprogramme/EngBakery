@@ -18,7 +18,7 @@ class DailyStockItemsModel extends Model
         'pull_out_quantity',
         'ending_stock', // can be calculated
         'distribution_qty', // pieces sourced from distribution (0 if none)
-        'is_enabled', // for enabling stock item
+        // 'is_enabled', // for enabling stock item
     ];
 
     // Dates
@@ -285,7 +285,7 @@ class DailyStockItemsModel extends Model
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
     }
-    
+
     /**
      * Get products that can be added or restored in today's inventory.
      * Includes products not yet in inventory and products whose current ending stock is 0.
