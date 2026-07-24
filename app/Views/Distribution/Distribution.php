@@ -4675,7 +4675,7 @@
 
                         const addPayloads = newItems.map(function(item) {
                             return {
-                                distribution_id: targetGroupKey,
+                                distribution_id: targetGroupIds[0],
                                 product_id: item.product_id,
                                 product_qnty: item.quantity,
                                 qty_mode: item.qty_mode,
