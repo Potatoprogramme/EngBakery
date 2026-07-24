@@ -544,7 +544,7 @@
                         inventory.</p>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-6" id="addBeginningStockGroup">
                     <label for="addBeginningStock" class="block mb-1.5 text-sm font-medium text-gray-700">Beginning
                         Stock</label>
                     <input type="number" id="addBeginningStock" name="beginning_stock" min="1" value="1" step="1"
@@ -4424,6 +4424,32 @@
     $('#addProductModalClose, #addProductModalCancel').on('click', function() {
         $('#addProductModal').addClass('hidden');
         $('#addProductForm')[0].reset();
+        syncAddBeginningStockField();
+    });
+
+    function syncAddBeginningStockField() {
+        const selectedCategory = ($('#selectProduct option:selected').data('category') || '').toString().toLowerCase();
+        const isDrinkProduct = selectedCategory === 'drinks';
+        const $beginningGroup = $('#addBeginningStockGroup');
+        const $beginningInput = $('#addBeginningStock');
+
+        if (isDrinkProduct) {
+            $beginningGroup.addClass('hidden');
+            $beginningInput.val(0).prop('disabled', true).removeAttr('min');
+            return;
+        }
+
+        $beginningGroup.removeClass('hidden');
+        $beginningInput.prop('disabled', false).attr('min', 1);
+
+        const currentValue = parseInt($beginningInput.val(), 10) || 0;
+        if (currentValue <= 0) {
+            $beginningInput.val(1);
+        }
+    }
+
+    $('#selectProduct').on('change', function() {
+        syncAddBeginningStockField();
     });
 
     // Load available products (not yet in inventory)
@@ -4453,7 +4479,7 @@
                                 .category.slice(1);
                         }
                         select.append(
-                            `<option value="${product.product_id}">[${categoryLabel}] ${product.product_name}</option>`
+                            `<option value="${product.product_id}" data-category="${product.category || ''}">[${categoryLabel}] ${product.product_name}</option>`
                         );
                     });
                     $('#noProductsMessage').addClass('hidden');
@@ -4462,6 +4488,8 @@
                     $('#noProductsMessage').removeClass('hidden');
                     $('#btnSubmitAddProduct').prop('disabled', true);
                 }
+
+                syncAddBeginningStockField();
             },
             error: function(xhr, status, error) {
                 showToast('danger', 'Error loading products: ' + error, 2000);
@@ -4674,7 +4702,8 @@
         }
 
         const productId = $('#selectProduct').val();
-        const beginningStock = $('#addBeginningStock').val() || 0;
+        const selectedCategory = ($('#selectProduct option:selected').data('category') || '').toString().toLowerCase();
+        const beginningStock = selectedCategory === 'drinks' ? 0 : ($('#addBeginningStock').val() || 0);
 
         if (!productId) {
             showToast('warning', 'Please select a product', 2000);
