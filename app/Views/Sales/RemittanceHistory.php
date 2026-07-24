@@ -534,6 +534,7 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+                $('body').css('overflow', 'hidden');
             });
 
             // Delete button click handler (desktop)
@@ -666,6 +667,7 @@
                 const remittanceId = history[index].id || history[index].remittance_id;
                 getRemittanceDetails(remittanceId);
                 $('#remittanceDetailsModal').removeClass('hidden');
+                $('body').css('overflow', 'hidden');
             });
 
             // Delete button click handler (mobile)
@@ -743,7 +745,10 @@
         }
 
         function initModalHandlers() {
-            $('#btnCloseDetailsModal, #btnCloseModal').on('click', () => $('#remittanceDetailsModal').addClass('hidden'));
+            $('#btnCloseDetailsModal, #btnCloseModal').on('click', function() {
+                $('#remittanceDetailsModal').addClass('hidden');
+                $('body').css('overflow', 'auto');
+            });
 
             $('#btnPrintDetails').on('click', function () {
                 printRemittanceSlip();

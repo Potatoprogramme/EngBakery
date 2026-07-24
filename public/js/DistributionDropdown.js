@@ -1,14 +1,18 @@
 let storesCache = null;
+let unusedStoresCache = null;
 
-function loadStores() {
-  $.ajax({
+function loadStores(selectedCategoryId = null) {
+  return $.ajax({
     url: baseUrl + "DistributionCategory/FetchAll",
     type: "GET",
     dataType: "json",
     success: function (response) {
       if (response && response.success) {
         storesCache = response.data; // cache the data
-        populateStoreDropdown(storesCache);
+        populateStoreDropdown(storesCache, selectedCategoryId);
+        if (typeof window.syncDistributionCategoryUi === "function") {
+          window.syncDistributionCategoryUi();
+        }
       }
     },
     error: function (xhr) {
@@ -22,9 +26,37 @@ function loadStores() {
   });
 }
 
-function populateStoreDropdown(data) {
+function loadUnusedStores(selectedCategoryId = null) {
+  return $.ajax({
+    url: baseUrl + "DistributionCategory/FetchUnused",
+    type: "GET",
+    data: { date: $('#scheduleDate').val() },
+    dataType: "json",
+    success: function (response) {
+      if (response && response.success) {
+        unusedStoresCache = response.data; // cache the data
+        populateStoreDropdown(unusedStoresCache, selectedCategoryId);
+        if (typeof window.syncDistributionCategoryUi === "function") {
+          window.syncDistributionCategoryUi();
+        }
+      }
+    },
+    error: function (xhr) {
+      console.error(
+        "Error fetching stores:",
+        xhr.responseJSON?.message ||
+          xhr.responseJSON?.error ||
+          "Failed to fetch stores.",
+      );
+    },
+  });
+}
+
+function populateStoreDropdown(data, selectedCategoryId = null) {
   const $select = $("#distributionGroupName");
-  const currentVal = $select.val();
+  const currentVal = selectedCategoryId != null && selectedCategoryId !== ""
+    ? String(selectedCategoryId)
+    : $select.val();
 
   $select.find("option:not(:first)").remove();
 
@@ -37,5 +69,10 @@ function populateStoreDropdown(data) {
     );
   });
 
-  $select.val(currentVal);
+  if (currentVal) {
+    $select.val(currentVal);
+    $select.find(`option[value="${currentVal}"]`).prop("selected", true);
+  } else {
+    $select.val("");
+  }
 }

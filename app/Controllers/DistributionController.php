@@ -136,7 +136,7 @@ class DistributionController extends BaseController
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
             return $this->response->setStatusCode(500)->setJSON([
                 'error' =>
-                    $e->getMessage() ?: 'Failed to create distribution group',
+                $e->getMessage() ?: 'Failed to create distribution group',
                 'insert_data' => $insertData,
                 'data' => $data,
             ]);
@@ -587,17 +587,70 @@ class DistributionController extends BaseController
         ]);
     }
 
+    public function getDistributionIdsWithItems()
+    {
+        $ids = $this->getDistributionCategoryIdsWithItems();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $ids,
+        ]);
+    }
+
+    // Used by dropdowns (Add/Edit Items modal) — must return EVERY category
     public function fetchAllDistributionCategories()
     {
         $categories = $this->distributionCategoryModel
             ->orderBy('name', 'ASC')
             ->findAll();
 
+        log_message('info', 'Fetching all distribution categories');
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $categories,
         ]);
     }
+
+    // New: only categories that DON'T have items yet for the given date
+public function fetchUnusedDistributionCategories()
+{
+    $date = $this->request->getGet('date') ?? $this->request->getGet('distribution_date');
+
+    $idsWithItems = $this->getDistributionCategoryIdsWithItems($date);
+
+    $builder = $this->distributionCategoryModel->orderBy('name', 'ASC');
+
+    if (!empty($idsWithItems)) {
+        $builder->whereNotIn('dist_cat_id', $idsWithItems);
+    }
+
+    $categories = $builder->findAll();
+
+    log_message('info', 'Fetching distribution categories with no items for date: ' . ($date ?? 'ALL DATES'));
+    log_message('debug', 'Excluded category IDs (have items): ' . json_encode($idsWithItems));
+
+    return $this->response->setJSON([
+        'success' => true,
+        'data' => $categories,
+    ]);
+}
+
+private function getDistributionCategoryIdsWithItems(?string $date = null): array
+{
+    $builder = $this->distributionGroupModel
+        ->select('distribution_group.dist_category_id')
+        ->join('distribution_item', 'distribution_group.id = distribution_item.distribution_id', 'inner')
+        ->groupBy('distribution_group.dist_category_id');
+
+    if (!empty($date)) {
+        $builder->where('distribution_group.distribution_date', $date);
+    }
+
+    $groups = $builder->findAll();
+
+    return array_column($groups, 'dist_category_id');
+}
 
     public function updateDistributionCategory()
     {
