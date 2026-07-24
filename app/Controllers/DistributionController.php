@@ -50,7 +50,7 @@ class DistributionController extends BaseController
             ]);
         }
 
-        $groups = model('DistributionGroupModel')->getGroupsByDateRange($startDate, $endDate);
+        $groups = $this->distributionGroupModel->getGroupsByDateRange($startDate, $endDate);
 
         return $this->response->setJSON([
             'success' => true,
@@ -61,7 +61,7 @@ class DistributionController extends BaseController
 
     public function getGroup(int $id)
     {
-        $group = model('DistributionGroupModel')->getGroupWithItems($id);
+        $group = $this->distributionGroupModel->getGroupWithItems($id);
 
         if (!$group) {
             return $this->response->setStatusCode(404)->setJSON([
