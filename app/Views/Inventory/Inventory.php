@@ -181,17 +181,19 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                 </th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                    Used</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Raw
+                                                    Materials</th>
                                                 <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
@@ -211,6 +213,11 @@
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
+                                                <td></td>
+                                                <?php if ($isOwnerView): ?>
+                                                <td></td>
+                                                <td></td>
+                                                <?php endif; ?>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -2336,6 +2343,23 @@
             openItemDetailsModal(itemId, productId, productName, qtySold, po, price, totalSales);
         });
 
+        // Open Item Details Modal from mobile card tap
+        $(document).on('click', '.inventory-mobile-item-card', function(e) {
+            if ($(e.target).closest('button').length > 0) {
+                return; // Don't open if tapping a button
+            }
+
+            openItemDetailsModal(
+                $(this).data('item-id'),
+                $(this).data('product-id'),
+                $(this).data('product-name'),
+                $(this).data('qty-sold'),
+                $(this).data('po') || 0,
+                $(this).data('price') || 0,
+                $(this).data('total-sales') || 0
+            );
+        });
+
         // Close Item Details Modal
         $('#itemDetailsModalClose, #itemDetailsModalCancel').on('click', function() {
             $('#itemDetailsModal').addClass('hidden');
@@ -3226,6 +3250,7 @@
                 const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                 const traysPerYield = parseInt(item.trays_per_yield) || 0;
                 const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
+                const distQty = parseInt(item.distribution_qty) || 0;
                 const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                     traysPerYield * piecesPerYield :
                     (piecesPerYield > 0 ? piecesPerYield : 1);
@@ -3251,12 +3276,13 @@
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distributed + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distQty + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                 <?php if ($isOwnerView): ?>
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                 <?php endif; ?>
-                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                 <?php if ($isOwnerView): ?>
                 rows += '<td class="px-6 py-2.5 text-sm text-center">';
                 rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -4574,7 +4600,12 @@
         else if (category === 'drinks') borderColor = 'border-l-2 border-l-blue-400 border-gray-200';
         else if (category === 'grocery') borderColor = 'border-l-2 border-l-emerald-400 border-gray-200';
 
-        let card = '<div class="bg-white rounded border ' + borderColor + ' p-3" data-id="' + item.item_id + '">';
+        let card = '<div class="inventory-mobile-item-card cursor-pointer bg-white rounded border ' + borderColor +
+            ' p-3" data-item-id="' + item.item_id + '" data-product-id="' + (item.product_id || '') +
+            '" data-product-name="' + escapeInventoryHtml(item.item || item.product_name || 'N/A') +
+            '" data-qty-sold="' + (parseInt(item.quantity_sold) || 0) + '" data-po="' + (parseInt(item
+                .pull_out_quantity) || 0) + '" data-price="' + parseFloat(price || 0) + '" data-total-sales="' +
+            parseFloat(item.total_sales ?? item.sales ?? 0) + '">';
         card += '  <div class="flex items-center justify-between mb-2">';
         card += '    <span class="text-sm text-gray-800">' + (item.item || item.product_name || 'N/A') + '</span>';
         card += '    <span class="text-sm font-medium text-gray-700">' + formattedPrice + '</span>';
@@ -4591,6 +4622,10 @@
             card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
             card += '    <span>Begin: <span class="text-gray-700">' + (item.beginning_stock || 0) + '</span></span>';
             card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+            if (category === 'bakery') {
+                card += '    <span>Dist Qty: <span class="text-gray-700">' + (parseInt(item.distribution_qty) || 0) +
+                    '</span></span>';
+            }
             card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
             card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
                 .total_sales).toFixed(2) || 0) + '</span></span>';
