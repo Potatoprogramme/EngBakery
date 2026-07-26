@@ -2239,7 +2239,7 @@ class InventoryController extends BaseController
                     'distribution_id' => $groupId,
                     'product_id' => $productId,
                     'product_qnty' => $quantity,
-                    'qty_mode' => 'batch',
+                    'qty_mode' => 'pieces',
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }

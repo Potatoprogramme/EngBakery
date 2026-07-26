@@ -177,6 +177,8 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Distributed
+                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
@@ -1157,7 +1159,7 @@
 
     function getTodayDistPieces(item, product) {
         const qty = parseInventoryNumericValue(item && item.product_qnty);
-        const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+        const qtyMode = ((item && item.qty_mode)).toString().toLowerCase();
         const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
 
         if (qtyMode === 'pieces') {
@@ -1177,7 +1179,7 @@
 
     function getTodayDistYieldUnits(item, product) {
         const qty = parseInventoryNumericValue(item && item.product_qnty);
-        const qtyMode = ((item && item.qty_mode) || 'batch').toString().toLowerCase();
+        const qtyMode = ((item && item.qty_mode)).toString().toLowerCase();
         const category = (((product && product.category) || (item && item.category) || '') + '').toLowerCase();
         const traysPerYield = getTodayDistTraysPerYield(product || {});
         const batchPiecesPerYield = getTodayDistBatchPiecesPerYield(product || {});
@@ -1642,7 +1644,7 @@
     }
 
     function formatTodayDistQuantityLabel(item) {
-        const qtyMode = ((item.qty_mode || 'batch') + '').toLowerCase();
+        const qtyMode = ((item.qty_mode) + '').toLowerCase();
         const quantity = parseInventoryNumericValue(item.product_qnty);
         const pieces = parseInventoryNumericValue(item.pieces_calculated);
 
@@ -1650,11 +1652,11 @@
             return formatInventoryNumber(pieces, 0) + ' pcs';
         }
 
-        if (qtyMode === 'batch') {
-            const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
-            return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' +
-                formatInventoryNumber(pieces, 0) + ' pcs';
-        }
+        // if (qtyMode === 'batch') {
+        //     const isSingleBatch = Math.abs(quantity - 1) < 0.000001;
+        //     return formatInventoryNumber(quantity, 0) + ' batch' + (isSingleBatch ? '' : 'es') + ' • ' +
+        //         formatInventoryNumber(pieces, 0) + ' pcs';
+        // }
 
         if (qtyMode === 'box') {
             const isSingleBox = Math.abs(quantity - 1) < 0.000001;
@@ -1685,7 +1687,7 @@
 
             const totalItems = normalizedItems.length;
             const totalBatches = normalizedItems.reduce(function(sum, item) {
-                const mode = ((item.qty_mode || 'batch') + '').toLowerCase();
+                const mode = ((item.qty_mode) + '').toLowerCase();
                 if (mode === 'pieces') return sum;
                 return sum + parseInventoryNumericValue(item.product_qnty);
             }, 0);
@@ -2686,7 +2688,7 @@
             html += '        </span>';
             html += '      </div>';
             html += '      <div class="flex items-center gap-3 text-xs text-gray-500">';
-            html += '        <span><i class="fas fa-cubes mr-1"></i>' + qtyLabel + '</span>';
+            // html += '        <span><i class="fas fa-cubes mr-1"></i>' + qtyLabel + '</span>';
             html += '      </div>';
 
             if (isLoaded) {
@@ -3215,6 +3217,7 @@
                     .selling_price;
                 const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
                 const beginning = parseInt(item.beginning_stock) || 0;
+                const distributed = parseInt(item.distribution_qty) || 0;
                 const pullOut = parseInt(item.pull_out_quantity) || 0;
                 const qtySold = parseInt(item.quantity_sold) || 0;
                 const ending_stock = parseInt(item.ending_stock) || 0;
@@ -3246,6 +3249,7 @@
                     '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distributed + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                 rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
@@ -3271,7 +3275,7 @@
             });
         } else {
             rows =
-                '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
+                '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">No bakery items in inventory</td></tr>';
         }
 
         $('#bakeryTableBody').html(rows);
@@ -4336,6 +4340,7 @@
             success: function(response) {
                 if (response.success) {
                     showToast('success', response.message, 2000);
+                    
 
                     const patched = applyEditedInventoryItemLocally(itemId, payload, {
                         isAdjustmentMode: isAdjustmentMode,
