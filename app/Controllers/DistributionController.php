@@ -276,6 +276,7 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
         }
 
+
         // Duplicate check within the group
         // if ($itemModel->existsInGroup($groupId, $productId)) {
         //     return $this->response->setStatusCode(409)->setJSON([
@@ -291,6 +292,7 @@ class DistributionController extends BaseController
                 'error' => ucfirst($product['category']) . ' products can only be distributed by pieces, not batches.',
             ]);
         }
+
 
         $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
@@ -309,6 +311,8 @@ class DistributionController extends BaseController
             }
         }
 
+
+
         try {
             // Compute inventory_amount_used (raw-material units consumed)
             $inventoryAmountUsed = 0;
@@ -317,13 +321,21 @@ class DistributionController extends BaseController
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
+            $activeDailyStock = $this->dailyStockModel
+                ->where('inventory_date', $group['distribution_date'])
+                ->orderBy('daily_stock_id', 'DESC')
+                ->first();
+
             $insertData = [
                 'distribution_id' => $groupId,
+                'daily_stock_id' => $activeDailyStock['daily_stock_id'] ?? null, // NEW
                 'product_id' => $productId,
                 'product_qnty' => $quantity,
                 'qty_mode' => $qtyMode,
                 'inventory_amount_used' => $inventoryAmountUsed,
             ];
+
+
 
             $itemModel->insert($insertData);
             $itemId = $itemModel->getInsertID();
@@ -613,44 +625,57 @@ class DistributionController extends BaseController
     }
 
     // New: only categories that DON'T have items yet for the given date
-public function fetchUnusedDistributionCategories()
-{
-    $date = $this->request->getGet('date') ?? $this->request->getGet('distribution_date');
+    public function fetchUnusedDistributionCategories()
+    {
+        $date = $this->request->getGet('date') ?? $this->request->getGet('distribution_date');
 
-    $idsWithItems = $this->getDistributionCategoryIdsWithItems($date);
+        $idsWithItems = $this->getDistributionCategoryIdsWithItems($date);
 
-    $builder = $this->distributionCategoryModel->orderBy('name', 'ASC');
+        $builder = $this->distributionCategoryModel->orderBy('name', 'ASC');
 
-    if (!empty($idsWithItems)) {
-        $builder->whereNotIn('dist_cat_id', $idsWithItems);
+        if (!empty($idsWithItems)) {
+            $builder->whereNotIn('dist_cat_id', $idsWithItems);
+        }
+
+        $categories = $builder->findAll();
+
+        log_message('info', 'Fetching distribution categories with no items for date: ' . ($date ?? 'ALL DATES'));
+        log_message('debug', 'Excluded category IDs (have items): ' . json_encode($idsWithItems));
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $categories,
+        ]);
     }
 
-    $categories = $builder->findAll();
+    private function getDistributionCategoryIdsWithItems(?string $date = null): array
+    {
+        $builder = $this->distributionGroupModel
+            ->select('distribution_group.dist_category_id')
+            ->join('distribution_item', 'distribution_group.id = distribution_item.distribution_id', 'inner')
+            ->groupBy('distribution_group.dist_category_id');
 
-    log_message('info', 'Fetching distribution categories with no items for date: ' . ($date ?? 'ALL DATES'));
-    log_message('debug', 'Excluded category IDs (have items): ' . json_encode($idsWithItems));
+        if (!empty($date)) {
+            $builder->where('distribution_group.distribution_date', $date);
+        }
 
-    return $this->response->setJSON([
-        'success' => true,
-        'data' => $categories,
-    ]);
-}
+        $groups = $builder->findAll();
 
-private function getDistributionCategoryIdsWithItems(?string $date = null): array
-{
-    $builder = $this->distributionGroupModel
-        ->select('distribution_group.dist_category_id')
-        ->join('distribution_item', 'distribution_group.id = distribution_item.distribution_id', 'inner')
-        ->groupBy('distribution_group.dist_category_id');
-
-    if (!empty($date)) {
-        $builder->where('distribution_group.distribution_date', $date);
+        return array_column($groups, 'dist_category_id');
     }
 
-    $groups = $builder->findAll();
+    public function getDistributedQuantitiesForDate()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
 
-    return array_column($groups, 'dist_category_id');
-}
+        $pieces = model('DistributionGroupModel')->getDistributedPiecesForDate($date);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'date' => $date,
+            'data' => $pieces, // { "12": 240, "17": 60, ... }
+        ]);
+    }
 
     public function updateDistributionCategory()
     {

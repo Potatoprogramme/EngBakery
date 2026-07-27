@@ -255,4 +255,36 @@ class DistributionGroupModel extends Model
 
         return $group ? ['exists' => true, 'group_id' => $group['id']] : false;
     }
+
+    /**
+     * Compute total distributed PIECES per product for a given date,
+     * calculated fresh from distribution_group/distribution_item —
+     * does NOT rely on the cached daily_stock_items.distribution_qty column.
+     *
+     * @return array<int, int> [product_id => total_pieces]
+     */
+    public function getDistributedPiecesForDate(string $date, ?int $dailyStockId = null): array
+    {
+        $itemModel = model('DistributionItemModel');
+        $productModel = model('ProductModel');
+        $costModel = model('ProductCostModel');
+
+        $items = $itemModel->getItemsByDate($date, $dailyStockId); // NEW: pass through
+
+        $pieces = [];
+        foreach ($items as $item) {
+            $productId = intval($item['product_id'] ?? 0);
+            if ($productId <= 0) continue;
+
+            $qty = intval($item['product_qnty'] ?? 0);
+            $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
+            $product = $productModel->find($productId);
+            $costData = $costModel->getCostByProductId($productId);
+            $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($qty, $qtyMode, $product, $costData);
+
+            $pieces[$productId] = ($pieces[$productId] ?? 0) + (int) $metrics['pieces'];
+        }
+
+        return $pieces;
+    }
 }
