@@ -177,10 +177,9 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Beginning
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Distributed
-                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
@@ -193,7 +192,7 @@
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Raw
                                                         Materials</th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="bakeryTableBody">
@@ -201,13 +200,12 @@
                                         </tbody>
                                         <tfoot class="bg-gray-50 border-t border-gray-200">
                                             <tr>
-                                                <td colspan="5"
+                                                <td colspan="6"
                                                     class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                                     Total:</td>
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="bakeryTotalQty">0
                                                 </td>
-                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -3256,9 +3254,9 @@
                         .selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
-                    const addedQty = parseInt(item.added_qty) || 0; // NEW
-                    const distributed = parseInt(item.distribution_qty) || 0;
+                    const addedQty = parseInt(item.added_qty) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const distQty = parseInt(item.distribution_qty) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
@@ -3266,7 +3264,6 @@
                     const totalCostPerYield = parseFloat(item.total_cost ?? item.direct_cost ?? 0) || 0;
                     const traysPerYield = parseInt(item.trays_per_yield) || 0;
                     const piecesPerYield = parseInt(item.pieces_per_yield) || 0;
-                    const distQty = parseInt(item.distribution_qty) || 0;
                     const piecesPerBatch = traysPerYield > 0 && piecesPerYield > 0 ?
                         traysPerYield * piecesPerYield :
                         (piecesPerYield > 0 ? piecesPerYield : 1);
@@ -3290,7 +3287,6 @@
                         '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formatBeginningWithAdded(beginning, addedQty) + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distributed + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distQty + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
@@ -4648,6 +4644,15 @@
                     '</span></span>';
                 card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + ((parseFloat(item
                     .sales ?? item.total_sales ?? 0) || 0).toFixed(2)) + '</span></span>';
+                card += '  </div>';
+            } else if (category === 'bakery') {
+                card += '  <div class="flex items-center gap-2 text-xs text-gray-500 mb-2 flex-wrap">';
+                card += '    <span>Begin: <span class="text-gray-700">' + (formatBeginningWithAdded(item.beginning_stock, item.added_qty) || 0) + '</span></span>';
+                card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
+                card += '    <span>Dist: <span class="text-gray-700">' + (parseInt(item.distribution_qty) || 0) + '</span></span>';
+                card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
+                card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
+                    .total_sales).toFixed(2) || 0) + '</span></span>';
                 card += '  </div>';
             } else {
                 card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
