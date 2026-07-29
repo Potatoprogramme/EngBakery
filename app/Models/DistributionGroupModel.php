@@ -197,7 +197,7 @@ class DistributionGroupModel extends Model
         }
 
         $categoryModel = model('DistributionCategory');
-        $categories = $categoryModel->findAll();
+        $categories = $categoryModel->withDeleted()->findAll(); // ✅ include soft-deleted
         $categoryMap = [];
 
         foreach ($categories as $category) {
@@ -223,7 +223,7 @@ class DistributionGroupModel extends Model
             $categoryModel = model('DistributionCategory');
             $categoryMap = [];
 
-            $category = $categoryModel->find($categoryId);
+            $category = $categoryModel->withDeleted()->find($categoryId); // ✅ include soft-deleted
             if ($category) {
                 $categoryMap[$categoryId] = trim((string) ($category['name'] ?? ''));
             }
@@ -274,7 +274,8 @@ class DistributionGroupModel extends Model
         $pieces = [];
         foreach ($items as $item) {
             $productId = intval($item['product_id'] ?? 0);
-            if ($productId <= 0) continue;
+            if ($productId <= 0)
+                continue;
 
             $qty = intval($item['product_qnty'] ?? 0);
             $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
