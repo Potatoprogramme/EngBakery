@@ -99,21 +99,14 @@ class InventoryController extends BaseController
         $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
-        $freshDistPieces = model('DistributionGroupModel')->getDistributedPiecesForDate(
-            $today,
-            intval($daily_stock['daily_stock_id']) // NEW: scope to this shift only
-        );
-
         $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
 
-            // Only filter out zero-stock items for bakery and grocery
             if (in_array($category, ['bakery', 'grocery'], true)) {
                 return $beginningStock > 0;
             }
 
-            // Drinks, dough, and everything else always included regardless of stock
             return true;
         }));
 
@@ -126,17 +119,13 @@ class InventoryController extends BaseController
 
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
-            $productId = intval($item['product_id'] ?? 0);
-            $item['distribution_qty'] = intval($freshDistPieces[$productId] ?? 0);
             $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
             $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
-            $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
-            $totalBeginningStock = $beginningStock + $addedQty;           // NEW
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
             // Inventory interpretation based on stock fields.
-            $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $endingStock);
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
             if (in_array($category, ['bakery', 'grocery'], true)) {
                 // DB qty sold is the floor/source-of-truth for bakery/grocery.
                 $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
@@ -940,8 +929,9 @@ class InventoryController extends BaseController
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
-
+        
         if ($action === 'store') {
+            // Store action: Add to inventory (beginning_stock) + create distribution entry
             $productGroupQty = intval($json->product_group_qty ?? 0);
             if ($productGroupQty <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -949,66 +939,57 @@ class InventoryController extends BaseController
                     'message' => 'Store quantity must be greater than 0'
                 ]);
             }
-
-            // NEW: accumulate into added_qty instead of beginning_stock
-            $oldAddedQty = intval($item['added_qty'] ?? 0);
-            $newAddedQty = $oldAddedQty + $productGroupQty;
+            
+            // Update inventory item's beginning_stock
+            $oldBeginning = intval($item['beginning_stock']);
+            $newBeginning = $oldBeginning + $productGroupQty;
             $newEnding = intval($item['ending_stock']) + $productGroupQty;
-
+            
             $this->dailyStockItemsModel->update($item_id, [
-                'added_qty' => $newAddedQty,
+                'beginning_stock' => $newBeginning,
                 'ending_stock' => $newEnding,
             ]);
-
+            
+            // Create distribution entry under "Store" category
             $dailyStockId = intval($item['daily_stock_id']);
             $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
+            
+            // Deduct raw materials
             $this->deductRawMaterialsForProduct($productId, $productGroupQty);
-
+            
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to store inventory and distribution',
                 'data' => ['item_id' => $item_id]
             ]);
-        } else if ($action === 'distribute') {
+        }
+        
+        else if ($action === 'distribute') {
+            // Distribute action: Add to distribution ONLY (not inventory)
             $distributionGroupQty = intval($json->distribution_group_qty ?? 0);
             $distCategoryId = intval($json->distribution_category_id ?? 0);
-
+            
             if ($distributionGroupQty <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Distribution quantity must be greater than 0'
                 ]);
             }
-
+            
             if ($distCategoryId <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Distribution category is required'
                 ]);
             }
-
+            
+            // Create distribution entry under selected destination category
             $dailyStockId = intval($item['daily_stock_id']);
-
-            // NEW: cap against total available beginning stock for this shift
-            $totalBeginning = intval($item['beginning_stock']) + intval($item['added_qty'] ?? 0);
-            $pullOut = intval($item['pull_out_quantity']);
-            $alreadyDistributed = model('DistributionItemModel')
-                ->getAlreadyDistributedPiecesForShift($dailyStockId, $productId);
-            $availableToDistribute = max(0, $totalBeginning - $pullOut - $alreadyDistributed);
-
-            if ($distributionGroupQty > $availableToDistribute) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'exceeds_available_stock' => true, // NEW: flag for frontend
-                    'message' => "Cannot distribute {$distributionGroupQty} pcs — only {$availableToDistribute} pcs available "
-                        . "(Beginning {$totalBeginning} - Pull Out {$pullOut} - Already Distributed {$alreadyDistributed}).",
-                    'available_to_distribute' => $availableToDistribute,
-                ]);
-            }
-
             $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
+            
+            // Deduct raw materials
             $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
-
+            
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to distribution',
@@ -1053,7 +1034,6 @@ class InventoryController extends BaseController
         $oldBeginning = intval($item['beginning_stock']);
         $oldPullOut = intval($item['pull_out_quantity']);
         $oldEnding = intval($item['ending_stock']);
-        $addedQty = intval($item['added_qty'] ?? 0); // NEW
 
         $inputBeginning = intval($json->beginning_stock);
         $inputPullOut = intval($json->pull_out_quantity);
@@ -1088,14 +1068,7 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            if ($newBeginning <= 0) {
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Beginning stock must be greater than zero. Delete the item if you want to remove it from inventory.'
-                ]);
-            }
-
-            if ($newEndingStock > $newBeginning + $addedQty) {
+            if ($newEndingStock > $newBeginning) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Ending stock cannot be greater than beginning stock.'
@@ -1518,12 +1491,10 @@ class InventoryController extends BaseController
         // Restore raw materials for the beginning stock before deleting
         // Only restore the manually-added portion — distribution & carryover were deducted elsewhere
         $beginningStock = intval($item['beginning_stock'] ?? 0);
-        $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
-        $totalBeginningStock = $beginningStock + $addedQty;           // NEW
         $distributionQty = intval($item['distribution_qty'] ?? 0);
         $carryover = $this->dailyStockItemsModel->getCarryoverStock($inventoryDate);
         $carryoverQty = intval($carryover[intval($item['product_id'])] ?? 0);
-        $manualQty = max(0, $totalBeginningStock - $distributionQty - $carryoverQty);
+        $manualQty = max(0, $beginningStock - $distributionQty - $carryoverQty);
 
         if ($manualQty > 0 && isset($item['product_id'])) {
             $this->rawMaterialStockModel->restoreForProduction(
@@ -1601,11 +1572,9 @@ class InventoryController extends BaseController
                 $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
                 $category = strtolower(trim((string) ($item['category'] ?? '')));
                 $beginningStock = intval($item['beginning_stock'] ?? 0);
-                $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
-                $totalBeginningStock = $beginningStock + $addedQty;           // NEW
                 $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
                 $endingStock = intval($item['ending_stock'] ?? 0);
-                $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $endingStock);
+                $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
                 $quantitySold = in_array($category, ['bakery', 'grocery'], true)
                     ? max($dbQtySold, $inventoryQtySold)
                     : $dbQtySold;
@@ -1625,7 +1594,7 @@ class InventoryController extends BaseController
                     'ending_stock' => $endingStock,
                 ];
 
-                $totalBeginning += $beginningStock + $addedQty;
+                $totalBeginning += $beginningStock;
                 $totalEnding += $endingStock;
                 $totalPullOut += $pullOutQty;
                 $totalSold += $quantitySold;
@@ -1697,11 +1666,9 @@ class InventoryController extends BaseController
             $dbQtySold = intval($salesMap[$item['item_id']]['quantity_sold'] ?? 0);
             $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
-            $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
-            $totalBeginningStock = $beginningStock + $addedQty;           // NEW
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
-            $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $endingStock);
+            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
 
             $effectiveQtySold = in_array($category, ['bakery', 'grocery'], true)
                 ? max($dbQtySold, $inventoryQtySold)
@@ -2017,7 +1984,6 @@ class InventoryController extends BaseController
                             'daily_stock_id' => $newInventoryId,
                             'product_id' => $item['product_id'],
                             'beginning_stock' => $endingStock, // carry over ending stock as new beginning
-                            'added_qty' => 0, // reset added quantity for new shift
                             'pull_out_quantity' => 0,
                             'ending_stock' => $endingStock, // initial ending same as beginning
                             'distribution_qty' => intval($item['distribution_qty'] ?? 0), // keep same-day distribution context across shifts
@@ -2165,16 +2131,16 @@ class InventoryController extends BaseController
         try {
             $distributionGroupModel = model('DistributionGroupModel');
             $distributionItemModel = model('DistributionItemModel');
-
+            
             $today = date('Y-m-d');
             $distCategoryId = 1; // "Store" category
-
+            
             // Find or create distribution group for today + Store category
             $existingGroup = $distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
-
+            
             if ($existingGroup) {
                 $groupId = $existingGroup['id'];
             } else {
@@ -2185,13 +2151,13 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-
+            
             // Find or create distribution item for this product in the group
             $existingItem = $distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
-
+            
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
@@ -2203,16 +2169,16 @@ class InventoryController extends BaseController
                 // Create new item
                 $distributionItemModel->insert([
                     'distribution_id' => $groupId,
-                    'daily_stock_id'  => $dailyStockId, // NEW
                     'product_id' => $productId,
                     'product_qnty' => $quantity,
                     'qty_mode' => 'batch',
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-
+            
             // Recalculate totals for the group
             $distributionGroupModel->recalculateTotals($groupId);
+            
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
         }
@@ -2227,15 +2193,15 @@ class InventoryController extends BaseController
         try {
             $distributionGroupModel = model('DistributionGroupModel');
             $distributionItemModel = model('DistributionItemModel');
-
+            
             $today = date('Y-m-d');
-
+            
             // Find or create distribution group for today + destination category
             $existingGroup = $distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
-
+            
             if ($existingGroup) {
                 $groupId = $existingGroup['id'];
             } else {
@@ -2246,13 +2212,13 @@ class InventoryController extends BaseController
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-
+            
             // Find or create distribution item for this product in the group
             $existingItem = $distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
-
+            
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
@@ -2264,16 +2230,16 @@ class InventoryController extends BaseController
                 // Create new item
                 $distributionItemModel->insert([
                     'distribution_id' => $groupId,
-                    'daily_stock_id'  => $dailyStockId, // NEW
                     'product_id' => $productId,
                     'product_qnty' => $quantity,
-                    'qty_mode' => 'pieces',
+                    'qty_mode' => 'batch',
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
-
+            
             // Recalculate totals for the group
             $distributionGroupModel->recalculateTotals($groupId);
+            
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
         }
@@ -2317,6 +2283,7 @@ class InventoryController extends BaseController
                     $this->deductRawMaterialsForProduct($componentProductId, $componentQty * $quantity);
                 }
             }
+
         } catch (\Throwable $e) {
             log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
         }

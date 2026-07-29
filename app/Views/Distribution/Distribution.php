@@ -517,7 +517,7 @@
                         <label for="distributionGroupName" class="block text-sm font-medium text-gray-700 mb-1">
                             <i class="fas fa-layer-group text-primary mr-1"></i>Destination Category
                         </label>
-                        <select id="distributionGroupName" onclick="loadUnusedStores()"
+                        <select id="distributionGroupName" onclick="loadStores()"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-white">
                             <option value="">Select a category</option>
                         </select>
@@ -558,12 +558,12 @@
                     </div>
 
                     <!-- Product Info (pieces per yield) -->
-                    <!-- <div id="productYieldInfo" class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <div id="productYieldInfo" class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
                         <div class="flex items-center gap-2 text-sm text-blue-700">
                             <i class="fas fa-info-circle"></i>
                             <span>1 batch = <strong id="piecesPerYieldDisplay">0</strong> pieces</span>
                         </div>
-                    </div> -->
+                    </div>
 
                     <!-- Quantity Mode & Quantity (shown after product is selected) -->
                     <div id="qtyModeSection" class="hidden">
@@ -572,31 +572,29 @@
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Per</label>
                             <div class="flex rounded-lg border border-gray-300 overflow-hidden">
-                                <!--
-    <button type="button" id="btnModeBatch"
-        class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-        data-mode="batch">
-        <i class="fas fa-boxes mr-1"></i>Batch
-    </button>
-    <button type="button" id="btnModeBox"
-        class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
-        data-mode="box">
-        <i class="fas fa-box-open mr-1"></i>Box
-    </button>
-    -->
-                                <button type="button" id="btnModePieces"
+                                <button type="button" id="btnModeBatch"
                                     class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-primary text-white transition-colors"
+                                    data-mode="batch">
+                                    <i class="fas fa-boxes mr-1"></i>Batch
+                                </button>
+                                <button type="button" id="btnModeBox"
+                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+                                    data-mode="box">
+                                    <i class="fas fa-box-open mr-1"></i>Box
+                                </button>
+                                <button type="button" id="btnModePieces"
+                                    class="qty-mode-btn flex-1 px-3 py-2 text-sm font-medium bg-white text-gray-600 hover:bg-gray-50 transition-colors"
                                     data-mode="pieces">
                                     <i class="fas fa-puzzle-piece mr-1"></i>Piece
                                 </button>
                             </div>
-                            <input type="hidden" id="selectedQtyMode" value="pieces">
+                            <input type="hidden" id="selectedQtyMode" value="batch">
                         </div>
 
                         <!-- Quantity -->
                         <div class="mb-3">
                             <label id="addQtyLabel" class="block text-sm font-medium text-gray-700 mb-1">Quantity (per
-                                piece) <span class="text-red-500">*</span></label>
+                                batch) <span class="text-red-500">*</span></label>
                             <input type="number" id="addProductQty" min="1" value="10" step="0.00001"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                                 placeholder="10">
@@ -726,7 +724,7 @@
 
 
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             function logDistributionFlow(level, message, details = {}) {
                 if (!enableApiDebugLogs) return;
@@ -754,7 +752,7 @@
             }
 
             function getDistributionDisplayGroupKey(group) {
-                const categoryId = parseInt(group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id), 10);
+                const categoryId = parseInt(group && (group.dist_category_id ?? group.category_id), 10);
                 if (Number.isFinite(categoryId) && categoryId > 0) {
                     return 'category-' + categoryId;
                 }
@@ -767,7 +765,7 @@
                 const sourceIds = new Set();
 
                 if (item && Array.isArray(item.distribution_group_ids)) {
-                    item.distribution_group_ids.forEach(function(groupId) {
+                    item.distribution_group_ids.forEach(function (groupId) {
                         const parsed = parseInt(groupId, 10);
                         if (Number.isFinite(parsed) && parsed > 0) {
                             sourceIds.add(parsed);
@@ -791,7 +789,7 @@
             ];
 
             function syncModalBodyScrollLock() {
-                const hasOpenModal = modalScrollLockSelectors.some(function(selector) {
+                const hasOpenModal = modalScrollLockSelectors.some(function (selector) {
                     const modal = $(selector);
                     return modal.length > 0 && !modal.hasClass('hidden');
                 });
@@ -800,11 +798,11 @@
             }
 
             function initializeModalBodyScrollLock() {
-                modalScrollLockSelectors.forEach(function(selector) {
+                modalScrollLockSelectors.forEach(function (selector) {
                     const modalElement = document.querySelector(selector);
                     if (!modalElement) return;
 
-                    const observer = new MutationObserver(function() {
+                    const observer = new MutationObserver(function () {
                         syncModalBodyScrollLock();
                     });
 
@@ -835,7 +833,7 @@
                     url: baseUrl + 'Distribution/GetProducts',
                     method: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success && response.data) {
                             productsData = response.data;
                             mergeProductCostRecords(productsData, {
@@ -865,7 +863,7 @@
                             updateModalForecastedSales(modalItems, modalSummary);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('Error fetching products:', error);
                     }
                 });
@@ -891,7 +889,7 @@
                     console.log('   Sample product:', recordArray[0].product_id, recordArray[0].product_name, '| combined_recipe_cost:', recordArray[0].combined_recipe_cost);
                 }
 
-                recordArray.forEach(function(record) {
+                recordArray.forEach(function (record) {
                     const productId = String(record.product_id || '').trim();
                     if (!productId) return;
 
@@ -899,7 +897,7 @@
                     const mergedRecord = Object.assign({}, record);
 
                     if (preserveExistingCostFields) {
-                        protectedCostFields.forEach(function(field) {
+                        protectedCostFields.forEach(function (field) {
                             const existingRaw = existingRecord[field];
                             const incomingRaw = mergedRecord[field];
                             const existingValue = parseNumericValue(existingRaw);
@@ -923,7 +921,7 @@
                     url: baseUrl + 'Products/GetAll',
                     method: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response && response.success && Array.isArray(response.data)) {
                             console.log('\ud83d\udd04 [loadProductCostData] Merging', response.data.length, 'products with cost details');
                             mergeProductCostRecords(response.data, {
@@ -954,7 +952,7 @@
 
                         renderAllDistributionsList();
                     },
-                    error: function() {
+                    error: function () {
                         // Keep using lightweight product data fallback.
                     }
                 });
@@ -970,7 +968,7 @@
                     return productCostMap[key];
                 }
 
-                const fromList = productsData.find(function(product) {
+                const fromList = productsData.find(function (product) {
                     return String(product.product_id) === key;
                 });
 
@@ -1020,7 +1018,7 @@
             }
 
             function calculateTotalDistributionPieces(items) {
-                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
                     const productData = getProductAnalyticsData(item && item.product_id);
                     return sum + getDistributionPieces(item, productData);
                 }, 0);
@@ -1140,7 +1138,7 @@
             function decorateDistributionItems(items, fallbackDate = '') {
                 const normalizedItems = applyLocalDistributionGroupMeta(items, fallbackDate);
 
-                return normalizedItems.map(function(item) {
+                return normalizedItems.map(function (item) {
                     const decoratedItem = Object.assign({}, item);
                     const productData = getProductAnalyticsData(decoratedItem.product_id);
                     const quantity = parseNumericValue(decoratedItem.product_qnty);
@@ -1341,16 +1339,14 @@
                     allMeta[dateKey] = {};
                 }
 
-                productIds.forEach(function(productId) {
+                productIds.forEach(function (productId) {
                     const productKey = String(productId || '').trim();
                     if (!productKey) return;
 
                     allMeta[dateKey]['product_' + productKey] = {
                         group_key: (groupMeta.group_key || '').toString(),
                         group_name: (groupMeta.group_name || '').toString() || 'Default Group',
-                        group_note: (groupMeta.group_note || '').toString(),
-                        dist_category_id: (groupMeta.dist_category_id != null ? String(groupMeta.dist_category_id) : ''),
-                        dist_category_name: (groupMeta.dist_category_name || '').toString()
+                        group_note: (groupMeta.group_note || '').toString()
                     };
                 });
 
@@ -1395,8 +1391,8 @@
                 const dateMeta = allMeta[dateKey] || {};
                 const usedNames = new Set(
                     Object.values(dateMeta)
-                    .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
-                    .filter(Boolean)
+                        .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
+                        .filter(Boolean)
                 );
 
                 let sequence = 1;
@@ -1408,7 +1404,7 @@
             }
 
             function applyLocalDistributionGroupMeta(items, fallbackDate = '') {
-                return (Array.isArray(items) ? items : []).map(function(item) {
+                return (Array.isArray(items) ? items : []).map(function (item) {
                     const enrichedItem = Object.assign({}, item);
                     const dateValue = ((enrichedItem && enrichedItem.distribution_date) || fallbackDate ||
                         '').toString().trim();
@@ -1427,12 +1423,6 @@
                         }
                         if (!enrichedItem.distribution_group_note) {
                             enrichedItem.distribution_group_note = localMeta.group_note;
-                        }
-                        if (!enrichedItem.dist_category_id && localMeta.dist_category_id) {
-                            enrichedItem.dist_category_id = localMeta.dist_category_id;
-                        }
-                        if (!enrichedItem.distribution_category_name && localMeta.dist_category_name) {
-                            enrichedItem.distribution_category_name = localMeta.dist_category_name;
                         }
                     }
 
@@ -1485,16 +1475,14 @@
             function groupDistributionsByGroup(items, fallbackDate = '') {
                 const groupedMap = {};
 
-                (items || []).forEach(function(item) {
+                (items || []).forEach(function (item) {
                     const groupKey = getDistributionGroupKey(item, fallbackDate);
-                    const categoryId = parseInt((item && (item.dist_category_id ?? item.distribution_category_id ?? item.category_id ?? item.dist_cat_id)) || 0, 10);
 
                     if (!groupedMap[groupKey]) {
                         groupedMap[groupKey] = {
                             group_key: groupKey,
                             group_name: getDistributionGroupName(item, fallbackDate),
                             group_note: getDistributionGroupNote(item),
-                            dist_category_id: categoryId > 0 ? categoryId : 0,
                             total_items: 0,
                             total_batches: 0,
                             total_pieces: 0,
@@ -1507,12 +1495,8 @@
                         };
                     }
 
-                    if (categoryId > 0 && (!groupedMap[groupKey].dist_category_id || groupedMap[groupKey].dist_category_id <= 0)) {
-                        groupedMap[groupKey].dist_category_id = categoryId;
-                    }
-
                     const sourceGroupIds = getItemSourceGroupIds(item);
-                    sourceGroupIds.forEach(function(groupId) {
+                    sourceGroupIds.forEach(function (groupId) {
                         if (groupedMap[groupKey].source_group_ids.indexOf(groupId) === -1) {
                             groupedMap[groupKey].source_group_ids.push(groupId);
                         }
@@ -1534,13 +1518,13 @@
                     );
 
                     groupedMap[groupKey].forecasted_sales += hasPersistedNumericValue(item,
-                            'forecasted_sales') ?
+                        'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
                         fallbackForecast;
                     groupedMap[groupKey].total_cost += parseNumericValue(item.total_cost);
 
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function(material) {
+                        function (material) {
                             mergeMaterialUsageEntry(groupedMap[groupKey]._raw_material_usage_map,
                                 material);
                         });
@@ -1548,7 +1532,7 @@
                     groupedMap[groupKey].items.push(item);
                 });
 
-                return Object.values(groupedMap).map(function(group) {
+                return Object.values(groupedMap).map(function (group) {
                     const normalizedGroup = Object.assign({}, group);
                     normalizedGroup.raw_material_usage_total = materialUsageMapToArray(normalizedGroup
                         ._raw_material_usage_map);
@@ -1571,7 +1555,7 @@
 
                 const totalBatches = group ?
                     parseNumericValue(group.total_batches) :
-                    groupItems.reduce(function(sum, item) {
+                    groupItems.reduce(function (sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
                             .product_qnty) : 0);
                     }, 0);
@@ -1627,7 +1611,7 @@
                     return parseNumericValue(group.total_cost);
                 }
 
-                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
                     return sum + parseNumericValue(item.total_cost);
                 }, 0);
             }
@@ -1637,7 +1621,7 @@
                     return parseNumericValue(group.overhead_cost);
                 }
 
-                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
                     return sum + parseNumericValue(item.overhead_cost);
                 }, 0);
             }
@@ -1696,7 +1680,7 @@
                     };
                 }
 
-                const matchedGroup = normalizedGroups.find(function(group) {
+                const matchedGroup = normalizedGroups.find(function (group) {
                     return String(group.group_key || '').trim() === activeKey;
                 });
 
@@ -1734,7 +1718,7 @@
                     return '<p class="text-[11px] text-gray-400">No material usage data.</p>';
                 }
 
-                return materials.map(function(material) {
+                return materials.map(function (material) {
                     const amount = formatMaterialAmount(material.amount);
                     const unit = (material.unit || '').toString().trim();
                     const lineCost = parseNumericValue(material.line_cost);
@@ -1779,68 +1763,68 @@
             }
 
             function materialUsageMapToArray(materialMap) {
-                return Object.values(materialMap || {}).sort(function(a, b) {
+                return Object.values(materialMap || {}).sort(function (a, b) {
                     return String(a.material_name || '').localeCompare(String(b.material_name || ''));
                 });
             }
 
             function mergeGroupItemsByProduct(items) {
-                const mergedMap = {};
-                const order = [];
+    const mergedMap = {};
+    const order = [];
 
-                (Array.isArray(items) ? items : []).forEach(function(item) {
-                    const productId = String(item && item.product_id || '').trim();
-                    const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
-                    const mergeKey = productId + '::' + qtyMode;
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+        const productId = String(item && item.product_id || '').trim();
+        const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
+        const mergeKey = productId + '::' + qtyMode;
 
-                    if (!mergedMap[mergeKey]) {
-                        const clonedItem = Object.assign({}, item);
-                        clonedItem.product_qnty = parseNumericValue(item.product_qnty);
-                        clonedItem.forecasted_sales = parseNumericValue(item.forecasted_sales);
-                        clonedItem.total_cost = parseNumericValue(item.total_cost);
-                        clonedItem.overhead_cost = parseNumericValue(item.overhead_cost);
-                        clonedItem.additional_cost = parseNumericValue(item.additional_cost);
-                        clonedItem.raw_material_usage = Array.isArray(item.raw_material_usage) ?
-                            item.raw_material_usage.slice() : [];
+        if (!mergedMap[mergeKey]) {
+            const clonedItem = Object.assign({}, item);
+            clonedItem.product_qnty = parseNumericValue(item.product_qnty);
+            clonedItem.forecasted_sales = parseNumericValue(item.forecasted_sales);
+            clonedItem.total_cost = parseNumericValue(item.total_cost);
+            clonedItem.overhead_cost = parseNumericValue(item.overhead_cost);
+            clonedItem.additional_cost = parseNumericValue(item.additional_cost);
+            clonedItem.raw_material_usage = Array.isArray(item.raw_material_usage) ?
+                item.raw_material_usage.slice() : [];
 
-                        const mergedIds = [];
-                        const initialId = getDistributionItemId(item);
-                        if (initialId) mergedIds.push(initialId);
-                        clonedItem._merged_item_ids = mergedIds;
+            const mergedIds = [];
+            const initialId = getDistributionItemId(item);
+            if (initialId) mergedIds.push(initialId);
+            clonedItem._merged_item_ids = mergedIds;
 
-                        mergedMap[mergeKey] = clonedItem;
-                        order.push(mergeKey);
-                    } else {
-                        const existing = mergedMap[mergeKey];
-                        existing.product_qnty += parseNumericValue(item.product_qnty);
-                        existing.forecasted_sales += parseNumericValue(item.forecasted_sales);
-                        existing.total_cost += parseNumericValue(item.total_cost);
-                        existing.overhead_cost += parseNumericValue(item.overhead_cost);
-                        existing.additional_cost += parseNumericValue(item.additional_cost);
+            mergedMap[mergeKey] = clonedItem;
+            order.push(mergeKey);
+        } else {
+            const existing = mergedMap[mergeKey];
+            existing.product_qnty += parseNumericValue(item.product_qnty);
+            existing.forecasted_sales += parseNumericValue(item.forecasted_sales);
+            existing.total_cost += parseNumericValue(item.total_cost);
+            existing.overhead_cost += parseNumericValue(item.overhead_cost);
+            existing.additional_cost += parseNumericValue(item.additional_cost);
 
-                        const materialMap = {};
-                        existing.raw_material_usage.forEach(function(material) {
-                            mergeMaterialUsageEntry(materialMap, material);
-                        });
-                        (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                            function(material) {
-                                mergeMaterialUsageEntry(materialMap, material);
-                            });
-                        existing.raw_material_usage = materialUsageMapToArray(materialMap);
-
-                        const mergeId = getDistributionItemId(item);
-                        if (mergeId && existing._merged_item_ids.indexOf(mergeId) === -1) {
-                            existing._merged_item_ids.push(mergeId);
-                        }
-                    }
+            const materialMap = {};
+            existing.raw_material_usage.forEach(function (material) {
+                mergeMaterialUsageEntry(materialMap, material);
+            });
+            (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
+                function (material) {
+                    mergeMaterialUsageEntry(materialMap, material);
                 });
+            existing.raw_material_usage = materialUsageMapToArray(materialMap);
 
-                return order.map(function(key) {
-                    return mergedMap[key];
-                });
+            const mergeId = getDistributionItemId(item);
+            if (mergeId && existing._merged_item_ids.indexOf(mergeId) === -1) {
+                existing._merged_item_ids.push(mergeId);
             }
+        }
+    });
 
-            function fetchProductDetail(productId) {
+    return order.map(function (key) {
+        return mergedMap[key];
+    });
+}
+            
+function fetchProductDetail(productId) {
                 const key = String(productId || '').trim();
                 if (!key) {
                     return Promise.resolve(null);
@@ -1854,12 +1838,12 @@
                     return productDetailPromiseCache[key];
                 }
 
-                productDetailPromiseCache[key] = new Promise(function(resolve) {
+                productDetailPromiseCache[key] = new Promise(function (resolve) {
                     $.ajax({
                         url: baseUrl + 'Products/GetProduct/' + key,
                         method: 'GET',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response && response.success && response.data) {
                                 const productData = response.data;
                                 productDetailCache[key] = productData;
@@ -1870,10 +1854,10 @@
 
                             resolve(null);
                         },
-                        error: function() {
+                        error: function () {
                             resolve(null);
                         },
-                        complete: function() {
+                        complete: function () {
                             delete productDetailPromiseCache[key];
                         }
                     });
@@ -1895,7 +1879,7 @@
                 nextVisited.add(key);
 
                 const ingredients = Array.isArray(currentProduct.ingredients) ? currentProduct.ingredients : [];
-                ingredients.forEach(function(ingredient) {
+                ingredients.forEach(function (ingredient) {
                     const quantityPerYield = parseNumericValue(ingredient.quantity ?? ingredient
                         .quantity_needed);
                     if (quantityPerYield <= 0) return;
@@ -1991,7 +1975,7 @@
 
                 const requestToken = ++ownerRawUsageHydrationToken;
 
-                const usagePromises = decoratedItems.map(async function(item) {
+                const usagePromises = decoratedItems.map(async function (item) {
                     try {
                         const usage = await computeRawMaterialUsageForItem(item);
                         return Object.assign({}, item, {
@@ -2015,9 +1999,9 @@
                 }
 
                 const dayMaterialMap = {};
-                ownerDecoratedItems.forEach(function(item) {
+                ownerDecoratedItems.forEach(function (item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function(material) {
+                        function (material) {
                             mergeMaterialUsageEntry(dayMaterialMap, material);
                         });
                 });
@@ -2044,7 +2028,7 @@
                 renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data(
-                        'selected-date') === targetDate) {
+                    'selected-date') === targetDate) {
                     $('#calendarDayModal').data('day-items', ownerDecoratedItems);
                     $('#calendarDayModal').data('day-summary', ownerSummary);
                     updateModalForecastedSales(ownerDecoratedItems, ownerSummary);
@@ -2102,7 +2086,7 @@
                         `<p class="text-xs text-gray-400">${isGroupScoped ? 'No raw material usage for this selected group.' : 'No raw material usage for this date.'}</p>`
                     );
                 } else {
-                    materialsContainer.html(dayMaterials.map(function(material) {
+                    materialsContainer.html(dayMaterials.map(function (material) {
                         return `
                             <div class="flex items-center justify-between text-xs text-gray-700 border-b border-gray-100 pb-1">
                                 <span class="truncate pr-2">${material.material_name}: ${formatMaterialAmount(material.amount)}${material.unit ? ' ' + material.unit : ''}</span>
@@ -2117,13 +2101,13 @@
                     return;
                 }
 
-                const html = normalizedGroups.map(function(group) {
+                const html = normalizedGroups.map(function (group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupForecast = parseNumericValue(group.forecasted_sales);
                     const groupTotal = parseNumericValue(group.total_cost);
                     const groupNote = (group.group_note || '').toString().trim();
 
-                    const itemsHtml = groupItems.map(function(item) {
+                    const itemsHtml = groupItems.map(function (item) {
                         const quantity = parseNumericValue(item.product_qnty);
                         const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                             parseNumericValue(item.forecasted_sales) :
@@ -2178,7 +2162,7 @@
 
             function groupDistributionsByDate(items) {
                 const grouped = {};
-                (items || []).forEach(function(item) {
+                (items || []).forEach(function (item) {
                     if (!grouped[item.distribution_date]) {
                         grouped[item.distribution_date] = [];
                     }
@@ -2206,10 +2190,10 @@
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const dates = Object.keys(allDistributionData).filter(function(dateStr) {
+                const dates = Object.keys(allDistributionData).filter(function (dateStr) {
                     const parsed = new Date(dateStr + 'T00:00:00');
                     return !isNaN(parsed.getTime()) && parsed >= today;
-                }).sort(function(a, b) {
+                }).sort(function (a, b) {
                     return new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00');
                 });
 
@@ -2222,16 +2206,16 @@
 
                 $('#allDistributionsEmptyState').addClass('hidden');
 
-                dates.forEach(function(dateStr) {
+                dates.forEach(function (dateStr) {
                     const dayItems = allDistributionData[dateStr] || [];
-                    const actualItems = dayItems.filter(function(item) {
+                    const actualItems = dayItems.filter(function (item) {
                         return !(item && item.__empty_group_placeholder);
                     });
-                    const batchQty = actualItems.reduce(function(sum, item) {
+                    const batchQty = actualItems.reduce(function (sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
-                    const piecesQty = actualItems.reduce(function(sum, item) {
+                    const piecesQty = actualItems.reduce(function (sum, item) {
                         const productData = getProductAnalyticsData(item.product_id);
                         return sum + getDistributionPieces(item, productData);
                     }, 0);
@@ -2278,10 +2262,10 @@
                         date: date
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         const responseNote = extractDistributionNote([], response.distribution_note ||
                             response.overall_note || response.note || response
-                            .place_distributed_to || response.place_distributed || '');
+                                .place_distributed_to || response.place_distributed || '');
 
                         if (response.success) {
                             // Flatten nested groups into a single array of items
@@ -2289,17 +2273,18 @@
                             const flattenedItems = [];
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
 
-                            apiGroups.forEach(function(group) {
-                                const groupItems = Array.isArray(group.items) ? group.items : [];
-                                groupItems.forEach(function(item) {
+                            apiGroups.forEach(function (group) {
+                                const groupItems = Array.isArray(group.items) ? group.items :
+                                    [];
+                                groupItems.forEach(function (item) {
                                     // Attach group-level information to each item
                                     const itemWithGroup = Object.assign({}, item, {
                                         // Group metadata
                                         distribution_id: group.id,
-                                        dist_category_id: group.dist_category_id || group.category_id || group.dist_cat_id || item.dist_category_id || item.category_id || item.dist_cat_id,
                                         distribution_group_key: 'group-' +
                                             String(group.id),
-                                        distribution_display_group_key: getDistributionDisplayGroupKey(group),
+                                        distribution_display_group_key:
+                                            getDistributionDisplayGroupKey(group),
                                         distribution_group_name: group.title,
                                         distribution_group_note: group
                                             .distributed_to_note || '',
@@ -2318,19 +2303,19 @@
                             const items = decorateDistributionItems(flattenedItems, date);
                             const groupedData = groupDistributionsByGroup(items, date);
                             const summary = Object.assign({
-                                    date: date,
-                                    total_items: items.length,
-                                    total_groups: getDistinctGroupCount(items, date),
-                                    total_batches: items.reduce((sum, item) => sum + (((item
-                                            .qty_mode || 'batch') !== 'pieces') ?
-                                        parseNumericValue(item.product_qnty) : 0), 0),
-                                    total_pieces: calculateTotalDistributionPieces(items),
-                                    forecasted_sales_total: calculateForecastedSalesTotal(items),
-                                    total_cost_total: items.reduce((sum, item) => sum +
-                                        parseNumericValue(item.total_cost), 0),
-                                    additional_cost_total: calculateAdditionalCostTotal(items),
-                                    raw_material_usage_total: []
-                                },
+                                date: date,
+                                total_items: items.length,
+                                total_groups: getDistinctGroupCount(items, date),
+                                total_batches: items.reduce((sum, item) => sum + (((item
+                                    .qty_mode || 'batch') !== 'pieces') ?
+                                    parseNumericValue(item.product_qnty) : 0), 0),
+                                total_pieces: calculateTotalDistributionPieces(items),
+                                forecasted_sales_total: calculateForecastedSalesTotal(items),
+                                total_cost_total: items.reduce((sum, item) => sum +
+                                    parseNumericValue(item.total_cost), 0),
+                                additional_cost_total: calculateAdditionalCostTotal(items),
+                                raw_material_usage_total: []
+                            },
                                 response.daily_summary || {}
                             );
 
@@ -2338,7 +2323,7 @@
                             summary.total_groups = getDistinctGroupCount(items, date);
                             summary.total_batches = items.reduce((sum, item) => sum + (((item
                                 .qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
-                                .product_qnty) : 0), 0);
+                                    .product_qnty) : 0), 0);
                             summary.total_pieces = calculateTotalDistributionPieces(items);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.total_cost_total = items.reduce((sum, item) => sum +
@@ -2372,7 +2357,7 @@
                                 hydrateOwnerRawMaterialAnalytics(date, items, summary);
                             }
 
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 console.log('[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...');
                                 const freshItems = decorateDistributionItems(currentDayDistributionItems, date);
                                 const freshGrouped = groupDistributionsByGroup(freshItems, date);
@@ -2409,7 +2394,7 @@
                             updateMainDistributionNotePanels([]);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('%c[DISTRIBUTION ERROR]', 'color: #FF0000; font-weight: bold', {
                             status: xhr.status,
                             statusText: xhr.statusText,
@@ -2444,7 +2429,7 @@
                         end_date: formatDate(endDate)
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success && response.data) {
                             const flattenedItems = flattenGroupedDataIfNeeded(response.data, '');
                             const decoratedItems = decorateDistributionItems(flattenedItems);
@@ -2455,7 +2440,7 @@
                         }
                         renderCalendar();
                     },
-                    error: function() {
+                    error: function () {
                         calendarData = {};
                         renderCalendar();
                     }
@@ -2473,14 +2458,15 @@
                         end_date: '2100-12-31'
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success && response.data) {
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
                             const flattenedItems = flattenGroupedDataIfNeeded(apiGroups, '');
                             const placeholderItems = [];
 
-                            apiGroups.forEach(function(group) {
-                                const groupItems = Array.isArray(group.items) ? group.items : [];
+                            apiGroups.forEach(function (group) {
+                                const groupItems = Array.isArray(group.items) ? group.items :
+                                    [];
                                 if (groupItems.length > 0) return;
 
                                 placeholderItems.push({
@@ -2488,7 +2474,8 @@
                                         .toString(),
                                     distribution_id: group.id,
                                     distribution_group_key: 'group-' + String(group.id),
-                                    distribution_display_group_key: getDistributionDisplayGroupKey(group),
+                                    distribution_display_group_key:
+                                        getDistributionDisplayGroupKey(group),
                                     distribution_group_name: group.title ||
                                         'Default Group',
                                     distribution_group_note: group
@@ -2514,7 +2501,7 @@
                         }
                         renderAllDistributionsList();
                     },
-                    error: function() {
+                    error: function () {
                         allDistributionData = {};
                         renderAllDistributionsList();
                     }
@@ -2524,7 +2511,7 @@
             // OLD → Distribution/AddDistribution
             // NEW → Distribution/AddItem
             function addDistributionItemRequest(payload, rawQtyMode = null) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     const requestId = `add-item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     const normalizedDistributionId = normalizeDistributionGroupIdForApi(payload
                         .distribution_id);
@@ -2550,26 +2537,26 @@
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(requestPayload),
-                        success: function(response) {
+                        success: function (response) {
                             logDistributionFlow('log',
                                 'Add distribution item request succeeded.', {
-                                    request_id: requestId,
-                                    endpoint: 'Distribution/AddItem',
-                                    response: response || {},
-                                });
+                                request_id: requestId,
+                                endpoint: 'Distribution/AddItem',
+                                response: response || {},
+                            });
                             resolve(response || {});
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             logDistributionFlow('error',
                                 'Add distribution item request failed.', {
-                                    request_id: requestId,
-                                    endpoint: 'Distribution/AddItem',
-                                    status: xhr.status,
-                                    status_text: xhr.statusText,
-                                    response: xhr.responseJSON,
-                                    payload: requestPayload,
-                                    raw_qty_mode: rawQtyMode
-                                });
+                                request_id: requestId,
+                                endpoint: 'Distribution/AddItem',
+                                status: xhr.status,
+                                status_text: xhr.statusText,
+                                response: xhr.responseJSON,
+                                payload: requestPayload,
+                                raw_qty_mode: rawQtyMode
+                            });
                             reject(xhr);
                         }
                     });
@@ -2579,15 +2566,15 @@
             // OLD → Distribution/DeleteDistribution/:id
             // NEW → Distribution/DeleteItem/:id
             function deleteDistributionItemRequest(itemId) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             resolve(response || {});
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error('  ERROR - Failed to delete item:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2600,17 +2587,17 @@
             }
 
             function deleteDistributionGroupRequest(groupId) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteGroup/' + normalizedGroupId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             resolve(response || {});
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error('  ERROR - Failed to delete group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2624,7 +2611,7 @@
             }
 
             function updateDistributionGroupRequest(groupId, payload) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
@@ -2633,10 +2620,10 @@
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(payload || {}),
-                        success: function(response) {
+                        success: function (response) {
                             resolve(response || {});
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error('  ERROR - Failed to update group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2651,7 +2638,7 @@
             }
 
             function fetchDistributionItemsByDateRequest(dateStr) {
-                return new Promise(function(resolve) {
+                return new Promise(function (resolve) {
                     $.ajax({
                         url: baseUrl + 'Distribution/GetDistributionByDate',
                         method: 'GET',
@@ -2659,7 +2646,7 @@
                             date: dateStr
                         },
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response && response.success) {
                                 // Flatten grouped data before decorating
                                 const flattenedData = flattenGroupedDataIfNeeded(response
@@ -2669,7 +2656,7 @@
                             }
                             resolve([]);
                         },
-                        error: function() {
+                        error: function () {
                             resolve([]);
                         }
                     });
@@ -2687,14 +2674,6 @@
                 return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
             }
 
-            function getMergedDistributionItemIds(item) {
-                if (item && Array.isArray(item._merged_item_ids) && item._merged_item_ids.length > 0) {
-                    return item._merged_item_ids.filter(id => Number.isFinite(id) && id > 0);
-                }
-                const singleId = getDistributionItemId(item);
-                return singleId ? [singleId] : [];
-            }
-
             function getDistributionItemIdentityKey(item) {
                 const distributionItemId = getDistributionItemId(item);
                 if (distributionItemId) {
@@ -2709,7 +2688,7 @@
                     url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                     method: 'POST',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (productId != null) {
                             removeLocalDistributionGroupMeta(dateValue || $('#selectedDate').val(),
                                 productId);
@@ -2719,7 +2698,7 @@
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         showToast('danger', 'Failed to delete item. Please try again.', 3000);
                         console.error('Error deleting item:', error);
                     }
@@ -2755,7 +2734,7 @@
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify(requestPayload),
-                    success: function(response) {
+                    success: function (response) {
                         logDistributionFlow('log', 'Update distribution item request succeeded.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2767,7 +2746,7 @@
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         logDistributionFlow('error', 'Update distribution item request failed.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2832,9 +2811,9 @@
                         // Determine if data is already grouped
                         let groupedData = [];
                         if (dayData.length > 0 && dayData[0] && typeof dayData[0] === 'object' && Array.isArray(
-                                dayData[0].items)) {
+                            dayData[0].items)) {
                             // Already grouped (from calendar API) - transform to expected format
-                            groupedData = dayData.map(function(apiGroup) {
+                            groupedData = dayData.map(function (apiGroup) {
                                 const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
                                 return {
                                     group_key: getDistributionDisplayGroupKey(apiGroup),
@@ -2888,7 +2867,7 @@
             }
 
             // Calendar navigation
-            $('#btnPrevMonth').on('click', function() {
+            $('#btnPrevMonth').on('click', function () {
                 currentCalendarMonth--;
                 if (currentCalendarMonth < 0) {
                     currentCalendarMonth = 11;
@@ -2897,7 +2876,7 @@
                 loadMonthDistributions();
             });
 
-            $('#btnNextMonth').on('click', function() {
+            $('#btnNextMonth').on('click', function () {
                 currentCalendarMonth++;
                 if (currentCalendarMonth > 11) {
                     currentCalendarMonth = 0;
@@ -2942,9 +2921,10 @@
                 const totalPieces = parseNumericValue(groupSummary.total_pieces);
                 const isMaterialLoading = Boolean(options && options.materialLoading);
 
-                const materialUsageByItemHtml = groupItems.map(function(item) {
+                const materialUsageByItemHtml = groupItems.map(function (item) {
                     const quantity = parseNumericValue(item.product_qnty);
-                    const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
+                    const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage :
+                        [];
                     const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0) ?
                         '<p class="text-[11px] text-gray-400">Loading ingredients used...</p>' :
                         renderMaterialUsageList(itemMaterials);
@@ -2960,7 +2940,7 @@
                     `;
                 }).join('');
 
-                const itemsHtml = groupItems.map(function(item) {
+                const itemsHtml = groupItems.map(function (item) {
                     const quantity = parseNumericValue(item.product_qnty);
                     const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
@@ -3036,7 +3016,7 @@
             async function hydrateGroupItemsRawMaterialUsageForModal(items) {
                 const normalizedItems = Array.isArray(items) ? items : [];
 
-                const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
+                const hydratedItems = await Promise.all(normalizedItems.map(async function (item) {
                     const existingUsage = Array.isArray(item && item.raw_material_usage) ?
                         item.raw_material_usage : [];
 
@@ -3059,9 +3039,9 @@
                 }));
 
                 const materialMap = {};
-                hydratedItems.forEach(function(item) {
+                hydratedItems.forEach(function (item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function(material) {
+                        function (material) {
                             mergeMaterialUsageEntry(materialMap, material);
                         });
                 });
@@ -3081,7 +3061,7 @@
                         normalizedDate] || []), normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function(group) {
+                const matchedGroup = groupedData.find(function (group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3101,7 +3081,7 @@
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
-                const needsHydration = groupItems.some(function(item) {
+                const needsHydration = groupItems.some(function (item) {
                     return !Array.isArray(item && item.raw_material_usage) || item.raw_material_usage
                         .length === 0;
                 });
@@ -3110,8 +3090,8 @@
 
                 $('#calendarDayGroupDetailContent').html(renderCalendarModalGroupDetail(normalizedDate,
                     matchedGroup, {
-                        materialLoading: needsHydration
-                    }));
+                    materialLoading: needsHydration
+                }));
                 $('#calendarDayModal').data('day-summary', groupSummary);
                 updateModalForecastedSales(groupItems, groupSummary);
                 setCalendarDaySelectButtonScope('group', normalizedGroupKey);
@@ -3163,7 +3143,7 @@
                         normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function(group) {
+                const matchedGroup = groupedData.find(function (group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3190,7 +3170,7 @@
             }
 
             // Calendar date click - show all groups so user can choose one
-            $(document).on('click', '.calendar-day', function(e) {
+            $(document).on('click', '.calendar-day', function (e) {
                 if ($(e.target).closest('.calendar-group-chip').length) {
                     return;
                 }
@@ -3203,7 +3183,7 @@
             });
 
             // Calendar group chip click - open selected group directly
-            $(document).on('click', '.calendar-group-chip', function(e) {
+            $(document).on('click', '.calendar-group-chip', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -3213,7 +3193,7 @@
             });
 
             // Group picker inside modal - open selected group
-            $(document).on('click', '.modal-group-picker-btn', function() {
+            $(document).on('click', '.modal-group-picker-btn', function () {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3222,7 +3202,7 @@
             });
 
             // Group list (non-picker mode) - open selected group detail pane
-            $(document).on('click', '.modal-group-detail-btn', function() {
+            $(document).on('click', '.modal-group-detail-btn', function () {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3230,7 +3210,7 @@
                 openCalendarModalGroupDetail(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-edit-group', function() {
+            $(document).on('click', '.btn-modal-edit-group', function () {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3238,18 +3218,18 @@
                 openDistributionGroupEditModal(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-delete-group', function() {
+            $(document).on('click', '.btn-modal-delete-group', function () {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
 
-                Confirm.delete('Delete this distribution group and all its items?', async function() {
+                Confirm.delete('Delete this distribution group and all its items?', async function () {
                     await deleteDistributionGroupByKey(dateStr, groupKey, dayItems);
                 });
             });
 
-            $(document).on('click', '#btnCalendarDayBackToGroups', function() {
+            $(document).on('click', '#btnCalendarDayBackToGroups', function () {
                 const dayItems = $('#calendarDayModal').data('day-items') || [];
                 const baseSummary = $('#calendarDayModal').data('base-day-summary') || {};
                 const baseScope = ($('#calendarDayModal').data('base-selection-scope') || 'date')
@@ -3268,8 +3248,8 @@
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                    'Select Distribution Group' :
-                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                        'Select Distribution Group' :
+                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formattedDate} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3294,7 +3274,7 @@
                 if (data[0] && typeof data[0] === 'object' && Array.isArray(data[0].items)) {
 
                     const flatItems = [];
-                    data.forEach(function(group) {
+                    data.forEach(function (group) {
                         const groupDate = (group.distribution_date || dateStr || '').toString();
                         const groupItems = Array.isArray(group.items) ? group.items : [];
 
@@ -3302,7 +3282,7 @@
                         const groupKey = 'group-' + String(group.id);
                         const displayGroupKey = getDistributionDisplayGroupKey(group);
 
-                        groupItems.forEach(function(item) {
+                        groupItems.forEach(function (item) {
                             flatItems.push(Object.assign({}, item, {
                                 distribution_date: groupDate,
                                 distribution_id: group.id,
@@ -3341,9 +3321,9 @@
                     .isArray(items[0].items)) {
 
                     // Transform API groups to match expected format
-                    groupedData = items.map(function(apiGroup) {
+                    groupedData = items.map(function (apiGroup) {
                         const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
-                        const totalBatches = groupItems.reduce(function(sum, item) {
+                        const totalBatches = groupItems.reduce(function (sum, item) {
                             return sum + (((item.qty_mode || 'batch') !== 'pieces') ?
                                 parseNumericValue(item.product_qnty) : 0);
                         }, 0);
@@ -3367,9 +3347,9 @@
 
                     // Extract all items for calculations (preserve original group key)
                     flatItems = [];
-                    groupedData.forEach(function(group) {
+                    groupedData.forEach(function (group) {
                         if (Array.isArray(group.items)) {
-                            group.items.forEach(function(item) {
+                            group.items.forEach(function (item) {
                                 flatItems.push(Object.assign({}, item, {
                                     distribution_date: group._apiDate || dateStr,
                                     distribution_id: group._apiId,
@@ -3393,11 +3373,11 @@
                     null;
                 const isGroupPickerMode = Boolean(modalOptions && modalOptions.groupPicker);
                 const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope ===
-                        'group') ?
+                    'group') ?
                     'group' :
                     'date';
                 const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions
-                        .groupKey) ?
+                    .groupKey) ?
                     String(modalOptions.groupKey) :
                     '';
                 const shouldOpenSpecificGroup = requestedScope === 'group' && providedGroupKey !== '';
@@ -3417,8 +3397,8 @@
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                    'Select Distribution Group' :
-                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                        'Select Distribution Group' :
+                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3466,7 +3446,7 @@
                     $('#calendarDayEmptyState').addClass('hidden');
 
                     if (isGroupPickerMode) {
-                        const pickerHtml = groupedData.map(function(group) {
+                        const pickerHtml = groupedData.map(function (group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
@@ -3499,13 +3479,13 @@
                             '<p class="text-xs text-gray-400">No groups available.</p>');
                     } else {
 
-                        groupedData.forEach(function(group) {
+                        groupedData.forEach(function (group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
                             const groupKey = escapeHtml((group.group_key || '').toString());
 
-                            const rowsHtml = groupItems.map(function(item) {
+                            const rowsHtml = groupItems.map(function (item) {
                                 return `
                                     <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                                         <div class="flex items-center gap-2 min-w-0">
@@ -3556,12 +3536,12 @@
             }
 
             // Close calendar day modal
-            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function() {
+            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function () {
                 $('#calendarDayModal').addClass('hidden');
             });
 
             // Go to selected date from modal
-            $('#btnCalendarDaySelect').on('click', function() {
+            $('#btnCalendarDaySelect').on('click', function () {
                 const dateStr = $('#calendarDayModal').data('selected-date');
                 const selectionScope = ($('#calendarDayModal').data('selection-scope') || 'date')
                     .toString();
@@ -3585,13 +3565,13 @@
                 $('#calendarDayModal').addClass('hidden');
             });
 
-            $(document).on('click', '.all-distribution-entry', function() {
+            $(document).on('click', '.all-distribution-entry', function () {
                 const dateStr = $(this).data('date');
                 const dayData = allDistributionData[dateStr] || [];
                 showCalendarDayModal(dateStr, dayData);
             });
 
-            $(document).on('click', '.distribution-group-entry', function() {
+            $(document).on('click', '.distribution-group-entry', function () {
                 const dateStr = ($(this).data('date') || $('#selectedDate').val() || '').toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 openSpecificGroupView(dateStr, groupKey, currentDayDistributionItems);
@@ -3609,7 +3589,7 @@
                 if (groupEntries.length < 3) return;
 
                 let maxHeight = 0;
-                groupEntries.slice(0, 3).each(function() {
+                groupEntries.slice(0, 3).each(function () {
                     maxHeight += ($(this).outerHeight(true) || 0);
                 });
 
@@ -3635,14 +3615,14 @@
                 const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
                 const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
-                normalizedGroups.forEach(function(group) {
+                normalizedGroups.forEach(function (group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                     const groupNoteRaw = (group.group_note || '').toString().trim();
                     const groupNote = escapeHtml(groupNoteRaw);
                     const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    const totalBatches = groupItems.reduce(function(sum, item) {
+                    const totalBatches = groupItems.reduce(function (sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
@@ -3687,14 +3667,14 @@
                 const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
                 const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
-                normalizedGroups.forEach(function(group) {
+                normalizedGroups.forEach(function (group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                     const groupNoteRaw = (group.group_note || '').toString().trim();
                     const groupNote = escapeHtml(groupNoteRaw);
                     const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    const totalBatches = groupItems.reduce(function(sum, item) {
+                    const totalBatches = groupItems.reduce(function (sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
@@ -3720,13 +3700,13 @@
                 });
             }
 
-            $(window).on('resize', function() {
+            $(window).on('resize', function () {
                 updateDistributionListScrollLimit();
             });
 
             // ===== DATE NAVIGATION =====
 
-            $('#selectedDate').on('change', function() {
+            $('#selectedDate').on('change', function () {
                 const selectedDate = ($('#selectedDate').val() || '').toString();
                 if ((selectedGroupFilter.date || '') !== selectedDate) {
                     clearSelectedGroupFilter();
@@ -3737,13 +3717,13 @@
                 renderCalendar();
             });
 
-            $('#btnPrevDay').on('click', function() {
+            $('#btnPrevDay').on('click', function () {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() - 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
             });
 
-            $('#btnNextDay').on('click', function() {
+            $('#btnNextDay').on('click', function () {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() + 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
@@ -3768,20 +3748,17 @@
                 );
                 $('#btnSaveItems').html(
                     isEditMode ?
-                    '<i class="fas fa-save mr-2"></i>Save Group Changes' :
-                    '<i class="fas fa-save mr-2"></i>Save to Schedule'
+                        '<i class="fas fa-save mr-2"></i>Save Group Changes' :
+                        '<i class="fas fa-save mr-2"></i>Save to Schedule'
                 );
 
                 $('#scheduleDate').prop('disabled', isEditMode);
                 $('.schedule-quick-btn').prop('disabled', isEditMode);
-                $('#distributionGroupName').prop('disabled', isEditMode);
 
                 if (isEditMode) {
                     $('.schedule-quick-btn').addClass('opacity-50 cursor-not-allowed');
-                    $('#distributionGroupName').addClass('bg-gray-100 cursor-not-allowed opacity-70');
                 } else {
                     $('.schedule-quick-btn').removeClass('opacity-50 cursor-not-allowed');
-                    $('#distributionGroupName').removeClass('bg-gray-100 cursor-not-allowed opacity-70');
                 }
             }
 
@@ -3808,12 +3785,12 @@
                 $('#btnModePieces').removeClass('pointer-events-none w-full');
                 $('.qty-mode-btn').prop('disabled', false).removeClass(
                     'cursor-not-allowed bg-gray-200 text-gray-400');
-                $('#selectedQtyMode').val('pieces');
+                $('#selectedQtyMode').val('batch');
                 $('.qty-mode-btn').removeClass('bg-primary text-white').addClass(
                     'bg-white text-gray-600 hover:bg-gray-50');
-                $('#btnModePieces').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
+                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
                     'bg-primary text-white');
-                $('#addQtyLabel').html('Quantity (per piece) <span class="text-red-500">*</span>');
+                $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
                 hideProductDropdown();
             }
 
@@ -3832,17 +3809,17 @@
                         normalizedDate] || []), normalizedDate);
 
                 let groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                let matchedGroup = groupedData.find(function(group) {
+                let matchedGroup = groupedData.find(function (group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
                 if (!matchedGroup || (ensureIds && Array.isArray(matchedGroup.items) && matchedGroup.items.some(
-                        function(item) {
-                            return !getDistributionItemId(item);
-                        }))) {
+                    function (item) {
+                        return !getDistributionItemId(item);
+                    }))) {
                     const byDateItems = await fetchDistributionItemsByDateRequest(normalizedDate);
                     groupedData = normalizeGroupedData(byDateItems, null, normalizedDate);
-                    matchedGroup = groupedData.find(function(group) {
+                    matchedGroup = groupedData.find(function (group) {
                         return String(group.group_key || '') === normalizedGroupKey;
                     });
 
@@ -3870,39 +3847,21 @@
                 const groupItems = Array.isArray(group.items) ? group.items : [];
                 const normalizedDate = resolved.date;
                 const normalizedGroupKey = resolved.groupKey;
-                let groupCategoryId = parseInt((group && (group.dist_category_id ?? group.category_id ?? group.dist_cat_id ?? (group.items && group.items[0] && (group.items[0].dist_category_id ?? group.items[0].category_id ?? group.items[0].dist_cat_id)))) || 0, 10);
-
-                if (!groupCategoryId) {
-                    const groupKeyMatch = normalizedGroupKey.match(/^category-(\d+)$/i);
-                    if (groupKeyMatch) {
-                        groupCategoryId = parseInt(groupKeyMatch[1], 10) || 0;
-                    }
-                }
-
-                if (!groupCategoryId && Array.isArray(groupItems) && groupItems.length > 0) {
-                    const fallbackProductId = String((groupItems.find(function(item) {
-                        return item && item.product_id;
-                    }) || {}).product_id || '').trim();
-                    const fallbackMeta = fallbackProductId ? getLocalDistributionGroupMeta(normalizedDate, fallbackProductId) : null;
-                    if (fallbackMeta && fallbackMeta.dist_category_id) {
-                        groupCategoryId = parseInt(fallbackMeta.dist_category_id, 10) || 0;
-                    }
-                }
 
                 editingGroupContext = {
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
                     group_ids: Array.isArray(group.source_group_ids) && group.source_group_ids.length > 0 ?
-                        group.source_group_ids.slice() : Array.from(new Set(groupItems.map(function(item) {
+                        group.source_group_ids.slice() :
+                        Array.from(new Set(groupItems.map(function (item) {
                             return getDistributionItemId(item);
                         }).filter(Boolean))),
-                    dist_category_id: groupCategoryId > 0 ? groupCategoryId : parseInt(group.dist_category_id || 0, 10) || 0,
+                    dist_category_id: parseInt(group.dist_category_id || 0, 10) || 0,
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
-                    existing_items: groupItems.map(function(item) {
+                    existing_items: groupItems.map(function (item) {
                         return {
                             item_id: getDistributionItemId(item),
-                            item_ids: getMergedDistributionItemIds(item), // NEW
                             identity_key: getDistributionItemIdentityKey(item),
                             product_id: String(item.product_id || '').trim(),
                             product_name: (item.product_name || '').toString(),
@@ -3915,33 +3874,23 @@
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-                const categoryLoad = loadStores(editingGroupContext.dist_category_id || '');
-                itemsToAddList = editingGroupContext.existing_items.map(function(item) {
+                loadStores(editingGroupContext.dist_category_id || ''); // the function for this is in an external js file
+                itemsToAddList = editingGroupContext.existing_items.map(function (item) {
                     return {
                         product_id: item.product_id,
                         product_name: item.product_name,
                         quantity: item.quantity,
                         qty_mode: item.qty_mode,
-                        pieces_per_yield: parseNumericValue((getProductAnalyticsData(item.product_id) || {}).pieces_per_yield),
+                        pieces_per_yield: parseNumericValue((getProductAnalyticsData(item.product_id) ||
+                            {}).pieces_per_yield),
                         existing: true,
                         item_id: item.item_id,
-                        item_ids: item.item_ids, // NEW
                         identity_key: item.identity_key,
                     };
                 });
                 renderAddedItemsList();
 
-                $('#distributionGroupName').val(editingGroupContext.dist_category_id || '');
-                if (categoryLoad && typeof categoryLoad.always === 'function') {
-                    categoryLoad.always(function() {
-                        if (editingGroupContext && editingGroupContext.dist_category_id) {
-                            $('#distributionGroupName').val(String(editingGroupContext.dist_category_id));
-                            $('#distributionGroupName').find(
-                                'option[value="' + String(editingGroupContext.dist_category_id) + '"]'
-                            ).prop('selected', true);
-                        }
-                    });
-                }
+                $('#distributionGroupName').val(editingGroupContext.original_name);
                 $('#overallDistributionNote').val(editingGroupContext.original_note);
                 $('#calendarDayModal').addClass('hidden');
                 $('#addItemsModal').removeClass('hidden');
@@ -3954,26 +3903,27 @@
                     return;
                 }
 
-                const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items : [];
+                const groupItems = Array.isArray(resolved.matchedGroup.items) ? resolved.matchedGroup.items :
+                    [];
 
                 const resolvedGroupIds = Array.isArray(resolved.matchedGroup.source_group_ids) &&
                     resolved.matchedGroup.source_group_ids.length > 0 ?
-                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function(groupId) {
+                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function (groupId) {
                         return normalizeDistributionGroupIdForApi(groupId);
                     }).filter(Boolean))) :
-                    Array.from(new Set(groupItems.map(function(item) {
+                    Array.from(new Set(groupItems.map(function (item) {
                         return normalizeDistributionGroupIdForApi(item && item.distribution_id);
                     }).filter(Boolean)));
 
                 if (resolvedGroupIds.length > 0) {
                     try {
                         const deleteGroupResults = await Promise.allSettled(
-                            resolvedGroupIds.map(function(groupId) {
+                            resolvedGroupIds.map(function (groupId) {
                                 return deleteDistributionGroupRequest(groupId);
                             })
                         );
 
-                        const hasFailedDelete = deleteGroupResults.some(function(result) {
+                        const hasFailedDelete = deleteGroupResults.some(function (result) {
                             return result.status === 'rejected' ||
                                 (result.status === 'fulfilled' && result.value && result.value.success === false);
                         });
@@ -3983,7 +3933,7 @@
                             return;
                         }
 
-                        groupItems.forEach(function(item) {
+                        groupItems.forEach(function (item) {
                             if (item && item.product_id != null) {
                                 removeLocalDistributionGroupMeta(resolved.date, item.product_id);
                             }
@@ -4012,13 +3962,13 @@
                 }
 
                 const deletableItems = groupItems
-                    .map(function(item) {
+                    .map(function (item) {
                         return {
                             item_id: getDistributionItemId(item),
                             product_id: item.product_id,
                         };
                     })
-                    .filter(function(item) {
+                    .filter(function (item) {
                         return item.item_id != null;
                     });
 
@@ -4027,16 +3977,16 @@
                     return;
                 }
 
-                const results = await Promise.allSettled(deletableItems.map(function(item) {
+                const results = await Promise.allSettled(deletableItems.map(function (item) {
                     return deleteDistributionItemRequest(item.item_id);
                 }));
 
                 let deletedCount = 0;
                 let failedCount = 0;
 
-                results.forEach(function(result, index) {
+                results.forEach(function (result, index) {
                     if (result.status === 'fulfilled' && !(result.value && result.value.success ===
-                            false)) {
+                        false)) {
                         deletedCount += 1;
                         removeLocalDistributionGroupMeta(resolved.date, deletableItems[index]
                             .product_id);
@@ -4063,7 +4013,7 @@
                 }
             }
 
-            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
+            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function () {
                 clearGroupEditContext();
                 resetAddItemsModalForm($('#selectedDate').val());
                 $('#distributionGroupName').val('');
@@ -4071,31 +4021,31 @@
                 $('#addItemsModal').removeClass('hidden');
             });
 
-            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function() {
+            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function () {
                 $('#addItemsModal').addClass('hidden');
                 clearGroupEditContext();
             });
 
             // Product search input events
-            $('#productSearch').on('focus', function() {
+            $('#productSearch').on('focus', function () {
                 showProductDropdown($(this).val());
             });
 
-            $('#productSearch').on('input', function() {
+            $('#productSearch').on('input', function () {
                 const searchTerm = $(this).val();
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
                 showProductDropdown(searchTerm);
             });
 
-            $('#addProductQty').on('keypress', function(e) {
+            $('#addProductQty').on('keypress', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#btnAddProductToList').click();
                 }
             });
 
-            $(document).on('click', '.product-option', function() {
+            $(document).on('click', '.product-option', function () {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 $('#selectedProductId').val(id);
@@ -4128,7 +4078,7 @@
                 $('#addProductQty').focus();
             });
 
-            $('#btnClearProduct').on('click', function() {
+            $('#btnClearProduct').on('click', function () {
                 $('#selectedProductId').val('');
                 $('#productSearch').val('');
                 $(this).addClass('hidden');
@@ -4139,7 +4089,7 @@
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', function(e) {
+            $(document).on('click', function (e) {
                 if (!$(e.target).closest('#productSearch, #productDropdown').length) {
                     hideProductDropdown();
                 }
@@ -4153,7 +4103,7 @@
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No products found</div>';
                 } else {
-                    filtered.forEach(function(product) {
+                    filtered.forEach(function (product) {
                         const alreadyAdded = itemsToAddList.some(i => i.product_id == product.product_id);
                         const disabledClass = alreadyAdded ? 'opacity-50 pointer-events-none' :
                             'hover:bg-primary/10 cursor-pointer';
@@ -4207,20 +4157,22 @@
              * Unlock the qty mode toggle buttons so the user can freely switch.
              */
             function unlockQtyModeToggle() {
-                // Restore toggle to normal interactive state
-                $('#btnModePieces').removeClass('pointer-events-none w-full hidden');
+                // Restore both buttons to normal interactive state
+                $('#btnModeBatch').removeClass('hidden');
+                $('#btnModeBox').removeClass('hidden');
+                $('#btnModePieces').removeClass('pointer-events-none w-full');
                 $('.qty-mode-btn').prop('disabled', false).removeClass(
                     'cursor-not-allowed bg-gray-200 text-gray-400');
-                // Reset to pieces mode when unlocking (batch/box are commented out)
-                $('#selectedQtyMode').val('pieces');
+                // Reset to batch mode when unlocking
+                $('#selectedQtyMode').val('batch');
                 $('.qty-mode-btn').removeClass('bg-primary text-white').addClass(
                     'bg-white text-gray-600 hover:bg-gray-50');
-                $('#btnModePieces').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
+                $('#btnModeBatch').removeClass('bg-white text-gray-600 hover:bg-gray-50').addClass(
                     'bg-primary text-white');
-                $('#addQtyLabel').html('Quantity (per piece) <span class="text-red-500">*</span>');
+                $('#addQtyLabel').html('Quantity (per batch) <span class="text-red-500">*</span>');
             }
 
-            $('.qty-mode-btn').on('click', function() {
+            $('.qty-mode-btn').on('click', function () {
                 if ($(this).prop('disabled')) return;
                 const mode = $(this).data('mode');
                 $('#selectedQtyMode').val(mode);
@@ -4244,7 +4196,7 @@
             });
 
             // Update conversion hint when quantity changes
-            $('#addProductQty').on('input', function() {
+            $('#addProductQty').on('input', function () {
                 updateConversionHint();
             });
 
@@ -4297,11 +4249,9 @@
                             ' piece(s) total (pieces-only product)');
                     } else {
                         const batches = qty / batchPiecesPerYield;
-                        $('#conversionText').text(formatQuantityValue(qty) + ' pieces'
-                        // ÷ ' +
-                        //     formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
-                        //     formatQuantityValue(batches) + ' batch(es) of raw materials used'
-                        );
+                        $('#conversionText').text(formatQuantityValue(qty) + ' pieces ÷ ' +
+                            formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
+                            formatQuantityValue(batches) + ' batch(es) of raw materials used');
                     }
                     $('#piecesConversionHint').removeClass('hidden');
                 } else {
@@ -4309,7 +4259,7 @@
                 }
             }
 
-            $('#btnAddProductToList').on('click', function() {
+            $('#btnAddProductToList').on('click', function () {
                 const productId = $('#selectedProductId').val();
                 const productName = $('#productSearch').val();
                 const quantity = parseNumericValue($('#addProductQty').val());
@@ -4354,7 +4304,7 @@
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', '.btn-remove-added-item', function() {
+            $(document).on('click', '.btn-remove-added-item', function () {
                 const idx = $(this).data('index');
                 itemsToAddList.splice(idx, 1);
                 renderAddedItemsList();
@@ -4372,7 +4322,7 @@
                     return;
                 }
 
-                itemsToAddList.forEach(function(item, index) {
+                itemsToAddList.forEach(function (item, index) {
                     const modeLabel = getQtyModeShortLabel(item.qty_mode);
                     const modeBadgeColor = item.qty_mode === 'pieces' ?
                         'bg-blue-100 text-blue-700' :
@@ -4406,11 +4356,11 @@
 
             // ===== EDIT QTY MODAL =====
 
-            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function() {
+            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function () {
                 $('#editQtyModal').addClass('hidden');
             });
 
-            $('.schedule-quick-btn').on('click', function() {
+            $('.schedule-quick-btn').on('click', function () {
                 const days = parseInt($(this).data('days'));
                 const newDate = new Date();
                 newDate.setDate(newDate.getDate() + days);
@@ -4418,18 +4368,18 @@
                 updateScheduleQuickBtns();
             });
 
-            $('#btnEditQtyInc').on('click', function() {
+            $('#btnEditQtyInc').on('click', function () {
                 const input = $('#editQuantity');
                 input.val(parseInt(input.val() || 0) + 5);
             });
 
-            $('#btnEditQtyDec').on('click', function() {
+            $('#btnEditQtyDec').on('click', function () {
                 const input = $('#editQuantity');
                 const val = parseInt(input.val() || 0);
                 if (val > 5) input.val(val - 5);
             });
 
-            $(document).on('click', '.btn-edit-qty', function() {
+            $(document).on('click', '.btn-edit-qty', function () {
                 const row = $(this).closest('[data-id]');
                 const productName = row.find('span.font-medium, span.truncate').first().text();
                 const qty = row.find('.font-bold').first().text();
@@ -4440,15 +4390,15 @@
                 $('#editItemId').val(row.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                    )
+                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-edit-qty-mobile', function() {
+            $(document).on('click', '.btn-edit-qty-mobile', function () {
                 const card = $(this).closest('[data-id]');
                 const productName = card.find('h4').text();
                 const qtyText = card.find('.text-xs.text-gray-500').first().text();
@@ -4460,39 +4410,39 @@
                 $('#editItemId').val(card.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                    )
+                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-delete', function() {
+            $(document).on('click', '.btn-delete', function () {
                 const row = $(this).closest('[data-id]');
                 const itemId = row.data('id');
                 const productId = row.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function() {
+                Confirm.delete('Are you sure you want to remove this item?', function () {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
-            $(document).on('click', '.btn-delete-mobile', function() {
+            $(document).on('click', '.btn-delete-mobile', function () {
                 const card = $(this).closest('[data-id]');
                 const itemId = card.data('id');
                 const productId = card.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function() {
+                Confirm.delete('Are you sure you want to remove this item?', function () {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
             // ===== FORM SUBMISSIONS =====
 
-            $('#addItemsForm').on('submit', async function(e) {
+            $('#addItemsForm').on('submit', async function (e) {
                 e.preventDefault();
 
                 const scheduleDate = ($('#scheduleDate').val() || '').toString();
@@ -4509,14 +4459,15 @@
                     selected_category_name: selectedCategoryName,
                     entered_group_note_length: distributionGroupNote.length,
                     list_item_count: itemsToAddList.length,
-                    list_items: itemsToAddList.map(function(item) {
+                    list_items: itemsToAddList.map(function (item) {
                         return {
                             product_id: item.product_id,
                             product_name: item.product_name,
                             quantity: parseNumericValue(item.quantity),
                             qty_mode: item.qty_mode,
                             existing: Boolean(item.existing),
-                            item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
+                            item_id: item.item_id != null ? parseInt(item.item_id, 10) :
+                                null,
                         };
                     }),
                 });
@@ -4545,7 +4496,8 @@
                         const targetDate = (context.date || scheduleDate || '').toString();
                         const targetGroupKey = (context.group_key || '').toString();
                         const targetGroupIds = Array.isArray(context.group_ids) && context.group_ids.length > 0 ?
-                            context.group_ids : [normalizeDistributionGroupIdForApi(targetGroupKey)].filter(Boolean);
+                            context.group_ids :
+                            [normalizeDistributionGroupIdForApi(targetGroupKey)].filter(Boolean);
                         const savedGroupName = selectedCategoryName ||
                             (context.original_name || '').toString().trim() ||
                             getNextAutoGroupName(targetDate);
@@ -4578,7 +4530,7 @@
                             payload: updateGroupPayload,
                         });
 
-                        await Promise.all(targetGroupIds.map(function(groupId) {
+                        await Promise.all(targetGroupIds.map(function (groupId) {
                             return updateDistributionGroupRequest(groupId, updateGroupPayload);
                         }));
 
@@ -4587,95 +4539,80 @@
                             group_ids: targetGroupIds,
                         });
 
-                        const normalizedItems = itemsToAddList.map(function(item) {
+                        const normalizedItems = itemsToAddList.map(function (item) {
                             return {
                                 product_id: String(item.product_id || '').trim(),
                                 quantity: parseNumericValue(item.quantity),
                                 qty_mode: ((item.qty_mode || 'batch').toString().toLowerCase()),
                                 existing: Boolean(item.existing),
-                                item_id: item.item_id != null ? parseInt(item.item_id, 10) : null,
-                                item_ids: Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
-                                    item.item_ids : (item.item_id != null ? [parseInt(item.item_id, 10)] : []),
+                                item_id: item.item_id != null ? parseInt(item.item_id, 10) :
+                                    null,
                                 identity_key: (item.identity_key ||
-                                        `product-${String(item.product_id || '').trim()}`)
+                                    `product-${String(item.product_id || '').trim()}`)
                                     .toString(),
                             };
                         });
 
-                        const existingItemsNow = normalizedItems.filter(function(item) {
+                        const existingItemsNow = normalizedItems.filter(function (item) {
                             return item.existing;
                         });
-                        const existingIdentitySet = new Set(existingItemsNow.map(function(item) {
+                        const existingIdentitySet = new Set(existingItemsNow.map(function (item) {
                             return item.identity_key;
                         }));
                         const existingBefore = Array.isArray(context.existing_items) ? context
                             .existing_items : [];
-
-                        const removedExisting = existingBefore.filter(function(item) {
+                        const removedExisting = existingBefore.filter(function (item) {
                             return !existingIdentitySet.has(String(item.identity_key || ''));
                         });
 
-                        const removableIdPairs = [];
-                        removedExisting.forEach(function(item) {
-                            const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
-                                item.item_ids :
-                                (item.item_id != null ? [item.item_id] : []);
-                            ids.forEach(function(id) {
-                                removableIdPairs.push({
-                                    item_id: id,
-                                    product_id: item.product_id
-                                });
-                            });
+                        const removableWithIds = removedExisting.filter(function (item) {
+                            return item.item_id != null;
                         });
-                        const removedMissingIdCount = removedExisting.filter(function(item) {
-                            const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
-                                item.item_ids :
-                                (item.item_id != null ? [item.item_id] : []);
-                            return ids.length === 0;
-                        }).length;
+                        const removedMissingIdCount = Math.max(0, removedExisting.length -
+                            removableWithIds.length);
 
                         logDistributionFlow('log', 'Update group diff summary.', {
                             normalized_item_count: normalizedItems.length,
                             existing_now_count: existingItemsNow.length,
                             existing_before_count: existingBefore.length,
                             removed_existing_count: removedExisting.length,
-                            removable_id_pairs_count: removableIdPairs.length,
+                            removable_with_ids_count: removableWithIds.length,
                             removed_missing_id_count: removedMissingIdCount,
                         });
 
-                        const deleteResults = await Promise.allSettled(removableIdPairs.map(function(
-                            pair) {
-                            return deleteDistributionItemRequest(pair.item_id);
+                        const deleteResults = await Promise.allSettled(removableWithIds.map(function (
+                            item) {
+                            return deleteDistributionItemRequest(item.item_id);
                         }));
 
                         let deletedCount = 0;
                         let deleteFailedCount = 0;
                         const deletedProductIds = [];
 
-                        deleteResults.forEach(function(result, index) {
+                        deleteResults.forEach(function (result, index) {
                             if (result.status === 'fulfilled' && !(result.value && result.value
-                                    .success === false)) {
+                                .success === false)) {
                                 deletedCount += 1;
-                                deletedProductIds.push(removableIdPairs[index].product_id);
+                                deletedProductIds.push(removableWithIds[index].product_id);
                             } else {
                                 deleteFailedCount += 1;
                             }
                         });
 
                         logDistributionFlow('log', 'Update group removed-item delete results.', {
-                            attempted: removableIdPairs.length,
+                            attempted: removableWithIds.length,
                             deleted_count: deletedCount,
                             failed_count: deleteFailedCount,
                             deleted_product_ids: deletedProductIds,
                         });
 
-                        const newItems = normalizedItems.filter(function(item) {
+                        const newItems = normalizedItems.filter(function (item) {
                             return !item.existing;
                         });
 
-                        const addPayloads = newItems.map(function(item) {
+                        const addPayloads = newItems.map(function (item) {
                             return {
-                                distribution_id: targetGroupIds[0],
+                                distribution_id: targetGroupKey,
                                 product_id: item.product_id,
                                 product_qnty: item.quantity,
                                 qty_mode: item.qty_mode,
@@ -4688,7 +4625,7 @@
                             add_payloads: addPayloads,
                         });
 
-                        const addResults = await Promise.allSettled(addPayloads.map(function(payload) {
+                        const addResults = await Promise.allSettled(addPayloads.map(function (payload) {
                             return addDistributionItemRequest(payload);
                         }));
 
@@ -4698,7 +4635,7 @@
                         let sawInsufficient = false;
                         let insufficientMaterials = [];
 
-                        addResults.forEach(function(result, index) {
+                        addResults.forEach(function (result, index) {
                             const currentPayload = addPayloads[index];
 
                             if (result.status === 'fulfilled') {
@@ -4732,7 +4669,7 @@
                                     // Convert object to array of strings
                                     insufficientMaterials = insufficientMaterials.concat(
                                         Object.values(responseJson.insufficient_materials)
-                                        .flat()
+                                            .flat()
                                     );
                                 }
                                 return;
@@ -4750,19 +4687,19 @@
                             insufficient_count: insufficientMaterials.length,
                         });
 
-                        deletedProductIds.forEach(function(productId) {
+                        deletedProductIds.forEach(function (productId) {
                             removeLocalDistributionGroupMeta(targetDate, productId);
                         });
 
-                        const remainingExistingProductIds = existingItemsNow.map(function(item) {
+                        const remainingExistingProductIds = existingItemsNow.map(function (item) {
                             return item.product_id;
                         });
-                        const succeededAddProductIds = succeededAdds.map(function(item) {
+                        const succeededAddProductIds = succeededAdds.map(function (item) {
                             return item.product_id;
                         });
                         const finalProductIds = Array.from(new Set(
                             remainingExistingProductIds.concat(succeededAddProductIds).map(
-                                function(productId) {
+                                function (productId) {
                                     return String(productId || '').trim();
                                 }).filter(Boolean)
                         ));
@@ -4778,8 +4715,6 @@
                                 group_key: 'category-' + distributionCategoryId,
                                 group_name: savedGroupName,
                                 group_note: distributionGroupNote,
-                                dist_category_id: distributionCategoryId,
-                                dist_category_name: selectedCategoryName,
                             });
                             setSelectedGroupFilter(targetDate, 'category-' + distributionCategoryId);
                         } else {
@@ -4800,8 +4735,8 @@
 
                         const attemptedAdds = addPayloads.length;
                         if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length >
-                                0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
-                                    distributionGroupNote !== context.original_note))) {
+                            0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
+                                distributionGroupNote !== context.original_note))) {
                             let message = `Distribution group "${savedGroupName}" updated.`;
                             if (deletedCount > 0) {
                                 message += ` Removed ${deletedCount} item(s).`;
@@ -4810,7 +4745,7 @@
                                 message += ` Added ${succeededAdds.length} item(s).`;
                             }
                             if (attemptedAdds > 0 && (duplicateCount > 0 || addFailedCount > 0 ||
-                                    sawInsufficient)) {
+                                sawInsufficient)) {
                                 message += ' Some items were not added.';
                             }
                             if (removedMissingIdCount > 0 || deleteFailedCount > 0) {
@@ -4819,34 +4754,34 @@
 
                             logDistributionFlow('log', 'Update group completed with changes.', {
                                 toast_type: (duplicateCount > 0 || addFailedCount > 0 ||
-                                        deleteFailedCount > 0 || removedMissingIdCount > 0) ?
+                                    deleteFailedCount > 0 || removedMissingIdCount > 0) ?
                                     'warning' : 'success',
                                 message: message,
                             });
 
                             showToast((duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount >
-                                    0 || removedMissingIdCount > 0) ? 'warning' : 'success',
+                                0 || removedMissingIdCount > 0) ? 'warning' : 'success',
                                 message, 4500);
                         } else if (attemptedAdds > 0 && duplicateCount === attemptedAdds) {
                             logDistributionFlow('warn',
                                 'Update group completed with no new adds due to duplicates.', {
-                                    attempted_adds: attemptedAdds,
-                                    duplicate_count: duplicateCount,
-                                });
+                                attempted_adds: attemptedAdds,
+                                duplicate_count: duplicateCount,
+                            });
                             showToast('warning', 'All selected products already exist for that date.',
                                 4000);
                         } else if (finalProductIds.length === 0 && removedExisting.length > 0) {
                             logDistributionFlow('log',
                                 'Update group completed with empty group result.', {
-                                    removed_existing_count: removedExisting.length,
-                                });
+                                removed_existing_count: removedExisting.length,
+                            });
                             showToast('success', 'Distribution group is now empty.', 3200);
                         } else {
                             logDistributionFlow('warn',
                                 'Update group completed with no effective changes.', {
-                                    attempted_adds: attemptedAdds,
-                                    final_product_count: finalProductIds.length,
-                                });
+                                attempted_adds: attemptedAdds,
+                                final_product_count: finalProductIds.length,
+                            });
                             showToast('warning', 'No changes were made to this group.', 3200);
                         }
 
@@ -4863,7 +4798,7 @@
                         return;
                     }
 
-                    const itemsToAdd = itemsToAddList.map(function(item) {
+                    const itemsToAdd = itemsToAddList.map(function (item) {
                         return {
                             product_id: item.product_id,
                             quantity: parseNumericValue(item.quantity),
@@ -4912,11 +4847,9 @@
                         group_key: 'category-' + distributionCategoryId,
                         group_name: savedGroupName,
                         group_note: distributionGroupNote,
-                        dist_category_id: distributionCategoryId,
-                        dist_category_name: selectedCategoryName,
                     };
 
-                    const payloads = itemsToAdd.map(function(item) {
+                    const payloads = itemsToAdd.map(function (item) {
                         return {
                             distribution_id: newGroupId,
                             product_id: item.product_id,
@@ -4932,7 +4865,7 @@
                         payloads: payloads,
                     });
 
-                    const results = await Promise.allSettled(payloads.map(function(payload) {
+                    const results = await Promise.allSettled(payloads.map(function (payload) {
                         return addDistributionItemRequest(payload, payload.raw_qty_mode);
                     }));
 
@@ -4942,7 +4875,7 @@
                     let sawInsufficient = false;
                     let insufficientMaterials = [];
 
-                    results.forEach(function(result, index) {
+                    results.forEach(function (result, index) {
                         const currentPayload = payloads[index];
 
                         if (result.status === 'fulfilled') {
@@ -4976,7 +4909,7 @@
                                 // Convert object to array of strings
                                 insufficientMaterials = insufficientMaterials.concat(
                                     Object.values(responseJson.insufficient_materials)
-                                    .flat()
+                                        .flat()
                                 );
                             }
                             return;
@@ -4996,7 +4929,7 @@
                     });
 
                     if (succeededPayloads.length > 0) {
-                        const productIds = succeededPayloads.map(function(payload) {
+                        const productIds = succeededPayloads.map(function (payload) {
                             return payload.product_id;
                         });
 
@@ -5051,12 +4984,12 @@
                         newGroupId);
                     logDistributionFlow('warn',
                         'Create group add-item phase fully failed; rollback started.', {
-                            group_id: newGroupId,
-                            attempted: totalAttempted,
-                            duplicate_count: duplicateCount,
-                            saw_insufficient: sawInsufficient,
-                            generic_error_count: genericErrorCount,
-                        });
+                        group_id: newGroupId,
+                        attempted: totalAttempted,
+                        duplicate_count: duplicateCount,
+                        saw_insufficient: sawInsufficient,
+                        generic_error_count: genericErrorCount,
+                    });
                     try {
                         await deleteDistributionGroupRequest(newGroupId);
                         logDistributionFlow('log', 'Create group rollback succeeded.', {
@@ -5112,7 +5045,7 @@
                 }
             });
 
-            $('#editQtyForm').on('submit', function(e) {
+            $('#editQtyForm').on('submit', function (e) {
                 e.preventDefault();
                 const itemId = $('#editItemId').val();
                 const quantity = $('#editQuantity').val();
@@ -5126,7 +5059,7 @@
         function getDistinctGroupCount(items, fallbackDate = '') {
             // Count distinct display group keys so same-category rows collapse into one group.
             const set = new Set();
-            (items || []).forEach(function(item) {
+            (items || []).forEach(function (item) {
                 const key = (item && (item.distribution_display_group_key || item.distribution_group_key)) || '';
                 if (key) {
                     set.add(key);
@@ -5185,7 +5118,7 @@
         function updateScheduleQuickBtns() {
             const selectedDate = $('#scheduleDate').val();
 
-            $('.schedule-quick-btn').each(function() {
+            $('.schedule-quick-btn').each(function () {
                 const days = parseInt($(this).data('days'));
                 const btnDate = new Date();
                 btnDate.setDate(btnDate.getDate() + days);
@@ -5203,12 +5136,12 @@
             const hasSummary = summary && typeof summary === 'object';
             const totalPiecesCalculator = (typeof window.calculateTotalDistributionPieces === 'function') ?
                 window.calculateTotalDistributionPieces :
-                function() {
+                function () {
                     return 0;
                 };
 
             const computedTotalItems = distributionItems.length;
-            const computedTotalBatches = distributionItems.reduce(function(sum, item) {
+            const computedTotalBatches = distributionItems.reduce(function (sum, item) {
                 return sum + (((item.qty_mode || 'batch') === 'pieces') ? 0 : parseNumericValue(item.product_qnty));
             }, 0);
             const computedTotalPieces = totalPiecesCalculator(distributionItems);
@@ -5319,7 +5252,7 @@
             const distributionItems = Array.isArray(items) ? items : [];
             let forecastedTotal = 0;
 
-            distributionItems.forEach(function(item) {
+            distributionItems.forEach(function (item) {
                 const quantity = parseNumericValue(item.product_qnty);
                 if (quantity <= 0) return;
 
@@ -5329,7 +5262,7 @@
                     return;
                 }
 
-                const matchedProduct = productsData.find(function(product) {
+                const matchedProduct = productsData.find(function (product) {
                     return String(product.product_id) === String(item.product_id);
                 }) || getProductAnalyticsData(item.product_id);
 
@@ -5343,7 +5276,7 @@
         function calculateAdditionalCostTotal(items) {
             const distributionItems = Array.isArray(items) ? items : [];
 
-            return distributionItems.reduce(function(sum, item) {
+            return distributionItems.reduce(function (sum, item) {
                 return sum + parseNumericValue(item.additional_cost);
             }, 0);
         }
@@ -5379,7 +5312,7 @@
             html += '</div>';
             html += '<p class="text-sm text-gray-600 mb-2">The following raw materials are short:</p>';
             html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-            materials.forEach(function(detail) {
+            materials.forEach(function (detail) {
                 html += '<li class="text-red-700">' + detail + '</li>';
             });
             html += '</ul>';
@@ -5391,6 +5324,7 @@
             $('#insufficientMaterialContent').html(html);
             $('#insufficientMaterialModal').removeClass('hidden');
         }
+
     </script>
 
     <!-- Manage Distribution Categories Modal -->

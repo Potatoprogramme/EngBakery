@@ -32,42 +32,44 @@ class ProductModel extends Model
     public function getProductsForOrdering(): array
     {
         return $this->db->query("
-            SELECT p.product_id, p.category, p.product_name, p.product_description, p.is_disabled,
-                    CASE 
-                        WHEN p.category = 'bakery' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
-                        ELSE pc.selling_price 
-                    END as price,
-                    pc.selling_price, pc.selling_price_per_piece, pc.selling_price_per_tray,
-                    pc.pieces_per_yield, pc.trays_per_yield,
-                    COALESCE(dsi.ending_stock, 0) as available_stock,
-                    dsi.daily_stock_id
-            FROM products p
-            LEFT JOIN product_costs pc ON p.product_id = pc.product_id
-            LEFT JOIN (
-                SELECT ds1.daily_stock_id
-                FROM daily_stock ds1
-                WHERE ds1.inventory_date = CURDATE()
-                ORDER BY ds1.daily_stock_id DESC
-                LIMIT 1
-            ) latest_ds ON 1 = 1
-            LEFT JOIN (
-                SELECT dsi1.daily_stock_id,
-                        dsi1.product_id,
-                        SUM(COALESCE(dsi1.ending_stock, 0)) AS ending_stock
-                FROM daily_stock_items dsi1
-                GROUP BY dsi1.daily_stock_id, dsi1.product_id
-            ) dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
-            WHERE p.is_disabled = 0
-                AND p.deleted_at IS NULL
-                AND (
-                    p.category = 'drinks'
-                    OR (
-                        latest_ds.daily_stock_id IS NOT NULL
-                        AND dsi.product_id IS NOT NULL
-                    )
+        SELECT p.product_id, p.category, p.product_name, p.product_description, p.is_disabled,
+                CASE 
+                    WHEN p.category = 'bakery' AND pc.selling_price_per_piece > 0 THEN pc.selling_price_per_piece
+                    ELSE pc.selling_price 
+                END as price,
+                pc.selling_price, pc.selling_price_per_piece, pc.selling_price_per_tray,
+                pc.pieces_per_yield, pc.trays_per_yield,
+                 COALESCE(dsi.ending_stock, 0) as available_stock,
+                dsi.daily_stock_id
+        FROM products p
+        LEFT JOIN product_costs pc ON p.product_id = pc.product_id
+        LEFT JOIN (
+            SELECT ds1.daily_stock_id
+            FROM daily_stock ds1
+            WHERE ds1.inventory_date = CURDATE()
+            ORDER BY ds1.daily_stock_id DESC
+            LIMIT 1
+        ) latest_ds ON 1 = 1
+        LEFT JOIN (
+            SELECT dsi1.daily_stock_id,
+                    dsi1.product_id,
+                    SUM(COALESCE(dsi1.ending_stock, 0)) AS ending_stock,
+                    MAX(COALESCE(dsi1.is_enabled, 0)) AS is_enabled
+            FROM daily_stock_items dsi1
+            GROUP BY dsi1.daily_stock_id, dsi1.product_id
+        ) dsi ON dsi.daily_stock_id = latest_ds.daily_stock_id AND dsi.product_id = p.product_id
+        WHERE p.is_disabled = 0
+            AND p.deleted_at IS NULL
+            AND (
+                p.category = 'drinks'
+                OR (
+                    latest_ds.daily_stock_id IS NOT NULL
+                    AND dsi.product_id IS NOT NULL
+                    AND dsi.is_enabled = 1
                 )
-            ORDER BY p.category, p.product_name
-            ")->getResultArray();
+            )
+        ORDER BY p.category, p.product_name
+        ")->getResultArray();
     }
 
     /**
