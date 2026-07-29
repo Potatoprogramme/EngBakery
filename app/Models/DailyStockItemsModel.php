@@ -15,10 +15,11 @@ class DailyStockItemsModel extends Model
         'daily_stock_id',
         'product_id',
         'beginning_stock',
+        'added_qty',
         'pull_out_quantity',
         'ending_stock', // can be calculated
         'distribution_qty', // pieces sourced from distribution (0 if none)
-        'is_enabled', // for enabling stock item
+        // 'is_enabled', // for enabling stock item
     ];
 
     // Dates
@@ -36,6 +37,7 @@ class DailyStockItemsModel extends Model
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
                 'beginning_stock' => $carryoverQty,
+                'added_qty' => 0,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
                 'distribution_qty' => 0, // no distribution in this path
@@ -84,6 +86,7 @@ class DailyStockItemsModel extends Model
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
                 'beginning_stock' => $totalBeginning,
+                'added_qty' => 0,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
                 'distribution_qty' => $autoLoadedDistribution,
@@ -117,6 +120,7 @@ class DailyStockItemsModel extends Model
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
                 'beginning_stock' => $carryoverQty,
+                'added_qty' => 0,
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
                 'distribution_qty' => 0,
@@ -156,6 +160,7 @@ class DailyStockItemsModel extends Model
 
             $mergedData = [
                 'beginning_stock' => array_sum(array_map(static fn($row) => intval($row['beginning_stock'] ?? 0), $allRows)),
+                'added_qty'         => array_sum(array_map(static fn($row) => intval($row['added_qty'] ?? 0), $allRows)), // NEW
                 'pull_out_quantity' => array_sum(array_map(static fn($row) => intval($row['pull_out_quantity'] ?? 0), $allRows)),
                 'ending_stock' => array_sum(array_map(static fn($row) => intval($row['ending_stock'] ?? 0), $allRows)),
                 'distribution_qty' => array_sum(array_map(static fn($row) => intval($row['distribution_qty'] ?? 0), $allRows)),
@@ -285,7 +290,7 @@ class DailyStockItemsModel extends Model
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
     }
-    
+
     /**
      * Get products that can be added or restored in today's inventory.
      * Includes products not yet in inventory and products whose current ending stock is 0.
