@@ -160,7 +160,7 @@ class DailyStockItemsModel extends Model
 
             $mergedData = [
                 'beginning_stock' => array_sum(array_map(static fn($row) => intval($row['beginning_stock'] ?? 0), $allRows)),
-                'added_qty'         => array_sum(array_map(static fn($row) => intval($row['added_qty'] ?? 0), $allRows)), // NEW
+                'added_qty' => array_sum(array_map(static fn($row) => intval($row['added_qty'] ?? 0), $allRows)), // NEW
                 'pull_out_quantity' => array_sum(array_map(static fn($row) => intval($row['pull_out_quantity'] ?? 0), $allRows)),
                 'ending_stock' => array_sum(array_map(static fn($row) => intval($row['ending_stock'] ?? 0), $allRows)),
                 'distribution_qty' => array_sum(array_map(static fn($row) => intval($row['distribution_qty'] ?? 0), $allRows)),
@@ -284,6 +284,7 @@ class DailyStockItemsModel extends Model
             SELECT p.product_id, p.product_name, p.category
             FROM products p
             WHERE p.deleted_at IS NULL
+            AND p.is_disabled != 1
             AND p.product_id NOT IN (
                 SELECT dsi.product_id FROM daily_stock_items dsi WHERE dsi.daily_stock_id = ?
             )
@@ -315,6 +316,7 @@ class DailyStockItemsModel extends Model
                 GROUP BY dsi.product_id
             ) current_stock ON current_stock.product_id = p.product_id
                         WHERE p.deleted_at IS NULL
+                            AND p.is_disabled != 1
                             AND p.category != 'drinks'
                             AND (current_stock.product_id IS NULL OR current_stock.ending_stock = 0)
             ORDER BY p.category, p.product_name
