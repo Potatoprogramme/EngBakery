@@ -751,7 +751,10 @@ class InventoryController extends BaseController
     public function getAvailableProducts()
     {
         $today = date('Y-m-d');
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
+        $dailyStock = $this->dailyStockModel
+            ->where('inventory_date', $today)
+            ->orderBy('daily_stock_id', 'DESC')
+            ->first();
 
         if (!$dailyStock) {
             return $this->response->setJSON([
@@ -2203,7 +2206,7 @@ class InventoryController extends BaseController
                 // Create new item
                 $distributionItemModel->insert([
                     'distribution_id' => $groupId,
-                    'daily_stock_id'  => $dailyStockId, // NEW
+                    'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
                     'product_qnty' => $quantity,
                     'qty_mode' => 'batch',
@@ -2264,7 +2267,7 @@ class InventoryController extends BaseController
                 // Create new item
                 $distributionItemModel->insert([
                     'distribution_id' => $groupId,
-                    'daily_stock_id'  => $dailyStockId, // NEW
+                    'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
                     'product_qnty' => $quantity,
                     'qty_mode' => 'pieces',
