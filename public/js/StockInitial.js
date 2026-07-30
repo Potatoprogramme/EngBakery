@@ -6,7 +6,7 @@
 $(document).ready(function () {
   const baseUrl = window.BASE_URL || "/";
   const userRole = (window.USER_ROLE || "").toLowerCase();
-  const isStaffView = userRole === "staff";
+  const isStaffView = false;
   let dataTable = null;
   let allEntries = [];
   let filteredEntries = [];
