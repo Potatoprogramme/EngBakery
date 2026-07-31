@@ -728,6 +728,24 @@
 
         $(document).ready(function() {
 
+            function ensureCategoryOptionExists(categoryId, categoryName) {
+                const idStr = String(categoryId || '').trim();
+                if (!idStr || idStr === '0') return;
+
+                const $select = $('#distributionGroupName');
+                if ($select.find(`option[value="${idStr}"]`).length > 0) {
+                    $select.val(idStr);
+                    return;
+                }
+
+                const label = (categoryName || 'Unknown Category').toString().trim() + ' (deleted)';
+                $select.append($('<option>', {
+                    value: idStr,
+                    text: label
+                }));
+                $select.val(idStr);
+            }
+
             function logDistributionFlow(level, message, details = {}) {
                 if (!enableApiDebugLogs) return;
 
@@ -3888,6 +3906,7 @@
                         groupCategoryId = parseInt(fallbackMeta.dist_category_id, 10) || 0;
                     }
                 }
+                const groupCategoryName = (group.group_name || group.title || '').toString().trim();
 
                 editingGroupContext = {
                     date: normalizedDate,
@@ -3897,6 +3916,7 @@
                             return getDistributionItemId(item);
                         }).filter(Boolean))),
                     dist_category_id: groupCategoryId > 0 ? groupCategoryId : parseInt(group.dist_category_id || 0, 10) || 0,
+                    dist_category_name: (group.group_name || group.title || '').toString().trim(), // NEW
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
                     existing_items: groupItems.map(function(item) {
@@ -3915,7 +3935,10 @@
 
                 setAddItemsModalUiMode('edit');
                 resetAddItemsModalForm(normalizedDate, true);
-                const categoryLoad = loadStores(editingGroupContext.dist_category_id || '');
+
+                await loadStores(editingGroupContext.dist_category_id || '');
+                ensureCategoryOptionExists(editingGroupContext.dist_category_id, editingGroupContext.dist_category_name);
+
                 itemsToAddList = editingGroupContext.existing_items.map(function(item) {
                     return {
                         product_id: item.product_id,
@@ -3932,16 +3955,16 @@
                 renderAddedItemsList();
 
                 $('#distributionGroupName').val(editingGroupContext.dist_category_id || '');
-                if (categoryLoad && typeof categoryLoad.always === 'function') {
-                    categoryLoad.always(function() {
-                        if (editingGroupContext && editingGroupContext.dist_category_id) {
-                            $('#distributionGroupName').val(String(editingGroupContext.dist_category_id));
-                            $('#distributionGroupName').find(
-                                'option[value="' + String(editingGroupContext.dist_category_id) + '"]'
-                            ).prop('selected', true);
-                        }
-                    });
-                }
+                // if (categoryLoad && typeof categoryLoad.always === 'function') {
+                //     categoryLoad.always(function() {
+                //         if (editingGroupContext && editingGroupContext.dist_category_id) {
+                //             $('#distributionGroupName').val(String(editingGroupContext.dist_category_id));
+                //             $('#distributionGroupName').find(
+                //                 'option[value="' + String(editingGroupContext.dist_category_id) + '"]'
+                //             ).prop('selected', true);
+                //         }
+                //     });
+                // }
                 $('#overallDistributionNote').val(editingGroupContext.original_note);
                 $('#calendarDayModal').addClass('hidden');
                 $('#addItemsModal').removeClass('hidden');
@@ -4298,9 +4321,9 @@
                     } else {
                         const batches = qty / batchPiecesPerYield;
                         $('#conversionText').text(formatQuantityValue(qty) + ' pieces'
-                        // ÷ ' +
-                        //     formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
-                        //     formatQuantityValue(batches) + ' batch(es) of raw materials used'
+                            // ÷ ' +
+                            //     formatQuantityValue(batchPiecesPerYield) + ' pcs/batch = ' +
+                            //     formatQuantityValue(batches) + ' batch(es) of raw materials used'
                         );
                     }
                     $('#piecesConversionHint').removeClass('hidden');
