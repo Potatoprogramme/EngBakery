@@ -12,10 +12,10 @@ class RawMaterialStockInitialController extends BaseController
         $data = $this->getSessionData();
 
         return  view('Template/Header', $data) .
-                view('Template/SideNav', $data) .
-                view('Template/Notification', $data) .
-                view('StockInitial/StockInitial', $data) .
-                view('Template/Footer', $data);
+            view('Template/SideNav', $data) .
+            view('Template/Notification', $data) .
+            view('StockInitial/StockInitial', $data) .
+            view('Template/Footer', $data);
     }
 
     /**
@@ -79,9 +79,11 @@ class RawMaterialStockInitialController extends BaseController
         $data = $this->request->getJSON(true);
 
         // Validate required fields
-        if (!isset($data['material_id']) || (string)$data['material_id'] === '' ||
+        if (
+            !isset($data['material_id']) || (string)$data['material_id'] === '' ||
             !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
-            !isset($data['unit']) || trim((string)$data['unit']) === '') {
+            !isset($data['unit']) || trim((string)$data['unit']) === ''
+        ) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
@@ -99,6 +101,20 @@ class RawMaterialStockInitialController extends BaseController
             $entryId = $this->rawMaterialStockModel->addEntry($data);
 
             if ($entryId) {
+                $sessionData = $this->getSessionData();
+                $addedQty = floatval($data['initial_qty']);
+
+                (new \App\Models\RawMaterialStockLogModel())->logChange([
+                    'material_id'     => intval($data['material_id']),
+                    'action'          => 'added',
+                    'amount'          => $addedQty,
+                    'before_qty'      => 0,
+                    'after_qty'       => $addedQty,
+                    'unit'            => $data['unit'] ?? '',
+                    'changed_by'      => $sessionData['user_id'] ?? null,
+                    'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
+                    'source'          => 'stock_initial_add',
+                ]);
                 // Check for low stock and notify owners
                 \App\Libraries\LowStockNotifier::checkAndNotify();
 
@@ -120,7 +136,6 @@ class RawMaterialStockInitialController extends BaseController
                 'success' => false,
                 'message' => 'Failed to add entry.'
             ]);
-
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
@@ -137,10 +152,12 @@ class RawMaterialStockInitialController extends BaseController
         $data = $this->request->getJSON(true);
 
         // Validate required fields
-        if (!isset($data['stock_id']) || (string)$data['stock_id'] === '' ||
+        if (
+            !isset($data['stock_id']) || (string)$data['stock_id'] === '' ||
             !isset($data['material_id']) || (string)$data['material_id'] === '' ||
             !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
-            !isset($data['unit']) || trim((string)$data['unit']) === '') {
+            !isset($data['unit']) || trim((string)$data['unit']) === ''
+        ) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'All fields are required.'
@@ -154,31 +171,49 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
+        // NEW: capture the "before" state for logging, regardless of which branch below runs
+        $stockId = intval($data['stock_id']);
+        $existingBefore = $this->rawMaterialStockModel->find($stockId);
+        $beforeCurrentQty = $existingBefore
+            ? max(0, floatval($existingBefore['initial_qty'] ?? 0) - floatval($existingBefore['qty_used'] ?? 0))
+            : 0;
+
         // Remaining is sent from the form; compute qty_used = initial - remaining
         if (array_key_exists('remaining', $data) && is_numeric($data['remaining'])) {
             $remaining = max(0, floatval($data['remaining']));
             $initial = floatval($data['initial_qty']);
-            // Clamp: remaining cannot exceed initial
             if ($remaining > $initial) {
                 $remaining = $initial;
             }
             $data['qty_used'] = max(0, $initial - $remaining);
         } else {
-            // Preserve existing qty_used — don't reset to 0 on edit
-            $existing = $this->rawMaterialStockModel->find(intval($data['stock_id']));
-            $data['qty_used'] = $existing['qty_used'] ?? 0;
+            $data['qty_used'] = $existingBefore['qty_used'] ?? 0;
         }
-        // Remove 'remaining' key — not a DB column
         unset($data['remaining']);
 
         try {
-            $success = $this->rawMaterialStockModel->updateEntry(
-                intval($data['stock_id']),
-                $data
-            );
+            $success = $this->rawMaterialStockModel->updateEntry($stockId, $data);
 
             if ($success) {
-                // Check for low stock and notify owners
+                // NEW: log the net change as an "added" or "subtracted" entry
+                $afterCurrentQty = max(0, floatval($data['initial_qty']) - floatval($data['qty_used']));
+                $delta = round($afterCurrentQty - $beforeCurrentQty, 4);
+
+                if ($delta != 0) {
+                    $sessionData = $this->getSessionData();
+                    (new \App\Models\RawMaterialStockLogModel())->logChange([
+                        'material_id'     => intval($data['material_id']),
+                        'action'          => $delta > 0 ? 'added' : 'subtracted',
+                        'amount'          => $delta,
+                        'before_qty'      => $beforeCurrentQty,
+                        'after_qty'       => $afterCurrentQty,
+                        'unit'            => $data['unit'] ?? '',
+                        'changed_by'      => $sessionData['user_id'] ?? null,
+                        'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
+                        'source'          => 'stock_initial_update',
+                    ]);
+                }
+
                 \App\Libraries\LowStockNotifier::checkAndNotify();
 
                 return $this->response->setJSON([
@@ -191,7 +226,6 @@ class RawMaterialStockInitialController extends BaseController
                 'success' => false,
                 'message' => 'Failed to update entry.'
             ]);
-
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
@@ -224,10 +258,25 @@ class RawMaterialStockInitialController extends BaseController
         try {
             $this->rawMaterialStockModel->deleteEntry($id);
 
-            // Check for low stock and notify owners
+            // NEW: log the removed remaining stock as a subtraction
+            $remaining = max(0, floatval($entry['initial_qty'] ?? 0) - floatval($entry['qty_used'] ?? 0));
+            if ($remaining > 0) {
+                $sessionData = $this->getSessionData();
+                (new \App\Models\RawMaterialStockLogModel())->logChange([
+                    'material_id'     => intval($entry['material_id'] ?? 0),
+                    'action'          => 'subtracted',
+                    'amount'          => $remaining,
+                    'before_qty'      => $remaining,
+                    'after_qty'       => 0,
+                    'unit'            => $entry['unit'] ?? '',
+                    'changed_by'      => $sessionData['user_id'] ?? null,
+                    'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
+                    'source'          => 'stock_initial_delete',
+                ]);
+            }
+
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
-            // Immediate notification: stock entry deleted
             $matInfo = isset($entry['material_id']) ? (new \App\Models\RawMaterialsModel())->find($entry['material_id']) : null;
             $matName = $matInfo['material_name'] ?? 'Unknown';
             $this->notify('notifyStockEntryDeleted', $matName);
@@ -236,7 +285,6 @@ class RawMaterialStockInitialController extends BaseController
                 'success' => true,
                 'message' => 'Entry deleted successfully.'
             ]);
-
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
