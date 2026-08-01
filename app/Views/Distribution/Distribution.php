@@ -3779,16 +3779,30 @@
                 addItemsModalMode = normalizedMode;
 
                 const isEditMode = normalizedMode === 'edit';
+                const isDeletedCategoryEdit = isEditMode && editingGroupContext && editingGroupContext.is_deleted_category;
+                const saveButtonLabel = isEditMode ?
+                    '<i class="fas fa-save mr-2"></i>Save Group Changes' :
+                    '<i class="fas fa-save mr-2"></i>Save to Schedule';
+
                 $('#addItemsModalTitle').text(isEditMode ? 'Edit Distribution Group' : 'Add Baking Items');
                 $('#addItemsModalSubtitle').text(isEditMode ?
                     'Add/remove items, rename group, and update note' :
                     'Search and add products for a specific date'
                 );
                 $('#btnSaveItems').html(
-                    isEditMode ?
-                    '<i class="fas fa-save mr-2"></i>Save Group Changes' :
-                    '<i class="fas fa-save mr-2"></i>Save to Schedule'
+                    isDeletedCategoryEdit ?
+                    '<i class="fas fa-lock mr-2"></i>Save Group Changes' :
+                    saveButtonLabel
                 );
+                $('#btnSaveItems').prop('disabled', isDeletedCategoryEdit)
+                    .toggleClass('opacity-50 cursor-not-allowed', isDeletedCategoryEdit)
+                    .attr('aria-disabled', isDeletedCategoryEdit ? 'true' : 'false');
+
+                if (isDeletedCategoryEdit) {
+                    $('#btnSaveItems').attr('title', 'This category has been deleted and can no longer be edited.');
+                } else {
+                    $('#btnSaveItems').removeAttr('title');
+                }
 
                 $('#scheduleDate').prop('disabled', isEditMode);
                 $('.schedule-quick-btn').prop('disabled', isEditMode);
@@ -3919,6 +3933,7 @@
                     dist_category_name: (group.group_name || group.title || '').toString().trim(), // NEW
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
+                    is_deleted_category: false,
                     existing_items: groupItems.map(function(item) {
                         return {
                             item_id: getDistributionItemId(item),
@@ -3937,7 +3952,12 @@
                 resetAddItemsModalForm(normalizedDate, true);
 
                 await loadStores(editingGroupContext.dist_category_id || '');
+                const hasActiveCategoryOption = Array.isArray(storesCache) && storesCache.some(function(category) {
+                    return String(category && (category.dist_cat_id ?? category.id ?? '')) === String(editingGroupContext.dist_category_id || '');
+                });
+                editingGroupContext.is_deleted_category = Boolean(editingGroupContext.dist_category_id > 0 && !hasActiveCategoryOption);
                 ensureCategoryOptionExists(editingGroupContext.dist_category_id, editingGroupContext.dist_category_name);
+                setAddItemsModalUiMode('edit');
 
                 itemsToAddList = editingGroupContext.existing_items.map(function(item) {
                     return {
@@ -4550,6 +4570,11 @@
                     logDistributionFlow('warn', 'Add items form submit aborted.', {
                         reason: 'No items in create mode.',
                     });
+                    return;
+                }
+
+                if (isEditMode && editingGroupContext && editingGroupContext.is_deleted_category) {
+                    showToast('warning', 'This category has been deleted and can no longer be edited.', 3200);
                     return;
                 }
 
