@@ -104,6 +104,7 @@ class UserController extends BaseController
             'low_stock_enabled' => 'required|in_list[0,1]',
             'inventory_enabled' => 'required|in_list[0,1]',
             'remittance_enabled' => 'required|in_list[0,1]',
+            'material_stock_logs_enabled' => 'required|in_list[0,1]',
         ])) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,

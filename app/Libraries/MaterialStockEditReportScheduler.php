@@ -101,7 +101,7 @@ class MaterialStockEditReportScheduler
 
         $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType(
             $owners,
-            OwnerNotificationPreferences::TYPE_LOW_STOCK // reuse existing toggle; see note below
+            OwnerNotificationPreferences::TYPE_MATERIAL_STOCK_LOGS
         );
         if (empty($ownerEmails)) {
             log_message('info', 'MaterialStockEditReportScheduler: All owners have this notification turned off.');
