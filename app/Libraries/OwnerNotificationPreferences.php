@@ -9,6 +9,7 @@ class OwnerNotificationPreferences
     public const TYPE_LOW_STOCK = 'low_stock';
     public const TYPE_INVENTORY = 'inventory';
     public const TYPE_REMITTANCE = 'remittance';
+    public const TYPE_MATERIAL_STOCK_LOGS = 'material_stock_logs';
 
     /**
      * @return array<string, int>
@@ -19,6 +20,7 @@ class OwnerNotificationPreferences
             'low_stock_enabled' => 1,
             'inventory_enabled' => 1,
             'remittance_enabled' => 1,
+            'material_stock_logs_enabled' => 1,
         ];
     }
 
@@ -39,6 +41,7 @@ class OwnerNotificationPreferences
             'low_stock_enabled' => intval($record['low_stock_enabled'] ?? $defaults['low_stock_enabled']),
             'inventory_enabled' => intval($record['inventory_enabled'] ?? $defaults['inventory_enabled']),
             'remittance_enabled' => intval($record['remittance_enabled'] ?? $defaults['remittance_enabled']),
+            'material_stock_logs_enabled' => intval($record['material_stock_logs_enabled'] ?? $defaults['material_stock_logs_enabled']),
         ];
     }
 
@@ -51,6 +54,7 @@ class OwnerNotificationPreferences
             'low_stock_enabled' => self::normalizeToggle($settings['low_stock_enabled'] ?? 1),
             'inventory_enabled' => self::normalizeToggle($settings['inventory_enabled'] ?? 1),
             'remittance_enabled' => self::normalizeToggle($settings['remittance_enabled'] ?? 1),
+            'material_stock_logs_enabled' => self::normalizeToggle($settings['material_stock_logs_enabled'] ?? 1),
         ];
 
         $model = new OwnerNotificationSettingsModel();
@@ -115,6 +119,10 @@ class OwnerNotificationPreferences
 
         if ($normalized === self::TYPE_REMITTANCE) {
             return 'remittance_enabled';
+        }
+
+        if ($normalized === self::TYPE_MATERIAL_STOCK_LOGS) {
+            return 'material_stock_logs_enabled';
         }
 
         return null;

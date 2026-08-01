@@ -15,6 +15,7 @@ class OwnerNotificationSettingsModel extends Model
         'low_stock_enabled',
         'inventory_enabled',
         'remittance_enabled',
+        'material_stock_logs_enabled',
     ];
 
     public function getByUserId(int $userId): ?array

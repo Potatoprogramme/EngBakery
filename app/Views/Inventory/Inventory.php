@@ -356,12 +356,13 @@
     </div>
 
     <!-- Edit Inventory Modal -->
+    <!-- AFTER -->
     <div id="editInventoryModal"
-        class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black bg-opacity-50">
         <div
-            class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col p-6 z-10">
+            class="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[92vh] sm:max-h-[85vh] overflow-hidden flex flex-col p-4 sm:p-6 z-10">
             <button type="button" id="editInventoryModalClose"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fas fa-times text-lg"></i>
             </button>
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Edit Inventory Item</h3>
@@ -3690,6 +3691,10 @@
         $('#btnIncreaseProductGroup').on('click', function() {
             adjustQuantityField('#editProductGroupQty', 1);
         });
+        
+        $('#editProductGroupQty').on('input change', function() {
+            scheduleEditPreviewUpdate('addmore');
+        });
 
         $('#btnDecreaseDistributionGroup').on('click', function() {
             adjustQuantityField('#editDistributionGroupQty', -1);
@@ -3964,12 +3969,12 @@
             }
 
             if (isAdjustmentMode) {
+                const addMoreQty = parseInt($('#editProductGroupQty').val()) || 0;
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
-                const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput -
-                    pullOutInput));
-                if (source === 'beginning' || source === 'pullout' || source === 'modal-open') {
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut + addMoreQty);
+                const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput - pullOutInput + addMoreQty));
+                if (source === 'beginning' || source === 'pullout' || source === 'addmore' || source === 'modal-open') {
                     $('#editEndingStock').val(autoProjectedEnding);
                 }
 
@@ -3993,6 +3998,7 @@
                     '    <div><span class="text-gray-500">Current Beginning:</span> <span class="font-semibold text-gray-800">' +
                     oldBeginning + '</span></div>' +
                     '    <div><span class="text-gray-500">Updated Beginning:</span> <span class="font-semibold text-amber-700">' +
+                    '    <div><span class="text-gray-500">Add More:</span> <span class="font-semibold text-emerald-700">+' + addMoreQty + '</span></div>' +
                     Math.max(0, projectedBeginning) + '</span></div>' +
                     '    <div><span class="text-gray-500">Current Ending:</span> <span class="font-semibold text-gray-800">' +
                     oldEnding + '</span></div>' +
@@ -4142,33 +4148,6 @@
             $('#editDistributionInfo').addClass('hidden');
             $('#editStockWarning').addClass('hidden');
         });
-
-        // Load distribution categories for the modal
-        function loadDistributionCategoriesForModal() {
-            const baseUrl = '<?= base_url() ?>';
-            $.ajax({
-                url: baseUrl + 'DistributionCategory/FetchAll',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    const select = $('#editDistributionCategorySelect');
-                    select.html('<option value="">Select distribution category...</option>');
-
-                    if (response.success && response.data && response.data.length > 0) {
-                        response.data.forEach(function(cat) {
-                            select.append(
-                                `<option value="${cat.dist_cat_id}">${cat.name}</option>`
-                            );
-                        });
-                    }
-                },
-                error: function() {
-                    console.warn('Failed to load distribution categories');
-                    $('#editDistributionCategorySelect').html(
-                        '<option value="">Error loading categories</option>');
-                }
-            });
-        }
 
         // Load distribution categories for the modal
         function loadDistributionCategoriesForModal() {

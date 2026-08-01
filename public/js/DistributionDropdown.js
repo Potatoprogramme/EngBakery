@@ -76,3 +76,19 @@ function populateStoreDropdown(data, selectedCategoryId = null) {
     $select.val("");
   }
 }
+
+
+function ensureCategoryOptionExists(categoryId, categoryName) {
+    const idStr = String(categoryId || '').trim();
+    if (!idStr || idStr === '0') return;
+
+    const $select = $('#distributionGroupName');
+    if ($select.find(`option[value="${idStr}"]`).length > 0) {
+        $select.val(idStr);
+        return;
+    }
+
+    const label = (categoryName || 'Unknown Category').toString().trim() + ' (deleted)';
+    $select.append($('<option>', { value: idStr, text: label }));
+    $select.val(idStr);
+}

@@ -1,4 +1,4 @@
-<?php $isStaffView = session('employee_type') === 'staff'; ?>
+<?php $isStaffView = false; ?>
 
 <body class="bg-gray-50">
     <!-- Main Content -->
