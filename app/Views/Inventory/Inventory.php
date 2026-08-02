@@ -378,8 +378,10 @@
                 <input type="hidden" id="editItemId" name="item_id">
                 <input type="hidden" id="editDistributionQty" value="0">
                 <input type="hidden" id="editCarryoverQty" value="0">
+                <input type="hidden" id="editOldDistributedOutQty" value="0">
                 <input type="hidden" id="editCategory" value="">
                 <input type="hidden" id="editAdjustmentMode" value="0">
+                <input type="hidden" id="editAddedQty" value="0">
                 <input type="hidden" id="editOldBeginningStock" value="0">
                 <input type="hidden" id="editOldPullOutQuantity" value="0">
                 <input type="hidden" id="editOldEndingStock" value="0">
@@ -3176,7 +3178,12 @@
             }
 
             if (payload && payload.action === 'distribute') {
-                return true; // no beginning/ending change locally
+                const distDelta = parseInt(payload.distribution_group_qty) || 0;
+                item.distributed_out_qty = (parseInt(item.distributed_out_qty) || 0) + distDelta;
+                item.ending_stock = Math.max(0, (parseInt(item.ending_stock) || 0) - distDelta);
+                allInventoryItems[index] = item;
+                filteredItems = [...allInventoryItems];
+                return true;
             }
 
             const category = (opts.category || item.category || '').toLowerCase();
@@ -3205,6 +3212,7 @@
                 item.quantity_sold_db = dbQtySold;
                 item.discrepancy = Math.max(0, targetQty - dbQtySold);
             } else if (isAdjustmentMode) {
+                const distributedOutQty = parseInt(item.distributed_out_qty) || 0;
                 const dbQtySoldRaw = parseInt(item.quantity_sold_db);
                 const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
                 item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
@@ -3216,6 +3224,8 @@
                 item.quantity_sold_db = dbQtySold;
                 item.discrepancy = addedQtySold;
             } else {
+                // line ~3228
+                const distributedOutQty = parseInt(item.distributed_out_qty) || 0;
                 item.beginning_stock = beginningInput;
                 item.pull_out_quantity = pullOutInput;
                 // Keep ending as the physical count; reconcile pull out into qty sold.
@@ -3224,7 +3234,7 @@
                 const oldQtySold = Number.isNaN(dbQtySoldRaw) ? Math.max(0, parseInt(item.quantity_sold) || 0) : Math.max(
                     0, dbQtySoldRaw);
                 item.ending_stock = currentEnding;
-                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                item.quantity_sold = Math.max(0, item.beginning_stock - item.pull_out_quantity - distributedOutQty - item.ending_stock);
                 item.quantity_sold_db = oldQtySold;
                 item.discrepancy = item.quantity_sold - oldQtySold;
             }
@@ -3257,7 +3267,7 @@
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const addedQty = parseInt(item.added_qty) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
-                    const distQty = parseInt(item.distribution_qty) || 0;
+                    const distQty = parseInt(item.distributed_out_qty) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const totalSales = (qtySold * parseFloat(price || 0)).toFixed(2);
@@ -3691,7 +3701,7 @@
         $('#btnIncreaseProductGroup').on('click', function() {
             adjustQuantityField('#editProductGroupQty', 1);
         });
-        
+
         $('#editProductGroupQty').on('input change', function() {
             scheduleEditPreviewUpdate('addmore');
         });
@@ -3732,7 +3742,7 @@
                 $('#editIsRemitted').val(itemIsRemitted ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editAddedQty').val(parseInt(item.added_qty) || 0);
-                $('#editOldBeginningStock').val(beginningStock);
+                $('#editOldBeginningStock').val(beginningStock + (parseInt(item.added_qty) || 0));
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
                 const dbQuantitySoldRaw = parseInt(item.quantity_sold_db);
@@ -3775,7 +3785,7 @@
 
                     // Beginning/Pull Out are adjustments; Ending is editable final value.
                     $('#editBeginningStock').val(0).removeAttr('min');
-                    $('#editPullOutQuantity').val(0).attr('min', 0);
+                    $('#editPullOutQuantity').val(0).attr('min', 0).attr('max', endingStock);
                     $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').removeClass('hidden');
@@ -3823,6 +3833,7 @@
                 const carryQty = parseInt(carryoverData[item.product_id]) || 0;
                 $('#editDistributionQty').val(distQty);
                 $('#editCarryoverQty').val(carryQty);
+                $('#editOldDistributedOutQty').val(parseInt(item.distributed_out_qty) || 0);
 
                 resetEditPreviewUiState();
 
@@ -3972,18 +3983,21 @@
                 const addMoreQty = parseInt($('#editProductGroupQty').val()) || 0;
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
-                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut + addMoreQty);
+                const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut - distributedOutQty + addMoreQty);
                 const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput - pullOutInput + addMoreQty));
                 if (source === 'beginning' || source === 'pullout' || source === 'addmore' || source === 'modal-open') {
                     $('#editEndingStock').val(autoProjectedEnding);
                 }
 
-                projectedRemaining = Math.max(0, parseInt($('#editEndingStock').val()) || endingInput);
-                $('#editEndingStock').attr('max', maxAllowedEnding);
-                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - projectedRemaining);
+                const endingFieldValue = parseInt($('#editEndingStock').val(), 10);
+                projectedRemaining = Number.isNaN(endingFieldValue) ? 0 : Math.max(0, endingFieldValue);
+                $('#editEndingStock').attr('max', maxAllowedEnding); // Consider removing this
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut - distributedOutQty - projectedRemaining);
                 const addedQtySold = Math.max(0, projectedInventoryQtySold - oldQtySold);
                 const adjustedQtySold = oldQtySold + addedQtySold;
                 const wouldExceedAllowedEnding = projectedRemaining > maxAllowedEnding;
+
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
                 const statusHtml = wouldExceedAllowedEnding ?
                     '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning - Pull Out).</div>' :
@@ -4044,6 +4058,10 @@
             if (editPreviewUiState.remainingValue !== nextRemainingValue) {
                 $('#editRemainingPreview').val(nextRemainingValue);
                 editPreviewUiState.remainingValue = nextRemainingValue;
+            }
+
+            if (!isDrinksMode) {
+                $('#editEndingStock').val(nextRemainingValue);
             }
         }
 
@@ -4302,14 +4320,15 @@
             } else if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+                const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
                 const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
-                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut);
+                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut - distributedOutQty);
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut -
-                    projectedEnding);
+                    distributedOutQty - projectedEnding);
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
@@ -4331,7 +4350,7 @@
                 }
 
                 if (projectedEnding > maxAllowedEnding) {
-                    showToast('warning', 'Ending cannot exceed Beginning minus Pull Out.', 2500);
+                    showToast('warning', 'Ending cannot exceed Beginning minus Pull Out and Distribution.', 2500);
                     restoreSubmitButton();
                     return;
                 }
@@ -4628,7 +4647,7 @@
                 card += '  <div class="flex items-center gap-2 text-xs text-gray-500 mb-2 flex-wrap">';
                 card += '    <span>Begin: <span class="text-gray-700">' + (formatBeginningWithAdded(item.beginning_stock, item.added_qty) || 0) + '</span></span>';
                 card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
-                card += '    <span>Dist: <span class="text-gray-700">' + (parseInt(item.distribution_qty) || 0) + '</span></span>';
+                card += '    <span>Dist: <span class="text-gray-700">' + (parseInt(item.distributed_out_qty) || 0) + '</span></span>';
                 card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
                 card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
                     .total_sales).toFixed(2) || 0) + '</span></span>';

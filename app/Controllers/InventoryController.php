@@ -99,10 +99,10 @@ class InventoryController extends BaseController
         $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
-        $freshDistPieces = model('DistributionGroupModel')->getDistributedPiecesForDate(
-            $today,
-            intval($daily_stock['daily_stock_id']) // NEW: scope to this shift only
-        );
+        // $freshDistPieces = model('DistributionGroupModel')->getDistributedPiecesForDate(
+        //     $today,
+        //     intval($daily_stock['daily_stock_id']) // NEW: scope to this shift only
+        // );
 
         $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
@@ -127,16 +127,23 @@ class InventoryController extends BaseController
         // Enrich stock items with sales data
         foreach ($daily_stock_items as &$item) {
             $productId = intval($item['product_id'] ?? 0);
-            $item['distribution_qty'] = intval($freshDistPieces[$productId] ?? 0);
+            // distributed_out_qty lives directly on this daily_stock_items row — it can
+            // only ever reflect THIS shift, since a new shift gets a fresh row seeded at 0.
+            $distributedOutQty = intval($item['distributed_out_qty'] ?? 0);
+            $item['distributed_out_qty'] = $distributedOutQty;
+
             $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
             $category = strtolower(trim((string) ($item['category'] ?? '')));
             $beginningStock = intval($item['beginning_stock'] ?? 0);
-            $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
-            $totalBeginningStock = $beginningStock + $addedQty;           // NEW
+            $addedQty = intval($item['added_qty'] ?? 0);
+            $totalBeginningStock = $beginningStock + $addedQty;
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
-            // Inventory interpretation based on stock fields.
-            $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $endingStock);
+
+            // NEW: distribution now also accounts for part of the ending-stock drop,
+            // same as pull-out — otherwise distributed pieces get miscounted as sold.
+            $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $distributedOutQty - $endingStock);
+
             if (in_array($category, ['bakery', 'grocery'], true)) {
                 // DB qty sold is the floor/source-of-truth for bakery/grocery.
                 $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
@@ -992,7 +999,6 @@ class InventoryController extends BaseController
 
             $dailyStockId = intval($item['daily_stock_id']);
 
-            // NEW: cap against total available beginning stock for this shift
             $totalBeginning = intval($item['beginning_stock']) + intval($item['added_qty'] ?? 0);
             $pullOut = intval($item['pull_out_quantity']);
             $alreadyDistributed = model('DistributionItemModel')
@@ -1002,7 +1008,7 @@ class InventoryController extends BaseController
             if ($distributionGroupQty > $availableToDistribute) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'exceeds_available_stock' => true, // NEW: flag for frontend
+                    'exceeds_available_stock' => true,
                     'message' => "Cannot distribute {$distributionGroupQty} pcs — only {$availableToDistribute} pcs available "
                         . "(Beginning {$totalBeginning} - Pull Out {$pullOut} - Already Distributed {$alreadyDistributed}).",
                     'available_to_distribute' => $availableToDistribute,
@@ -1012,10 +1018,29 @@ class InventoryController extends BaseController
             $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
             $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
 
+            $currentDistributedOutQty = intval($item['distributed_out_qty'] ?? 0);
+            $currentEnding = intval($item['ending_stock'] ?? 0);
+            $newEnding = max(0, $currentEnding - $distributionGroupQty);
+
+            $updateResult = $this->dailyStockItemsModel->update($item_id, [
+                'distributed_out_qty' => $currentDistributedOutQty + $distributionGroupQty,
+                'ending_stock' => $newEnding,
+            ]);
+
+            if (!$updateResult) {
+                log_message('error', 'DISTRIBUTE: Failed to persist distributed_out_qty/ending_stock for item {itemId}', [
+                    'itemId' => $item_id,
+                ]);
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to distribution',
-                'data' => ['item_id' => $item_id]
+                'data' => [
+                    'item_id' => $item_id,
+                    'distributed_out_qty' => $currentDistributedOutQty + $distributionGroupQty,
+                    'ending_stock' => $newEnding,
+                ]
             ]);
         }
 
@@ -1079,10 +1104,21 @@ class InventoryController extends BaseController
             }
 
             // In adjustment mode, beginning and pull-out are independent edits.
-            // Pull-out changes should affect ending/qty sold, not beginning.
             $newBeginning = $oldBeginning + $inputBeginning;
-            $newPullOut = $oldPullOut + $inputPullOut;
+
+            // Figure out how much of the ending-stock drop the client's own
+            // beginning/pull-out deltas actually account for.
+            $beginningDeltaForCheck = $inputBeginning;
+            $pullOutDeltaForCheck = $inputPullOut;
             $newEndingStock = $inputEnding;
+
+            $expectedEnding = $oldEnding + $beginningDeltaForCheck - $pullOutDeltaForCheck;
+            $unexplainedDrop = max(0, $expectedEnding - $newEndingStock);
+
+            // Any ending-stock reduction not already covered by beginning/pull-out
+            // deltas gets folded into pull_out_quantity instead of silently
+            // showing up as phantom "sold" quantity on fetch.
+            $newPullOut = $oldPullOut + $inputPullOut + $unexplainedDrop;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
