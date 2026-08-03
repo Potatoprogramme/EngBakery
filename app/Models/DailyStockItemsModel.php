@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Libraries\DistributionQuantityCalculator;
@@ -17,9 +18,9 @@ class DailyStockItemsModel extends Model
         'beginning_stock',
         'added_qty',
         'pull_out_quantity',
-        'ending_stock', // can be calculated
-        'distribution_qty', // pieces sourced from distribution (0 if none)
-        // 'is_enabled', // for enabling stock item
+        'ending_stock',
+        'distribution_qty',       // pieces sourced from distribution (inbound)
+        'distributed_out_qty',    // NEW: pieces sent out via manual distribute action (outbound)
     ];
 
     // Dates
@@ -41,6 +42,7 @@ class DailyStockItemsModel extends Model
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
                 'distribution_qty' => 0, // no distribution in this path
+                'distributed_out_qty' => 0, // NEW
                 'is_enabled' => ($carryoverQty > 0) ? 1 : 0, // enable if there's carryover stock
             ];
         }
@@ -90,6 +92,7 @@ class DailyStockItemsModel extends Model
                 'pull_out_quantity' => 0,
                 'ending_stock' => $totalBeginning,
                 'distribution_qty' => $autoLoadedDistribution,
+                'distributed_out_qty' => 0, // NEW
                 'is_enabled' => $isEnabled,
             ];
         }
@@ -124,6 +127,7 @@ class DailyStockItemsModel extends Model
                 'pull_out_quantity' => 0,
                 'ending_stock' => $carryoverQty,
                 'distribution_qty' => 0,
+                'distributed_out_qty' => 0, // NEW
                 'is_enabled' => 1,
             ];
         }
@@ -160,10 +164,11 @@ class DailyStockItemsModel extends Model
 
             $mergedData = [
                 'beginning_stock' => array_sum(array_map(static fn($row) => intval($row['beginning_stock'] ?? 0), $allRows)),
-                'added_qty' => array_sum(array_map(static fn($row) => intval($row['added_qty'] ?? 0), $allRows)), // NEW
+                'added_qty' => array_sum(array_map(static fn($row) => intval($row['added_qty'] ?? 0), $allRows)),
                 'pull_out_quantity' => array_sum(array_map(static fn($row) => intval($row['pull_out_quantity'] ?? 0), $allRows)),
                 'ending_stock' => array_sum(array_map(static fn($row) => intval($row['ending_stock'] ?? 0), $allRows)),
                 'distribution_qty' => array_sum(array_map(static fn($row) => intval($row['distribution_qty'] ?? 0), $allRows)),
+                'distributed_out_qty' => array_sum(array_map(static fn($row) => intval($row['distributed_out_qty'] ?? 0), $allRows)), // NEW
                 'is_enabled' => max(array_map(static fn($row) => intval($row['is_enabled'] ?? 0), $allRows)),
             ];
 
@@ -433,5 +438,4 @@ class DailyStockItemsModel extends Model
 
         return array_values($aggregated);
     }
-
 }
