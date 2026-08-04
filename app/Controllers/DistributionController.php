@@ -93,19 +93,19 @@ class DistributionController extends BaseController
             ]);
         }
 
+        $category = model('DistributionCategory')->withDeleted()->find($categoryId);
+        if (!$category) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'error' => 'Distribution category not found',
+            ]);
+        }
+
         if ($checkData = $this->distributionGroupModel->checkIfGroupExists($categoryId, $distributionDate)) {
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Distribution group created successfully',
                 'group_id' => $checkData['group_id'],
                 'category_name' => trim((string) ($category['name'] ?? '')),
-            ]);
-        }
-
-        $category = model('DistributionCategory')->find($categoryId);
-        if (!$category) {
-            return $this->response->setStatusCode(404)->setJSON([
-                'error' => 'Distribution category not found',
             ]);
         }
 
@@ -136,7 +136,7 @@ class DistributionController extends BaseController
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
             return $this->response->setStatusCode(500)->setJSON([
                 'error' =>
-                $e->getMessage() ?: 'Failed to create distribution group',
+                    $e->getMessage() ?: 'Failed to create distribution group',
                 'insert_data' => $insertData,
                 'data' => $data,
             ]);
@@ -218,7 +218,7 @@ class DistributionController extends BaseController
             // Restore raw materials for every item in the group
             foreach ($items as $item) {
                 $productId = intval($item['product_id']);
-                $quantity = intval($item['product_qnty']);
+                $quantity = (float) $item['product_qnty'];
                 $qtyMode = $item['qty_mode'] ?? 'batch';
                 $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
@@ -264,8 +264,14 @@ class DistributionController extends BaseController
 
         $groupId = intval($data->distribution_id);
         $productId = intval($data->product_id);
-        $quantity = intval($data->product_qnty);
+        $quantity = (float) $data->product_qnty;
         $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+
+        if ($quantity <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'product_qnty must be greater than zero',
+            ]);
+        }
 
         $groupModel = model('DistributionGroupModel');
         $itemModel = model('DistributionItemModel');
@@ -361,7 +367,7 @@ class DistributionController extends BaseController
             ]);
         } catch (\Exception $e) {
             log_message('error', 'DISTRIBUTION ITEM ADD: {msg}', ['msg' => $e->getMessage()]);
-            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to add distribution item']);
+            return $this->response->setStatusCode(500)->setJSON(['error' => $e->getMessage() ?: 'Failed to add distribution item']);
         }
     }
 
@@ -385,8 +391,14 @@ class DistributionController extends BaseController
 
         $newProductId = intval($data->product_id);
         $newQtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
-        $newQty = intval($data->product_qnty);
+        $newQty = (float) $data->product_qnty;
         $groupId = intval($existing['distribution_id']);
+
+        if ($newQty <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'product_qnty must be greater than zero',
+            ]);
+        }
 
         // Category enforcement
         $product = $this->productModel->find($newProductId);
@@ -396,7 +408,7 @@ class DistributionController extends BaseController
             ]);
         }
 
-        $oldPieces = $this->distributionQtyToPieces(intval($existing['product_id']), intval($existing['product_qnty']), $existing['qty_mode'] ?? 'batch');
+        $oldPieces = $this->distributionQtyToPieces(intval($existing['product_id']), (float) $existing['product_qnty'], $existing['qty_mode'] ?? 'batch');
         $newPieces = $this->distributionQtyToPieces($newProductId, $newQty, $newQtyMode);
 
         // Restore old raw materials first
@@ -442,7 +454,7 @@ class DistributionController extends BaseController
 
             $group = model('DistributionGroupModel')->find($groupId);
             $productName = $product['product_name'] ?? 'Unknown Product';
-            $this->notify('notifyDistributionUpdated', $productName, intval($existing['product_qnty']), $newQty, $group['distribution_date'] ?? '');
+            $this->notify('notifyDistributionUpdated', $productName, (float) $existing['product_qnty'], $newQty, $group['distribution_date'] ?? '');
 
             log_message('info', 'DISTRIBUTION ITEM UPDATE: Item ID {id} updated', ['id' => $id]);
 
@@ -467,7 +479,7 @@ class DistributionController extends BaseController
 
         $groupId = intval($item['distribution_id']);
         $productId = intval($item['product_id']);
-        $quantity = intval($item['product_qnty']);
+        $quantity = (float) $item['product_qnty'];
         $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
         $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
 
@@ -525,7 +537,7 @@ class DistributionController extends BaseController
         ]);
     }
 
-    private function distributionQtyToPieces(int $productId, int $qty, string $qtyMode = 'batch'): int
+    private function distributionQtyToPieces(int $productId, float $qty, string $qtyMode = 'batch'): int
     {
         $product = $this->productModel->find($productId);
         $costData = model('ProductCostModel')->getCostByProductId($productId);
