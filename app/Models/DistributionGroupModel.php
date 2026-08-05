@@ -105,7 +105,7 @@ class DistributionGroupModel extends Model
 
         foreach ($items as $item) {
             $productId = (int) $item['product_id'];
-            $quantity = (int) $item['product_qnty'];
+            $quantity = (float) $item['product_qnty'];
             $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
 
             // Get product and pricing data
