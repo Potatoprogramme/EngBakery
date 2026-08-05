@@ -268,7 +268,8 @@ class DailyStockItemsModel extends Model
         $data = [
             'daily_stock_id' => $dailyStockId,
             'product_id' => $productId,
-            'beginning_stock' => $beginningStock,
+            'beginning_stock' => 0,
+            'added_qty' => $beginningStock,
             'pull_out_quantity' => 0,
             'ending_stock' => $beginningStock,
         ];

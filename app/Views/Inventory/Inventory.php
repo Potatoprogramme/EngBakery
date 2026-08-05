@@ -1113,6 +1113,11 @@
         function formatBeginningWithAdded(beginningStock, addedQty) {
             const beginning = parseInventoryNumericValue(beginningStock);
             const added = parseInventoryNumericValue(addedQty);
+
+            if (beginning <= 0) {
+                return added > 0 ? String(added) : '0';
+            }
+            
             return added > 0 ? (beginning + ' + ' + added) : String(beginning);
         }
 

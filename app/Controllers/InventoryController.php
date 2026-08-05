@@ -106,11 +106,11 @@ class InventoryController extends BaseController
 
         $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
-            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $totalBeginningStock = intval($item['beginning_stock'] ?? 0) + intval($item['added_qty'] ?? 0); // FIX: include added_qty
 
             // Only filter out zero-stock items for bakery and grocery
             if (in_array($category, ['bakery', 'grocery'], true)) {
-                return $beginningStock > 0;
+                return $totalBeginningStock > 0;
             }
 
             // Drinks, dough, and everything else always included regardless of stock
@@ -783,80 +783,80 @@ class InventoryController extends BaseController
      * Add a product to today's existing inventory
      */
     public function addProductToInventory()
-    {
-        $json = $this->request->getJSON();
+{
+    $json = $this->request->getJSON();
 
-        if (!$json || !isset($json->product_id)) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Product ID is required'
-            ]);
-        }
+    if (!$json || !isset($json->product_id)) {
+        return $this->response->setStatusCode(400)->setJSON([
+            'success' => false,
+            'message' => 'Product ID is required'
+        ]);
+    }
 
-        $today = date('Y-m-d');
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
+    $today = date('Y-m-d');
+    $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
 
-        if (!$dailyStock) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'No inventory exists for today. Create inventory first.'
-            ]);
-        }
+    if (!$dailyStock) {
+        return $this->response->setStatusCode(400)->setJSON([
+            'success' => false,
+            'message' => 'No inventory exists for today. Create inventory first.'
+        ]);
+    }
 
-        $productId = intval($json->product_id ?? 0);
-        $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
-        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+    $productId = intval($json->product_id ?? 0);
+    $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
+    $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
-        // Pre-check: block if raw materials are insufficient
-        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
-            $preview = $this->rawMaterialStockModel->deductForProduction(
-                $productId,
-                $beginningStock,
-                true // preview only
-            );
-
-            if (!empty($preview['has_insufficient'])) {
-                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
-
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Cannot add product — insufficient raw material stock.',
-                    'insufficient_materials' => array_values($shortNames),
-                    'preview' => $preview,
-                ]);
-            }
-        }
-
-        $result = $this->dailyStockItemsModel->addProductToInventory(
-            $dailyStock['daily_stock_id'],
+    // Pre-check: block if raw materials are insufficient
+    if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+        $preview = $this->rawMaterialStockModel->deductForProduction(
             $productId,
-            $beginningStock
+            $beginningStock,
+            true // preview only
         );
 
-        if ($result) {
-            $deductionResult = null;
+        if (!empty($preview['has_insufficient'])) {
+            $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+            $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
 
-            if ($beginningStock > 0 && $hasRawMaterialRecipe) {
-                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    $productId,
-                    $beginningStock
-                );
-            }
-
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Product added to inventory successfully',
-                'item_id' => $result,
-                'deduction' => $deductionResult
-            ]);
-        } else {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'Product already exists in inventory or failed to add'
+                'message' => 'Cannot add product — insufficient raw material stock.',
+                'insufficient_materials' => array_values($shortNames),
+                'preview' => $preview,
             ]);
         }
     }
+
+    $result = $this->dailyStockItemsModel->addProductToInventory(
+        $dailyStock['daily_stock_id'],
+        $productId,
+        $beginningStock  // still passed straight through — model now writes it to added_qty
+    );
+
+    if ($result) {
+        $deductionResult = null;
+
+        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                $productId,
+                $beginningStock
+            );
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Product added to inventory successfully',
+            'item_id' => $result,
+            'deduction' => $deductionResult
+        ]);
+    } else {
+        return $this->response->setStatusCode(400)->setJSON([
+            'success' => false,
+            'message' => 'Product already exists in inventory or failed to add'
+        ]);
+    }
+}
 
     public function deleteInventory()
     {
