@@ -303,14 +303,15 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                         Used</th>
@@ -323,12 +324,14 @@
                                         </tbody>
                                         <tfoot class="bg-gray-50 border-t border-gray-200">
                                             <tr>
-                                                <td colspan="5"
+                                                <td colspan="6"
                                                     class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                                     Total:</td>
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="groceryTotalQty">0
                                                 </td>
+                                                <td></td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -389,50 +392,6 @@
                 <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
-                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseProductGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            &minus;
-                        </button>
-                        <input type="number" id="editProductGroupQty" min="0" step="1" value="0"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                            aria-label="Product group quantity">
-                        <button type="button" id="btnIncreaseProductGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <div id="editDistributionGroup"
-                    class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseDistributionGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            &minus;
-                        </button>
-                        <input type="number" id="editDistributionGroupQty" min="0" step="1" value="0"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                            aria-label="Distribution group quantity">
-                        <button type="button" id="btnIncreaseDistributionGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            +
-                        </button>
-                    </div>
-                    <div class="mt-3">
-                        <label
-                            class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
-                            Category</label>
-                        <select id="editDistributionCategorySelect" name="distribution_category_id"
-                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <option value="">Loading categories...</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
@@ -468,6 +427,23 @@
                     </div>
                 </div>
 
+                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editProductGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Product group quantity">
+                        <button type="button" id="btnIncreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                </div>
+
                 <div class="mb-4" id="editPullOutGroup">
                     <label for="editPullOutQuantity" id="editPullOutLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
@@ -485,6 +461,33 @@
                         </button>
                     </div>
                     <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+
+                <div id="editDistributionGroup"
+                    class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editDistributionGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Distribution group quantity">
+                        <button type="button" id="btnIncreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <label
+                            class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
+                            Category</label>
+                        <select id="editDistributionCategorySelect" name="distribution_category_id"
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="mb-4 hidden" id="editPostRemitWarning">
@@ -3413,6 +3416,7 @@
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const distQty = parseInt(item.distributed_out_qty) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const price = parseFloat(item.selling_price || 0);
@@ -3445,12 +3449,13 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distQty + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -3469,7 +3474,7 @@
                 });
             } else {
                 rows =
-                    '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+                    '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
             }
 
             $('#groceryTableBody').html(rows);
