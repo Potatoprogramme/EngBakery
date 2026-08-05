@@ -2360,4 +2360,21 @@ class InventoryController extends BaseController
             log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Shift-level reference of every item that had manual "Add More" (Store)
+     * quantity added, for a given date.
+     * GET /Inventory/GetAddedStockItems?date=YYYY-MM-DD
+     */
+    public function getAddedStockItems()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $items = $this->dailyStockItemsModel->getAddedQtyItemsByDate($date);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'date' => $date,
+            'data' => $items,
+        ]);
+    }
 }
