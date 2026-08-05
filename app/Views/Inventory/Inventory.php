@@ -243,11 +243,11 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                         Used</th>
@@ -303,7 +303,6 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
@@ -313,8 +312,8 @@
                                                     </th>
                                                 <?php endif; ?>
                                                 <?php if ($isOwnerView): ?>
-                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                        Used</th>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Raw
+                                                        Materials</th>
                                                 <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
@@ -324,14 +323,12 @@
                                         </tbody>
                                         <tfoot class="bg-gray-50 border-t border-gray-200">
                                             <tr>
-                                                <td colspan="6"
+                                                <td colspan="5"
                                                     class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                                     Total:</td>
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
                                                     id="groceryTotalQty">0
                                                 </td>
-                                                <td></td>
-                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -3378,10 +3375,10 @@
                         'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -3416,7 +3413,6 @@
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
-                    const distQty = parseInt(item.distributed_out_qty) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const price = parseFloat(item.selling_price || 0);
@@ -3449,7 +3445,6 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distQty + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
@@ -3460,7 +3455,7 @@
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
                             item.item_id + '" data-product-id="' + item.product_id +
-                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                            '" title="View raw materials"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
@@ -3474,7 +3469,7 @@
                 });
             } else {
                 rows =
-                    '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
+                    '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No grocery items in inventory</td></tr>';
             }
 
             $('#groceryTableBody').html(rows);
