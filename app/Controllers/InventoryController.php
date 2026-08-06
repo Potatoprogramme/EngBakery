@@ -1103,22 +1103,31 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            // // In adjustment mode, beginning and pull-out are independent edits.
+            // $newBeginning = $oldBeginning + $inputBeginning;
+
+            // // Figure out how much of the ending-stock drop the client's own
+            // // beginning/pull-out deltas actually account for.
+            // $beginningDeltaForCheck = $inputBeginning;
+            // $pullOutDeltaForCheck = $inputPullOut;
+            // $newEndingStock = $inputEnding;
+
+            // $expectedEnding = $oldEnding + $beginningDeltaForCheck - $pullOutDeltaForCheck;
+            // $unexplainedDrop = max(0, $expectedEnding - $newEndingStock);
+
+            // // Any ending-stock reduction not already covered by beginning/pull-out
+            // // deltas gets folded into pull_out_quantity instead of silently
+            // // showing up as phantom "sold" quantity on fetch.
+            // $newPullOut = $oldPullOut + $inputPullOut + $unexplainedDrop;
+
             // In adjustment mode, beginning and pull-out are independent edits.
+            // Any ending-stock reduction NOT explained by an explicit beginning
+            // or pull-out delta is intentionally left as-is here — it flows
+            // through downstream (fetchTodaysInventory/history) as quantity SOLD,
+            // not as an implicit pull-out.
             $newBeginning = $oldBeginning + $inputBeginning;
-
-            // Figure out how much of the ending-stock drop the client's own
-            // beginning/pull-out deltas actually account for.
-            $beginningDeltaForCheck = $inputBeginning;
-            $pullOutDeltaForCheck = $inputPullOut;
+            $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
-
-            $expectedEnding = $oldEnding + $beginningDeltaForCheck - $pullOutDeltaForCheck;
-            $unexplainedDrop = max(0, $expectedEnding - $newEndingStock);
-
-            // Any ending-stock reduction not already covered by beginning/pull-out
-            // deltas gets folded into pull_out_quantity instead of silently
-            // showing up as phantom "sold" quantity on fetch.
-            $newPullOut = $oldPullOut + $inputPullOut + $unexplainedDrop;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
