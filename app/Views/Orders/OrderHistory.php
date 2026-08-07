@@ -307,6 +307,35 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
         initFilters();
         initOrderDetailsModal();
         initStockSummaryToggle();
+
+        // Listen for manual-order events triggered from other pages (inventory updates)
+        $(document).on('manualOrderCreated', function(ev, manualOrder) {
+            try {
+                // If the order falls within current filters, prepend and re-render
+                const filters = getCurrentFilters();
+                const orderDate = manualOrder.date_created || null;
+                const addNow = (!filters.dateFrom || orderDate >= filters.dateFrom) && (!filters.dateTo || orderDate <= filters.dateTo) && (!filters.orderType || filters.orderType === '' || filters.orderType === manualOrder.order_type);
+                if (addNow) {
+                    // Merge and re-render: ensure unique by order_id
+                    const existing = (window._ordersCache || []).find(o => o.order_id === manualOrder.order_id);
+                    if (!existing) {
+                        window._ordersCache = window._ordersCache || [];
+                        window._ordersCache.unshift(manualOrder);
+                        // Keep list trimmed to 500
+                        if (window._ordersCache.length > 500) window._ordersCache.length = 500;
+                        renderOrders(window._ordersCache);
+                    }
+                } else {
+                    // Otherwise just re-run load to fetch proper data within filters
+                    const current = getCurrentFilters();
+                    loadOrders(current.dateFrom, current.dateTo, current.orderType);
+                }
+            } catch (e) {
+                console.warn('Failed to handle manualOrderCreated event', e);
+                const current = getCurrentFilters();
+                loadOrders(current.dateFrom, current.dateTo, current.orderType);
+            }
+        });
     });
 
     // Load summary cards using current order history filters
@@ -521,7 +550,9 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    renderOrders(response.data);
+                    // Cache the latest orders for in-page merges
+                    window._ordersCache = response.data || [];
+                    renderOrders(window._ordersCache);
                     // Keep summary cards in sync with selected filters
                     loadFilteredSummary(dateFrom, dateTo, orderType);
                     // Show stock snapshot based on end date (or start date if end is empty)
@@ -577,6 +608,7 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
             typeIcon = '<i class="fas fa-walking mr-1"></i>';
             typeName = 'Walk-in';
         }
+        const isManual = order.is_manual_adjustment === true || (order.distributed_note && String(order.distributed_note).startsWith('MANUAL_DRINK_ADJ|'));
         const cashierName = order.cashier_display_name || 'Unknown';
         const isVoided = order.voided_at !== null && order.voided_at !== undefined;
         const orderNumber = `${order.date_created}-${order.order_id}`;
@@ -588,7 +620,8 @@ $isOwnerView = strtolower((string) ($employee_type ?? session('employee_type') ?
             typeName,
             cashierName,
             isVoided,
-            orderNumber
+            orderNumber,
+            isManual
         };
     }
 
