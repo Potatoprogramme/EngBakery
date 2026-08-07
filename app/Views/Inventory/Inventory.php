@@ -4299,6 +4299,18 @@
                     return;
                 }
 
+                // Disallow decreasing an existing manual adjustment. Once a manual
+                // adjustment has been applied (currentQtySold > dbFloorQty), the
+                // client must not allow negative deltas that would reduce the
+                // previously recorded manual adjustment — reversing must go
+                // through the Orders/Returns workflow.
+                if (currentQtySold > dbFloorQty && qtyAdjustmentInput < 0) {
+                    showToast('warning', 'Manual adjustments may only increase Quantity Sold; decreasing a recorded manual adjustment is not allowed.', 3000);
+                    $('#editBeginningStock').val(0);
+                    restoreSubmitButton();
+                    return;
+                }
+
                 if (qtyAdjustmentInput < minDelta) {
                     showToast('warning', 'Adjustment is too low. Final Qty Sold cannot go below DB Qty Sold (' +
                         dbFloorQty + ').', 2800);
@@ -4410,6 +4422,15 @@
                             });
                             // Re-sync in the background so totals remain source-of-truth accurate.
                             setTimeout(fetchAllStockitems, 700);
+                            // If the server returned a manual order, notify other parts of the app
+                            try {
+                                if (response.data && response.data.manual_order) {
+                                    // Trigger a cross-page event so Order History can refresh immediately
+                                    $(document).trigger('manualOrderCreated', [response.data.manual_order]);
+                                }
+                            } catch (e) {
+                                console.warn('manualOrderCreated trigger failed', e);
+                            }
                         } else {
                             fetchAllStockitems(); // Fallback when local cache is missing
                         }
