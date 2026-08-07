@@ -291,6 +291,7 @@ class DailyStockItemsModel extends Model
             FROM products p
             WHERE p.deleted_at IS NULL
             AND p.is_disabled != 1
+            AND p.category != 'dough'
             AND p.product_id NOT IN (
                 SELECT dsi.product_id FROM daily_stock_items dsi WHERE dsi.daily_stock_id = ?
             )
@@ -323,7 +324,7 @@ class DailyStockItemsModel extends Model
             ) current_stock ON current_stock.product_id = p.product_id
                         WHERE p.deleted_at IS NULL
                             AND p.is_disabled != 1
-                            AND p.category != 'drinks'
+                            AND p.category NOT IN ('drinks', 'dough')
                             AND (current_stock.product_id IS NULL OR current_stock.ending_stock = 0)
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
