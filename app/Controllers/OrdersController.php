@@ -268,8 +268,47 @@ class OrdersController extends BaseController
 
         $orders = $this->orderModel->getOrderHistory($dateFrom, $dateTo, $orderType);
 
-        // Replace cashier_id (user_id) with actual name for each order
+        // Debug: log returned orders count and distributed_note markers for troubleshooting
+        try {
+            $markers = array_map(function($o) { return $o['distributed_note'] ?? ''; }, $orders);
+            log_message('debug', 'GetOrderHistory: returned ' . count($orders) . ' orders; distributed_note samples: ' . json_encode(array_slice($markers, 0, 10)));
+        } catch (\Throwable $e) {
+            log_message('error', 'GetOrderHistory logging failed: ' . $e->getMessage());
+        }
+
+        // Ensure manual drink-adjustment orders are included even if missed by the primary query
+        try {
+            $manualBuilder = $this->orderModel->builder();
+            $manualBuilder->where("distributed_note LIKE 'MANUAL_DRINK_ADJ|%'", null, false);
+            if ($dateFrom) {
+                $manualBuilder->where('date_created >=', $dateFrom);
+            }
+            if ($dateTo) {
+                $manualBuilder->where('date_created <=', $dateTo);
+            }
+            $manualOrders = $manualBuilder->get()->getResultArray();
+
+            if (!empty($manualOrders)) {
+                $existingIds = array_column($orders, 'order_id');
+                foreach ($manualOrders as $m) {
+                    if (!in_array($m['order_id'], $existingIds, true)) {
+                        $orders[] = $m;
+                    }
+                }
+                // Sort combined orders by date/time desc to keep UI ordering consistent
+                usort($orders, function($a, $b) {
+                    $ad = $a['date_created'] . ' ' . ($a['time_created'] ?? '00:00:00');
+                    $bd = $b['date_created'] . ' ' . ($b['time_created'] ?? '00:00:00');
+                    return strcmp($bd, $ad);
+                });
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'GetOrderHistory manual-merge failed: ' . $e->getMessage());
+        }
+
+        // Mark manual-adjustment orders and replace cashier_id (user_id) with actual name for each order
         foreach ($orders as &$order) {
+            $order['is_manual_adjustment'] = !empty($order['distributed_note']) && str_starts_with($order['distributed_note'], 'MANUAL_DRINK_ADJ|');
             $order['cashier_display_name'] = $this->usersModel->getFullName($order['cashier_id'] ?? null);
         }
         unset($order);

@@ -889,11 +889,17 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if there are any transactions for today
-        $hasTransactions = $this->transactionsModel->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id')
+        // Check if there are any active (non-deleted, non-voided) transactions for today
+        $hasTransactions = $this->transactionsModel
+            ->builder()
+            ->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
             ->where('DATE(transactions.date_created)', $today)
             ->where('dsi.daily_stock_id', $id)
-            ->countAllResults() > 0;
+            ->where('transactions.deleted_at IS NULL')
+            ->where('orders.voided_at IS NULL')
+            ->get()
+            ->getNumRows() > 0;
 
         if ($hasTransactions) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -1333,6 +1339,16 @@ class InventoryController extends BaseController
         $desiredAdjustmentQty = $targetQty - $baselineQty;
         $adjustmentDelta = $desiredAdjustmentQty - $existingAdjustmentQty;
 
+        // Business rule: once a manual adjustment has been recorded (existingAdjustmentQty > 0),
+        // disallow decreasing it via the inventory edit UI. This prevents users from "undoing"
+        // recorded manual sales by entering negative adjustments — they must void the order instead.
+        if ($adjustmentDelta < 0 && $existingAdjustmentQty > 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot decrease quantity after a manual adjustment has been recorded. To reverse a recorded manual sale, void the manual adjustment order.'
+            ]);
+        }
+
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
         if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
             if ($adjustmentDelta > 0) {
@@ -1379,19 +1395,10 @@ class InventoryController extends BaseController
                 if ($orderId > 0) {
                     $deletedAt = date('Y-m-d H:i:s');
 
-                    $this->transactionsModel
-                        ->builder()
-                        ->where('order_id', $orderId)
-                        ->where('item_id', $itemId)
-                        ->update(['deleted_at' => $deletedAt]);
-
-                    $this->orderModel->update($orderId, [
-                        'total_payment_due' => 0,
-                        'amount_received' => 0,
-                        'amount_change' => 0,
-                        'voided_at' => $deletedAt,
-                        'voided_by' => $cashierId > 0 ? strval($cashierId) : 'system',
-                    ]);
+                    // Soft-delete transactions for this manual adjustment and void the order
+                    $this->transactionsModel->softDeleteTransactionsForOrderItem($orderId, $itemId, $deletedAt);
+                    $voidedBy = $cashierId > 0 ? strval($cashierId) : 'system';
+                    $this->orderModel->voidOrder($orderId, $deletedAt, $voidedBy, true);
                 }
             } else {
                 $orderPayload = [
@@ -1493,19 +1500,33 @@ class InventoryController extends BaseController
         $netSales = $this->transactionsModel->getNetSalesForItem($itemId);
         $isPostRemit = intval($dailyStock['is_remitted'] ?? 0) === 1;
 
+        $responseData = [
+            'item_id' => $itemId,
+            'baseline_qty_sold' => $baselineQty,
+            'manual_adjustment_qty' => $desiredAdjustmentQty,
+            'discrepancy_qty' => max(0, $desiredAdjustmentQty),
+            'target_qty_sold' => $targetQty,
+            'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
+            'adjustment_delta' => $adjustmentDelta,
+            'is_post_remit' => $isPostRemit ? 1 : 0,
+        ];
+
+        // Include manual order metadata so frontend can reflect the new/updated order immediately
+        if (!empty($orderId) && intval($orderId) > 0) {
+            $responseData['manual_order_id'] = intval($orderId);
+            try {
+                $responseData['manual_order'] = $this->orderModel->getOrderById(intval($orderId));
+            } catch (\Throwable $e) {
+                // swallow - not critical for response
+                $responseData['manual_order'] = null;
+            }
+            $responseData['distributed_note'] = $marker;
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Drinks quantity updated successfully.',
-            'data' => [
-                'item_id' => $itemId,
-                'baseline_qty_sold' => $baselineQty,
-                'manual_adjustment_qty' => $desiredAdjustmentQty,
-                'discrepancy_qty' => max(0, $desiredAdjustmentQty),
-                'target_qty_sold' => $targetQty,
-                'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
-                'adjustment_delta' => $adjustmentDelta,
-                'is_post_remit' => $isPostRemit ? 1 : 0,
-            ],
+            'data' => $responseData,
         ]);
     }
 
@@ -1547,11 +1568,16 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if there are any transactions for this item on this date
+        // Check if there are any active (non-deleted, non-voided) transactions for this item on this date
         $hasTransactions = $this->transactionsModel
-            ->where('item_id', $item['item_id'])
-            ->where('DATE(date_created)', $inventoryDate)
-            ->countAllResults() > 0;
+            ->builder()
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->where('transactions.item_id', $item['item_id'])
+            ->where('DATE(transactions.date_created)', $inventoryDate)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('orders.voided_at IS NULL')
+            ->get()
+            ->getNumRows() > 0;
 
         if ($hasTransactions) {
             return $this->response->setStatusCode(400)->setJSON([

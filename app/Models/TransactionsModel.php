@@ -206,6 +206,19 @@ class TransactionsModel extends Model
         ];
     }
 
+    /**
+     * Soft-delete transactions for a specific order and item (used for manual adjustments voiding).
+     */
+    public function softDeleteTransactionsForOrderItem(int $orderId, int $itemId, string $deletedAt): bool
+    {
+        $builder = $this->builder();
+        $builder->where('order_id', $orderId)
+            ->where('item_id', $itemId)
+            ->where('deleted_at IS NULL', null, false);
+
+        return $builder->update(['deleted_at' => $deletedAt]) !== false;
+    }
+
     /** 
      * GetSales Properly
      */
