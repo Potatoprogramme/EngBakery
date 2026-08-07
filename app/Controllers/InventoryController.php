@@ -99,10 +99,6 @@ class InventoryController extends BaseController
         $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
-        // $freshDistPieces = model('DistributionGroupModel')->getDistributedPiecesForDate(
-        //     $today,
-        //     intval($daily_stock['daily_stock_id']) // NEW: scope to this shift only
-        // );
 
         $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
@@ -170,6 +166,7 @@ class InventoryController extends BaseController
         }
 
         if ($daily_stock_items) {
+            log_message('info', "Inventory fetched for today ({$today}): " . json_encode($daily_stock_items) . " items.");
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $daily_stock_items,
@@ -783,80 +780,80 @@ class InventoryController extends BaseController
      * Add a product to today's existing inventory
      */
     public function addProductToInventory()
-{
-    $json = $this->request->getJSON();
+    {
+        $json = $this->request->getJSON();
 
-    if (!$json || !isset($json->product_id)) {
-        return $this->response->setStatusCode(400)->setJSON([
-            'success' => false,
-            'message' => 'Product ID is required'
-        ]);
-    }
-
-    $today = date('Y-m-d');
-    $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
-
-    if (!$dailyStock) {
-        return $this->response->setStatusCode(400)->setJSON([
-            'success' => false,
-            'message' => 'No inventory exists for today. Create inventory first.'
-        ]);
-    }
-
-    $productId = intval($json->product_id ?? 0);
-    $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
-    $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
-
-    // Pre-check: block if raw materials are insufficient
-    if ($beginningStock > 0 && $hasRawMaterialRecipe) {
-        $preview = $this->rawMaterialStockModel->deductForProduction(
-            $productId,
-            $beginningStock,
-            true // preview only
-        );
-
-        if (!empty($preview['has_insufficient'])) {
-            $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-            $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
-
+        if (!$json || !isset($json->product_id)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
-                'message' => 'Cannot add product — insufficient raw material stock.',
-                'insufficient_materials' => array_values($shortNames),
-                'preview' => $preview,
+                'message' => 'Product ID is required'
+            ]);
+        }
+
+        $today = date('Y-m-d');
+        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
+
+        if (!$dailyStock) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'No inventory exists for today. Create inventory first.'
+            ]);
+        }
+
+        $productId = intval($json->product_id ?? 0);
+        $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
+        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+
+        // Pre-check: block if raw materials are insufficient
+        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+            $preview = $this->rawMaterialStockModel->deductForProduction(
+                $productId,
+                $beginningStock,
+                true // preview only
+            );
+
+            if (!empty($preview['has_insufficient'])) {
+                $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
+                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot add product — insufficient raw material stock.',
+                    'insufficient_materials' => array_values($shortNames),
+                    'preview' => $preview,
+                ]);
+            }
+        }
+
+        $result = $this->dailyStockItemsModel->addProductToInventory(
+            $dailyStock['daily_stock_id'],
+            $productId,
+            $beginningStock  // still passed straight through — model now writes it to added_qty
+        );
+
+        if ($result) {
+            $deductionResult = null;
+
+            if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    $productId,
+                    $beginningStock
+                );
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Product added to inventory successfully',
+                'item_id' => $result,
+                'deduction' => $deductionResult
+            ]);
+        } else {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Product already exists in inventory or failed to add'
             ]);
         }
     }
-
-    $result = $this->dailyStockItemsModel->addProductToInventory(
-        $dailyStock['daily_stock_id'],
-        $productId,
-        $beginningStock  // still passed straight through — model now writes it to added_qty
-    );
-
-    if ($result) {
-        $deductionResult = null;
-
-        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
-            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                $productId,
-                $beginningStock
-            );
-        }
-
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Product added to inventory successfully',
-            'item_id' => $result,
-            'deduction' => $deductionResult
-        ]);
-    } else {
-        return $this->response->setStatusCode(400)->setJSON([
-            'success' => false,
-            'message' => 'Product already exists in inventory or failed to add'
-        ]);
-    }
-}
 
     public function deleteInventory()
     {
@@ -2211,14 +2208,12 @@ class InventoryController extends BaseController
     private function createOrUpdateDistributionEntryForStore(int $dailyStockId, int $productId, int $quantity)
     {
         try {
-            $distributionGroupModel = model('DistributionGroupModel');
-            $distributionItemModel = model('DistributionItemModel');
 
             $today = date('Y-m-d');
             $distCategoryId = 1; // "Store" category
 
             // Find or create distribution group for today + Store category
-            $existingGroup = $distributionGroupModel
+            $existingGroup = $this->distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
@@ -2227,7 +2222,7 @@ class InventoryController extends BaseController
                 $groupId = $existingGroup['id'];
             } else {
                 // Create new distribution group
-                $groupId = $distributionGroupModel->insert([
+                $groupId = $this->distributionGroupModel->insert([
                     'distribution_date' => $today,
                     'dist_category_id' => $distCategoryId,
                     'created_at' => date('Y-m-d H:i:s')
@@ -2235,7 +2230,7 @@ class InventoryController extends BaseController
             }
 
             // Find or create distribution item for this product in the group
-            $existingItem = $distributionItemModel
+            $existingItem = $this->distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
@@ -2243,13 +2238,13 @@ class InventoryController extends BaseController
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
-                $distributionItemModel->update($existingItem['id'], [
+                $this->distributionItemModel->update($existingItem['id'], [
                     'product_qnty' => $newQty,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
             } else {
                 // Create new item
-                $distributionItemModel->insert([
+                $this->distributionItemModel->insert([
                     'distribution_id' => $groupId,
                     'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
@@ -2260,7 +2255,7 @@ class InventoryController extends BaseController
             }
 
             // Recalculate totals for the group
-            $distributionGroupModel->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
         }
@@ -2273,13 +2268,10 @@ class InventoryController extends BaseController
     private function createOrUpdateDistributionEntryForDistribute(int $dailyStockId, int $productId, int $quantity, int $distCategoryId)
     {
         try {
-            $distributionGroupModel = model('DistributionGroupModel');
-            $distributionItemModel = model('DistributionItemModel');
-
             $today = date('Y-m-d');
 
             // Find or create distribution group for today + destination category
-            $existingGroup = $distributionGroupModel
+            $existingGroup = $this->distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
@@ -2288,7 +2280,7 @@ class InventoryController extends BaseController
                 $groupId = $existingGroup['id'];
             } else {
                 // Create new distribution group
-                $groupId = $distributionGroupModel->insert([
+                $groupId = $this->distributionGroupModel->insert([
                     'distribution_date' => $today,
                     'dist_category_id' => $distCategoryId,
                     'created_at' => date('Y-m-d H:i:s')
@@ -2296,7 +2288,7 @@ class InventoryController extends BaseController
             }
 
             // Find or create distribution item for this product in the group
-            $existingItem = $distributionItemModel
+            $existingItem = $this->distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
@@ -2304,13 +2296,13 @@ class InventoryController extends BaseController
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
-                $distributionItemModel->update($existingItem['id'], [
+                $this->distributionItemModel->update($existingItem['id'], [
                     'product_qnty' => $newQty,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
             } else {
                 // Create new item
-                $distributionItemModel->insert([
+                $this->distributionItemModel->insert([
                     'distribution_id' => $groupId,
                     'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
@@ -2321,7 +2313,7 @@ class InventoryController extends BaseController
             }
 
             // Recalculate totals for the group
-            $distributionGroupModel->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
         }
