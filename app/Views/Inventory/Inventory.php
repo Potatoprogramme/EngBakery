@@ -1,4 +1,7 @@
-<?php $isOwnerView = (($employee_type ?? '') === 'owner'); ?>
+<?php
+$isOwnerView = (($employee_type ?? '') === 'owner');
+$isStaffView = (($employee_type ?? '') === 'staff');
+?>
 
 <body class="bg-gray-50">
     <!-- Main Content -->
@@ -507,7 +510,7 @@
                     </p>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4" id="editRemainingPreviewGroup">
                     <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining
                         (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
@@ -3719,6 +3722,9 @@
             adjustQuantityField('#editDistributionGroupQty', 1);
         });
 
+        window.USER_ROLE = '<?= esc(strtolower((string) ($employee_type ?? ''))) ?>';
+        const isStaffView = (window.USER_ROLE || '').toLowerCase() === 'staff';
+
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function() {
             if (enforceInventoryLock()) {
@@ -3809,6 +3815,23 @@
                     $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').addClass('hidden');
+                }
+
+                if (isStaffView) {
+                    $('#editBeginningLabel').text('Adjust Beginning Quantity');
+                    $('#editBeginningHint').text('Current Beginning: ' + beginningStock);
+                    $('#editEndingHint').text('Autofills, but you can still edit this value.');
+                    $('#editAdjustmentGuide').addClass('hidden');
+                    $('#editPullOutGroup').addClass('hidden');
+                    $('#editAddMoreGroup').addClass('hidden');
+                    $('#editDistributionGroup').addClass('hidden');
+                    $('#editRemainingPreviewGroup').addClass('hidden');
+                    $('#editDistributionInfo').addClass('hidden');
+                    $('#editStockWarning').addClass('hidden');
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
+                        'bg-gray-50 cursor-not-allowed');
+                    $('#editEndingGroup').removeClass('hidden');
                 }
 
                 // Load distribution categories for the Distribute action dropdown
@@ -4075,6 +4098,12 @@
          * based on current beginning stock vs expected (distribution + carryover).
          */
         function updateBeginningStockDisplay() {
+            if (isStaffView) {
+                $('#editDistributionInfo').addClass('hidden');
+                $('#editStockWarning').addClass('hidden');
+                return;
+            }
+
             const category = ($('#editCategory').val() || '').toLowerCase();
             if (category === 'drinks') {
                 if (editPreviewUiState.infoKey !== 'hidden') {
