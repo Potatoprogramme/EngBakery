@@ -303,6 +303,13 @@ function bindEventHandlers() {
                     showDeductionToast(response.deduction);
                     InventoryModal.closeEditModal();
                     fetchAllStockItems();
+                    try {
+                        if (response.data && response.data.manual_order) {
+                            $(document).trigger('manualOrderCreated', [response.data.manual_order]);
+                        }
+                    } catch (e) {
+                        console.warn('manualOrderCreated trigger failed', e);
+                    }
                 } else {
                     safeToast('error', response.message, 2000);
                 }

@@ -164,29 +164,56 @@
                     <!-- Distribution Groups Panel -->
                     <div class="bg-white rounded-lg shadow-md p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
                         <div class="flex items-center justify-between mb-3 flex-shrink-0">
-                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                                <i class="fas fa-layer-group text-primary mr-1"></i>Distribution Groups
-                            </h3>
+                            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                <button type="button" class="distribution-panel-tab-btn px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-primary text-white"
+                                    data-tab="distributionGroups">
+                                    <i class="fas fa-layer-group mr-1"></i>Distribution Groups
+                                </button>
+                                <button type="button" class="distribution-panel-tab-btn px-3 py-1.5 text-xs font-semibold rounded-md transition-colors text-gray-500 hover:text-gray-700"
+                                    data-tab="store">
+                                    <i class="fas fa-store mr-1"></i>Store
+                                </button>
+                            </div>
                             <button type="button" id="btnAddItemsEmpty"
                                 class="text-xs text-primary hover:text-secondary font-medium">
                                 <i class="fas fa-plus mr-1"></i>Add
                             </button>
                         </div>
 
-                        <!-- List Items - Scrollable -->
-                        <div id="distributionListContainer"
-                            class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
-                            <!-- Dynamically populated via JS -->
+                        <!-- Tab Panel: Distribution Groups (default active) -->
+                        <div id="tabPanelDistributionGroups" class="distribution-panel-tab flex flex-col flex-1 min-h-0">
+                            <!-- List Items - Scrollable -->
+                            <div id="distributionListContainer"
+                                class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+                                <!-- Dynamically populated via JS -->
+                            </div>
+
+                            <!-- Empty State -->
+                            <div id="emptyState" class="hidden text-center py-8">
+                                <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
+                                    <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-sm font-medium text-gray-800 mb-1">No distribution groups scheduled</h3>
+                                <p class="text-xs text-gray-500">Click "Add" to add a distribution group</p>
+                            </div>
                         </div>
 
-                        <!-- Empty State -->
-                        <div id="emptyState" class="hidden text-center py-8">
-                            <div
-                                class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
-                                <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
+                        <!-- Tab Panel: Store (placeholder — hidden by default) -->
+                        <div id="tabPanelStore" class="distribution-panel-tab hidden flex-col flex-1 min-h-0">
+                            <!-- List Items - Scrollable -->
+                            <div id="storeListContainer"
+                                class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+                                <!-- Dynamically populated via JS -->
                             </div>
-                            <h3 class="text-sm font-medium text-gray-800 mb-1">No distribution groups scheduled</h3>
-                            <p class="text-xs text-gray-500">Click "Add" to add a distribution group</p>
+
+                            <!-- Empty State -->
+                            <div id="emptyStateStore" class="hidden text-center py-8">
+                                <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
+                                    <i class="fas fa-store text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-sm font-medium text-gray-800 mb-1">No Store Items added today</h3>
+                                <p class="text-xs text-gray-500">Add items to the store to see them here.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -839,6 +866,36 @@
             window.BASE_URL = baseUrl;
 
             initializeModalBodyScrollLock();
+
+            function switchDistributionPanelTab(tabName) {
+                const isStore = tabName === 'store';
+
+                $('#tabPanelDistributionGroups')
+                    .toggleClass('hidden', isStore)
+                    .toggleClass('flex', !isStore);
+                $('#tabPanelStore')
+                    .toggleClass('hidden', !isStore)
+                    .toggleClass('flex', isStore);
+
+                $('.distribution-panel-tab-btn')
+                    .removeClass('bg-primary text-white')
+                    .addClass('text-gray-500 hover:text-gray-700');
+                $(`.distribution-panel-tab-btn[data-tab="${tabName}"]`)
+                    .addClass('bg-primary text-white')
+                    .removeClass('text-gray-500 hover:text-gray-700');
+
+                $('#btnAddItemsEmpty').toggleClass('hidden', isStore);
+
+                if (isStore) {
+                    loadStoreAddedItems(); // NEW
+                }
+            }
+            $('.distribution-panel-tab-btn').on('click', function() {
+                switchDistributionPanelTab($(this).data('tab'));
+            });
+
+            // Set default active tab
+            switchDistributionPanelTab('distributionGroups');
 
             getProducts();
             loadProductCostData();
@@ -2146,6 +2203,7 @@
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupForecast = parseNumericValue(group.forecasted_sales);
                     const groupTotal = parseNumericValue(group.total_cost);
+                    const groupOverhead = resolveGroupOverheadCost(group, groupItems);
                     const groupNote = (group.group_note || '').toString().trim();
 
                     const itemsHtml = groupItems.map(function (item) {
@@ -2190,6 +2248,7 @@
                                 <div class="text-right">
                                     <p class="text-[11px] font-semibold text-primary">Total Selling Price: ${formatPesoAmount(groupForecast)}</p>
                                     <p class="text-[11px] font-semibold text-emerald-600">Total Cost: ${formatPesoAmount(groupTotal)}</p>
+                                    <p class="text-[11px] font-semibold text-amber-600">Overhead Cost: ${formatPesoAmount(groupOverhead)}</p>
                                 </div>
                             </div>
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mb-2"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
@@ -2963,6 +3022,7 @@
                 const groupKey = escapeHtml((group && group.group_key ? group.group_key : '').toString());
                 const totalForecast = parseNumericValue(groupSummary.forecasted_sales_total);
                 const totalCost = parseNumericValue(groupSummary.total_cost_total);
+                const totalOverhead = parseNumericValue(groupSummary.overhead_cost_total);
                 const totalBatches = parseNumericValue(groupSummary.total_batches);
                 const totalPieces = parseNumericValue(groupSummary.total_pieces);
                 const isMaterialLoading = Boolean(options && options.materialLoading);
@@ -3035,9 +3095,9 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="p-2.5 bg-primary/10 border border-primary/20 rounded-lg">
-                                <p class="text-[11px] text-gray-600">Group Forecast</p>
-                                <p class="text-sm font-semibold text-primary">${formatPesoAmount(totalForecast)}</p>
+                            <div class="p-2.5 bg-amber-50 border border-amber-100 rounded-lg">
+                                <p class="text-[11px] text-gray-600">Group Overhead Cost</p>
+                                <p class="text-sm font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</p>
                             </div>
                             <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
                                 <p class="text-[11px] text-gray-600">Group Total Cost</p>
@@ -3506,18 +3566,24 @@
                                             <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
                                         </div>
                                         <div class="flex items-center gap-2 flex-shrink-0">
-                                            <div class="text-right">
-                                                <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(parseNumericValue(groupSummary.forecasted_sales_total))}</p>
-                                                <p class="text-[10px] text-gray-500 mt-0.5">View details</p>
-                                            </div>
-                                            <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                                                <i class="fas fa-chevron-right text-[10px]"></i>
-                                            </span>
+                                        <div class="text-right">
+                                            <p class="text-[11px] font-semibold text-primary">${formatPesoAmount(parseNumericValue(groupSummary.forecasted_sales_total))}</p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5">View details</p>
                                         </div>
+                                        <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                            <i class="fas fa-chevron-right text-[10px]"></i>
+                                        </span>
                                     </div>
-                                    ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
-                                </button>
-                            `;
+                                </div>
+                                ${isOwnerView ? `
+                                <div class="flex items-center gap-3 mt-1.5">
+                                    <span class="text-[10px] text-gray-500">Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(parseNumericValue(groupSummary.total_cost_total))}</span></span>
+                                    <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(parseNumericValue(groupSummary.overhead_cost_total))}</span></span>
+                                </div>
+                                ` : ''}
+                                ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+                            </button>
+    `
                         }).join('');
 
                         listContainer.html(pickerHtml ||
@@ -3675,6 +3741,8 @@
                     const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                     const forecastTotal = resolveGroupForecastedSales(group, groupItems);
+                    const totalCost = resolveGroupTotalCost(group, groupItems);
+                    const totalOverhead = resolveGroupOverheadCost(group, groupItems);
 
                     const row = `
                         <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3688,6 +3756,12 @@
                                     <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
                                 </div>
                             </div>
+                            ${isOwnerView ? `
+                            <div class="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-200">
+                                <span class="text-[10px] text-gray-500">Total Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</span></span>
+                                <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</span></span>
+                            </div>
+                            ` : ''}
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
                         </button>
                     `;
@@ -3696,6 +3770,68 @@
                 });
 
                 updateDistributionListScrollLimit();
+            }
+
+            function renderStoreItemsList(items) {
+                const container = $('#storeListContainer');
+                container.empty();
+
+                const normalizedItems = Array.isArray(items) ? items : [];
+
+                if (normalizedItems.length === 0) {
+                    container.addClass('hidden');
+                    $('#emptyStateStore').removeClass('hidden');
+                    return;
+                }
+
+                container.removeClass('hidden');
+                $('#emptyStateStore').addClass('hidden');
+
+                normalizedItems.forEach(function(item) {
+                    const productName = escapeHtml(item.product_name || 'Unknown Product');
+                    const category = escapeHtml((item.category || '').toString());
+                    const addedQty = parseNumericValue(item.added_qty);
+                    const price = parseNumericValue(
+                        (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price)
+                    );
+                    const estimatedValue = addedQty * price;
+
+                    const row = `
+            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">${category}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="text-xs font-semibold text-primary">+${formatQuantityValue(addedQty)} added</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">${formatPesoAmount(estimatedValue)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                    container.append(row);
+                });
+            }
+
+            function loadStoreAddedItems() {
+                const date = ($('#selectedDate').val() || '').toString();
+                $.ajax({
+                    url: baseUrl + 'Inventory/GetAddedStockItems',
+                    method: 'GET',
+                    data: {
+                        date: date
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        const items = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+                        renderStoreItemsList(items);
+                    },
+                    error: function() {
+                        renderStoreItemsList([]);
+                    }
+                });
             }
 
             function renderMobileCards(items, groupedData = null, fallbackDate = '') {
@@ -3727,6 +3863,8 @@
                     const totalPieces = calculateTotalDistributionPieces(groupItems);
 
                     const forecastTotal = resolveGroupForecastedSales(group, groupItems);
+                    const totalCost = resolveGroupTotalCost(group, groupItems);
+                    const totalOverhead = resolveGroupOverheadCost(group, groupItems);
 
                     const card = `
                         <button type="button" class="distribution-group-entry w-full text-left bg-white rounded-lg shadow-sm p-3 border-l-4 border-primary" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3737,6 +3875,12 @@
                                 </div>
                                 <span class="text-[11px] font-semibold text-primary flex-shrink-0">${formatPesoAmount(forecastTotal)}</span>
                             </div>
+                            ${isOwnerView ? `
+                            <div class="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-100">
+                                <span class="text-[10px] text-gray-500">Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</span></span>
+                                <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</span></span>
+                            </div>
+                            ` : ''}
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
                         </button>
                     `;
@@ -3744,6 +3888,7 @@
                     container.append(card);
                 });
             }
+
 
             $(window).on('resize', function () {
                 updateDistributionListScrollLimit();
@@ -3760,6 +3905,11 @@
                 updateDateLabel();
                 loadDistributionByDate();
                 renderCalendar();
+
+                // NEW: keep Store tab in sync if it's currently active
+                if (!$('#tabPanelStore').hasClass('hidden')) {
+                    loadStoreAddedItems();
+                }
             });
 
             $('#btnPrevDay').on('click', function () {

@@ -268,7 +268,8 @@ class DailyStockItemsModel extends Model
         $data = [
             'daily_stock_id' => $dailyStockId,
             'product_id' => $productId,
-            'beginning_stock' => $beginningStock,
+            'beginning_stock' => 0,
+            'added_qty' => $beginningStock,
             'pull_out_quantity' => 0,
             'ending_stock' => $beginningStock,
         ];
@@ -290,6 +291,7 @@ class DailyStockItemsModel extends Model
             FROM products p
             WHERE p.deleted_at IS NULL
             AND p.is_disabled != 1
+            AND p.category != 'dough'
             AND p.product_id NOT IN (
                 SELECT dsi.product_id FROM daily_stock_items dsi WHERE dsi.daily_stock_id = ?
             )
@@ -322,7 +324,7 @@ class DailyStockItemsModel extends Model
             ) current_stock ON current_stock.product_id = p.product_id
                         WHERE p.deleted_at IS NULL
                             AND p.is_disabled != 1
-                            AND p.category != 'drinks'
+                            AND p.category NOT IN ('drinks', 'dough')
                             AND (current_stock.product_id IS NULL OR current_stock.ending_stock = 0)
             ORDER BY p.category, p.product_name
         ", [$dailyStockId])->getResultArray();
@@ -435,6 +437,51 @@ class DailyStockItemsModel extends Model
         }
 
         ksort($aggregated);
+
+        return array_values($aggregated);
+    }
+
+    /**
+     * Get items with added_qty > 0 across ALL shifts (daily_stock records) for a
+     * given date, aggregated per product. Serves as a whole-day reference of
+     * everything manually added via the "Add More" (Store) action, regardless
+     * of how many shifts/resets happened that day.
+     *
+     * @return array<int, array>
+     */
+    public function getAddedQtyItemsByDate(string $date): array
+    {
+        $dailyStockIds = model('DailyStockModel')
+            ->where('inventory_date', $date)
+            ->findColumn('daily_stock_id');
+
+        if (empty($dailyStockIds)) {
+            return [];
+        }
+
+        $rows = $this->whereIn('daily_stock_id', $dailyStockIds)
+            ->where('added_qty >', 0)
+            ->select('daily_stock_items.product_id, daily_stock_items.added_qty, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece')
+            ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
+            ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
+            ->where('products.deleted_at IS NULL')
+            ->orderBy('products.category', 'ASC')
+            ->orderBy('products.product_name', 'ASC')
+            ->findAll();
+
+        // Aggregate added_qty per product across shifts (a product may have
+        // been added-to in more than one shift on the same day).
+        $aggregated = [];
+        foreach ($rows as $row) {
+            $productId = intval($row['product_id']);
+
+            if (!isset($aggregated[$productId])) {
+                $aggregated[$productId] = $row;
+                $aggregated[$productId]['added_qty'] = 0;
+            }
+
+            $aggregated[$productId]['added_qty'] += intval($row['added_qty']);
+        }
 
         return array_values($aggregated);
     }

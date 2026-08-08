@@ -99,18 +99,14 @@ class InventoryController extends BaseController
         $this->dailyStockItemsModel->consolidateDuplicateProductRows(intval($daily_stock['daily_stock_id']));
 
         $daily_stock_items = $this->dailyStockItemsModel->fetchAllStockItems($daily_stock['daily_stock_id']);
-        // $freshDistPieces = model('DistributionGroupModel')->getDistributedPiecesForDate(
-        //     $today,
-        //     intval($daily_stock['daily_stock_id']) // NEW: scope to this shift only
-        // );
 
         $daily_stock_items = array_values(array_filter($daily_stock_items, static function (array $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
-            $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $totalBeginningStock = intval($item['beginning_stock'] ?? 0) + intval($item['added_qty'] ?? 0); // FIX: include added_qty
 
             // Only filter out zero-stock items for bakery and grocery
             if (in_array($category, ['bakery', 'grocery'], true)) {
-                return $beginningStock > 0;
+                return $totalBeginningStock > 0;
             }
 
             // Drinks, dough, and everything else always included regardless of stock
@@ -170,6 +166,7 @@ class InventoryController extends BaseController
         }
 
         if ($daily_stock_items) {
+            log_message('info', "Inventory fetched for today ({$today}): " . json_encode($daily_stock_items) . " items.");
             return $this->response->setStatusCode(200)->setJSON([
                 'success' => true,
                 'data' => $daily_stock_items,
@@ -804,7 +801,7 @@ class InventoryController extends BaseController
         }
 
         $productId = intval($json->product_id ?? 0);
-        $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
+        $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         // Pre-check: block if raw materials are insufficient
@@ -831,7 +828,7 @@ class InventoryController extends BaseController
         $result = $this->dailyStockItemsModel->addProductToInventory(
             $dailyStock['daily_stock_id'],
             $productId,
-            $beginningStock
+            $beginningStock  // still passed straight through — model now writes it to added_qty
         );
 
         if ($result) {
@@ -892,11 +889,17 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if there are any transactions for today
-        $hasTransactions = $this->transactionsModel->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id')
+        // Check if there are any active (non-deleted, non-voided) transactions for today
+        $hasTransactions = $this->transactionsModel
+            ->builder()
+            ->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id', 'inner')
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
             ->where('DATE(transactions.date_created)', $today)
             ->where('dsi.daily_stock_id', $id)
-            ->countAllResults() > 0;
+            ->where('transactions.deleted_at IS NULL')
+            ->where('orders.voided_at IS NULL')
+            ->get()
+            ->getNumRows() > 0;
 
         if ($hasTransactions) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -1103,22 +1106,31 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            // // In adjustment mode, beginning and pull-out are independent edits.
+            // $newBeginning = $oldBeginning + $inputBeginning;
+
+            // // Figure out how much of the ending-stock drop the client's own
+            // // beginning/pull-out deltas actually account for.
+            // $beginningDeltaForCheck = $inputBeginning;
+            // $pullOutDeltaForCheck = $inputPullOut;
+            // $newEndingStock = $inputEnding;
+
+            // $expectedEnding = $oldEnding + $beginningDeltaForCheck - $pullOutDeltaForCheck;
+            // $unexplainedDrop = max(0, $expectedEnding - $newEndingStock);
+
+            // // Any ending-stock reduction not already covered by beginning/pull-out
+            // // deltas gets folded into pull_out_quantity instead of silently
+            // // showing up as phantom "sold" quantity on fetch.
+            // $newPullOut = $oldPullOut + $inputPullOut + $unexplainedDrop;
+
             // In adjustment mode, beginning and pull-out are independent edits.
+            // Any ending-stock reduction NOT explained by an explicit beginning
+            // or pull-out delta is intentionally left as-is here — it flows
+            // through downstream (fetchTodaysInventory/history) as quantity SOLD,
+            // not as an implicit pull-out.
             $newBeginning = $oldBeginning + $inputBeginning;
-
-            // Figure out how much of the ending-stock drop the client's own
-            // beginning/pull-out deltas actually account for.
-            $beginningDeltaForCheck = $inputBeginning;
-            $pullOutDeltaForCheck = $inputPullOut;
+            $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
-
-            $expectedEnding = $oldEnding + $beginningDeltaForCheck - $pullOutDeltaForCheck;
-            $unexplainedDrop = max(0, $expectedEnding - $newEndingStock);
-
-            // Any ending-stock reduction not already covered by beginning/pull-out
-            // deltas gets folded into pull_out_quantity instead of silently
-            // showing up as phantom "sold" quantity on fetch.
-            $newPullOut = $oldPullOut + $inputPullOut + $unexplainedDrop;
 
             if ($newBeginning < 0 || $newPullOut < 0 || $newEndingStock < 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -1327,6 +1339,16 @@ class InventoryController extends BaseController
         $desiredAdjustmentQty = $targetQty - $baselineQty;
         $adjustmentDelta = $desiredAdjustmentQty - $existingAdjustmentQty;
 
+        // Business rule: once a manual adjustment has been recorded (existingAdjustmentQty > 0),
+        // disallow decreasing it via the inventory edit UI. This prevents users from "undoing"
+        // recorded manual sales by entering negative adjustments — they must void the order instead.
+        if ($adjustmentDelta < 0 && $existingAdjustmentQty > 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Cannot decrease quantity after a manual adjustment has been recorded. To reverse a recorded manual sale, void the manual adjustment order.'
+            ]);
+        }
+
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
         if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
             if ($adjustmentDelta > 0) {
@@ -1373,19 +1395,10 @@ class InventoryController extends BaseController
                 if ($orderId > 0) {
                     $deletedAt = date('Y-m-d H:i:s');
 
-                    $this->transactionsModel
-                        ->builder()
-                        ->where('order_id', $orderId)
-                        ->where('item_id', $itemId)
-                        ->update(['deleted_at' => $deletedAt]);
-
-                    $this->orderModel->update($orderId, [
-                        'total_payment_due' => 0,
-                        'amount_received' => 0,
-                        'amount_change' => 0,
-                        'voided_at' => $deletedAt,
-                        'voided_by' => $cashierId > 0 ? strval($cashierId) : 'system',
-                    ]);
+                    // Soft-delete transactions for this manual adjustment and void the order
+                    $this->transactionsModel->softDeleteTransactionsForOrderItem($orderId, $itemId, $deletedAt);
+                    $voidedBy = $cashierId > 0 ? strval($cashierId) : 'system';
+                    $this->orderModel->voidOrder($orderId, $deletedAt, $voidedBy, true);
                 }
             } else {
                 $orderPayload = [
@@ -1487,19 +1500,33 @@ class InventoryController extends BaseController
         $netSales = $this->transactionsModel->getNetSalesForItem($itemId);
         $isPostRemit = intval($dailyStock['is_remitted'] ?? 0) === 1;
 
+        $responseData = [
+            'item_id' => $itemId,
+            'baseline_qty_sold' => $baselineQty,
+            'manual_adjustment_qty' => $desiredAdjustmentQty,
+            'discrepancy_qty' => max(0, $desiredAdjustmentQty),
+            'target_qty_sold' => $targetQty,
+            'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
+            'adjustment_delta' => $adjustmentDelta,
+            'is_post_remit' => $isPostRemit ? 1 : 0,
+        ];
+
+        // Include manual order metadata so frontend can reflect the new/updated order immediately
+        if (!empty($orderId) && intval($orderId) > 0) {
+            $responseData['manual_order_id'] = intval($orderId);
+            try {
+                $responseData['manual_order'] = $this->orderModel->getOrderById(intval($orderId));
+            } catch (\Throwable $e) {
+                // swallow - not critical for response
+                $responseData['manual_order'] = null;
+            }
+            $responseData['distributed_note'] = $marker;
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Drinks quantity updated successfully.',
-            'data' => [
-                'item_id' => $itemId,
-                'baseline_qty_sold' => $baselineQty,
-                'manual_adjustment_qty' => $desiredAdjustmentQty,
-                'discrepancy_qty' => max(0, $desiredAdjustmentQty),
-                'target_qty_sold' => $targetQty,
-                'effective_qty_sold' => intval($netSales['quantity_sold'] ?? 0),
-                'adjustment_delta' => $adjustmentDelta,
-                'is_post_remit' => $isPostRemit ? 1 : 0,
-            ],
+            'data' => $responseData,
         ]);
     }
 
@@ -1541,11 +1568,16 @@ class InventoryController extends BaseController
             ]);
         }
 
-        // Check if there are any transactions for this item on this date
+        // Check if there are any active (non-deleted, non-voided) transactions for this item on this date
         $hasTransactions = $this->transactionsModel
-            ->where('item_id', $item['item_id'])
-            ->where('DATE(date_created)', $inventoryDate)
-            ->countAllResults() > 0;
+            ->builder()
+            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+            ->where('transactions.item_id', $item['item_id'])
+            ->where('DATE(transactions.date_created)', $inventoryDate)
+            ->where('transactions.deleted_at IS NULL')
+            ->where('orders.voided_at IS NULL')
+            ->get()
+            ->getNumRows() > 0;
 
         if ($hasTransactions) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -2202,14 +2234,12 @@ class InventoryController extends BaseController
     private function createOrUpdateDistributionEntryForStore(int $dailyStockId, int $productId, int $quantity)
     {
         try {
-            $distributionGroupModel = model('DistributionGroupModel');
-            $distributionItemModel = model('DistributionItemModel');
 
             $today = date('Y-m-d');
             $distCategoryId = 1; // "Store" category
 
             // Find or create distribution group for today + Store category
-            $existingGroup = $distributionGroupModel
+            $existingGroup = $this->distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
@@ -2218,7 +2248,7 @@ class InventoryController extends BaseController
                 $groupId = $existingGroup['id'];
             } else {
                 // Create new distribution group
-                $groupId = $distributionGroupModel->insert([
+                $groupId = $this->distributionGroupModel->insert([
                     'distribution_date' => $today,
                     'dist_category_id' => $distCategoryId,
                     'created_at' => date('Y-m-d H:i:s')
@@ -2226,7 +2256,7 @@ class InventoryController extends BaseController
             }
 
             // Find or create distribution item for this product in the group
-            $existingItem = $distributionItemModel
+            $existingItem = $this->distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
@@ -2234,13 +2264,13 @@ class InventoryController extends BaseController
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
-                $distributionItemModel->update($existingItem['id'], [
+                $this->distributionItemModel->update($existingItem['id'], [
                     'product_qnty' => $newQty,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
             } else {
                 // Create new item
-                $distributionItemModel->insert([
+                $this->distributionItemModel->insert([
                     'distribution_id' => $groupId,
                     'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
@@ -2251,7 +2281,7 @@ class InventoryController extends BaseController
             }
 
             // Recalculate totals for the group
-            $distributionGroupModel->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
         }
@@ -2264,13 +2294,10 @@ class InventoryController extends BaseController
     private function createOrUpdateDistributionEntryForDistribute(int $dailyStockId, int $productId, int $quantity, int $distCategoryId)
     {
         try {
-            $distributionGroupModel = model('DistributionGroupModel');
-            $distributionItemModel = model('DistributionItemModel');
-
             $today = date('Y-m-d');
 
             // Find or create distribution group for today + destination category
-            $existingGroup = $distributionGroupModel
+            $existingGroup = $this->distributionGroupModel
                 ->where('distribution_date', $today)
                 ->where('dist_category_id', $distCategoryId)
                 ->first();
@@ -2279,7 +2306,7 @@ class InventoryController extends BaseController
                 $groupId = $existingGroup['id'];
             } else {
                 // Create new distribution group
-                $groupId = $distributionGroupModel->insert([
+                $groupId = $this->distributionGroupModel->insert([
                     'distribution_date' => $today,
                     'dist_category_id' => $distCategoryId,
                     'created_at' => date('Y-m-d H:i:s')
@@ -2287,7 +2314,7 @@ class InventoryController extends BaseController
             }
 
             // Find or create distribution item for this product in the group
-            $existingItem = $distributionItemModel
+            $existingItem = $this->distributionItemModel
                 ->where('distribution_id', $groupId)
                 ->where('product_id', $productId)
                 ->first();
@@ -2295,13 +2322,13 @@ class InventoryController extends BaseController
             if ($existingItem) {
                 // Update existing item quantity
                 $newQty = intval($existingItem['product_qnty']) + $quantity;
-                $distributionItemModel->update($existingItem['id'], [
+                $this->distributionItemModel->update($existingItem['id'], [
                     'product_qnty' => $newQty,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
             } else {
                 // Create new item
-                $distributionItemModel->insert([
+                $this->distributionItemModel->insert([
                     'distribution_id' => $groupId,
                     'daily_stock_id' => $dailyStockId, // NEW
                     'product_id' => $productId,
@@ -2312,7 +2339,7 @@ class InventoryController extends BaseController
             }
 
             // Recalculate totals for the group
-            $distributionGroupModel->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
         }
@@ -2359,5 +2386,22 @@ class InventoryController extends BaseController
         } catch (\Throwable $e) {
             log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Shift-level reference of every item that had manual "Add More" (Store)
+     * quantity added, for a given date.
+     * GET /Inventory/GetAddedStockItems?date=YYYY-MM-DD
+     */
+    public function getAddedStockItems()
+    {
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $items = $this->dailyStockItemsModel->getAddedQtyItemsByDate($date);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'date' => $date,
+            'data' => $items,
+        ]);
     }
 }

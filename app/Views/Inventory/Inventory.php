@@ -1,4 +1,7 @@
-<?php $isOwnerView = (($employee_type ?? '') === 'owner'); ?>
+<?php
+$isOwnerView = (($employee_type ?? '') === 'owner');
+$isStaffView = (($employee_type ?? '') === 'staff');
+?>
 
 <body class="bg-gray-50">
     <!-- Main Content -->
@@ -243,11 +246,11 @@
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">SRP</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
                                                         Used</th>
@@ -303,17 +306,17 @@
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
                                                     <th scope="col" class="px-6 py-3 font-medium text-gray-600">Overhead
                                                     </th>
                                                 <?php endif; ?>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Sales</th>
                                                 <?php if ($isOwnerView): ?>
-                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Materials
-                                                        Used</th>
+                                                    <th scope="col" class="px-6 py-3 font-medium text-gray-600">Raw
+                                                        Materials</th>
                                                 <?php endif; ?>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Actions</th>
                                             </tr>
@@ -389,50 +392,6 @@
                 <input type="hidden" id="editCurrentQuantitySold" value="0">
                 <input type="hidden" id="editIsRemitted" value="0">
 
-                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseProductGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            &minus;
-                        </button>
-                        <input type="number" id="editProductGroupQty" min="0" step="1" value="0"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                            aria-label="Product group quantity">
-                        <button type="button" id="btnIncreaseProductGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <div id="editDistributionGroup"
-                    class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
-                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btnDecreaseDistributionGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            &minus;
-                        </button>
-                        <input type="number" id="editDistributionGroupQty" min="0" step="1" value="0"
-                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                            aria-label="Distribution group quantity">
-                        <button type="button" id="btnIncreaseDistributionGroup"
-                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
-                            +
-                        </button>
-                    </div>
-                    <div class="mt-3">
-                        <label
-                            class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
-                            Category</label>
-                        <select id="editDistributionCategorySelect" name="distribution_category_id"
-                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                            <option value="">Loading categories...</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="mb-4" id="editBeginningGroup">
                     <label for="editBeginningStock" id="editBeginningLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Adjust Beginning Quantity</label>
@@ -468,6 +427,23 @@
                     </div>
                 </div>
 
+                <div id="editAddMoreGroup" class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Add More</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editProductGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Product group quantity">
+                        <button type="button" id="btnIncreaseProductGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                </div>
+
                 <div class="mb-4" id="editPullOutGroup">
                     <label for="editPullOutQuantity" id="editPullOutLabel"
                         class="block mb-1.5 text-sm font-medium text-gray-700">Pull Out
@@ -485,6 +461,33 @@
                         </button>
                     </div>
                     <p id="editPullOutHint" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+
+                <div id="editDistributionGroup"
+                    class="mb-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm">
+                    <label class="block mb-1.5 text-sm font-medium text-gray-700">Distribution Group</label>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnDecreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            &minus;
+                        </button>
+                        <input type="number" id="editDistributionGroupQty" min="0" step="1" value="0"
+                            class="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                            aria-label="Distribution group quantity">
+                        <button type="button" id="btnIncreaseDistributionGroup"
+                            class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-gray-400 transition-all text-lg font-bold select-none shadow-sm">
+                            +
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <label
+                            class="block mb-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide">Distribution
+                            Category</label>
+                        <select id="editDistributionCategorySelect" name="distribution_category_id"
+                            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="mb-4 hidden" id="editPostRemitWarning">
@@ -507,7 +510,7 @@
                     </p>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4" id="editRemainingPreviewGroup">
                     <label for="editRemainingPreview" class="block mb-1.5 text-sm font-medium text-gray-700">Remaining
                         (Preview)</label>
                     <input type="number" id="editRemainingPreview" readonly
@@ -1113,6 +1116,11 @@
         function formatBeginningWithAdded(beginningStock, addedQty) {
             const beginning = parseInventoryNumericValue(beginningStock);
             const added = parseInventoryNumericValue(addedQty);
+
+            if (beginning <= 0) {
+                return added > 0 ? String(added) : '0';
+            }
+            
             return added > 0 ? (beginning + ' + ' + added) : String(beginning);
         }
 
@@ -3370,10 +3378,10 @@
                         'N/A') + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
@@ -3440,17 +3448,17 @@
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedOverhead + '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
                     <?php if ($isOwnerView): ?>
                         rows += '<td class="px-6 py-2.5 text-sm text-center">';
                         rows += '<button class="text-blue-600 hover:text-blue-800 btn-materials-used" data-item-id="' +
                             item.item_id + '" data-product-id="' + item.product_id +
-                            '" title="View materials used"><i class="fas fa-flask"></i></button>';
+                            '" title="View raw materials"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
@@ -3714,6 +3722,9 @@
             adjustQuantityField('#editDistributionGroupQty', 1);
         });
 
+        window.USER_ROLE = '<?= esc(strtolower((string) ($employee_type ?? ''))) ?>';
+        const isStaffView = (window.USER_ROLE || '').toLowerCase() === 'staff';
+
         // Edit Inventory Item - Open Modal
         $(document).on('click', '.btn-edit', function() {
             if (enforceInventoryLock()) {
@@ -3804,6 +3815,23 @@
                     $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
                         'bg-gray-50 cursor-not-allowed');
                     $('#editEndingGroup').addClass('hidden');
+                }
+
+                if (isStaffView) {
+                    $('#editBeginningLabel').text('Adjust Beginning Quantity');
+                    $('#editBeginningHint').text('Current Beginning: ' + beginningStock);
+                    $('#editEndingHint').text('Autofills, but you can still edit this value.');
+                    $('#editAdjustmentGuide').addClass('hidden');
+                    $('#editPullOutGroup').addClass('hidden');
+                    $('#editAddMoreGroup').addClass('hidden');
+                    $('#editDistributionGroup').addClass('hidden');
+                    $('#editRemainingPreviewGroup').addClass('hidden');
+                    $('#editDistributionInfo').addClass('hidden');
+                    $('#editStockWarning').addClass('hidden');
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
+                    $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
+                        'bg-gray-50 cursor-not-allowed');
+                    $('#editEndingGroup').removeClass('hidden');
                 }
 
                 // Load distribution categories for the Distribute action dropdown
@@ -4070,6 +4098,12 @@
          * based on current beginning stock vs expected (distribution + carryover).
          */
         function updateBeginningStockDisplay() {
+            if (isStaffView) {
+                $('#editDistributionInfo').addClass('hidden');
+                $('#editStockWarning').addClass('hidden');
+                return;
+            }
+
             const category = ($('#editCategory').val() || '').toLowerCase();
             if (category === 'drinks') {
                 if (editPreviewUiState.infoKey !== 'hidden') {
@@ -4294,6 +4328,18 @@
                     return;
                 }
 
+                // Disallow decreasing an existing manual adjustment. Once a manual
+                // adjustment has been applied (currentQtySold > dbFloorQty), the
+                // client must not allow negative deltas that would reduce the
+                // previously recorded manual adjustment — reversing must go
+                // through the Orders/Returns workflow.
+                if (currentQtySold > dbFloorQty && qtyAdjustmentInput < 0) {
+                    showToast('warning', 'Manual adjustments may only increase Quantity Sold; decreasing a recorded manual adjustment is not allowed.', 3000);
+                    $('#editBeginningStock').val(0);
+                    restoreSubmitButton();
+                    return;
+                }
+
                 if (qtyAdjustmentInput < minDelta) {
                     showToast('warning', 'Adjustment is too low. Final Qty Sold cannot go below DB Qty Sold (' +
                         dbFloorQty + ').', 2800);
@@ -4405,6 +4451,15 @@
                             });
                             // Re-sync in the background so totals remain source-of-truth accurate.
                             setTimeout(fetchAllStockitems, 700);
+                            // If the server returned a manual order, notify other parts of the app
+                            try {
+                                if (response.data && response.data.manual_order) {
+                                    // Trigger a cross-page event so Order History can refresh immediately
+                                    $(document).trigger('manualOrderCreated', [response.data.manual_order]);
+                                }
+                            } catch (e) {
+                                console.warn('manualOrderCreated trigger failed', e);
+                            }
                         } else {
                             fetchAllStockitems(); // Fallback when local cache is missing
                         }

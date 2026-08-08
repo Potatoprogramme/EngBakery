@@ -85,10 +85,7 @@ class OrderModel extends Model
             $builder->where('order_type', $orderType);
         }
 
-        $builder->groupStart()
-            ->where('distributed_note IS NULL', null, false)
-            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
-            ->groupEnd();
+        // Include manual drink adjustment orders as normal entries in order history
 
         $builder->orderBy('date_created', 'DESC');
         $builder->orderBy('time_created', 'DESC');
@@ -135,9 +132,6 @@ class OrderModel extends Model
 
         $where = ['o.voided_at IS NULL'];
         $params = [];
-
-        $where[] = '(o.distributed_note IS NULL OR o.distributed_note NOT LIKE ?)';
-        $params[] = self::MANUAL_DRINK_ADJ_PREFIX . '%';
 
         if (!empty($dateFrom)) {
             $where[] = 'o.date_created >= ?';
@@ -213,11 +207,26 @@ class OrderModel extends Model
         $today = date('Y-m-d');
         return $this->where('date_created', $today)
             ->where('voided_at IS NULL')
-            ->groupStart()
-            ->where('distributed_note IS NULL', null, false)
-            ->orNotLike('distributed_note', self::MANUAL_DRINK_ADJ_PREFIX, 'after')
-            ->groupEnd()
             ->countAllResults();
+    }
+
+    /**
+     * Void an order by setting voided metadata and optionally zeroing totals.
+     */
+    public function voidOrder(int $orderId, string $voidedAt, string $voidedBy, bool $zeroTotals = true): bool
+    {
+        $updateData = [
+            'voided_at' => $voidedAt,
+            'voided_by' => $voidedBy,
+        ];
+
+        if ($zeroTotals) {
+            $updateData['total_payment_due'] = 0;
+            $updateData['amount_received'] = 0;
+            $updateData['amount_change'] = 0;
+        }
+
+        return $this->update($orderId, $updateData);
     }
 
     /**

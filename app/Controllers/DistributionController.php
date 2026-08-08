@@ -27,7 +27,7 @@ class DistributionController extends BaseController
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
 
-        $groups = model('DistributionGroupModel')->getGroupsByDate($date);
+        $groups = $this->distributionGroupModel->getGroupsByDate($date);
         $inventoryLocked = (bool) $this->dailyStockModel->checkInventoryExists($date);
 
         return $this->response->setJSON([
@@ -136,7 +136,7 @@ class DistributionController extends BaseController
             log_message('error', 'DISTRIBUTION GROUP ADD: {msg}', ['msg' => $e->getMessage()]);
             return $this->response->setStatusCode(500)->setJSON([
                 'error' =>
-                    $e->getMessage() ?: 'Failed to create distribution group',
+                $e->getMessage() ?: 'Failed to create distribution group',
                 'insert_data' => $insertData,
                 'data' => $data,
             ]);
@@ -150,8 +150,7 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON data']);
         }
 
-        $groupModel = model('DistributionGroupModel');
-        $group = $groupModel->find($id);
+        $group = $this->distributionGroupModel->find($id);
 
         if (!$group) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
@@ -188,7 +187,7 @@ class DistributionController extends BaseController
         }
 
         try {
-            $groupModel->update($id, $updateData);
+            $this->distributionGroupModel->update($id, $updateData);
 
             log_message('info', 'DISTRIBUTION GROUP UPDATE: Updated group ID {id}', ['id' => $id]);
 
@@ -214,13 +213,30 @@ class DistributionController extends BaseController
 
         $items = $itemModel->getItemsByGroup($id);
 
+        log_message('info', 'DISTRIBUTION GROUP DELETE START: group_id={id}, item_count={c}', [
+            'id' => $id,
+            'c' => count($items),
+        ]);
+
         try {
-            // Restore raw materials for every item in the group
+            // Restore raw materials for every item in the group, and sync
+            // each item's originating daily_stock_items row so
+            // distributed_out_qty/ending_stock reflect the removal.
             foreach ($items as $item) {
                 $productId = intval($item['product_id']);
-                $quantity = (float) $item['product_qnty'];
+                $quantity = intval($item['product_qnty']);
                 $qtyMode = $item['qty_mode'] ?? 'batch';
                 $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
+                $dailyStockId = intval($item['daily_stock_id'] ?? 0);
+
+                log_message('debug', 'DISTRIBUTION GROUP DELETE ITEM: item_id={iid}, daily_stock_id={dsid}, product_id={pid}, quantity={qty}, qty_mode={mode}, actualPieces={pieces}', [
+                    'iid' => $item['id'] ?? ($item['item_id'] ?? null),
+                    'dsid' => $dailyStockId,
+                    'pid' => $productId,
+                    'qty' => $quantity,
+                    'mode' => $qtyMode,
+                    'pieces' => $actualPieces,
+                ]);
 
                 if ($actualPieces > 0) {
                     $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
@@ -228,6 +244,20 @@ class DistributionController extends BaseController
                         'p' => $actualPieces,
                         'pid' => $productId,
                     ]);
+
+                    if ($dailyStockId > 0) {
+                        log_message('debug', 'DISTRIBUTION GROUP DELETE SYNC: item_id={iid} — restoring {pieces} pieces to daily_stock_id={dsid}, product_id={pid}', [
+                            'iid' => $item['id'] ?? ($item['item_id'] ?? null),
+                            'pieces' => $actualPieces,
+                            'dsid' => $dailyStockId,
+                            'pid' => $productId,
+                        ]);
+                        $this->adjustDailyStockDistributedQty($dailyStockId, $productId, -$actualPieces);
+                    } else {
+                        log_message('warning', 'DISTRIBUTION GROUP DELETE SYNC SKIPPED: item_id={iid} has no daily_stock_id on record — inventory ending_stock/distributed_out_qty will NOT be restored for this item.', [
+                            'iid' => $item['id'] ?? ($item['item_id'] ?? null),
+                        ]);
+                    }
                 }
             }
 
@@ -273,18 +303,15 @@ class DistributionController extends BaseController
             ]);
         }
 
-        $groupModel = model('DistributionGroupModel');
-        $itemModel = model('DistributionItemModel');
-
         // Group must exist
-        $group = $groupModel->find($groupId);
+        $group = $this->distributionGroupModel->find($groupId);
         if (!$group) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution group not found']);
         }
 
 
         // Duplicate check within the group
-        // if ($itemModel->existsInGroup($groupId, $productId)) {
+        // if ($this->distributionItemModel->existsInGroup($groupId, $productId)) {
         //     return $this->response->setStatusCode(409)->setJSON([
         //         'error' => 'This product is already in the selected distribution group.',
         //         'duplicate' => true,
@@ -331,10 +358,16 @@ class DistributionController extends BaseController
                 ->where('inventory_date', $group['distribution_date'])
                 ->orderBy('daily_stock_id', 'DESC')
                 ->first();
+            $activeDailyStockId = intval($activeDailyStock['daily_stock_id'] ?? 0);
+
+            log_message('debug', 'DISTRIBUTION ITEM ADD: Resolved daily_stock_id={dsid} for distribution_date={date}', [
+                'dsid' => $activeDailyStockId,
+                'date' => $group['distribution_date'],
+            ]);
 
             $insertData = [
                 'distribution_id' => $groupId,
-                'daily_stock_id' => $activeDailyStock['daily_stock_id'] ?? null, // NEW
+                'daily_stock_id' => $activeDailyStockId ?: null, // NEW
                 'product_id' => $productId,
                 'product_qnty' => $quantity,
                 'qty_mode' => $qtyMode,
@@ -343,11 +376,28 @@ class DistributionController extends BaseController
 
 
 
-            $itemModel->insert($insertData);
-            $itemId = $itemModel->getInsertID();
+            $this->distributionItemModel->insert($insertData);
+            $itemId = $this->distributionItemModel->getInsertID();
+
+            // Sync the source inventory shift's distributed_out_qty/ending_stock
+            // to reflect this newly distributed quantity.
+            if ($activeDailyStockId > 0 && $actualPieces > 0) {
+                log_message('debug', 'DISTRIBUTION ITEM ADD SYNC: item_id={iid} — applying {pieces} pieces to daily_stock_id={dsid}, product_id={pid}', [
+                    'iid' => $itemId,
+                    'pieces' => $actualPieces,
+                    'dsid' => $activeDailyStockId,
+                    'pid' => $productId,
+                ]);
+                $this->adjustDailyStockDistributedQty($activeDailyStockId, $productId, $actualPieces);
+            } elseif ($actualPieces > 0) {
+                log_message('warning', 'DISTRIBUTION ITEM ADD SYNC SKIPPED: item_id={iid} — no matching daily_stock record found for distribution_date={date}; inventory ending_stock/distributed_out_qty will NOT reflect this addition.', [
+                    'iid' => $itemId,
+                    'date' => $group['distribution_date'],
+                ]);
+            }
 
             // Recompute group-level totals
-            $groupModel->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
 
             // Low-stock notifications
             \App\Libraries\LowStockNotifier::checkAndNotify();
@@ -382,8 +432,8 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'product_id and product_qnty are required']);
         }
 
-        $itemModel = model('DistributionItemModel');
-        $existing = $itemModel->find($id);
+
+        $existing = $this->distributionItemModel->find($id);
 
         if (!$existing) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
@@ -408,12 +458,24 @@ class DistributionController extends BaseController
             ]);
         }
 
-        $oldPieces = $this->distributionQtyToPieces(intval($existing['product_id']), (float) $existing['product_qnty'], $existing['qty_mode'] ?? 'batch');
+        $oldProductId = intval($existing['product_id']);
+        $dailyStockId = intval($existing['daily_stock_id'] ?? 0);
+
+        $oldPieces = $this->distributionQtyToPieces($oldProductId, intval($existing['product_qnty']), $existing['qty_mode'] ?? 'batch');
         $newPieces = $this->distributionQtyToPieces($newProductId, $newQty, $newQtyMode);
+
+        log_message('info', 'DISTRIBUTION ITEM UPDATE: item_id={id}, daily_stock_id={dsid}, product {oldPid}->{newPid}, pieces {oldPieces}->{newPieces}', [
+            'id' => $id,
+            'dsid' => $dailyStockId,
+            'oldPid' => $oldProductId,
+            'newPid' => $newProductId,
+            'oldPieces' => $oldPieces,
+            'newPieces' => $newPieces,
+        ]);
 
         // Restore old raw materials first
         if ($oldPieces > 0) {
-            $this->rawMaterialStockModel->restoreForProduction(intval($existing['product_id']), $oldPieces);
+            $this->rawMaterialStockModel->restoreForProduction($oldProductId, $oldPieces);
         }
 
         // Pre-check new quantity
@@ -440,19 +502,46 @@ class DistributionController extends BaseController
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
-            $itemModel->update($id, [
+            $this->distributionItemModel->update($id, [
                 'product_id' => $newProductId,
                 'product_qnty' => $newQty,
                 'qty_mode' => $newQtyMode,
                 'inventory_amount_used' => $inventoryAmountUsed,
             ]);
 
+            // Sync the source inventory shift's distributed_out_qty/ending_stock
+            // to reflect the new distributed quantity (and product, if changed).
+            if ($dailyStockId > 0) {
+                if ($oldProductId === $newProductId) {
+                    log_message('debug', 'DISTRIBUTION ITEM UPDATE SYNC: same product ({pid}), applying pieces delta {delta}', [
+                        'pid' => $newProductId,
+                        'delta' => $newPieces - $oldPieces,
+                    ]);
+                    $this->adjustDailyStockDistributedQty($dailyStockId, $newProductId, $newPieces - $oldPieces);
+                } else {
+                    log_message('debug', 'DISTRIBUTION ITEM UPDATE SYNC: product changed {oldPid}->{newPid}, restoring {oldPieces} from old and applying {newPieces} to new', [
+                        'oldPid' => $oldProductId,
+                        'newPid' => $newProductId,
+                        'oldPieces' => $oldPieces,
+                        'newPieces' => $newPieces,
+                    ]);
+                    // Product swapped: fully restore old product's distributed
+                    // portion, then apply the new product's distributed portion.
+                    $this->adjustDailyStockDistributedQty($dailyStockId, $oldProductId, -$oldPieces);
+                    $this->adjustDailyStockDistributedQty($dailyStockId, $newProductId, $newPieces);
+                }
+            } else {
+                log_message('warning', 'DISTRIBUTION ITEM UPDATE SYNC SKIPPED: item_id={id} has no daily_stock_id on record — inventory ending_stock/distributed_out_qty will NOT reflect this update.', [
+                    'id' => $id,
+                ]);
+            }
+
             // Recompute group-level totals
-            model('DistributionGroupModel')->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
 
             \App\Libraries\LowStockNotifier::checkAndNotify();
 
-            $group = model('DistributionGroupModel')->find($groupId);
+            $group = $this->distributionGroupModel->find($groupId);
             $productName = $product['product_name'] ?? 'Unknown Product';
             $this->notify('notifyDistributionUpdated', $productName, (float) $existing['product_qnty'], $newQty, $group['distribution_date'] ?? '');
 
@@ -470,8 +559,8 @@ class DistributionController extends BaseController
 
     public function deleteItem(int $id)
     {
-        $itemModel = model('DistributionItemModel');
-        $item = $itemModel->find($id);
+
+        $item = $this->distributionItemModel->find($id);
 
         if (!$item) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Distribution item not found']);
@@ -479,23 +568,48 @@ class DistributionController extends BaseController
 
         $groupId = intval($item['distribution_id']);
         $productId = intval($item['product_id']);
-        $quantity = (float) $item['product_qnty'];
+        $quantity = intval($item['product_qnty']);
         $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($item['qty_mode'] ?? 'batch');
         $actualPieces = $this->distributionQtyToPieces($productId, $quantity, $qtyMode);
+        $dailyStockId = intval($item['daily_stock_id'] ?? 0);
+
+        log_message('info', 'DISTRIBUTION ITEM DELETE START: item_id={id}, daily_stock_id={dsid}, product_id={pid}, quantity={qty}, qty_mode={mode}, actualPieces={pieces}', [
+            'id' => $id,
+            'dsid' => $dailyStockId,
+            'pid' => $productId,
+            'qty' => $quantity,
+            'mode' => $qtyMode,
+            'pieces' => $actualPieces,
+        ]);
 
         try {
             if ($actualPieces > 0) {
                 $this->rawMaterialStockModel->restoreForProduction($productId, $actualPieces);
             }
 
-            $itemModel->delete($id);
+            $this->distributionItemModel->delete($id);
 
+            // Fully restore this item's distributed portion back onto the
+            // source shift's inventory row (distributed_out_qty down, ending up).
+            if ($dailyStockId > 0 && $actualPieces > 0) {
+                log_message('debug', 'DISTRIBUTION ITEM DELETE SYNC: item_id={id} — restoring {pieces} pieces to daily_stock_id={dsid}, product_id={pid}', [
+                    'id' => $id,
+                    'pieces' => $actualPieces,
+                    'dsid' => $dailyStockId,
+                    'pid' => $productId,
+                ]);
+                $this->adjustDailyStockDistributedQty($dailyStockId, $productId, -$actualPieces);
+            } elseif ($actualPieces > 0) {
+                log_message('warning', 'DISTRIBUTION ITEM DELETE SYNC SKIPPED: item_id={id} has no daily_stock_id on record — inventory ending_stock/distributed_out_qty will NOT be restored for this delete.', [
+                    'id' => $id,
+                ]);
+            }
             // Recompute group-level totals
-            model('DistributionGroupModel')->recalculateTotals($groupId);
+            $this->distributionGroupModel->recalculateTotals($groupId);
 
             $product = $this->productModel->find($productId);
             $productName = $product['product_name'] ?? 'Unknown Product';
-            $group = model('DistributionGroupModel')->find($groupId);
+            $group = $this->distributionGroupModel->find($groupId);
             $this->notify('notifyDistributionDeleted', $productName, $quantity, $group['distribution_date'] ?? '');
 
             log_message('info', 'DISTRIBUTION ITEM DELETE: Item ID {id} deleted from group {gid}', [
@@ -512,7 +626,6 @@ class DistributionController extends BaseController
             return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to delete distribution item']);
         }
     }
-
     public function checkInventoryByDate()
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
@@ -528,7 +641,7 @@ class DistributionController extends BaseController
     public function checkDistributionToday()
     {
         $today = date('Y-m-d');
-        $groups = model('DistributionGroupModel')->getGroupsByDate($today);
+        $groups = $this->distributionGroupModel->getGroupsByDate($today);
 
         return $this->response->setJSON([
             'success' => true,
@@ -544,6 +657,122 @@ class DistributionController extends BaseController
         $metrics = DistributionQuantityCalculator::calculateDistributionMetrics($qty, $qtyMode, $product, $costData);
 
         return (int) $metrics['pieces'];
+    }
+
+    /**
+     * Reconcile a daily_stock_items row's distributed_out_qty/ending_stock when
+     * a distribution item (created via the "Distribute" action or Distribution
+     * tab) changes quantity, product, or is deleted.
+     *
+     * @param int $dailyStockId  The shift this distribution item was pulled from.
+     * @param int $productId     Product whose distributed_out_qty to adjust.
+     * @param int $piecesDelta   Positive = more pieces now distributed out
+     *                            (ending goes down); negative = less distributed
+     *                            / fully restored (ending goes back up).
+     */
+    private function adjustDailyStockDistributedQty(int $dailyStockId, int $productId, int $piecesDelta): void
+    {
+        log_message('info', 'DISTRIBUTION SYNC CALLED: daily_stock_id={dsid}, product_id={pid}, piecesDelta={delta}', [
+            'dsid' => $dailyStockId,
+            'pid' => $productId,
+            'delta' => $piecesDelta,
+        ]);
+
+        if ($dailyStockId <= 0 || $productId <= 0 || $piecesDelta === 0) {
+            log_message('debug', 'DISTRIBUTION SYNC SKIPPED: guard failed — daily_stock_id={dsid}, product_id={pid}, piecesDelta={delta} (one or more invalid/zero)', [
+                'dsid' => $dailyStockId,
+                'pid' => $productId,
+                'delta' => $piecesDelta,
+            ]);
+            return;
+        }
+
+        $dailyStockItemsModel = model('DailyStockItemsModel');
+        $item = $dailyStockItemsModel
+            ->where('daily_stock_id', $dailyStockId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if (!$item) {
+            log_message('warning', 'DISTRIBUTION SYNC: No daily_stock_items row for daily_stock_id={dsid}, product_id={pid}; skipping distributed_out_qty sync (delta {delta}).', [
+                'dsid' => $dailyStockId,
+                'pid' => $productId,
+                'delta' => $piecesDelta,
+            ]);
+            return;
+        }
+
+        $currentDistributedOut = intval($item['distributed_out_qty'] ?? 0);
+        $currentEnding = intval($item['ending_stock'] ?? 0);
+        $currentBeginning = intval($item['beginning_stock'] ?? 0);
+        $currentAdded = intval($item['added_qty'] ?? 0);
+
+        log_message('debug', 'DISTRIBUTION SYNC BEFORE: item_id={iid}, product_id={pid}, beginning={beg}, added={add}, distributed_out={dist}, ending={end}', [
+            'iid' => $item['item_id'],
+            'pid' => $productId,
+            'beg' => $currentBeginning,
+            'add' => $currentAdded,
+            'dist' => $currentDistributedOut,
+            'end' => $currentEnding,
+        ]);
+
+        $rawNewDistributedOut = $currentDistributedOut + $piecesDelta;
+        $newDistributedOut = max(0, $rawNewDistributedOut);
+
+        if ($rawNewDistributedOut < 0) {
+            log_message('warning', 'DISTRIBUTION SYNC CLAMP: item_id={iid} — computed distributed_out_qty {raw} was negative, clamped to 0. Possible data drift (delta larger than what was on record).', [
+                'iid' => $item['item_id'],
+                'raw' => $rawNewDistributedOut,
+            ]);
+        }
+
+        // Ending moves opposite of distributed_out_qty: more distributed -> less ending.
+        $rawNewEnding = $currentEnding - $piecesDelta;
+
+        // Clamp ending_stock to a sane range so a stale/incorrect delta can't
+        // push it negative or past the total available (beginning + added).
+        $maxEnding = max(0, $currentBeginning + $currentAdded);
+        $newEnding = max(0, min($rawNewEnding, $maxEnding));
+
+        if ($rawNewEnding < 0) {
+            log_message('warning', 'DISTRIBUTION SYNC CLAMP: item_id={iid} — computed ending_stock {raw} was negative, clamped to 0.', [
+                'iid' => $item['item_id'],
+                'raw' => $rawNewEnding,
+            ]);
+        }
+
+        if ($rawNewEnding > $maxEnding) {
+            log_message('warning', 'DISTRIBUTION SYNC CLAMP: item_id={iid} — computed ending_stock {raw} exceeded max allowed {max} (beginning {beg} + added {add}), clamped down.', [
+                'iid' => $item['item_id'],
+                'raw' => $rawNewEnding,
+                'max' => $maxEnding,
+                'beg' => $currentBeginning,
+                'add' => $currentAdded,
+            ]);
+        }
+
+        $updated = $dailyStockItemsModel->update($item['item_id'], [
+            'distributed_out_qty' => $newDistributedOut,
+            'ending_stock' => $newEnding,
+        ]);
+
+        if (!$updated) {
+            log_message('error', 'DISTRIBUTION SYNC FAILED: item_id={iid} — update() returned false. Errors: {errors}', [
+                'iid' => $item['item_id'],
+                'errors' => json_encode($dailyStockItemsModel->errors()),
+            ]);
+            return;
+        }
+
+        log_message('info', 'DISTRIBUTION SYNC AFTER: item_id={iid}, product_id={pid} — distributed_out_qty {distOld}->{distNew}, ending_stock {endOld}->{endNew} (delta {delta})', [
+            'iid' => $item['item_id'],
+            'pid' => $productId,
+            'distOld' => $currentDistributedOut,
+            'distNew' => $newDistributedOut,
+            'endOld' => $currentEnding,
+            'endNew' => $newEnding,
+            'delta' => $piecesDelta,
+        ]);
     }
 
     /**
@@ -680,7 +909,7 @@ class DistributionController extends BaseController
     {
         $date = $this->request->getGet('date') ?? date('Y-m-d');
 
-        $pieces = model('DistributionGroupModel')->getDistributedPiecesForDate($date);
+        $pieces = $this->distributionGroupModel->getDistributedPiecesForDate($date);
 
         return $this->response->setJSON([
             'success' => true,

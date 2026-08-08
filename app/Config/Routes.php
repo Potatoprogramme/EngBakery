@@ -105,7 +105,8 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->post('CloseInventory', 'InventoryController::closeInventory');
     $routes->post('OpenInventory', 'InventoryController::openInventory');
     $routes->post('ResetInventory/(:num)', 'InventoryController::resetInventory/$1');
-});
+    $routes->get('GetAddedStockItems', 'InventoryController::getAddedStockItems');
+    });
 
 $routes->group('Order', function (RouteCollection $routes) {
     $routes->get('/', 'OrdersController::order');
