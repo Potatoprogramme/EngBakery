@@ -3322,11 +3322,17 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<div class="inline-flex items-center gap-2">';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-800 btn-edit" data-id="' + item
                         .item_id +
                         '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    rows += '</div>';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</div>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3390,11 +3396,17 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<div class="inline-flex items-center gap-2">';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-800 btn-edit" data-id="' + item
                         .item_id +
                         '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    rows += '</div>';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</div>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3462,11 +3474,17 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
+                    rows += '<div class="inline-flex items-center gap-2">';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 hover:text-amber-800 btn-edit" data-id="' + item
                         .item_id +
                         '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
+                    rows += '</div>';
+                    rows += '<div class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">';
+                    rows += '<button class="h-9 w-9 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 hover:text-red-800 btn-delete" data-id="' +
                         item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '</div>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
