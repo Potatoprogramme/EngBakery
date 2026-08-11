@@ -74,8 +74,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             <i class="fas fa-trash sm:mr-2 text-red-500"></i>
                             <span class="hidden sm:inline">Delete</span>
                         </button>
-
-
                     </div>
                 </div>
 
@@ -3481,7 +3479,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                         '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    const addedQty = parseInt(item.added_qty) || 0;
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formatBeginningWithAdded(beginning, addedQty) + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
