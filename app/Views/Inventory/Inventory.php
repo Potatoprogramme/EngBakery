@@ -182,7 +182,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty</th>
+                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty
+                                                </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
@@ -695,11 +696,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             syncNewShiftButtonState();
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             syncInventoryInteractionLock();
 
             // Delete Modal Script
-            $('#btnDeleteTodaysInventory').on('click', function() {
+            $('#btnDeleteTodaysInventory').on('click', function () {
                 if (!inventoryExistsToday) {
                     showToast('warning', 'No inventory exists for today to delete.', 2000);
                     return;
@@ -711,26 +712,26 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Close Delete Confirmation Modal
-            $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function() {
+            $('#deleteConfirmModalClose, #deleteConfirmModalCancel').on('click', function () {
                 $('#deleteConfirmModal').addClass('hidden');
             });
 
             // Confirm Delete
-            $('#btnConfirmDelete').on('click', function() {
+            $('#btnConfirmDelete').on('click', function () {
                 const $confirmDeleteBtn = $(this);
                 if ($confirmDeleteBtn.prop('disabled')) {
                     return;
                 }
 
                 setButtonLoading($confirmDeleteBtn, true, 'Deleting...');
-                deleteInventory(function() {
+                deleteInventory(function () {
                     setButtonLoading($confirmDeleteBtn, false);
                     $('#deleteConfirmModal').addClass('hidden');
                 });
             });
 
             // Distributions button click — open distribution list modal
-            $('#btnDistributions').on('click', function() {
+            $('#btnDistributions').on('click', function () {
                 if (!inventoryExistsToday) {
                     showToast('warning', 'Create inventory first before loading distribution data.', 2000);
                     return;
@@ -739,41 +740,41 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Close Distribution List Modal
-            $('#distributionListModalClose, #distributionListModalDone').on('click', function() {
+            $('#distributionListModalClose, #distributionListModalDone').on('click', function () {
                 $('#distributionListModal').addClass('hidden');
             });
 
             // Load All Remaining button
-            $('#btnLoadAllRemaining').on('click', function() {
+            $('#btnLoadAllRemaining').on('click', function () {
                 loadAllRemainingDistribution();
             });
 
             // Close Load Single Item Modal
-            $('#loadSingleItemClose, #loadSingleItemCancel').on('click', function() {
+            $('#loadSingleItemClose, #loadSingleItemCancel').on('click', function () {
                 $('#loadSingleItemModal').addClass('hidden');
                 $('#loadSingleItemForm')[0].reset();
                 resetLoadItemModalState();
             });
 
             // +/- buttons for load quantity
-            $('#btnDecreaseLoadQty').on('click', function() {
+            $('#btnDecreaseLoadQty').on('click', function () {
                 const current = parseInt($('#loadItemQuantity').val()) || 0;
                 $('#loadItemQuantity').val(Math.max(1, current - 1));
                 updateLoadQuantityDisplay();
             });
 
-            $('#btnIncreaseLoadQty').on('click', function() {
+            $('#btnIncreaseLoadQty').on('click', function () {
                 const current = parseInt($('#loadItemQuantity').val()) || 0;
                 $('#loadItemQuantity').val(current + 1);
                 updateLoadQuantityDisplay();
             });
 
-            $('#loadItemQuantity').on('input change', function() {
+            $('#loadItemQuantity').on('input change', function () {
                 updateLoadQuantityDisplay();
             });
 
             // Submit Load Single Item
-            $('#loadSingleItemForm').on('submit', function(e) {
+            $('#loadSingleItemForm').on('submit', function (e) {
                 e.preventDefault();
                 submitLoadSingleItem();
             });
@@ -1099,7 +1100,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 grocery: 0
             };
 
-            (Array.isArray(items) ? items : []).forEach(function(item) {
+            (Array.isArray(items) ? items : []).forEach(function (item) {
                 const category = ((item && item.category) || '').toString().toLowerCase();
                 if (!Object.prototype.hasOwnProperty.call(totals, category)) {
                     return;
@@ -1120,7 +1121,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             if (beginning <= 0) {
                 return added > 0 ? String(added) : '0';
             }
-            
+
             return added > 0 ? (beginning + ' + ' + added) : String(beginning);
         }
 
@@ -1268,13 +1269,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         function todayDistMaterialMapToArray(materialMap) {
-            return Object.values(materialMap || {}).sort(function(a, b) {
+            return Object.values(materialMap || {}).sort(function (a, b) {
                 return String(a.material_name || '').localeCompare(String(b.material_name || ''));
             });
         }
 
         function fetchTodayDistProducts(forceReload = false) {
-            return new Promise(function(resolve) {
+            return new Promise(function (resolve) {
                 if (!forceReload && Object.keys(todayDistProductMap).length > 0) {
                     resolve(todayDistProductMap);
                     return;
@@ -1284,10 +1285,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     url: inventoryBaseUrl + 'Products/GetAll',
                     method: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response && response.success && Array.isArray(response.data)) {
                             const nextMap = {};
-                            response.data.forEach(function(product) {
+                            response.data.forEach(function (product) {
                                 const key = String(product.product_id || '').trim();
                                 if (!key) return;
                                 nextMap[key] = Object.assign({}, product);
@@ -1295,7 +1296,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             todayDistProductMap = nextMap;
                         }
                     },
-                    complete: function() {
+                    complete: function () {
                         resolve(todayDistProductMap);
                     }
                 });
@@ -1316,12 +1317,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return todayDistProductDetailPromiseCache[key];
             }
 
-            todayDistProductDetailPromiseCache[key] = new Promise(function(resolve) {
+            todayDistProductDetailPromiseCache[key] = new Promise(function (resolve) {
                 $.ajax({
                     url: inventoryBaseUrl + 'Products/GetProduct/' + key,
                     method: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response && response.success && response.data) {
                             const productData = response.data;
                             todayDistProductDetailCache[key] = productData;
@@ -1333,10 +1334,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                         resolve(null);
                     },
-                    error: function() {
+                    error: function () {
                         resolve(null);
                     },
-                    complete: function() {
+                    complete: function () {
                         delete todayDistProductDetailPromiseCache[key];
                     }
                 });
@@ -1346,7 +1347,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         function fetchTodayDistributionByDate(dateValue) {
-            return new Promise(function(resolve) {
+            return new Promise(function (resolve) {
                 $.ajax({
                     url: inventoryBaseUrl + 'Distribution/GetDistributionByDate',
                     method: 'GET',
@@ -1354,13 +1355,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     data: {
                         date: dateValue
                     },
-                    success: function(response) {
+                    success: function (response) {
                         resolve(response || {
                             success: false,
                             data: []
                         });
                     },
-                    error: function() {
+                    error: function () {
                         resolve({
                             success: false,
                             data: []
@@ -1410,7 +1411,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             const normalizedGroups = [];
             const fallbackGroupMap = {};
 
-            source.forEach(function(entry, entryIndex) {
+            source.forEach(function (entry, entryIndex) {
                 if (!entry || typeof entry !== 'object') {
                     return;
                 }
@@ -1429,10 +1430,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     const groupNote = getTodayDistributionGroupNote(entry, groupItems);
 
                     const normalizedItems = groupItems
-                        .filter(function(groupItem) {
+                        .filter(function (groupItem) {
                             return groupItem && typeof groupItem === 'object';
                         })
-                        .map(function(groupItem) {
+                        .map(function (groupItem) {
                             return Object.assign({}, groupItem, {
                                 distribution_date: groupItem.distribution_date || entry
                                     .distribution_date || null,
@@ -1486,7 +1487,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 }));
             });
 
-            Object.values(fallbackGroupMap).forEach(function(group) {
+            Object.values(fallbackGroupMap).forEach(function (group) {
                 if (Array.isArray(group.items) && group.items.length > 0) {
                     normalizedGroups.push(group);
                 }
@@ -1496,7 +1497,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         function flattenTodayDistributionGroupItems(groups) {
-            return (Array.isArray(groups) ? groups : []).reduce(function(accumulator, group) {
+            return (Array.isArray(groups) ? groups : []).reduce(function (accumulator, group) {
                 const items = Array.isArray(group && group.items) ? group.items : [];
                 return accumulator.concat(items);
             }, []);
@@ -1506,10 +1507,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             const normalizedId = String(productId ?? '').trim();
             if (!normalizedId) return 0;
 
-            return (Array.isArray(todayDistributionGroupedData) ? todayDistributionGroupedData : []).reduce(function(sum,
+            return (Array.isArray(todayDistributionGroupedData) ? todayDistributionGroupedData : []).reduce(function (sum,
                 group) {
                 const items = Array.isArray(group && group.items) ? group.items : [];
-                const groupTotal = items.reduce(function(itemSum, item) {
+                const groupTotal = items.reduce(function (itemSum, item) {
                     if (String(item && item.product_id) !== normalizedId) {
                         return itemSum;
                     }
@@ -1539,7 +1540,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             nextVisited.add(key);
 
             const ingredients = Array.isArray(productData.ingredients) ? productData.ingredients : [];
-            ingredients.forEach(function(ingredient) {
+            ingredients.forEach(function (ingredient) {
                 const quantityPerYield = parseInventoryNumericValue(ingredient.quantity ?? ingredient
                     .quantity_needed);
                 if (quantityPerYield <= 0) return;
@@ -1691,8 +1692,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         function hydrateTodayDistributionGroups(groups) {
             const normalizedGroups = Array.isArray(groups) ? groups : [];
 
-            return normalizedGroups.map(function(group, groupIndex) {
-                const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function(
+            return normalizedGroups.map(function (group, groupIndex) {
+                const normalizedItems = (Array.isArray(group && group.items) ? group.items : []).map(function (
                     item) {
                     const productData = Object.assign({}, getTodayDistProductData(item && item
                         .product_id) || {}, item || {});
@@ -1706,15 +1707,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 });
 
                 const totalItems = normalizedItems.length;
-                const totalBatches = normalizedItems.reduce(function(sum, item) {
+                const totalBatches = normalizedItems.reduce(function (sum, item) {
                     const mode = ((item.qty_mode) + '').toLowerCase();
                     if (mode === 'pieces') return sum;
                     return sum + parseInventoryNumericValue(item.product_qnty);
                 }, 0);
-                const totalPieces = normalizedItems.reduce(function(sum, item) {
+                const totalPieces = normalizedItems.reduce(function (sum, item) {
                     return sum + parseInventoryNumericValue(item.pieces_calculated);
                 }, 0);
-                const totalDirectCost = normalizedItems.reduce(function(sum, item) {
+                const totalDirectCost = normalizedItems.reduce(function (sum, item) {
                     return sum + parseInventoryNumericValue(item.direct_cost_calculated);
                 }, 0);
 
@@ -1764,7 +1765,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 $('#todayDistSelectedGroupNote').addClass('hidden').text('');
             }
 
-            const itemRows = (Array.isArray(selectedGroup.items) ? selectedGroup.items : []).map(function(item) {
+            const itemRows = (Array.isArray(selectedGroup.items) ? selectedGroup.items : []).map(function (item) {
                 const productName = escapeInventoryHtml(item.product_name || 'Unknown Product');
                 const category = (item.category || '').toString().trim();
                 const safeCategory = category ? (' • ' + escapeInventoryHtml(category)) : '';
@@ -1798,13 +1799,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             const allItems = flattenTodayDistributionGroupItems(normalizedGroups);
             const totalItems = allItems.length;
             const totalGroups = normalizedGroups.length;
-            const totalBatches = normalizedGroups.reduce(function(sum, group) {
+            const totalBatches = normalizedGroups.reduce(function (sum, group) {
                 return sum + parseInventoryNumericValue(group.total_batches);
             }, 0);
-            const totalPieces = normalizedGroups.reduce(function(sum, group) {
+            const totalPieces = normalizedGroups.reduce(function (sum, group) {
                 return sum + parseInventoryNumericValue(group.total_pieces);
             }, 0);
-            const totalDirectCost = normalizedGroups.reduce(function(sum, group) {
+            const totalDirectCost = normalizedGroups.reduce(function (sum, group) {
                 return sum + parseInventoryNumericValue(group.total_direct_cost);
             }, 0);
 
@@ -1830,7 +1831,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return;
             }
 
-            const groupsHtml = normalizedGroups.map(function(group, index) {
+            const groupsHtml = normalizedGroups.map(function (group, index) {
                 const groupName = escapeInventoryHtml(group.group_name || ('Group ' + (index + 1)));
                 const groupNote = (group.group_note || '').toString().trim();
                 const safeNote = escapeInventoryHtml(groupNote);
@@ -1907,12 +1908,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return;
             }
 
-            loadShiftFn(function() {
+            loadShiftFn(function () {
                 $('#sendReportConfirmModal').removeClass('hidden');
             });
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
 
             // Display today's date
@@ -1925,7 +1926,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Check first for today's inventory
-            $(document).ready(function() {
+            $(document).ready(function () {
                 // FIXME Remove later checkIfDistributionExists();
                 checkIfInventoryExists();
                 loadTodaysDistributionOverview();
@@ -1933,15 +1934,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             $('#todayDate').text(dateString);
 
-            $('#btnRefreshTodayDistribution').on('click', function() {
+            $('#btnRefreshTodayDistribution').on('click', function () {
                 loadTodaysDistributionOverview(true);
             });
 
-            $('#btnTodayDistBackToGroups').on('click', function() {
+            $('#btnTodayDistBackToGroups').on('click', function () {
                 setTodayDistributionPanelPane('groups');
             });
 
-            $(document).on('click', '.btn-today-dist-open-group', function() {
+            $(document).on('click', '.btn-today-dist-open-group', function () {
                 const selectedIndex = parseInt($(this).data('groupIndex'), 10);
                 renderTodayDistributionGroupItemsPane(selectedIndex, true);
             });
@@ -2006,7 +2007,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     return;
                 }
 
-                const optionsHtml = shifts.map(function(shift, index) {
+                const optionsHtml = shifts.map(function (shift, index) {
                     const optionValue = normalizeShiftKey(shift.key, index);
                     const label = shift.label || `Shift ${String.fromCharCode(65 + index)}`;
                     const start = formatShiftTimeLabel(shift.start);
@@ -2048,7 +2049,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return normalizeShiftKey(shifts[0].key, 0);
             }
 
-            window.loadSendReportShifts = function(callback) {
+            window.loadSendReportShifts = function (callback) {
                 const today = new Date();
                 const dateStr = today.getFullYear() + '-' +
                     String(today.getMonth() + 1).padStart(2, '0') + '-' +
@@ -2061,7 +2062,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     data: {
                         date: dateStr
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response && response.success) {
                             reportShiftConfig = response.shifts || [];
                         } else {
@@ -2080,7 +2081,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             callback();
                         }
                     },
-                    error: function() {
+                    error: function () {
                         reportShiftConfig = [];
                         buildSendReportShiftOptions(reportShiftConfig);
 
@@ -2105,11 +2106,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             $('#sendReportConfirmModalClose, #sendReportConfirmModalCancel').on(
                 'click',
-                function() {
+                function () {
                     closeSendReportConfirmModal();
                 });
 
-            $('#btnSendInventoryReport').on('click', function() {
+            $('#btnSendInventoryReport').on('click', function () {
                 const btn = $(this);
                 if (btn.prop('disabled')) {
                     return;
@@ -2119,7 +2120,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 openSendReportConfirmModal();
             });
 
-            $('#btnConfirmSendInventoryReport').on('click', function() {
+            $('#btnConfirmSendInventoryReport').on('click', function () {
                 const btn = $('#btnSendInventoryReport');
                 const confirmBtn = $(this);
                 const shouldCloseInventory = closeAfterSendReport;
@@ -2153,7 +2154,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     setButtonLoading(closeBtn, true, 'Closing...');
                 }
 
-                const finalizeSendFlow = function() {
+                const finalizeSendFlow = function () {
                     btn.prop('disabled', false)
                         .removeClass('opacity-70 cursor-not-allowed')
                         .html(originalHtml);
@@ -2167,7 +2168,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     closeSendReportConfirmModal();
                 };
 
-                const sendReportRequest = function() {
+                const sendReportRequest = function () {
                     $.ajax({
                         url: baseUrl + '/Inventory/SendReport',
                         type: 'POST',
@@ -2177,7 +2178,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             inventory_id: inventoryId,
                             shift_key: ($('#sendReportShiftSelect').val() || '').trim()
                         }),
-                        success: function(response) {
+                        success: function (response) {
                             if (response && response.success) {
                                 inventoryReportSent = true;
                                 const redirectUrl = (response && response.redirect_url) ?
@@ -2201,7 +2202,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                 finalizeSendFlow();
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             const message = xhr && xhr.responseJSON && xhr.responseJSON
                                 .message ?
                                 xhr.responseJSON.message :
@@ -2221,7 +2222,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         data: JSON.stringify({
                             inventory_id: inventoryId
                         }),
-                        success: function(closeResponse) {
+                        success: function (closeResponse) {
                             if (closeResponse && closeResponse.success) {
                                 setInventoryState(true);
                                 sendReportRequest();
@@ -2232,7 +2233,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                 finalizeSendFlow();
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             const closeMessage = xhr && xhr.responseJSON && xhr.responseJSON
                                 .message ?
                                 xhr.responseJSON.message :
@@ -2248,7 +2249,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Create today's inventory immediately (Desktop & Mobile)
-            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function() {
+            $('#btnAddTodaysInventory, #btnAddTodaysInventoryMobile').on('click', function () {
                 const $btn = $(this);
                 if ($btn.prop('disabled')) {
                     return;
@@ -2256,7 +2257,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                 setButtonLoading($btn, true, 'Creating...');
 
-                const onDone = function() {
+                const onDone = function () {
                     setButtonLoading($btn, false);
                 };
 
@@ -2269,7 +2270,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }
 
             // Submit Add Inventory Form via AJAX
-            $('#addMaterialForm').on('submit', function(e) {
+            $('#addMaterialForm').on('submit', function (e) {
                 e.preventDefault();
 
                 const formData = {
@@ -2282,7 +2283,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert('Inventory added successfully!');
                             closeModal();
@@ -2291,14 +2292,14 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         alert('Error adding inventory: ' + error);
                     }
                 });
             });
 
             // Delete Inventory Item
-            $(document).on('click', '.btn-delete', function() {
+            $(document).on('click', '.btn-delete', function () {
                 if (enforceInventoryLock()) {
                     return;
                 }
@@ -2308,7 +2309,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         url: baseUrl + 'Inventory/Delete/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 showToast('success',
                                     'Inventory item deleted successfully!', 2000);
@@ -2317,7 +2318,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                 showToast('error', response.message, 3000);
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             showToast('danger', xhr.responseJSON.message ||
                                 'An error occured while deleting inventory', 3000);
                         }
@@ -2326,7 +2327,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Open Item Details Modal from row click
-            $(document).on('click', '.inventory-item-row', function(e) {
+            $(document).on('click', '.inventory-item-row', function (e) {
                 if ($(e.target).closest('button').length > 0) {
                     return; // Don't open if clicking on a button
                 }
@@ -2342,7 +2343,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Materials Used Button Click
-            $(document).on('click', '.btn-materials-used', function(e) {
+            $(document).on('click', '.btn-materials-used', function (e) {
                 e.stopPropagation();
                 const itemId = $(this).data('item-id');
                 const productId = $(this).data('product-id');
@@ -2357,7 +2358,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Open Item Details Modal from mobile card tap
-            $(document).on('click', '.inventory-mobile-item-card', function(e) {
+            $(document).on('click', '.inventory-mobile-item-card', function (e) {
                 if ($(e.target).closest('button').length > 0) {
                     return; // Don't open if tapping a button
                 }
@@ -2374,16 +2375,16 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Close Item Details Modal
-            $('#itemDetailsModalClose, #itemDetailsModalCancel').on('click', function() {
+            $('#itemDetailsModalClose, #itemDetailsModalCancel').on('click', function () {
                 $('#itemDetailsModal').addClass('hidden');
             });
 
             // Apply Filter
-            $('#apply-filters').on('click', function() {
+            $('#apply-filters').on('click', function () {
                 const dateFrom = $('#filter-date-from').val();
                 const dateTo = $('#filter-date-to').val();
 
-                $('table tbody tr').each(function() {
+                $('table tbody tr').each(function () {
                     const rowDate = $(this).data('date');
                     let show = true;
 
@@ -2403,7 +2404,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
 
             // Reset Filter
-            $('#reset-filters').on('click', function() {
+            $('#reset-filters').on('click', function () {
                 $('#filter-date-from').val('');
                 $('#filter-date-to').val('');
                 $('table tbody tr').show();
@@ -2479,7 +2480,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/CheckActiveInventories',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
                     const hasInventoryToProcess = inventoryExistsToday && !inventoryReportSent;
 
@@ -2488,7 +2489,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     const noActionableInventory = !hasInventoryToProcess && !hasActiveInventory;
 
                 },
-                error: function() {
+                error: function () {
                     const inventoryIsOpen = inventoryExistsToday && !inventoryIsClosed;
                     const disableSendReport = !inventoryExistsToday || inventoryIsOpen || inventoryReportSent;
                     const disableOpenButton = !inventoryExistsToday || !inventoryIsClosed ||
@@ -2507,7 +2508,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/CheckInventoryToday',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     // Destroy existing DataTable first
                     if (response.success) {
                         inventoryExistsToday = true;
@@ -2559,7 +2560,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         checkActiveInventoriesAndDisableButtons();
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     inventoryExistsToday = false;
                     inventoryIsClosed = false;
                     inventoryReportSent = false;
@@ -2645,7 +2646,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/GetDistributionItemsWithStatus',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         renderDistributionList(response.data);
                     } else {
@@ -2657,7 +2658,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         );
                     }
                 },
-                error: function() {
+                error: function () {
                     $('#distributionListContent').html(
                         '<div class="text-center text-red-400 py-8">' +
                         '<i class="fas fa-exclamation-circle text-3xl mb-2"></i>' +
@@ -2675,7 +2676,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             let html = '';
             let hasUnloaded = false;
 
-            items.forEach(function(item) {
+            items.forEach(function (item) {
                 const categoryColors = {
                     bakery: {
                         bg: 'bg-amber-100',
@@ -2701,11 +2702,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                 const qtyLabel = item.qty_mode === 'batch' ?
                     item.product_qnty + ' batch' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
-                    .calculated_pieces + ' pcs' :
+                        .calculated_pieces + ' pcs' :
                     item.qty_mode === 'box' ?
-                    item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
-                    .calculated_pieces + ' pcs' :
-                    item.calculated_pieces + ' pcs';
+                        item.product_qnty + ' box' + (item.product_qnty > 1 ? 'es' : '') + ' → ' + item
+                            .calculated_pieces + ' pcs' :
+                        item.calculated_pieces + ' pcs';
 
                 const loadedQty = parseInt(item.loaded_qty) || 0;
                 const isLoaded = item.loaded && loadedQty > 0;
@@ -2775,7 +2776,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         /**
          * Open the load single item sub-modal from a distribution list item.
          */
-        $(document).on('click', '.btn-load-dist-item', function() {
+        $(document).on('click', '.btn-load-dist-item', function () {
             const productId = $(this).data('product-id');
             const productName = $(this).data('product-name');
             const expectedPieces = parseInt($(this).data('expected-pieces')) || 0;
@@ -2882,7 +2883,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     quantity: quantity,
                     expected_pieces: expectedPieces
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 3000);
                         // Close the load modal and refresh the distribution list
@@ -2897,14 +2898,14 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('error', response.message || 'Failed to load item.', 3000);
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     let msg = 'Failed to load distribution item.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }
                     showToast('error', msg, 3000);
                 },
-                complete: function() {
+                complete: function () {
                     $submitBtn.prop('disabled', false).html('<i class="fas fa-check mr-1.5"></i> Confirm Load');
                 }
             });
@@ -2925,7 +2926,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                success: function(response) {
+                success: function (response) {
                     a
                     if (response.success) {
                         showToast('success', response.message, 3000);
@@ -2937,14 +2938,14 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('error', response.message, 3000);
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     let msg = 'Failed to load distribution data.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }
                     showToast('error', msg, 3000);
                 },
-                complete: function() {
+                complete: function () {
                     $btn.prop('disabled', false).html(
                         '<i class="fas fa-download mr-1"></i> Load All Remaining');
                 }
@@ -2959,7 +2960,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({}),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         let msg = response.message;
                         if (response.carryover_count > 0) {
@@ -2978,7 +2979,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         }
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     const errorMessage = (xhr.responseJSON && xhr.responseJSON.message) ?
                         xhr.responseJSON.message :
                         'An error occurred while creating inventory from distribution.';
@@ -2999,7 +3000,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify({}),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         checkIfInventoryExists();
@@ -3014,7 +3015,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         }
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message || 'An error occured while adding inventory',
                         2000);
                     console.log(xhr.responseJSON);
@@ -3031,7 +3032,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: `${baseURL}Inventory/FetchAllStockItems`,
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         loadInventory(response.data);
                         console.log('Inventory data:', response);
@@ -3040,7 +3041,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         console.log("Error: " + response.error);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', 'Error fetching inventory: ' + (xhr.responseJSON?.message || error),
                         2000);
                     console.log(xhr.responseJSON);
@@ -3064,15 +3065,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/GetYesterdayRemaining',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     carryoverData = {};
                     if (response.success && response.data && response.data.length > 0) {
-                        response.data.forEach(function(item) {
+                        response.data.forEach(function (item) {
                             carryoverData[item.product_id] = parseInt(item.remaining_stock) || 0;
                         });
                     }
                 },
-                error: function() {
+                error: function () {
                     carryoverData = {};
                 }
             });
@@ -3080,7 +3081,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
         function captureRowPositions(tableBodyId) {
             const positions = {};
-            $('#' + tableBodyId + ' .inventory-item-row').each(function() {
+            $('#' + tableBodyId + ' .inventory-item-row').each(function () {
                 const itemId = $(this).data('item-id');
                 if (itemId != null) {
                     positions[String(itemId)] = this.getBoundingClientRect().top;
@@ -3094,8 +3095,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return;
             }
 
-            requestAnimationFrame(function() {
-                $('#' + tableBodyId + ' .inventory-item-row').each(function() {
+            requestAnimationFrame(function () {
+                $('#' + tableBodyId + ' .inventory-item-row').each(function () {
                     const itemId = $(this).data('item-id');
                     const beforeTop = beforePositions[String(itemId)];
                     if (beforeTop == null) {
@@ -3125,7 +3126,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 drinks: captureRowPositions('drinksTableBody'),
                 grocery: captureRowPositions('groceryTableBody')
             };
-            const normalizedItems = (items || []).slice().sort(function(a, b) {
+            const normalizedItems = (items || []).slice().sort(function (a, b) {
                 const nameA = (a.product_name || a.item || '').toString().toLowerCase();
                 const nameB = (b.product_name || b.item || '').toString().toLowerCase();
                 if (nameA !== nameB) {
@@ -3180,6 +3181,28 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const addedDelta = parseInt(payload.product_group_qty) || 0;
                 item.added_qty = (parseInt(item.added_qty) || 0) + addedDelta;
                 item.ending_stock = (parseInt(item.ending_stock) || 0) + addedDelta;
+
+                // If the payload also includes beginning/pull_out/ending adjustments,
+                // apply them as well so the local cache matches the server.
+                const beginningDelta = parseInt(payload.beginning_stock) || 0;
+                const pullOutDelta = parseInt(payload.pull_out_quantity) || 0;
+                const endingProvided = typeof payload.ending_stock !== 'undefined';
+                if (beginningDelta !== 0 || pullOutDelta !== 0 || endingProvided) {
+                    item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningDelta;
+                    item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutDelta;
+                    if (endingProvided) item.ending_stock = parseInt(payload.ending_stock) || 0;
+
+                    // Recalculate qty sold/discrepancy
+                    const distributedOutQty = parseInt(item.distributed_out_qty) || 0;
+                    const dbQtySoldRaw = parseInt(item.quantity_sold_db);
+                    const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
+                    const inventoryQtySold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
+                    const addedQtySold = Math.max(0, inventoryQtySold - dbQtySold);
+                    item.quantity_sold = dbQtySold + addedQtySold;
+                    item.quantity_sold_db = dbQtySold;
+                    item.discrepancy = addedQtySold;
+                }
+
                 allInventoryItems[index] = item;
                 filteredItems = [...allInventoryItems];
                 return true;
@@ -3268,7 +3291,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const price = item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item
                         .selling_price;
                     const formattedPrice = '₱' + parseFloat(price || 0).toFixed(2);
@@ -3301,7 +3324,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         item.item_id + '" data-product-id="' + item.product_id +
                         '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(
                             price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(/"/g,
-                            '&quot;') + '" data-total-sales="' + totalSales + '">';
+                                '&quot;') + '" data-total-sales="' + totalSales + '">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                         '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
@@ -3351,7 +3374,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             let totalSales = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const srp = parseFloat(item.srp ?? item.selling_price ?? 0) || 0;
                     const formattedPrice = '₱' + srp.toFixed(2);
                     const qtySold = parseInt(item.quantity_sold) || 0;
@@ -3424,7 +3447,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             let totalQty = 0;
 
             if (items && items.length > 0) {
-                items.forEach(function(item) {
+                items.forEach(function (item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
@@ -3454,7 +3477,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         item.item_id + '" data-product-id="' + item.product_id +
                         '" data-qty-sold="' + qtySold + '" data-po="' + pullOut + '" data-price="' + parseFloat(item
                             .selling_price || 0) + '" data-product-name="' + (item.product_name || 'N/A').replace(
-                            /"/g, '&quot;') + '" data-total-sales="' + totalSales + '">';
+                                /"/g, '&quot;') + '" data-total-sales="' + totalSales + '">';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                         '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
@@ -3561,7 +3584,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/GetProductRecipe/' + productId,
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success && response.recipe && response.recipe.length > 0) {
                         displayMaterialsUsed(response.recipe, totalUnits, response);
                     } else {
@@ -3571,7 +3594,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         updateProfitAnalysis(0);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     $('#itemDetailsMaterialsList').html(
                         '<p class="text-sm text-red-500 text-center py-4">Error loading materials</p>');
                     console.error('Error fetching recipe:', error);
@@ -3609,7 +3632,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return;
             }
 
-            recipe.forEach(function(material) {
+            recipe.forEach(function (material) {
                 const quantityNeeded = parseFloat(material.quantity_needed) || 0;
                 const unit = material.unit || '';
                 const materialName = material.material_name || 'Unknown Material';
@@ -3704,7 +3727,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         function updateGrandTotals(items) {
             let grandQty = 0;
 
-            items.forEach(function(item) {
+            items.forEach(function (item) {
                 grandQty += parseInt(item.quantity_sold) || 0;
             });
 
@@ -3720,23 +3743,23 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             $input.val(nextValue).trigger('input');
         }
 
-        $('#btnDecreaseProductGroup').on('click', function() {
+        $('#btnDecreaseProductGroup').on('click', function () {
             adjustQuantityField('#editProductGroupQty', -1);
         });
 
-        $('#btnIncreaseProductGroup').on('click', function() {
+        $('#btnIncreaseProductGroup').on('click', function () {
             adjustQuantityField('#editProductGroupQty', 1);
         });
 
-        $('#editProductGroupQty').on('input change', function() {
+        $('#editProductGroupQty').on('input change', function () {
             scheduleEditPreviewUpdate('addmore');
         });
 
-        $('#btnDecreaseDistributionGroup').on('click', function() {
+        $('#btnDecreaseDistributionGroup').on('click', function () {
             adjustQuantityField('#editDistributionGroupQty', -1);
         });
 
-        $('#btnIncreaseDistributionGroup').on('click', function() {
+        $('#btnIncreaseDistributionGroup').on('click', function () {
             adjustQuantityField('#editDistributionGroupQty', 1);
         });
 
@@ -3744,7 +3767,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         const isStaffView = (window.USER_ROLE || '').toLowerCase() === 'staff';
 
         // Edit Inventory Item - Open Modal
-        $(document).on('click', '.btn-edit', function() {
+        $(document).on('click', '.btn-edit', function () {
             if (enforceInventoryLock()) {
                 return;
             }
@@ -3922,13 +3945,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 clearTimeout(editPreviewDebounceTimer);
             }
 
-            editPreviewDebounceTimer = setTimeout(function() {
+            editPreviewDebounceTimer = setTimeout(function () {
                 editPreviewDebounceTimer = null;
                 runEditPreviewUpdate(source);
             }, delayMs);
         }
 
-        $('#btnDecreaseBeginning').on('click', function() {
+        $('#btnDecreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             const category = ($('#editCategory').val() || '').toLowerCase();
             if (category === 'drinks') {
@@ -3944,34 +3967,34 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             runEditPreviewUpdate('beginning');
         });
 
-        $('#btnIncreaseBeginning').on('click', function() {
+        $('#btnIncreaseBeginning').on('click', function () {
             const current = parseInt($('#editBeginningStock').val()) || 0;
             $('#editBeginningStock').val(current + 1);
             runEditPreviewUpdate('beginning');
         });
 
-        $('#btnDecreasePullOut').on('click', function() {
+        $('#btnDecreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(Math.max(0, current - 1));
             runEditPreviewUpdate('pullout');
         });
 
-        $('#btnIncreasePullOut').on('click', function() {
+        $('#btnIncreasePullOut').on('click', function () {
             const current = parseInt($('#editPullOutQuantity').val()) || 0;
             $('#editPullOutQuantity').val(current + 1);
             runEditPreviewUpdate('pullout');
         });
 
         // Also update on manual input change
-        $('#editBeginningStock').on('input change', function() {
+        $('#editBeginningStock').on('input change', function () {
             scheduleEditPreviewUpdate('beginning');
         });
 
-        $('#editPullOutQuantity').on('input change', function() {
+        $('#editPullOutQuantity').on('input change', function () {
             scheduleEditPreviewUpdate('pullout');
         });
 
-        $('#editEndingStock').on('input change', function() {
+        $('#editEndingStock').on('input change', function () {
             scheduleEditPreviewUpdate('ending');
         });
 
@@ -4049,9 +4072,9 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const statusHtml = wouldExceedAllowedEnding ?
                     '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning - Pull Out).</div>' :
                     wouldReduceDbQtySold ?
-                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' +
-                    oldQtySold + '), so it is not allowed.</div>' :
-                    '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
+                        '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' +
+                        oldQtySold + '), so it is not allowed.</div>' :
+                        '<div class="mt-2 rounded-md border border-green-200 bg-green-50 px-2.5 py-2 text-[11px] text-green-700">Valid adjustment. Final Qty Sold will keep the DB value as minimum.</div>';
 
                 const nextHint =
                     '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-[11px] text-gray-700 space-y-2">' +
@@ -4194,7 +4217,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         // Close Edit Modal
-        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function() {
+        $('#editInventoryModalClose, #editInventoryModalCancel').on('click', function () {
             $('#editInventoryModal').addClass('hidden');
             $('#editInventoryForm')[0].reset();
             resetEditPreviewUiState();
@@ -4227,19 +4250,19 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'DistributionCategory/FetchAll',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     const select = $('#editDistributionCategorySelect');
                     select.html('<option value="">Select distribution category...</option>');
 
                     if (response.success && response.data && response.data.length > 0) {
-                        response.data.forEach(function(cat) {
+                        response.data.forEach(function (cat) {
                             select.append(
                                 `<option value="${cat.dist_cat_id}">${cat.name}</option>`
                             );
                         });
                     }
                 },
-                error: function() {
+                error: function () {
                     console.warn('Failed to load distribution categories');
                     $('#editDistributionCategorySelect').html(
                         '<option value="">Error loading categories</option>');
@@ -4247,7 +4270,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             });
         }
 
-        $('#editInventoryForm').on('submit', function(e) {
+        $('#editInventoryForm').on('submit', function (e) {
             e.preventDefault();
 
             if (enforceInventoryLock()) {
@@ -4260,7 +4283,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }
 
             const originalSubmitHtml = submitBtn.html();
-            const restoreSubmitButton = function() {
+            const restoreSubmitButton = function () {
                 submitBtn.prop('disabled', false)
                     .removeClass('opacity-70 cursor-not-allowed')
                     .html(originalSubmitHtml);
@@ -4309,6 +4332,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     action: 'store',
                     product_group_qty: productGroupQty
                 };
+
+                // If the user also adjusted beginning/pull-out/ending while adding,
+                // include those fields so the server can persist both changes.
+                if (beginningInput !== 0 || pullOutInput !== 0 || endingInput !== 0 || isAdjustmentMode) {
+                    payload.beginning_stock = beginningInput;
+                    payload.pull_out_quantity = pullOutInput;
+                    payload.ending_stock = endingInput;
+                    if (isAdjustmentMode) payload.adjustment_mode = true;
+                }
             }
             // NEW: Handle Distribute action
             else if (distributionGroupQty > 0) {
@@ -4454,7 +4486,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify(payload),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
 
@@ -4488,7 +4520,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     if (xhr.responseJSON && xhr.responseJSON.exceeds_available_stock) {
                         showToast('warning', xhr.responseJSON.message, 3500);
                     } else if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
@@ -4497,7 +4529,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message || error), 2000);
                     }
                 },
-                complete: function() {
+                complete: function () {
                     restoreSubmitButton();
                 }
             });
@@ -4513,7 +4545,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 data: JSON.stringify({
                     inventory_id: inventoryId
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         if ($('#btnSendInventoryReport').length) {
@@ -4531,7 +4563,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         }
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', xhr.responseJSON.message, 2000);
                     console.log(xhr);
                     if (typeof onDone === 'function') {
@@ -4542,7 +4574,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         // Add Product to Inventory functionality
-        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function() {
+        $('#btnAddProductToInventory, #btnAddProductToInventoryMobile').on('click', function () {
             if (enforceInventoryLock()) {
                 return;
             }
@@ -4551,7 +4583,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         });
 
         // Close Add Product Modal
-        $('#addProductModalClose, #addProductModalCancel').on('click', function() {
+        $('#addProductModalClose, #addProductModalCancel').on('click', function () {
             $('#addProductModal').addClass('hidden');
             $('#addProductForm')[0].reset();
             syncAddBeginningStockField();
@@ -4578,7 +4610,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }
         }
 
-        $('#selectProduct').on('change', function() {
+        $('#selectProduct').on('change', function () {
             syncAddBeginningStockField();
         });
 
@@ -4589,12 +4621,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 url: baseUrl + 'Inventory/GetAvailableProducts',
                 type: 'GET',
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     const select = $('#selectProduct');
                     select.html('<option value="">-- Select a product --</option>');
 
                     if (response.success && response.data.length > 0) {
-                        response.data.forEach(function(product) {
+                        response.data.forEach(function (product) {
                             let categoryLabel = 'Unknown';
                             if (product.category === 'bakery') {
                                 categoryLabel = 'Bakery';
@@ -4621,14 +4653,14 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                     syncAddBeginningStockField();
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', 'Error loading products: ' + error, 2000);
                 }
             });
         }
 
         // Mobile Search functionality
-        $('#mobileSearchInput').on('input', function() {
+        $('#mobileSearchInput').on('input', function () {
             const searchTerm = $(this).val().toLowerCase().trim();
 
             if (searchTerm === '') {
@@ -4653,7 +4685,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             // Bakery cards
             let bakeryCards = '';
             if (bakeryItems.length > 0) {
-                bakeryItems.forEach(function(item) {
+                bakeryItems.forEach(function (item) {
                     bakeryCards += renderMobileCard(item, 'bakery');
                 });
             } else {
@@ -4665,7 +4697,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             // Drinks cards
             let drinksCards = '';
             if (drinksItems.length > 0) {
-                drinksItems.forEach(function(item) {
+                drinksItems.forEach(function (item) {
                     drinksCards += renderMobileCard(item, 'drinks');
                 });
             } else {
@@ -4677,7 +4709,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             // Grocery cards
             let groceryCards = '';
             if (groceryItems.length > 0) {
-                groceryItems.forEach(function(item) {
+                groceryItems.forEach(function (item) {
                     groceryCards += renderMobileCard(item, 'grocery');
                 });
             } else {
@@ -4817,7 +4849,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         }
 
         // Mobile pagination click handler
-        $(document).on('click', '#mobilePagination button:not([disabled])', function() {
+        $(document).on('click', '#mobilePagination button:not([disabled])', function () {
             const page = $(this).data('page');
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
@@ -4838,7 +4870,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         });
 
         // Submit Add Product Form
-        $('#addProductForm').on('submit', function(e) {
+        $('#addProductForm').on('submit', function (e) {
             e.preventDefault();
 
             if (enforceInventoryLock()) {
@@ -4871,7 +4903,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     product_id: productId,
                     beginning_stock: beginningStock
                 }),
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         $('#addProductModal').addClass('hidden');
@@ -4893,7 +4925,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                 }
                             } else if (!response.deduction.success) {
                                 showToast('warning', 'Raw materials not deducted: ' + (response
-                                        .deduction.message || 'No recipe found for this product'),
+                                    .deduction.message || 'No recipe found for this product'),
                                     5000);
                             }
                         }
@@ -4901,7 +4933,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('error', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         showInsufficientStockModal(xhr.responseJSON);
@@ -4910,7 +4942,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             error), 2000);
                     }
                 },
-                complete: function() {
+                complete: function () {
                     setButtonLoading($submitBtn, false);
                 }
             });
@@ -4919,7 +4951,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         // Tab Switching Function
         function switchTab(tabName) {
             // Remove active state from all tab buttons
-            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            document.querySelectorAll('.tab-btn').forEach(function (btn) {
                 btn.classList.remove('text-white', 'bg-primary', 'shadow-md', 'border-primary');
                 btn.classList.add('text-gray-700', 'bg-gray-100', 'hover:bg-gray-200', 'border-gray-300',
                     'hover:border-gray-400');
@@ -4934,7 +4966,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }
 
             // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(function(content) {
+            document.querySelectorAll('.tab-content').forEach(function (content) {
                 content.classList.add('hidden');
             });
 
@@ -4964,7 +4996,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 html +=
                     '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Products With Insufficient Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-                data.insufficient_products.forEach(function(name) {
+                data.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -4977,7 +5009,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 html +=
                     '<h4 class="font-semibold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>Insufficient Raw Materials</h4>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-                data.insufficient_materials.forEach(function(detail) {
+                data.insufficient_materials.forEach(function (detail) {
                     html += '<li>' + detail + '</li>';
                 });
                 html += '</ul>';
@@ -5009,7 +5041,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 html +=
                     '<p class="text-sm text-gray-600 mb-2">The following products have no raw material recipe configured. Their raw materials were <strong>not deducted</strong>:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3">';
-                deduction.no_recipe_products.forEach(function(name) {
+                deduction.no_recipe_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -5024,7 +5056,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 html +=
                     '<p class="text-sm text-gray-600 mb-2">The following products had some raw materials with insufficient stock. Deductions were still applied but stock went below zero:</p>';
                 html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-amber-50 rounded-lg p-3">';
-                deduction.insufficient_products.forEach(function(name) {
+                deduction.insufficient_products.forEach(function (name) {
                     html += '<li>' + name + '</li>';
                 });
                 html += '</ul>';
@@ -5079,7 +5111,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('success', response.message, 2000);
                         // Refresh inventory data to reflect new inventory
@@ -5090,7 +5122,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('warning', response.message, 2000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     showToast('danger', 'Error resetting inventory: ' + (xhr.responseJSON?.message || error),
                         2000);
                     console.log(xhr);
