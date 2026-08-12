@@ -966,57 +966,12 @@ class InventoryController extends BaseController
             // NEW: accumulate into added_qty instead of beginning_stock
             $oldAddedQty = intval($item['added_qty'] ?? 0);
             $newAddedQty = $oldAddedQty + $productGroupQty;
-            $currentEnding = intval($item['ending_stock']);
-            $newEnding = $currentEnding + $productGroupQty;
+            $newEnding = intval($item['ending_stock']) + $productGroupQty;
 
-            // Optional: allow simultaneous beginning/pull-out/ending adjustments
-            $inputBeginning = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0;
-            $inputPullOut = isset($json->pull_out_quantity) ? intval($json->pull_out_quantity) : 0;
-            $inputEndingProvided = array_key_exists('ending_stock', (array) $json);
-            $inputEnding = $inputEndingProvided ? intval($json->ending_stock) : null;
-
-            $updateData = [
+            $this->dailyStockItemsModel->update($item_id, [
                 'added_qty' => $newAddedQty,
                 'ending_stock' => $newEnding,
-            ];
-
-            if ($inputBeginning !== 0 || $inputPullOut !== 0 || $inputEndingProvided) {
-                $oldBeginning = intval($item['beginning_stock']);
-                $oldPullOut = intval($item['pull_out_quantity']);
-
-                $newBeginning = $oldBeginning + $inputBeginning;
-                $newPullOut = $oldPullOut + $inputPullOut;
-
-                if ($newBeginning < 0 || $newPullOut < 0) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'Adjustment results cannot go below zero.'
-                    ]);
-                }
-
-                // Validate ending when provided
-                if ($inputEndingProvided) {
-                    if ($inputEnding < 0) {
-                        return $this->response->setStatusCode(400)->setJSON([
-                            'success' => false,
-                            'message' => 'Ending stock cannot be negative.'
-                        ]);
-                    }
-                    // Ensure ending does not exceed beginning + added qty
-                    if ($inputEnding > ($newBeginning + $newAddedQty)) {
-                        return $this->response->setStatusCode(400)->setJSON([
-                            'success' => false,
-                            'message' => 'Ending stock cannot be greater than beginning stock.'
-                        ]);
-                    }
-                    $updateData['ending_stock'] = $inputEnding;
-                }
-
-                $updateData['beginning_stock'] = $newBeginning;
-                $updateData['pull_out_quantity'] = $newPullOut;
-            }
-
-            $this->dailyStockItemsModel->update($item_id, $updateData);
+            ]);
 
             $dailyStockId = intval($item['daily_stock_id']);
             $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
