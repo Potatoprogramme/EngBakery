@@ -3326,11 +3326,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                        .item_id +
-                        '" data-category="bakery" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="bakery" title="View"><i class="fas fa-eye text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3394,11 +3394,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                        .item_id +
-                        '" data-category="drinks" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="drinks" title="View"><i class="fas fa-eye text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });
@@ -3467,11 +3467,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         rows += '</td>';
                     <?php endif; ?>
                     rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item
-                        .item_id +
-                        '" data-category="grocery" title="Edit"><i class="fas fa-edit"></i></button>';
-                    rows += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' +
-                        item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="grocery" title="View"><i class="fas fa-eye text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
+                    rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
+                    rows += '</div>';
                     rows += '</td>';
                     rows += '</tr>';
                 });

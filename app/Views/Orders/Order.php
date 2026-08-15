@@ -347,7 +347,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Order Type <span
                                 class="text-red-500">*</span></label>
                         <input type="hidden" id="checkoutOrderType" value="walk-in">
-                        <div class="grid <?= $isStaffView ? 'grid-cols-2' : 'grid-cols-3' ?> gap-3">
+                        <div class="grid grid-cols-2 gap-3">
                             <button type="button" id="btnOrderTypeWalkin" onclick="selectOrderType('walk-in')"
                                 class="order-type-btn p-4 rounded-lg border-2 border-primary bg-primary/10 text-center transition-all hover:shadow-md">
                                 <i class="fas fa-walking text-2xl text-primary mb-2"></i>
@@ -361,7 +361,7 @@
                                 <p class="font-semibold text-gray-700">FoodPanda</p>
                             </button>
                             <button type="button" id="btnOrderTypeDistributed" onclick="selectOrderType('distributed')"
-                                class="order-type-btn p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300 <?= $isStaffView ? 'hidden' : '' ?>">
+                                class="order-type-btn hidden p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300">
                                 <i class="fas fa-truck text-2xl text-gray-500 mb-2"></i>
                                 <p class="font-semibold text-gray-700">Distributed</p>
                             </button>
