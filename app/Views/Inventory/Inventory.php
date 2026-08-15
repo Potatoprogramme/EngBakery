@@ -1023,6 +1023,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         let todayDistHydrationToken = 0;
         let todayDistributionGroupedData = [];
         let inventoryId = null;
+        let pendingInsufficientInventoryAdd = false;
 
         function getTodayDateForApi() {
             const now = new Date();
@@ -4833,10 +4834,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }, 300);
         });
 
-        // Submit Add Product Form
-        $('#addProductForm').on('submit', function (e) {
-            e.preventDefault();
-
+        function submitAddProductRequest(allowInsufficient = false) {
             if (enforceInventoryLock()) {
                 return;
             }
@@ -4865,14 +4863,20 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 contentType: 'application/json',
                 data: JSON.stringify({
                     product_id: productId,
-                    beginning_stock: beginningStock
+                    beginning_stock: beginningStock,
+                    allow_insufficient: allowInsufficient
                 }),
                 success: function (response) {
                     if (response.success) {
+                        $('#deductionWarningModal').addClass('hidden');
                         showToast('success', response.message, 2000);
                         $('#addProductModal').addClass('hidden');
                         $('#addProductForm')[0].reset();
                         fetchAllStockitems(); // Reload the table
+
+                        if (response.warning && response.warning.insufficient_materials && response.warning.insufficient_materials.length > 0) {
+                            showToast('warning', response.warning.message || 'Product added with insufficient raw materials.', 4000);
+                        }
 
                         // Show deduction info/warnings for the single product
                         if (response.deduction) {
@@ -4898,8 +4902,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     }
                 },
                 error: function (xhr, status, error) {
-                    // Show detailed insufficient materials modal
                     if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
+                        pendingInsufficientInventoryAdd = true;
                         showInsufficientStockModal(xhr.responseJSON);
                     } else {
                         showToast('danger', 'Error adding product: ' + (xhr.responseJSON?.message ||
@@ -4910,6 +4914,22 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     setButtonLoading($submitBtn, false);
                 }
             });
+        }
+
+        // Submit Add Product Form
+        $('#addProductForm').on('submit', function (e) {
+            e.preventDefault();
+            submitAddProductRequest(false);
+        });
+
+        $(document).on('click', '#btnProceedDeductionWarning', function () {
+            if (!pendingInsufficientInventoryAdd) {
+                return;
+            }
+
+            pendingInsufficientInventoryAdd = false;
+            $('#deductionWarningModal').addClass('hidden');
+            submitAddProductRequest(true);
         });
 
         // Tab Switching Function
@@ -4982,11 +5002,14 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             // Tip
             html += '<div class="mt-3 p-3 bg-amber-50 rounded-lg text-sm text-amber-800">';
-            html += '<i class="fas fa-lightbulb mr-1"></i> Please restock the raw materials above before proceeding.';
+            html += '<i class="fas fa-lightbulb mr-1"></i> You can proceed anyway, but stock will go below zero.';
             html += '</div>';
 
-            // Reuse the deduction warning modal
             $('#deductionWarningContent').html(html);
+            $('#deductionWarningFooter').html(
+                '<button type="button" id="btnProceedDeductionWarning" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium mr-3">Proceed</button>' +
+                '<button type="button" id="deductionWarningModalCancel" onclick="pendingInsufficientInventoryAdd = false; $(\'#deductionWarningModal\').addClass(\'hidden\')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">Cancel</button>'
+            );
             $('#deductionWarningModal').removeClass('hidden');
         }
 
@@ -5036,8 +5059,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 html += '</div>';
             }
 
-            // Use the deduction warning modal
             $('#deductionWarningContent').html(html);
+            $('#deductionWarningFooter').html(
+                '<button type="button" id="deductionWarningModalCloseBtn" onclick="$(\'#deductionWarningModal\').addClass(\'hidden\')" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">Got it</button>'
+            );
             $('#deductionWarningModal').removeClass('hidden');
         }
 
@@ -5148,7 +5173,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 <h3 class="text-lg font-semibold text-gray-800">
                     <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
                 </h3>
-                <button id="deductionWarningModalClose" onclick="$('#deductionWarningModal').addClass('hidden')"
+                <button id="deductionWarningModalClose" onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
                     class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -5156,9 +5181,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             <div class="px-6 py-4 overflow-y-auto" id="deductionWarningContent">
                 <!-- Content injected by JS -->
             </div>
-            <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
-                <button onclick="$('#deductionWarningModal').addClass('hidden')"
-                    class="px-5 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
+            <div class="px-6 py-3 border-t border-gray-200 flex justify-end" id="deductionWarningFooter">
+                <button type="button" id="deductionWarningModalCloseBtn"
+                    onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
+                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
                     Got it
                 </button>
             </div>
