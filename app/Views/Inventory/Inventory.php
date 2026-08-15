@@ -306,7 +306,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Pull Out
                                                 </th>
-                                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Dist Qty</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Ending</th>
                                                 <th scope="col" class="px-6 py-3 font-medium text-gray-600">Qty Sold
                                                 </th>
@@ -327,7 +326,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                                         </tbody>
                                         <tfoot class="bg-gray-50 border-t border-gray-200">
                                             <tr>
-                                                <td colspan="6"
+                                                <td colspan="5"
                                                     class="px-6 py-2 text-right text-xs text-gray-500 font-medium">
                                                     Total:</td>
                                                 <td class="px-6 py-2 text-sm font-medium text-gray-700"
@@ -3417,7 +3416,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
-                    const distQty = parseInt(item.distributed_out_qty) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
                     const price = parseFloat(item.selling_price || 0);
@@ -3450,7 +3448,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + distQty + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedSales + '</td>';
@@ -3846,15 +3843,21 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 $('#editDistributionGroupQty').val(0);
                 $('#editDistributionCategorySelect').val('');
 
-                // Show Add More / Distribution Group only for bakery items
-                if (category === 'bakery') {
+                // Show Add More for bakery and grocery; Distribution Group stays bakery-only.
+                const showAddMoreGroup = (category === 'bakery' || category === 'grocery');
+                const showDistributionGroup = (category === 'bakery');
+
+                if (showAddMoreGroup) {
                     $('#editAddMoreGroup').removeClass('hidden');
-                    $('#editDistributionGroup').removeClass('hidden');
                 } else {
                     $('#editAddMoreGroup').addClass('hidden');
-                    $('#editDistributionGroup').addClass('hidden');
-                    // clear values when hidden
                     $('#editProductGroupQty').val(0);
+                }
+
+                if (showDistributionGroup) {
+                    $('#editDistributionGroup').removeClass('hidden');
+                } else {
+                    $('#editDistributionGroup').addClass('hidden');
                     $('#editDistributionGroupQty').val(0);
                 }
 
@@ -4712,10 +4715,9 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     .total_sales).toFixed(2) || 0) + '</span></span>';
                 card += '  </div>';
             } else {
-                card += '  <div class="flex items-center gap-2 text-xs text-gray-500 mb-2 flex-wrap">';
+                card += '  <div class="flex items-center gap-3 text-xs text-gray-500 mb-2">';
                 card += '    <span>Begin: <span class="text-gray-700">' + (formatBeginningWithAdded(item.beginning_stock, item.added_qty) || 0) + '</span></span>';
                 card += '    <span>Out: <span class="text-gray-700">' + (item.pull_out_quantity || 0) + '</span></span>';
-                card += '    <span>Dist: <span class="text-gray-700">' + (parseInt(item.distributed_out_qty) || 0) + '</span></span>';
                 card += '    <span>End: <span class="text-gray-700">' + ending_stock + '</span></span>';
                 card += '    <span class="ml-auto">Sales: <span class="text-gray-700 font-medium">₱' + (parseFloat(item
                     .total_sales).toFixed(2) || 0) + '</span></span>';
