@@ -360,6 +360,11 @@
                                 </div>
                                 <p class="font-semibold text-gray-700">FoodPanda</p>
                             </button>
+                            <button type="button" id="btnOrderTypeDistributed" onclick="selectOrderType('distributed')"
+                                class="order-type-btn hidden p-4 rounded-lg border-2 border-gray-300 bg-white text-center transition-all hover:shadow-md hover:border-blue-300">
+                                <i class="fas fa-truck text-2xl text-gray-500 mb-2"></i>
+                                <p class="font-semibold text-gray-700">Distributed</p>
+                            </button>
                         </div>
                         <!-- Distributed Order Note -->
                         <div id="distributedNoteContainer" class="mb-3 hidden">
