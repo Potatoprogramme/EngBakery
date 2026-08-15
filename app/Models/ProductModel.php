@@ -60,9 +60,14 @@ class ProductModel extends Model
             WHERE p.is_disabled = 0
                 AND p.deleted_at IS NULL
                 AND (
-                    p.category = 'drinks'
+                    (
+                        p.category = 'drinks'
+                        AND latest_ds.daily_stock_id IS NOT NULL
+                        AND dsi.product_id IS NOT NULL
+                    )
                     OR (
-                        latest_ds.daily_stock_id IS NOT NULL
+                        p.category != 'drinks'
+                        AND latest_ds.daily_stock_id IS NOT NULL
                         AND dsi.product_id IS NOT NULL
                     )
                 )
