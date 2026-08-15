@@ -63,7 +63,7 @@ class RawMaterialStockModel extends Model
                 rms.material_id,
                 rms.initial_qty,
                 rms.qty_used,
-                GREATEST(0, rms.initial_qty - rms.qty_used) as remaining,
+                (rms.initial_qty - rms.qty_used) as remaining,
                 rms.unit,
                 rms.updated_at,
                 rm.material_name,
@@ -139,7 +139,7 @@ class RawMaterialStockModel extends Model
     public function getByMaterialId(int $materialId): ?array
     {
         $row = $this->db->query("
-            SELECT rms.*, GREATEST(0, rms.initial_qty - rms.qty_used) as current_quantity
+            SELECT rms.*, (rms.initial_qty - rms.qty_used) as current_quantity
             FROM raw_material_stock rms
             JOIN raw_materials rm ON rm.material_id = rms.material_id
             WHERE rms.material_id = ?
@@ -469,12 +469,13 @@ class RawMaterialStockModel extends Model
      * Also handles combined recipes (products made from other products)
      * by recursively deducting the source product's raw materials.
      *
-     * @param int  $productId  The product being produced
-     * @param int  $pieces     Number of pieces produced
-     * @param bool $preview    If true, calculate only — don't actually deduct
-     * @return array           Summary of deductions performed
+     * @param int  $productId         The product being produced
+     * @param int  $pieces            Number of pieces produced
+     * @param bool $preview           If true, calculate only — don't actually deduct
+     * @param bool $allowInsufficient If true, allow negative stock balances when overriding checks
+     * @return array                  Summary of deductions performed
      */
-    public function deductForProduction(int $productId, int $pieces, bool $preview = false): array
+    public function deductForProduction(int $productId, int $pieces, bool $preview = false, bool $allowInsufficient = false): array
     {
         if ($pieces <= 0) {
             return ['success' => false, 'message' => 'Pieces must be greater than 0', 'deductions' => []];
@@ -585,7 +586,7 @@ class RawMaterialStockModel extends Model
                 $stock      = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
                 $totalDeductForMaterial = round($need['total_deduct'], 4);
-                $afterQty   = max(0, $currentQty - $totalDeductForMaterial);
+                $afterQty   = $currentQty - $totalDeductForMaterial;
                 $isInsufficient = $currentQty < $totalDeductForMaterial;
 
                 // Build one deduction entry per source (direct / each combined)
@@ -608,8 +609,8 @@ class RawMaterialStockModel extends Model
 
             $hasInsufficient = !empty(array_filter($deductionPlan, fn($d) => $d['insufficient']));
 
-            // Hard stop: no deduction should occur if any material is insufficient.
-            if (!$preview && $hasInsufficient) {
+            // Hard stop: no deduction should occur if any material is insufficient unless bypassed.
+            if (!$preview && $hasInsufficient && !$allowInsufficient) {
                 $short = array_values(array_unique(array_map(
                     fn($d) => $d['material_name'],
                     array_filter($deductionPlan, fn($d) => $d['insufficient'])

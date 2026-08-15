@@ -802,9 +802,12 @@ class InventoryController extends BaseController
 
         $productId = intval($json->product_id ?? 0);
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
+        $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+        $preview = null;
+        $insufficientMaterials = [];
 
-        // Pre-check: block if raw materials are insufficient
+        // Pre-check: warn if raw materials are insufficient
         if ($beginningStock > 0 && $hasRawMaterialRecipe) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 $productId,
@@ -814,14 +817,17 @@ class InventoryController extends BaseController
 
             if (!empty($preview['has_insufficient'])) {
                 $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+                $insufficientMaterials = array_values(array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials));
 
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Cannot add product — insufficient raw material stock.',
-                    'insufficient_materials' => array_values($shortNames),
-                    'preview' => $preview,
-                ]);
+                if (!$allowInsufficient) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Cannot add product — insufficient raw material stock.',
+                        'insufficient_materials' => $insufficientMaterials,
+                        'preview' => $preview,
+                        'can_override' => true,
+                    ]);
+                }
             }
         }
 
@@ -837,7 +843,9 @@ class InventoryController extends BaseController
             if ($beginningStock > 0 && $hasRawMaterialRecipe) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     $productId,
-                    $beginningStock
+                    $beginningStock,
+                    false,
+                    $allowInsufficient
                 );
             }
 
@@ -845,7 +853,11 @@ class InventoryController extends BaseController
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
                 'item_id' => $result,
-                'deduction' => $deductionResult
+                'deduction' => $deductionResult,
+                'warning' => !empty($insufficientMaterials) ? [
+                    'message' => 'Product added with insufficient raw materials.',
+                    'insufficient_materials' => $insufficientMaterials,
+                ] : null,
             ]);
         } else {
             return $this->response->setStatusCode(400)->setJSON([
