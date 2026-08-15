@@ -897,12 +897,93 @@
             // Set default active tab
             switchDistributionPanelTab('distributionGroups');
 
+            // ===== OPEN INVENTORY GATE FOR "ADD ITEMS" =====
+            // The Add Items button(s) should only be usable while there is an
+            // open (not closed / not yet reported / not yet remitted) inventory
+            // shift for today. Without an open inventory there is no shift to
+            // pull stock from, so distribution items can't be created.
+            //
+            // `openInventoryStatus` starts 'checking' (buttons disabled) so a
+            // click can't slip through before the very first AJAX check for
+            // today's inventory has resolved. Without this, refreshing the
+            // page and clicking immediately would show the "closed" warning
+            // even when inventory is actually open, since the async check
+            // hadn't finished yet.
+            let openInventoryStatus = 'checking'; // 'checking' | 'open' | 'closed'
+
+            // The open-inventory requirement only makes sense for TODAY's
+            // distributions (you need an open shift to pull live stock from).
+            // Advance distributions for a future — or a past — date don't
+            // depend on today's shift at all, so the buttons should stay
+            // enabled whenever the page's selected date isn't today.
+            function isSelectedDateToday() {
+                const selectedDate = ($('#selectedDate').val() || '').toString();
+                return selectedDate === formatDate(new Date());
+            }
+
+            function applyAddItemsButtonState() {
+                const onToday = isSelectedDateToday();
+                const disabled = onToday && openInventoryStatus !== 'open';
+
+                let title = '';
+                if (!onToday) {
+                    title = ''; // No gate for advance/past dates.
+                } else if (openInventoryStatus === 'checking') {
+                    title = 'Checking today\'s inventory status…';
+                } else if (openInventoryStatus === 'closed') {
+                    title = 'Open today\'s inventory before adding distribution items.';
+                }
+
+                $('#btnAddItems, #btnAddItemsMobile')
+                    .prop('disabled', disabled)
+                    .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', disabled)
+                    .attr('title', title);
+
+                $('#btnAddItemsEmpty')
+                    .prop('disabled', disabled)
+                    .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', disabled)
+                    .attr('title', title);
+            }
+
+            function checkOpenInventoryAndToggleAddItemsButtons() {
+                // Only today's shift status is relevant; skip the network
+                // round-trip entirely when browsing another date so the
+                // buttons don't flash into a disabled "checking" state.
+                if (!isSelectedDateToday()) {
+                    applyAddItemsButtonState();
+                    return;
+                }
+
+                openInventoryStatus = 'checking';
+                applyAddItemsButtonState();
+
+                $.ajax({
+                    url: baseUrl + 'Inventory/CheckActiveInventories',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        openInventoryStatus = (response && response.success && response.has_active) ?
+                            'open' : 'closed';
+                        applyAddItemsButtonState();
+                    },
+                    error: function () {
+                        // Fail closed: if we can't confirm an open inventory,
+                        // don't allow new distribution items to be added
+                        // (only matters when we're actually gating, i.e. today).
+                        openInventoryStatus = 'closed';
+                        applyAddItemsButtonState();
+                    }
+                });
+            }
+
+            applyAddItemsButtonState();
             getProducts();
             loadProductCostData();
             loadDistributionByDate();
             renderCalendar();
             loadMonthDistributions();
             loadAllDistributions();
+            checkOpenInventoryAndToggleAddItemsButtons();
             // ===== API FUNCTIONS =====
 
             function getProducts() {
@@ -3910,6 +3991,10 @@
                 if (!$('#tabPanelStore').hasClass('hidden')) {
                     loadStoreAddedItems();
                 }
+
+                // Re-evaluate the Add Items button gate for the newly
+                // selected date (only today requires an open inventory).
+                checkOpenInventoryAndToggleAddItemsButtons();
             });
 
             $('#btnPrevDay').on('click', function () {
@@ -4264,6 +4349,15 @@
             }
 
             $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function () {
+                if (openInventoryStatus === 'checking') {
+                    showToast('warning', 'Still checking today\'s inventory status — try again in a moment.', 2500);
+                    return;
+                }
+                if (openInventoryStatus !== 'open') {
+                    showToast('warning', 'Open today\'s inventory before adding distribution items.', 3200);
+                    return;
+                }
+
                 clearGroupEditContext();
                 resetAddItemsModalForm($('#selectedDate').val());
                 $('#distributionGroupName').val('');
