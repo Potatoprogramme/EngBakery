@@ -746,6 +746,7 @@
         }; // Active selected group scope for analytics cards/panels
         let addItemsModalMode = 'create'; // create | edit
         let editingGroupContext = null; // Active group edit metadata context
+        let lastValidScheduleDate = ''; // Last accepted value of #scheduleDate, used to revert blocked selections
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         const distributionGroupStorageKey = 'engbakery_distribution_group_meta_v1';
@@ -943,6 +944,13 @@
                     .prop('disabled', disabled)
                     .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', disabled)
                     .attr('title', title);
+
+                // Keep the Add/Edit modal's "Today" quick-select in sync too,
+                // in case it's already open (or opens later) while the
+                // inventory check is still resolving.
+                if (typeof updateScheduleQuickBtns === 'function') {
+                    updateScheduleQuickBtns();
+                }
             }
 
             function checkOpenInventoryAndToggleAddItemsButtons() {
@@ -4067,6 +4075,7 @@
                 }
 
                 $('#scheduleDate').val(dateValue || $('#selectedDate').val());
+                lastValidScheduleDate = ($('#scheduleDate').val() || '').toString();
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
                 renderAddedItemsList();
@@ -4349,13 +4358,17 @@
             }
 
             $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function () {
-                if (openInventoryStatus === 'checking') {
-                    showToast('warning', 'Still checking today\'s inventory status — try again in a moment.', 2500);
-                    return;
-                }
-                if (openInventoryStatus !== 'open') {
-                    showToast('warning', 'Open today\'s inventory before adding distribution items.', 3200);
-                    return;
+                // The open-inventory gate only applies to today's distributions;
+                // advance/past dates don't depend on today's shift at all.
+                if (isSelectedDateToday()) {
+                    if (openInventoryStatus === 'checking') {
+                        showToast('warning', 'Still checking today\'s inventory status — try again in a moment.', 2500);
+                        return;
+                    }
+                    if (openInventoryStatus !== 'open') {
+                        showToast('warning', 'Open today\'s inventory before adding distribution items.', 3200);
+                        return;
+                    }
                 }
 
                 clearGroupEditContext();
@@ -4706,9 +4719,40 @@
 
             $('.schedule-quick-btn').on('click', function () {
                 const days = parseInt($(this).data('days'));
+                const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                    addItemsModalMode === 'edit' && !!editingGroupContext;
+
+                // Defense-in-depth: the button is already disabled in this
+                // state via updateScheduleQuickBtns(), but guard the handler
+                // too in case it's ever triggered programmatically.
+                if (!isEditMode && days === 0 && openInventoryStatus !== 'open') {
+                    showToast('warning', 'Open today\'s inventory before scheduling items for today.', 3200);
+                    return;
+                }
+
                 const newDate = new Date();
                 newDate.setDate(newDate.getDate() + days);
                 $('#scheduleDate').val(formatDate(newDate));
+                lastValidScheduleDate = formatDate(newDate);
+                updateScheduleQuickBtns();
+            });
+
+            // Guard the native date picker too: typing/selecting today's date
+            // directly (bypassing the quick-select buttons) should be blocked
+            // the same way while today's inventory isn't open.
+            $('#scheduleDate').on('change', function () {
+                const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                    addItemsModalMode === 'edit' && !!editingGroupContext;
+                const picked = ($(this).val() || '').toString();
+
+                if (!isEditMode && picked === formatDate(new Date()) && openInventoryStatus !== 'open') {
+                    showToast('warning', 'Open today\'s inventory before scheduling items for today.', 3200);
+                    // Revert to the previously selected (non-today) date.
+                    $(this).val(lastValidScheduleDate || formatDate(new Date(Date.now() + 86400000)));
+                } else {
+                    lastValidScheduleDate = picked;
+                }
+
                 updateScheduleQuickBtns();
             });
 
@@ -5483,11 +5527,32 @@
 
         function updateScheduleQuickBtns() {
             const selectedDate = $('#scheduleDate').val();
+            // Mirror the Add Items gate: the "Today" quick-select is only
+            // safe to use while today's inventory is actually open, since
+            // picking Today here is equivalent to clicking Add Items for
+            // today. Without this, a user could bypass the gate entirely by
+            // choosing another date first, opening the modal, then hitting
+            // "Today" to sneak a today-dated item in.
+            const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                addItemsModalMode === 'edit' && !!editingGroupContext;
+            const todayGateBlocked = (typeof openInventoryStatus !== 'undefined') &&
+                openInventoryStatus !== 'open';
 
             $('.schedule-quick-btn').each(function () {
                 const days = parseInt($(this).data('days'));
                 const btnDate = new Date();
                 btnDate.setDate(btnDate.getDate() + days);
+                const isTodayBtn = days === 0;
+                // Edit mode disables every quick button (date can't change);
+                // outside edit mode, only the Today button is gated, and only
+                // while today's inventory isn't open.
+                const blockThisBtn = isEditMode || (isTodayBtn && todayGateBlocked);
+
+                $(this)
+                    .prop('disabled', blockThisBtn)
+                    .toggleClass('opacity-50 cursor-not-allowed', blockThisBtn)
+                    .attr('title', (!isEditMode && isTodayBtn && todayGateBlocked) ?
+                        'Open today\'s inventory before scheduling items for today.' : '');
 
                 if (formatDate(btnDate) === selectedDate) {
                     $(this).removeClass('border border-gray-300 text-gray-600').addClass('bg-primary text-white');
