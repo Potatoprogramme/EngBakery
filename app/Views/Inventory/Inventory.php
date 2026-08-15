@@ -3415,6 +3415,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 items.forEach(function(item) {
                     const formattedPrice = '₱' + parseFloat(item.selling_price || 0).toFixed(2);
                     const beginning = parseInt(item.beginning_stock) || 0;
+                    const addedQty = parseInt(item.added_qty) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const qtySold = parseInt(item.quantity_sold) || 0;
                     const ending_stock = parseInt(item.ending_stock) || 0;
@@ -3446,7 +3447,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-800">' + (item.product_name || 'N/A') +
                         '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formattedPrice + '</td>';
-                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + beginning + '</td>';
+                    rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + formatBeginningWithAdded(beginning, addedQty) + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + pullOut + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + ending_stock + '</td>';
                     rows += '<td class="px-6 py-2.5 text-sm text-gray-600">' + qtySold + '</td>';
@@ -3843,22 +3844,24 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 $('#editDistributionGroupQty').val(0);
                 $('#editDistributionCategorySelect').val('');
 
-                // Show Add More for bakery and grocery; Distribution Group stays bakery-only.
-                const showAddMoreGroup = (category === 'bakery' || category === 'grocery');
-                const showDistributionGroup = (category === 'bakery');
+                // Show Add More for bakery/grocery and keep Distribution Group bakery-only.
+                // Staff view remains simplified with both groups hidden.
+                const canShowAddMore = !isStaffView && (category === 'bakery' || category === 'grocery');
+                const canShowDistribution = !isStaffView && category === 'bakery';
 
-                if (showAddMoreGroup) {
+                if (canShowAddMore) {
                     $('#editAddMoreGroup').removeClass('hidden');
                 } else {
                     $('#editAddMoreGroup').addClass('hidden');
                     $('#editProductGroupQty').val(0);
                 }
 
-                if (showDistributionGroup) {
+                if (canShowDistribution) {
                     $('#editDistributionGroup').removeClass('hidden');
                 } else {
                     $('#editDistributionGroup').addClass('hidden');
                     $('#editDistributionGroupQty').val(0);
+                    $('#editDistributionCategorySelect').val('');
                 }
 
                 // Populate distribution and carryover info
