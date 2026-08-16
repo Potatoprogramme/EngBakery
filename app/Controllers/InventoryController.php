@@ -2425,45 +2425,30 @@ class InventoryController extends BaseController
     }
 
     /**
-     * NEW: Deduct raw materials for a product
-     * Handles both direct recipes and combined recipes
+     * Deduct raw materials for a product using the same per-piece production logic
+     * used by the recipe/ingredient system, including combined recipes.
      */
-    private function deductRawMaterialsForProduct(int $productId, int $quantity)
+    private function deductRawMaterialsForProduct(int $productId, int $quantity, bool $allowInsufficient = false)
     {
         try {
             if ($productId <= 0 || $quantity <= 0) {
                 return;
             }
 
-            $productRecipeModel = model('ProductRecipeModel');
-            $productCombinedRecipeModel = model('ProductCombinedRecipeModel');
-            $rawMaterialModel = model('RawMaterialModel');
+            $rawMaterialStockModel = model('RawMaterialStockModel');
+            $result = $rawMaterialStockModel->deductForProduction($productId, $quantity, false, $allowInsufficient);
 
-            // Check for direct recipes
-            $directRecipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
-            if (!empty($directRecipe)) {
-                foreach ($directRecipe as $material) {
-                    $materialId = intval($material['material_id'] ?? 0);
-                    $requiredQty = floatval($material['required_quantity'] ?? 0);
-                    if ($materialId > 0 && $requiredQty > 0) {
-                        $totalDeduction = $requiredQty * $quantity;
-                        $rawMaterialModel->deductMaterial($materialId, $totalDeduction);
-                    }
-                }
-            }
-
-            // Check for combined recipes
-            $combinedRecipes = $productCombinedRecipeModel->getCombinedRecipesByProductId($productId);
-            foreach ($combinedRecipes as $recipe) {
-                $componentProductId = intval($recipe['component_product_id'] ?? 0);
-                $componentQty = intval($recipe['component_quantity'] ?? 0);
-                if ($componentProductId > 0 && $componentQty > 0) {
-                    // Recursively deduct materials for component products
-                    $this->deductRawMaterialsForProduct($componentProductId, $componentQty * $quantity);
-                }
+            if (!$result['success'] && !empty($result['deductions'])) {
+                log_message('warning', 'Inventory material deduction failed for product {productId}: {message}', [
+                    'productId' => $productId,
+                    'message' => $result['message'] ?? 'Unknown error',
+                ]);
             }
         } catch (\Throwable $e) {
-            log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
+            log_message('error', 'Failed to deduct raw materials for product {productId}: {message}', [
+                'productId' => $productId,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
