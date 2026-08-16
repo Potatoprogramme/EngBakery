@@ -1121,11 +1121,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             const beginning = parseInventoryNumericValue(beginningStock);
             const added = parseInventoryNumericValue(addedQty);
 
-            if (beginning <= 0) {
-                return added > 0 ? String(added) : '0';
+            if (added > 0) {
+                return beginning + ' + ' + added;
             }
 
-            return added > 0 ? (beginning + ' + ' + added) : String(beginning);
+            return beginning > 0 ? String(beginning) : '0';
         }
 
         function formatInventoryPeso(amount) {
@@ -3189,6 +3189,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 return true;
             }
 
+            if (payload && payload.product_group_qty && (payload.beginning_stock != null || payload.pull_out_quantity != null || payload.ending_stock != null)) {
+                const addedDelta = parseInt(payload.product_group_qty) || 0;
+                item.added_qty = (parseInt(item.added_qty) || 0) + addedDelta;
+                item.ending_stock = (parseInt(item.ending_stock) || 0) + addedDelta;
+            }
+
             if (payload && payload.action === 'distribute') {
                 const distDelta = parseInt(payload.distribution_group_qty) || 0;
                 item.distributed_out_qty = (parseInt(item.distributed_out_qty) || 0) + distDelta;
@@ -3325,8 +3331,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             '" title="View materials used"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap text-center">';
+                    rows += '<div class="flex items-center justify-center gap-2 w-full">';
                     // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="bakery" title="View"><i class="fas fa-eye text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="bakery" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
@@ -3393,8 +3399,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             '" title="View materials used"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap text-center">';
+                    rows += '<div class="flex items-center justify-center gap-2 w-full">';
                     // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="drinks" title="View"><i class="fas fa-eye text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="drinks" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
@@ -3466,8 +3472,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             '" title="View raw materials"><i class="fas fa-flask"></i></button>';
                         rows += '</td>';
                     <?php endif; ?>
-                    rows += '<td class="px-6 py-3 whitespace-nowrap">';
-                    rows += '<div class="flex items-center gap-2 justify-center">';
+                    rows += '<td class="px-6 py-3 whitespace-nowrap text-center">';
+                    rows += '<div class="flex items-center justify-center gap-2 w-full">';
                     // rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-gray-600 transition hover:bg-gray-200 btn-view" data-id="' + item.item_id + '" data-category="grocery" title="View"><i class="fas fa-eye text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 btn-edit" data-id="' + item.item_id + '" data-category="grocery" title="Edit"><i class="fas fa-edit text-sm"></i></button>';
                     rows += '<button class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash text-sm"></i></button>';
@@ -3758,7 +3764,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 $('#editIsRemitted').val(itemIsRemitted ? '1' : '0');
                 $('#editProductName').text(item.product_name || 'N/A');
                 $('#editAddedQty').val(parseInt(item.added_qty) || 0);
-                $('#editOldBeginningStock').val(beginningStock + (parseInt(item.added_qty) || 0));
+                $('#editOldBeginningStock').val(beginningStock);
                 $('#editOldPullOutQuantity').val(pullOutQty);
                 $('#editOldEndingStock').val(endingStock);
                 const dbQuantitySoldRaw = parseInt(item.quantity_sold_db);
@@ -3884,8 +3890,19 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 // Update the distribution display
                 runEditPreviewUpdate('modal-open');
 
-                // Show modal
+                // Show modal and focus the first field in the form so users see the beginning input first.
                 $('#editInventoryModal').removeClass('hidden');
+                setTimeout(function () {
+                    if ($('#editBeginningGroup').is(':visible') && $('#editBeginningStock').length) {
+                        $('#editBeginningStock').focus().select();
+                        return;
+                    }
+
+                    const $firstVisibleInput = $('#editInventoryForm input:visible, #editInventoryForm select:visible').first();
+                    if ($firstVisibleInput.length) {
+                        $firstVisibleInput.focus();
+                    }
+                }, 50);
             } else {
                 showToast('error', 'Could not find item data', 2000);
             }
@@ -4025,13 +4042,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             if (isAdjustmentMode) {
                 const addMoreQty = parseInt($('#editProductGroupQty').val()) || 0;
+                const existingAddedQty = parseInt($('#editAddedQty').val()) || 0;
                 const projectedBeginning = oldBeginning + beginningInput;
+                const effectiveBeginningBase = projectedBeginning + existingAddedQty + addMoreQty;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
-                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut - distributedOutQty + addMoreQty);
-                const autoProjectedEnding = Math.min(maxAllowedEnding, Math.max(0, oldEnding + beginningInput - pullOutInput + addMoreQty));
-                if (source === 'beginning' || source === 'pullout' || source === 'addmore' || source === 'modal-open') {
-                    $('#editEndingStock').val(autoProjectedEnding);
+                const maxAllowedEnding = Math.max(0, effectiveBeginningBase - projectedPullOut - distributedOutQty);
+                const autoProjectedEnding = Math.max(0, oldEnding + beginningInput + addMoreQty - pullOutInput);
+                if (source === 'beginning' || source === 'pullout' || source === 'addmore') {
+                    $('#editEndingStock').val(Math.min(maxAllowedEnding, autoProjectedEnding));
                 }
 
                 const endingFieldValue = parseInt($('#editEndingStock').val(), 10);
@@ -4044,7 +4063,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                 const wouldReduceDbQtySold = projectedInventoryQtySold < oldQtySold;
                 const statusHtml = wouldExceedAllowedEnding ?
-                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning - Pull Out).</div>' :
+                    '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending cannot exceed (Beginning + Add More - Pull Out - Distribution).</div>' :
                     wouldReduceDbQtySold ?
                         '<div class="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">Ending is too high. This would reduce Qty Sold below the database value (' +
                         oldQtySold + '), so it is not allowed.</div>' :
@@ -4300,8 +4319,11 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             let payload;
 
-            // NEW: Handle Store action (Add More)
-            if (productGroupQty > 0) {
+            const hasAdjustmentFields = (beginningInput !== 0 || pullOutInput !== 0 || endingInput !== 0);
+
+            // Handle Store action (Add More), but do not let it override a simultaneous
+            // beginning adjustment. If both are present, save them together as one update.
+            if (productGroupQty > 0 && !hasAdjustmentFields) {
                 payload = {
                     action: 'store',
                     product_group_qty: productGroupQty
@@ -4381,6 +4403,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 };
             } else if (isAdjustmentMode) {
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
+                const existingAddedQty = parseInt($('#editAddedQty').val()) || 0;
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
                 const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
                 const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
@@ -4388,9 +4411,9 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const projectedBeginning = oldBeginning + beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
-                const maxAllowedEnding = Math.max(0, projectedBeginning - projectedPullOut - distributedOutQty);
-                const projectedInventoryQtySold = Math.max(0, projectedBeginning - projectedPullOut -
-                    distributedOutQty - projectedEnding);
+                const effectiveAvailableStock = Math.max(0, projectedBeginning + existingAddedQty + productGroupQty - projectedPullOut - distributedOutQty);
+                const maxAllowedEnding = effectiveAvailableStock;
+                const projectedInventoryQtySold = Math.max(0, projectedBeginning + existingAddedQty + productGroupQty - projectedPullOut - distributedOutQty - projectedEnding);
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
@@ -4412,7 +4435,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 }
 
                 if (projectedEnding > maxAllowedEnding) {
-                    showToast('warning', 'Ending cannot exceed Beginning minus Pull Out and Distribution.', 2500);
+                    showToast('warning', 'Ending cannot exceed Beginning + Add More - Pull Out - Distribution.', 2500);
                     restoreSubmitButton();
                     return;
                 }
@@ -4431,6 +4454,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     pull_out_quantity: pullOutInput,
                     ending_stock: endingInput
                 };
+
+                if (productGroupQty > 0) {
+                    payload.product_group_qty = productGroupQty;
+                }
             } else {
                 if (beginningInput < 0 || pullOutInput < 0) {
                     showToast('warning', 'Values cannot be negative', 2000);
@@ -4465,8 +4492,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             loadInventory(allInventoryItems, {
                                 fetchCarryover: false
                             });
-                            // Re-sync in the background so totals remain source-of-truth accurate.
-                            setTimeout(fetchAllStockitems, 700);
+                            // Keep the UI in sync immediately without waiting for a delayed refetch.
+                            if (typeof fetchAllStockitems === 'function') {
+                                fetchAllStockitems();
+                            }
                             // If the server returned a manual order, notify other parts of the app
                             try {
                                 if (response.data && response.data.manual_order) {
@@ -5173,7 +5202,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 <h3 class="text-lg font-semibold text-gray-800">
                     <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
                 </h3>
-                <button id="deductionWarningModalClose" onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
+                <button id="deductionWarningModalClose"
+                    onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
                     class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>

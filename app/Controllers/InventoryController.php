@@ -965,9 +965,11 @@ class InventoryController extends BaseController
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
+        $storeQtyFromPayload = isset($json->product_group_qty) ? intval($json->product_group_qty) : 0;
+        $combinedWithAdjustment = ($storeQtyFromPayload > 0 && (isset($json->beginning_stock) || isset($json->pull_out_quantity) || isset($json->ending_stock)));
 
-        if ($action === 'store') {
-            $productGroupQty = intval($json->product_group_qty ?? 0);
+        if ($action === 'store' && !$combinedWithAdjustment) {
+            $productGroupQty = $storeQtyFromPayload;
             if ($productGroupQty <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
@@ -1085,6 +1087,69 @@ class InventoryController extends BaseController
             ]);
         }
 
+        if ($combinedWithAdjustment) {
+            $inputBeginning = intval($json->beginning_stock ?? 0);
+            $inputPullOut = intval($json->pull_out_quantity ?? 0);
+            $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
+
+            $oldBeginning = intval($item['beginning_stock']);
+            $oldPullOut = intval($item['pull_out_quantity']);
+            $oldEnding = intval($item['ending_stock']);
+            $oldAddedQty = intval($item['added_qty'] ?? 0);
+
+            $newBeginning = $oldBeginning + $inputBeginning;
+            $newPullOut = $oldPullOut + $inputPullOut;
+            $newEndingStock = $inputEnding;
+            $newAddedQty = $oldAddedQty + $storeQtyFromPayload;
+
+            if ($inputPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Pull Out only accepts positive additions in adjustment mode.'
+                ]);
+            }
+
+            if ($newEndingStock < 0 || $newBeginning < 0 || $newPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+
+            if ($newEndingStock > $newBeginning + $newAddedQty) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be greater than beginning stock plus added quantity.'
+                ]);
+            }
+
+            $updateResult = $this->dailyStockItemsModel->update($item_id, [
+                'beginning_stock' => $newBeginning,
+                'pull_out_quantity' => $newPullOut,
+                'ending_stock' => $newEndingStock,
+                'added_qty' => $newAddedQty,
+            ]);
+
+            if ($updateResult) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Inventory item updated successfully',
+                    'data' => [
+                        'beginning_stock' => $newBeginning,
+                        'pull_out_quantity' => $newPullOut,
+                        'ending_stock' => $newEndingStock,
+                        'added_qty' => $newAddedQty,
+                    ]
+                ]);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to update inventory item',
+                'errors' => $this->dailyStockItemsModel->errors()
+            ]);
+        }
+
         if (!$isAdjustmentMode && ($json->beginning_stock < 0 || $json->pull_out_quantity < 0)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
@@ -1151,17 +1216,19 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            if ($newBeginning <= 0) {
+            $effectiveBeginningBase = $newBeginning + $addedQty;
+
+            if ($effectiveBeginningBase <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Beginning stock must be greater than zero. Delete the item if you want to remove it from inventory.'
                 ]);
             }
 
-            if ($newEndingStock > $newBeginning + $addedQty) {
+            if ($newEndingStock > $effectiveBeginningBase) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Ending stock cannot be greater than beginning stock.'
+                    'message' => 'Ending stock cannot be greater than the combined beginning and add-more stock.'
                 ]);
             }
         } else {
