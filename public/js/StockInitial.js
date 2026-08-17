@@ -16,6 +16,7 @@ $(document).ready(function () {
   let currentViewEntryId = null;
   let fixedEditUsed = null;
   let editBaseInitialQty = 0;
+  let pendingWarningSubmit = null;
   let syncingInitialFromAddStock = false;
   const compactRemainingBreakpoint = 1290;
   const compactActionsBreakpoint = 1290;
@@ -25,6 +26,7 @@ $(document).ready(function () {
   const modalSelectorsForScrollLock = [
     "#stockInitialModal",
     "#deleteConfirmModal",
+    "#editStockWarningModal",
     "#viewStockModal",
   ];
 
@@ -294,11 +296,6 @@ $(document).ready(function () {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     let remaining = parseFloat($(this).val()) || 0;
 
-    if (remaining < 0) {
-      $(this).val(0);
-      remaining = 0;
-    }
-
     if (remaining > initial) {
       // Show inline error, red border, disable Update
       $(this)
@@ -327,14 +324,14 @@ $(document).ready(function () {
     const isEdit = $("#edit_stock_id").val() !== "";
 
     const rawRemaining = parseFloat($("#remaining_qty").val()) || 0;
-    const remaining = Math.min(Math.max(0, rawRemaining), initial);
+    const remaining = Math.min(rawRemaining, initial);
 
     let used;
 
     if (isEdit && fixedEditUsed !== null && source !== "remaining") {
       // Keep used fixed unless user explicitly edits remaining
       used = Math.max(0, fixedEditUsed);
-      $("#remaining_qty").val(Math.max(0, initial - used));
+      $("#remaining_qty").val(initial - used);
     } else {
       // Recompute used from stock on hand and remaining
       used = Math.max(0, initial - remaining);
@@ -401,13 +398,26 @@ $(document).ready(function () {
 
     if (isEdit) {
       payload.stock_id = entryId;
-      payload.remaining = Math.min(Math.max(0, remaining), initial); // Send remaining, server computes used
+      payload.remaining = Math.min(remaining, initial); // Send remaining, server computes used
     } else {
       payload.qty_used = 0;
     }
 
     if (isEdit && initial < qtyUsed) {
-      showToast("error", "Cannot be less than used");
+      const negativeRemaining = initial - qtyUsed;
+      pendingWarningSubmit = {
+        url: baseUrl + "MaterialStock/Update",
+        payload: payload,
+      };
+      $("#editStockWarningMessage").text(
+        "Used quantity is " +
+          formatNumber(qtyUsed) +
+          ". If you proceed, remaining will be " +
+          formatNumber(negativeRemaining) +
+          ".",
+      );
+      $("#editStockWarningModal").removeClass("hidden");
+      syncModalBodyScrollLock();
       return;
     }
 
@@ -439,6 +449,50 @@ $(document).ready(function () {
         $("#btnSaveEntry").prop("disabled", false).text("Save");
       },
     });
+  });
+
+  function submitPendingWarningUpdate() {
+    if (!pendingWarningSubmit) return;
+
+    const req = pendingWarningSubmit;
+    pendingWarningSubmit = null;
+    $("#editStockWarningModal").addClass("hidden");
+    syncModalBodyScrollLock();
+
+    $("#btnSaveEntry").prop("disabled", true).text("Saving...");
+
+    $.ajax({
+      url: req.url,
+      type: "POST",
+      data: JSON.stringify(req.payload),
+      contentType: "application/json",
+      dataType: "json",
+      success: function (res) {
+        if (res.success) {
+          showToast("success", res.message);
+          closeModal();
+          loadEntries();
+        } else {
+          showToast("error", res.message);
+        }
+      },
+      error: function () {
+        showToast("error", "Server error. Please try again.");
+      },
+      complete: function () {
+        $("#btnSaveEntry").prop("disabled", false).text("Save");
+      },
+    });
+  }
+
+  $("#btnCancelEditWarning").on("click", function () {
+    pendingWarningSubmit = null;
+    $("#editStockWarningModal").addClass("hidden");
+    syncModalBodyScrollLock();
+  });
+
+  $("#btnProceedEditWarning").on("click", function () {
+    submitPendingWarningUpdate();
   });
 
   // ──────────────────────────────
@@ -483,7 +537,7 @@ $(document).ready(function () {
             const qtyUsed = parseFloat(d.qty_used) || 0;
             fixedEditUsed = Math.max(0, qtyUsed);
             const initialQty = parseFloat(d.initial_qty) || 0;
-            const remaining = Math.max(0, initialQty - fixedEditUsed);
+            const remaining = initialQty - fixedEditUsed;
             $("#remaining_qty").val(remaining);
 
             // Show edit-only fields
@@ -750,7 +804,7 @@ $(document).ready(function () {
     data.forEach(function (entry) {
       const initial = parseFloat(entry.initial_qty) || 0;
       const used = parseFloat(entry.qty_used) || 0;
-      const remaining = Math.max(0, initial - used);
+      const remaining = initial - used;
       const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
 
       // DYNAMIC cost calculations: qty * cost_per_unit
@@ -765,7 +819,9 @@ $(document).ready(function () {
         barTrack = "bg-emerald-100";
       let remainText = "text-gray-700";
       let barWidth =
-        initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+        initial > 0
+          ? Math.max(0, Math.min(100, (remaining / initial) * 100))
+          : 0;
       if (pct <= 10) {
         barColor = "bg-red-500";
         barTrack = "bg-red-100";
@@ -902,7 +958,7 @@ $(document).ready(function () {
       function (sum, entry) {
         const initial = parseFloat(entry.initial_qty) || 0;
         const used = parseFloat(entry.qty_used) || 0;
-        const remaining = Math.max(0, initial - used);
+        const remaining = initial - used;
         const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
 
         sum.initial += initial * costPerUnit;
@@ -940,7 +996,7 @@ $(document).ready(function () {
     pageItems.forEach(function (entry) {
       const initial = parseFloat(entry.initial_qty) || 0;
       const used = parseFloat(entry.qty_used) || 0;
-      const remaining = Math.max(0, initial - used);
+      const remaining = initial - used;
       const costPerUnit = parseFloat(entry.cost_per_unit) || 0;
 
       // DYNAMIC cost calculations
@@ -951,7 +1007,10 @@ $(document).ready(function () {
       const pct = initial > 0 ? (remaining / initial) * 100 : 0;
       let barColor = "bg-emerald-400",
         barTrack = "bg-emerald-100";
-      let barW = initial > 0 ? Math.min(100, (remaining / initial) * 100) : 0;
+      let barW =
+        initial > 0
+          ? Math.max(0, Math.min(100, (remaining / initial) * 100))
+          : 0;
       let remainTC = "text-emerald-700";
       if (pct <= 10) {
         barColor = "bg-red-500";
@@ -1223,7 +1282,7 @@ $(document).ready(function () {
 
           const initial = parseFloat(d.initial_qty) || 0;
           const used = parseFloat(d.qty_used) || 0;
-          const remaining = Math.max(0, initial - used);
+          const remaining = initial - used;
           const costPerUnit = parseFloat(d.cost_per_unit) || 0;
           const initialCost = initial * costPerUnit;
           const usedCost = used * costPerUnit;
@@ -1347,7 +1406,7 @@ $(document).ready(function () {
                 const qtyUsed = parseFloat(d.qty_used) || 0;
                 fixedEditUsed = Math.max(0, qtyUsed);
                 const initialQty = parseFloat(d.initial_qty) || 0;
-                const remaining = Math.max(0, initialQty - fixedEditUsed);
+                const remaining = initialQty - fixedEditUsed;
                 $("#remaining_qty").val(remaining);
 
                 $("#add_stock_wrapper").removeClass("hidden");
