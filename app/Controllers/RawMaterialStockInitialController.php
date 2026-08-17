@@ -175,17 +175,18 @@ class RawMaterialStockInitialController extends BaseController
         $stockId = intval($data['stock_id']);
         $existingBefore = $this->rawMaterialStockModel->find($stockId);
         $beforeCurrentQty = $existingBefore
-            ? max(0, floatval($existingBefore['initial_qty'] ?? 0) - floatval($existingBefore['qty_used'] ?? 0))
+            ? floatval($existingBefore['initial_qty'] ?? 0) - floatval($existingBefore['qty_used'] ?? 0)
             : 0;
 
-        // Remaining is sent from the form; compute qty_used = initial - remaining
+        // Remaining is sent from the form; compute qty_used = initial - remaining.
+        // Remaining can be negative (overused stock) but cannot exceed stock on hand.
         if (array_key_exists('remaining', $data) && is_numeric($data['remaining'])) {
-            $remaining = max(0, floatval($data['remaining']));
+            $remaining = floatval($data['remaining']);
             $initial = floatval($data['initial_qty']);
             if ($remaining > $initial) {
                 $remaining = $initial;
             }
-            $data['qty_used'] = max(0, $initial - $remaining);
+            $data['qty_used'] = $initial - $remaining;
         } else {
             $data['qty_used'] = $existingBefore['qty_used'] ?? 0;
         }
@@ -196,7 +197,7 @@ class RawMaterialStockInitialController extends BaseController
 
             if ($success) {
                 // NEW: log the net change as an "added" or "subtracted" entry
-                $afterCurrentQty = max(0, floatval($data['initial_qty']) - floatval($data['qty_used']));
+                $afterCurrentQty = floatval($data['initial_qty']) - floatval($data['qty_used']);
                 $delta = round($afterCurrentQty - $beforeCurrentQty, 4);
 
                 if ($delta != 0) {

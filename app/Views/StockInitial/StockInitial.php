@@ -237,7 +237,7 @@
                     </label>
                     <input type="number" name="remaining_qty" id="remaining_qty"
                         class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
-                        placeholder="0" min="0" step="0.00001" value="0">
+                        placeholder="0" step="0.00001" value="0">
                     <span id="remaining_error" class="text-red-500 text-xs mt-1 hidden">Remaining cannot exceed Stock On
                         Hand.</span>
                 </div>
@@ -296,6 +296,26 @@
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
                     <button type="button" id="btnConfirmDelete"
                         class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Warning Modal -->
+    <div id="editStockWarningModal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-sm mx-auto p-6 border shadow-lg rounded-md bg-white">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-amber-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Used Exceeds Stock On Hand</h3>
+                <p id="editStockWarningMessage" class="text-sm text-gray-600 mb-6">This update will make remaining stock negative.</p>
+                <div class="flex gap-3 justify-center">
+                    <button type="button" id="btnCancelEditWarning"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                    <button type="button" id="btnProceedEditWarning"
+                        class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">Proceed</button>
                 </div>
             </div>
         </div>
