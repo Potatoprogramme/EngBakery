@@ -85,8 +85,8 @@ const InventoryTable = {
         row += '<td class="px-6 py-4">' + (item.ending_stock || 0) + '</td>';
         row += '<td class="px-6 py-4">' + sales + '</td>';
         row += '<td class="px-6 py-4">';
-        row += '<button class="text-amber-600 hover:text-amber-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit"></i></button>';
-        row += '<button class="text-red-600 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash"></i></button>';
+        row += '<button class="text-yellow-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-yellow-800 me-2 btn-edit" data-id="' + item.item_id + '" title="Edit"><i class="fas fa-edit" aria-hidden="true"></i></button>';
+        row += '<button class="text-red-600 py-2 px-3 bg-gray-100 rounded border border-gray-300 hover:text-red-800 btn-delete" data-id="' + item.item_id + '" title="Delete"><i class="fas fa-trash" aria-hidden="true"></i></button>';
         row += '</td>';
         row += '</tr>';
 
