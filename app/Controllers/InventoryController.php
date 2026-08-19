@@ -1045,9 +1045,19 @@ class InventoryController extends BaseController
 
             $totalBeginning = intval($item['beginning_stock']) + intval($item['added_qty'] ?? 0);
             $pullOut = intval($item['pull_out_quantity']);
+            $endingQty = max(0, intval($item['ending_stock'] ?? 0));
             $alreadyDistributed = model('DistributionItemModel')
                 ->getAlreadyDistributedPiecesForShift($dailyStockId, $productId);
             $availableToDistribute = max(0, $totalBeginning - $pullOut - $alreadyDistributed);
+
+            if ($distributionGroupQty > $endingQty) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'exceeds_ending_stock' => true,
+                    'message' => "Cannot distribute {$distributionGroupQty} pcs — only {$endingQty} pcs remain in ending stock.",
+                    'available_to_distribute' => $endingQty,
+                ]);
+            }
 
             if ($distributionGroupQty > $availableToDistribute) {
                 return $this->response->setStatusCode(400)->setJSON([
