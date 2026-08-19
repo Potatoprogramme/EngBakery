@@ -3233,7 +3233,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const distributedOutQty = parseInt(item.distributed_out_qty) || 0;
                 const dbQtySoldRaw = parseInt(item.quantity_sold_db);
                 const dbQtySold = Number.isNaN(dbQtySoldRaw) ? 0 : Math.max(0, dbQtySoldRaw);
-                item.beginning_stock = (parseInt(item.beginning_stock) || 0) + beginningInput;
+                item.beginning_stock = beginningInput;
                 item.pull_out_quantity = (parseInt(item.pull_out_quantity) || 0) + pullOutInput;
                 item.ending_stock = endingInput;
                 const inventoryQtySold = Math.max(0, item.beginning_stock - item.pull_out_quantity - item.ending_stock);
@@ -3807,8 +3807,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     $('#editEndingHint').text(
                         'Auto-fills from beginning/pull out adjustments, but you can still edit this value.');
 
-                    // Beginning/Pull Out are adjustments; Ending is editable final value.
-                    $('#editBeginningStock').val(0).removeAttr('min');
+                    $('#editBeginningStock').val(beginningStock).attr('min', 0);
                     $('#editPullOutQuantity').val(0).attr('min', 0).attr('max', endingStock);
                     $('#editEndingStock').val(endingStock).attr('min', 0).prop('readonly', false).removeClass(
                         'bg-gray-50 cursor-not-allowed');
@@ -4043,12 +4042,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             if (isAdjustmentMode) {
                 const addMoreQty = parseInt($('#editProductGroupQty').val()) || 0;
                 const existingAddedQty = parseInt($('#editAddedQty').val()) || 0;
-                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedBeginning = beginningInput;
                 const effectiveBeginningBase = projectedBeginning + existingAddedQty + addMoreQty;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
                 const maxAllowedEnding = Math.max(0, effectiveBeginningBase - projectedPullOut - distributedOutQty);
-                const autoProjectedEnding = Math.max(0, oldEnding + beginningInput + addMoreQty - pullOutInput);
+                const beginningDelta = projectedBeginning - oldBeginning;
+                const autoProjectedEnding = Math.max(0, oldEnding + beginningDelta + addMoreQty - pullOutInput);
                 if (source === 'beginning' || source === 'pullout' || source === 'addmore') {
                     $('#editEndingStock').val(Math.min(maxAllowedEnding, autoProjectedEnding));
                 }
@@ -4158,7 +4158,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             const expected = distQty + carryQty;
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
             const beginningInput = parseInt($('#editBeginningStock').val()) || 0;
-            const currentBeginning = isAdjustmentMode ? (oldBeginning + beginningInput) : beginningInput;
+            const currentBeginning = beginningInput;
 
             // Distribution limit info bar
             const infoKey = expected + '|' + distQty + '|' + carryQty;
@@ -4408,7 +4408,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const distributedOutQty = parseInt($('#editOldDistributedOutQty').val()) || 0;
                 const oldQtySold = parseInt($('#editOldQuantitySold').val()) || 0;
 
-                const projectedBeginning = oldBeginning + beginningInput;
+                const projectedBeginning = beginningInput;
                 const projectedPullOut = oldPullOut + pullOutInput;
                 const projectedEnding = endingInput;
                 const effectiveAvailableStock = Math.max(0, projectedBeginning + existingAddedQty + productGroupQty - projectedPullOut - distributedOutQty);
@@ -4515,6 +4515,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     }
                 },
                 error: function (xhr, status, error) {
+                    if (distributionGroupQty > 0) {
+                        console.error('Error setting distribution for inventory item:', {
+                            itemId: itemId,
+                            productId: $('#editItemId').val(),
+                            status: status,
+                            error: error,
+                            response: xhr.responseJSON || xhr.responseText,
+                        });
+                    }
                     if (xhr.responseJSON && xhr.responseJSON.exceeds_available_stock) {
                         showToast('warning', xhr.responseJSON.message, 3500);
                     } else if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {

@@ -1097,7 +1097,7 @@ class InventoryController extends BaseController
             $oldEnding = intval($item['ending_stock']);
             $oldAddedQty = intval($item['added_qty'] ?? 0);
 
-            $newBeginning = $oldBeginning + $inputBeginning;
+            $newBeginning = $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
             $newAddedQty = $oldAddedQty + $storeQtyFromPayload;
@@ -1205,7 +1205,7 @@ class InventoryController extends BaseController
             // or pull-out delta is intentionally left as-is here — it flows
             // through downstream (fetchTodaysInventory/history) as quantity SOLD,
             // not as an implicit pull-out.
-            $newBeginning = $oldBeginning + $inputBeginning;
+            $newBeginning = $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
 
