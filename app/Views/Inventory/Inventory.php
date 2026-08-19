@@ -4567,8 +4567,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     }
                 },
                 error: function (xhr, status, error) {
-                    showToast('danger', xhr.responseJSON.message, 2000);
-                    console.log(xhr);
+                    const response = xhr.responseJSON || xhr.responseText;
+                    console.error('Error deleting inventory:', {
+                        statusCode: xhr.status,
+                        status: status,
+                        error: error,
+                        response: response,
+                    });
+                    showToast('danger', (xhr.responseJSON && xhr.responseJSON.message) ||
+                        'Error deleting inventory.', 2000);
                     if (typeof onDone === 'function') {
                         onDone(false);
                     }
