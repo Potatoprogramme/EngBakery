@@ -3703,7 +3703,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             if (!$input.length) return;
 
             const current = parseInt($input.val(), 10) || 0;
-            const nextValue = Math.max(0, current + delta);
+            const max = parseInt($input.attr('max'), 10);
+            const nextValue = Math.min(Number.isNaN(max) ? Number.MAX_SAFE_INTEGER : max, Math.max(0, current + delta));
             $input.val(nextValue).trigger('input');
         }
 
@@ -3725,6 +3726,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
         $('#btnIncreaseDistributionGroup').on('click', function () {
             adjustQuantityField('#editDistributionGroupQty', 1);
+        });
+
+        $('#editDistributionGroupQty').on('input change', function () {
+            const endingQty = Math.max(0, parseInt($('#editOldEndingStock').val(), 10) || 0);
+            const requestedQty = Math.max(0, parseInt($(this).val(), 10) || 0);
+            if (requestedQty > endingQty) {
+                $(this).val(endingQty);
+                showToast('warning', 'Distribution quantity cannot exceed the ending quantity of ' + endingQty + ' pcs.', 2500);
+            }
         });
 
         window.USER_ROLE = '<?= esc(strtolower((string) ($employee_type ?? ''))) ?>';
@@ -3846,7 +3856,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                 // Reset Store/Distribute fields
                 $('#editProductGroupQty').val(0);
-                $('#editDistributionGroupQty').val(0);
+                $('#editDistributionGroupQty').val(0).attr('max', Math.max(0, endingStock));
                 $('#editDistributionCategorySelect').val('');
 
                 // Restore the standard inventory edit fields for staff view as well.
@@ -4312,8 +4322,17 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
                 const addedQty = parseInt($('#editAddedQty').val()) || 0; // hidden input, populate on modal-open like other old-* fields
                 const oldPullOut = parseInt($('#editOldPullOutQuantity').val()) || 0;
+                const endingQty = Math.max(0, parseInt($('#editOldEndingStock').val()) || 0);
                 const totalBeginning = oldBeginning + addedQty;
                 const roughAvailable = Math.max(0, totalBeginning - oldPullOut);
+
+                if (distributionGroupQty > endingQty) {
+                    showToast('warning',
+                        'Cannot distribute ' + distributionGroupQty + ' pcs — only ' + endingQty + ' pcs remain in ending stock.',
+                        3200);
+                    restoreSubmitButton();
+                    return;
+                }
 
                 // Soft client-side guard (server still re-checks with already-distributed total)
                 if (distributionGroupQty > roughAvailable) {
