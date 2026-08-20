@@ -176,10 +176,6 @@ class AutoReportScheduler
         }
 
         $ownerEmails = self::resolveInventoryRecipients($owners);
-        $cashierEmail = self::resolveCashierEmail($cashierUserId);
-        if ($cashierEmail !== '' && !in_array($cashierEmail, $ownerEmails, true)) {
-            $ownerEmails[] = $cashierEmail;
-        }
 
         if (empty($ownerEmails)) {
             return [
@@ -1124,24 +1120,5 @@ class AutoReportScheduler
             'user_id' => $cashierId,
             'name' => $fullName !== '' ? $fullName : 'Unknown',
         ];
-    }
-
-    /**
-     * Resolve cashier email for manual-send copy routing.
-     */
-    private static function resolveCashierEmail(?int $cashierUserId): string
-    {
-        $cashierId = intval($cashierUserId ?? 0);
-        if ($cashierId <= 0) {
-            return '';
-        }
-
-        $usersModel = new UsersModel();
-        $cashier = $usersModel->find($cashierId);
-        if (empty($cashier)) {
-            return '';
-        }
-
-        return trim((string) ($cashier['email'] ?? ''));
     }
 }
