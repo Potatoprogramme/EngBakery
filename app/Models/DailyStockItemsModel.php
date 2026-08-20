@@ -349,9 +349,11 @@ class DailyStockItemsModel extends Model
                 "SELECT ds.daily_stock_id, ds.inventory_date
                  FROM daily_stock ds
                  INNER JOIN daily_stock_items dsi ON dsi.daily_stock_id = ds.daily_stock_id
-                 WHERE dsi.ending_stock > 0
-                 ORDER BY ds.daily_stock_id DESC
-                 LIMIT 1"
+                 WHERE ds.inventory_date < ?
+                   AND dsi.ending_stock > 0
+                 ORDER BY ds.inventory_date DESC, ds.daily_stock_id DESC
+                 LIMIT 1",
+                [$beforeDate]
             )->getRowArray();
         } catch (\Throwable $e) {
             log_message('error', 'CARRYOVER: Failed to load previous inventory carryover: {error}', [

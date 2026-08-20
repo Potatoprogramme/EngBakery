@@ -125,7 +125,7 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">Forecasted Sales</p>
-                                    <p class="text-[10px] text-gray-400">Entire day, based on distributions only</p>
+                                    <p class="text-[10px] text-gray-400">Entire day, includes distributions and store</p>
                                 </div>
                             </div>
                             <p id="forecastedSalesTotal" class="text-sm font-bold text-primary">₱0.00</p>
@@ -164,56 +164,28 @@
                     <!-- Distribution Groups Panel -->
                     <div class="bg-white rounded-lg shadow-md p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
                         <div class="flex items-center justify-between mb-3 flex-shrink-0">
-                            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                                <button type="button" class="distribution-panel-tab-btn px-3 py-1.5 text-xs font-semibold rounded-md transition-colors bg-primary text-white"
-                                    data-tab="distributionGroups">
-                                    <i class="fas fa-layer-group mr-1"></i>Distribution Groups
-                                </button>
-                                <button type="button" class="distribution-panel-tab-btn px-3 py-1.5 text-xs font-semibold rounded-md transition-colors text-gray-500 hover:text-gray-700"
-                                    data-tab="store">
-                                    <i class="fas fa-store mr-1"></i>Store
-                                </button>
-                            </div>
+                            <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                                <i class="fas fa-layer-group mr-1 text-primary"></i>Distribution Groups
+                            </h3>
                             <button type="button" id="btnAddItemsEmpty"
                                 class="text-xs text-primary hover:text-secondary font-medium">
                                 <i class="fas fa-plus mr-1"></i>Add
                             </button>
                         </div>
 
-                        <!-- Tab Panel: Distribution Groups (default active) -->
-                        <div id="tabPanelDistributionGroups" class="distribution-panel-tab flex flex-col flex-1 min-h-0">
-                            <!-- List Items - Scrollable -->
-                            <div id="distributionListContainer"
-                                class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
-                                <!-- Dynamically populated via JS -->
-                            </div>
-
-                            <!-- Empty State -->
-                            <div id="emptyState" class="hidden text-center py-8">
-                                <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
-                                    <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
-                                </div>
-                                <h3 class="text-sm font-medium text-gray-800 mb-1">No distribution groups scheduled</h3>
-                                <p class="text-xs text-gray-500">Click "Add" to add a distribution group</p>
-                            </div>
+                        <!-- List Items - Scrollable (Store entry renders first, then distribution groups) -->
+                        <div id="distributionListContainer"
+                            class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+                            <!-- Dynamically populated via JS -->
                         </div>
 
-                        <!-- Tab Panel: Store (placeholder — hidden by default) -->
-                        <div id="tabPanelStore" class="distribution-panel-tab hidden flex-col flex-1 min-h-0">
-                            <!-- List Items - Scrollable -->
-                            <div id="storeListContainer"
-                                class="space-y-2 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
-                                <!-- Dynamically populated via JS -->
+                        <!-- Empty State -->
+                        <div id="emptyState" class="hidden text-center py-8">
+                            <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
+                                <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
                             </div>
-
-                            <!-- Empty State -->
-                            <div id="emptyStateStore" class="hidden text-center py-8">
-                                <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-3 flex items-center justify-center">
-                                    <i class="fas fa-store text-gray-400 text-2xl"></i>
-                                </div>
-                                <h3 class="text-sm font-medium text-gray-800 mb-1">No Store Items added today</h3>
-                                <p class="text-xs text-gray-500">Add items to the store to see them here.</p>
-                            </div>
+                            <h3 class="text-sm font-medium text-gray-800 mb-1">No distribution groups scheduled</h3>
+                            <p class="text-xs text-gray-500">Click "Add" to add a distribution group</p>
                         </div>
                     </div>
                 </div>
@@ -353,7 +325,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500">Forecasted Sales</p>
-                                <p class="text-[10px] text-gray-400">Based on distributions only</p>
+                                <p class="text-[10px] text-gray-400">Based on distributions and store</p>
                             </div>
                         </div>
                         <p id="mobileForecastedSalesTotal" class="text-sm font-bold text-primary">₱0.00</p>
@@ -740,12 +712,14 @@
         let currentDayDistributionItems = []; // Store current selected date distribution items
         let currentDayGroupedData = []; // Grouped analytics for selected date
         let currentDaySummary = {}; // Day analytics summary for selected date
+        let storeItemsData = []; // Items added to Store for the selected date — rendered as the first entry in the distribution list
         let selectedGroupFilter = {
             date: '',
             key: ''
         }; // Active selected group scope for analytics cards/panels
         let addItemsModalMode = 'create'; // create | edit
         let editingGroupContext = null; // Active group edit metadata context
+        let lastValidScheduleDate = ''; // Last accepted value of #scheduleDate, used to revert blocked selections
         let currentCalendarMonth = new Date().getMonth();
         let currentCalendarYear = new Date().getFullYear();
         const distributionGroupStorageKey = 'engbakery_distribution_group_meta_v1';
@@ -753,7 +727,99 @@
 
 
 
-        $(document).ready(function () {
+        $(document).ready(function() {
+
+            let storeItemsByDate = {}; // date -> raw items from Inventory/GetAddedStockItems
+            let storeGroupByDate = {}; // date -> decorated "group" object (same shape as groupDistributionsByGroup output)
+            let storeRawUsageHydrationTokens = {};
+            const STORE_GROUP_KEY = 'store';
+
+            // Reuses the exact same cost/forecast helpers as normal distribution items,
+            // wrapping each store item in a synthetic distribution-item shape (qty_mode: 'pieces').
+            function decorateStoreItemAsDistributionItem(storeItem, dateStr) {
+                const productId = storeItem.product_id;
+                const productData = getProductAnalyticsData(productId);
+                const addedQty = parseNumericValue(storeItem.added_qty);
+
+                const item = {
+                    distribution_date: dateStr,
+                    product_id: productId,
+                    product_name: storeItem.product_name || (productData && productData.product_name) || 'Unknown Product',
+                    product_qnty: addedQty,
+                    qty_mode: 'pieces',
+                    distribution_group_key: STORE_GROUP_KEY,
+                    distribution_group_name: 'Store',
+                    distribution_group_note: '',
+                    raw_material_usage: [],
+                };
+
+                const fallbackUnitPrice = firstPositiveValue([storeItem.selling_price_per_piece, storeItem.selling_price]);
+                const unitPrice = (productData ? getForecastUnitPrice(productData, 'pieces') : 0) || fallbackUnitPrice;
+
+                item.forecasted_sales = addedQty * unitPrice;
+                item.total_cost = productData ? calculateItemTotalCost(item, productData) : 0;
+                item.overhead_cost = productData ? calculateItemOverheadCost(item, productData) : 0;
+                item.additional_cost = productData ? calculateItemAdditionalCost(item, productData) : 0;
+                item.unit_cost_per_piece = productData ? resolveProductTotalCostPerPiece(productData) : 0;
+                item.additional_cost_per_piece = productData ? resolveProductAdditionalCostPerPiece(productData) : 0;
+                item.total_price_per_piece = parseNumericValue(item.unit_cost_per_piece) + parseNumericValue(item.additional_cost_per_piece);
+
+                return item;
+            }
+
+            function buildStoreGroupObject(storeItems, dateStr) {
+                const items = (Array.isArray(storeItems) ? storeItems : [])
+                    .map(function(raw) {
+                        return decorateStoreItemAsDistributionItem(raw, dateStr);
+                    });
+
+                return {
+                    group_key: STORE_GROUP_KEY,
+                    group_name: 'Store',
+                    group_note: '',
+                    dist_category_id: 0,
+                    total_items: items.length,
+                    total_batches: 0, // store items are always tracked in pieces
+                    total_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.product_qnty), 0),
+                    forecasted_sales: items.reduce((sum, i) => sum + parseNumericValue(i.forecasted_sales), 0),
+                    total_cost: items.reduce((sum, i) => sum + parseNumericValue(i.total_cost), 0),
+                    raw_material_usage_total: [],
+                    source_group_ids: [],
+                    items: items,
+                };
+            }
+
+            function fetchStoreItemsForDate(dateStr) {
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        url: baseUrl + 'Inventory/GetAddedStockItems',
+                        method: 'GET',
+                        data: {
+                            date: dateStr
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            const items = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+                            storeItemsByDate[dateStr] = items;
+                            resolve(items);
+                        },
+                        error: function() {
+                            storeItemsByDate[dateStr] = [];
+                            resolve([]);
+                        }
+                    });
+                });
+            }
+
+            async function ensureStoreGroupForDate(dateStr, forceRefresh = false) {
+                if (!forceRefresh && storeGroupByDate[dateStr]) return storeGroupByDate[dateStr];
+
+                const items = (!forceRefresh && storeItemsByDate[dateStr]) ? storeItemsByDate[dateStr] : await fetchStoreItemsForDate(dateStr);
+                const group = buildStoreGroupObject(items, dateStr);
+                storeGroupByDate[dateStr] = group;
+                return group;
+            }
+
 
             function ensureCategoryOptionExists(categoryId, categoryName) {
                 const idStr = String(categoryId || '').trim();
@@ -812,7 +878,7 @@
                 const sourceIds = new Set();
 
                 if (item && Array.isArray(item.distribution_group_ids)) {
-                    item.distribution_group_ids.forEach(function (groupId) {
+                    item.distribution_group_ids.forEach(function(groupId) {
                         const parsed = parseInt(groupId, 10);
                         if (Number.isFinite(parsed) && parsed > 0) {
                             sourceIds.add(parsed);
@@ -836,7 +902,7 @@
             ];
 
             function syncModalBodyScrollLock() {
-                const hasOpenModal = modalScrollLockSelectors.some(function (selector) {
+                const hasOpenModal = modalScrollLockSelectors.some(function(selector) {
                     const modal = $(selector);
                     return modal.length > 0 && !modal.hasClass('hidden');
                 });
@@ -845,11 +911,11 @@
             }
 
             function initializeModalBodyScrollLock() {
-                modalScrollLockSelectors.forEach(function (selector) {
+                modalScrollLockSelectors.forEach(function(selector) {
                     const modalElement = document.querySelector(selector);
                     if (!modalElement) return;
 
-                    const observer = new MutationObserver(function () {
+                    const observer = new MutationObserver(function() {
                         syncModalBodyScrollLock();
                     });
 
@@ -867,35 +933,36 @@
 
             initializeModalBodyScrollLock();
 
-            function switchDistributionPanelTab(tabName) {
-                const isStore = tabName === 'store';
+            // function switchDistributionPanelTab(tabName) {
+            //     const isStore = tabName === 'store';
 
-                $('#tabPanelDistributionGroups')
-                    .toggleClass('hidden', isStore)
-                    .toggleClass('flex', !isStore);
-                $('#tabPanelStore')
-                    .toggleClass('hidden', !isStore)
-                    .toggleClass('flex', isStore);
+            //     $('#tabPanelDistributionGroups')
+            //         .toggleClass('hidden', isStore)
+            //         .toggleClass('flex', !isStore);
+            //     $('#tabPanelStore')
+            //         .toggleClass('hidden', !isStore)
+            //         .toggleClass('flex', isStore);
 
-                $('.distribution-panel-tab-btn')
-                    .removeClass('bg-primary text-white')
-                    .addClass('text-gray-500 hover:text-gray-700');
-                $(`.distribution-panel-tab-btn[data-tab="${tabName}"]`)
-                    .addClass('bg-primary text-white')
-                    .removeClass('text-gray-500 hover:text-gray-700');
+            //     $('.distribution-panel-tab-btn')
+            //         .removeClass('bg-primary text-white')
+            //         .addClass('text-gray-500 hover:text-gray-700');
+            //     $(`.distribution-panel-tab-btn[data-tab="${tabName}"]`)
+            //         .addClass('bg-primary text-white')
+            //         .removeClass('text-gray-500 hover:text-gray-700');
 
-                $('#btnAddItemsEmpty').toggleClass('hidden', isStore);
+            //     $('#btnAddItemsEmpty').toggleClass('hidden', isStore);
 
-                if (isStore) {
-                    loadStoreAddedItems(); // NEW
-                }
-            }
-            $('.distribution-panel-tab-btn').on('click', function() {
-                switchDistributionPanelTab($(this).data('tab'));
-            });
+            //     if (isStore) {
+            //         loadStoreAddedItems(); // NEW
+            //     }
+            // }
 
-            // Set default active tab
-            switchDistributionPanelTab('distributionGroups');
+            // $('.distribution-panel-tab-btn').on('click', function() {
+            //     switchDistributionPanelTab($(this).data('tab'));
+            // });
+
+            // // Set default active tab
+            // switchDistributionPanelTab('distributionGroups');
 
             // ===== OPEN INVENTORY GATE FOR "ADD ITEMS" =====
             // The Add Items button(s) should only be usable while there is an
@@ -943,6 +1010,13 @@
                     .prop('disabled', disabled)
                     .toggleClass('opacity-50 cursor-not-allowed pointer-events-none', disabled)
                     .attr('title', title);
+
+                // Keep the Add/Edit modal's "Today" quick-select in sync too,
+                // in case it's already open (or opens later) while the
+                // inventory check is still resolving.
+                if (typeof updateScheduleQuickBtns === 'function') {
+                    updateScheduleQuickBtns();
+                }
             }
 
             function checkOpenInventoryAndToggleAddItemsButtons() {
@@ -961,12 +1035,12 @@
                     url: baseUrl + 'Inventory/CheckActiveInventories',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         openInventoryStatus = (response && response.success && response.has_active) ?
                             'open' : 'closed';
                         applyAddItemsButtonState();
                     },
-                    error: function () {
+                    error: function() {
                         // Fail closed: if we can't confirm an open inventory,
                         // don't allow new distribution items to be added
                         // (only matters when we're actually gating, i.e. today).
@@ -984,6 +1058,7 @@
             loadMonthDistributions();
             loadAllDistributions();
             checkOpenInventoryAndToggleAddItemsButtons();
+            loadStoreAddedItems();
             // ===== API FUNCTIONS =====
 
             function getProducts() {
@@ -991,7 +1066,7 @@
                     url: baseUrl + 'Distribution/GetProducts',
                     method: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             productsData = response.data;
                             mergeProductCostRecords(productsData, {
@@ -1009,8 +1084,7 @@
                         const daySummary = getDayScopedSummary(currentDaySummary);
 
                         updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
-                        updateForecastedSales(currentDayDistributionItems, daySummary);
-                        renderOwnerDayMetrics(daySummary);
+                        refreshDayTotalsDisplay(selectedDate);
                         renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                         renderAllDistributionsList();
@@ -1021,7 +1095,7 @@
                             updateModalForecastedSales(modalItems, modalSummary);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error('Error fetching products:', error);
                     }
                 });
@@ -1047,7 +1121,7 @@
                     console.log('   Sample product:', recordArray[0].product_id, recordArray[0].product_name, '| combined_recipe_cost:', recordArray[0].combined_recipe_cost);
                 }
 
-                recordArray.forEach(function (record) {
+                recordArray.forEach(function(record) {
                     const productId = String(record.product_id || '').trim();
                     if (!productId) return;
 
@@ -1055,7 +1129,7 @@
                     const mergedRecord = Object.assign({}, record);
 
                     if (preserveExistingCostFields) {
-                        protectedCostFields.forEach(function (field) {
+                        protectedCostFields.forEach(function(field) {
                             const existingRaw = existingRecord[field];
                             const incomingRaw = mergedRecord[field];
                             const existingValue = parseNumericValue(existingRaw);
@@ -1079,12 +1153,16 @@
                     url: baseUrl + 'Products/GetAll',
                     method: 'GET',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response && response.success && Array.isArray(response.data)) {
                             console.log('\ud83d\udd04 [loadProductCostData] Merging', response.data.length, 'products with cost details');
                             mergeProductCostRecords(response.data, {
                                 preserveExistingCostFields: false
                             });
+                            const selectedDateForStoreRefresh = ($('#selectedDate').val() || '').toString();
+                            if (storeGroupByDate[selectedDateForStoreRefresh]) {
+                                renderDistributionList(currentDayDistributionItems, currentDayGroupedData, selectedDateForStoreRefresh);
+                            }
                             // Re-decorate existing items with new cost data (including combined_recipe_cost) instead of re-fetching
                             if (currentDayDistributionItems.length > 0) {
                                 console.log('\ud83d\udd04 [loadProductCostData] Re-decorating', currentDayDistributionItems.length, 'items with enriched product costs');
@@ -1102,15 +1180,14 @@
                                 const daySummary = getDayScopedSummary(currentDaySummary);
 
                                 updateSummaryCounts(displayState.items, displayState.summary, selectedDate);
-                                updateForecastedSales(currentDayDistributionItems, daySummary);
-                                renderOwnerDayMetrics(daySummary);
+                                refreshDayTotalsDisplay(selectedDate);
                                 renderOwnerAnalytics(displayState.groups, displayState.summary);
                             }
                         }
 
                         renderAllDistributionsList();
                     },
-                    error: function () {
+                    error: function() {
                         // Keep using lightweight product data fallback.
                     }
                 });
@@ -1126,7 +1203,7 @@
                     return productCostMap[key];
                 }
 
-                const fromList = productsData.find(function (product) {
+                const fromList = productsData.find(function(product) {
                     return String(product.product_id) === key;
                 });
 
@@ -1176,7 +1253,7 @@
             }
 
             function calculateTotalDistributionPieces(items) {
-                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     const productData = getProductAnalyticsData(item && item.product_id);
                     return sum + getDistributionPieces(item, productData);
                 }, 0);
@@ -1296,7 +1373,7 @@
             function decorateDistributionItems(items, fallbackDate = '') {
                 const normalizedItems = applyLocalDistributionGroupMeta(items, fallbackDate);
 
-                return normalizedItems.map(function (item) {
+                return normalizedItems.map(function(item) {
                     const decoratedItem = Object.assign({}, item);
                     const productData = getProductAnalyticsData(decoratedItem.product_id);
                     const quantity = parseNumericValue(decoratedItem.product_qnty);
@@ -1497,7 +1574,7 @@
                     allMeta[dateKey] = {};
                 }
 
-                productIds.forEach(function (productId) {
+                productIds.forEach(function(productId) {
                     const productKey = String(productId || '').trim();
                     if (!productKey) return;
 
@@ -1551,8 +1628,8 @@
                 const dateMeta = allMeta[dateKey] || {};
                 const usedNames = new Set(
                     Object.values(dateMeta)
-                        .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
-                        .filter(Boolean)
+                    .map(meta => (meta && meta.group_name ? String(meta.group_name).trim() : ''))
+                    .filter(Boolean)
                 );
 
                 let sequence = 1;
@@ -1564,7 +1641,7 @@
             }
 
             function applyLocalDistributionGroupMeta(items, fallbackDate = '') {
-                return (Array.isArray(items) ? items : []).map(function (item) {
+                return (Array.isArray(items) ? items : []).map(function(item) {
                     const enrichedItem = Object.assign({}, item);
                     const dateValue = ((enrichedItem && enrichedItem.distribution_date) || fallbackDate ||
                         '').toString().trim();
@@ -1641,7 +1718,7 @@
             function groupDistributionsByGroup(items, fallbackDate = '') {
                 const groupedMap = {};
 
-                (items || []).forEach(function (item) {
+                (items || []).forEach(function(item) {
                     const groupKey = getDistributionGroupKey(item, fallbackDate);
                     const categoryId = parseInt((item && (item.dist_category_id ?? item.distribution_category_id ?? item.category_id ?? item.dist_cat_id)) || 0, 10);
 
@@ -1668,7 +1745,7 @@
                     }
 
                     const sourceGroupIds = getItemSourceGroupIds(item);
-                    sourceGroupIds.forEach(function (groupId) {
+                    sourceGroupIds.forEach(function(groupId) {
                         if (groupedMap[groupKey].source_group_ids.indexOf(groupId) === -1) {
                             groupedMap[groupKey].source_group_ids.push(groupId);
                         }
@@ -1690,13 +1767,13 @@
                     );
 
                     groupedMap[groupKey].forecasted_sales += hasPersistedNumericValue(item,
-                        'forecasted_sales') ?
+                            'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
                         fallbackForecast;
                     groupedMap[groupKey].total_cost += parseNumericValue(item.total_cost);
 
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(groupedMap[groupKey]._raw_material_usage_map,
                                 material);
                         });
@@ -1704,7 +1781,7 @@
                     groupedMap[groupKey].items.push(item);
                 });
 
-                return Object.values(groupedMap).map(function (group) {
+                return Object.values(groupedMap).map(function(group) {
                     const normalizedGroup = Object.assign({}, group);
                     normalizedGroup.raw_material_usage_total = materialUsageMapToArray(normalizedGroup
                         ._raw_material_usage_map);
@@ -1727,7 +1804,7 @@
 
                 const totalBatches = group ?
                     parseNumericValue(group.total_batches) :
-                    groupItems.reduce(function (sum, item) {
+                    groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
                             .product_qnty) : 0);
                     }, 0);
@@ -1781,7 +1858,7 @@
             function resolveGroupTotalCost(group, items) {
                 const normalizedItems = Array.isArray(items) ? items : [];
                 if (normalizedItems.length > 0) {
-                    return normalizedItems.reduce(function (sum, item) {
+                    return normalizedItems.reduce(function(sum, item) {
                         return sum + parseNumericValue(item.total_cost);
                     }, 0);
                 }
@@ -1790,7 +1867,7 @@
                     return parseNumericValue(group.total_cost);
                 }
 
-                return normalizedItems.reduce(function (sum, item) {
+                return normalizedItems.reduce(function(sum, item) {
                     return sum + parseNumericValue(item.total_cost);
                 }, 0);
             }
@@ -1800,7 +1877,7 @@
                     return parseNumericValue(group.overhead_cost);
                 }
 
-                return (Array.isArray(items) ? items : []).reduce(function (sum, item) {
+                return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
                     return sum + parseNumericValue(item.overhead_cost);
                 }, 0);
             }
@@ -1815,6 +1892,33 @@
                 }
 
                 return {};
+            }
+
+            function getDayScopedSummaryWithStore(dateStr) {
+                const targetDate = (dateStr || $('#selectedDate').val() || '').toString();
+                const base = getDayScopedSummary(currentDaySummary) || {};
+                const store = storeGroupByDate[targetDate];
+
+                if (!store) return base;
+
+                const storeOverhead = store.items.reduce((sum, item) => sum + parseNumericValue(item.overhead_cost), 0);
+
+                return Object.assign({}, base, {
+                    total_items: parseNumericValue(base.total_items) + store.items.length,
+                    total_pieces: parseNumericValue(base.total_pieces) + parseNumericValue(store.total_pieces),
+                    forecasted_sales_total: parseNumericValue(base.forecasted_sales_total) + parseNumericValue(store.forecasted_sales),
+                    total_cost_total: parseNumericValue(base.total_cost_total) + parseNumericValue(store.total_cost),
+                    overhead_cost_total: parseNumericValue(base.overhead_cost_total) + storeOverhead,
+                });
+            }
+
+            // Central place to refresh the "entire day" cards (forecasted sales,
+            // total cost, overhead) so distributions + Store always stay in sync.
+            function refreshDayTotalsDisplay(dateStr) {
+                const targetDate = (dateStr || $('#selectedDate').val() || '').toString();
+                const mergedSummary = getDayScopedSummaryWithStore(targetDate);
+                updateForecastedSales(currentDayDistributionItems, mergedSummary);
+                renderOwnerDayMetrics(mergedSummary);
             }
 
             function setSelectedGroupFilter(dateStr, groupKey) {
@@ -1859,7 +1963,7 @@
                     };
                 }
 
-                const matchedGroup = normalizedGroups.find(function (group) {
+                const matchedGroup = normalizedGroups.find(function(group) {
                     return String(group.group_key || '').trim() === activeKey;
                 });
 
@@ -1897,7 +2001,7 @@
                     return '<p class="text-[11px] text-gray-400">No material usage data.</p>';
                 }
 
-                return materials.map(function (material) {
+                return materials.map(function(material) {
                     const amount = formatMaterialAmount(material.amount);
                     const unit = (material.unit || '').toString().trim();
                     const lineCost = parseNumericValue(material.line_cost);
@@ -1942,7 +2046,7 @@
             }
 
             function materialUsageMapToArray(materialMap) {
-                return Object.values(materialMap || {}).sort(function (a, b) {
+                return Object.values(materialMap || {}).sort(function(a, b) {
                     return String(a.material_name || '').localeCompare(String(b.material_name || ''));
                 });
             }
@@ -1951,7 +2055,7 @@
                 const mergedMap = {};
                 const order = [];
 
-                (Array.isArray(items) ? items : []).forEach(function (item) {
+                (Array.isArray(items) ? items : []).forEach(function(item) {
                     const productId = String(item && item.product_id || '').trim();
                     const qtyMode = ((item && item.qty_mode) || 'batch').toLowerCase();
                     const mergeKey = productId + '::' + qtyMode;
@@ -1982,11 +2086,11 @@
                         existing.additional_cost += parseNumericValue(item.additional_cost);
 
                         const materialMap = {};
-                        existing.raw_material_usage.forEach(function (material) {
+                        existing.raw_material_usage.forEach(function(material) {
                             mergeMaterialUsageEntry(materialMap, material);
                         });
                         (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                            function (material) {
+                            function(material) {
                                 mergeMaterialUsageEntry(materialMap, material);
                             });
                         existing.raw_material_usage = materialUsageMapToArray(materialMap);
@@ -1998,7 +2102,7 @@
                     }
                 });
 
-                return order.map(function (key) {
+                return order.map(function(key) {
                     return mergedMap[key];
                 });
             }
@@ -2017,12 +2121,12 @@
                     return productDetailPromiseCache[key];
                 }
 
-                productDetailPromiseCache[key] = new Promise(function (resolve) {
+                productDetailPromiseCache[key] = new Promise(function(resolve) {
                     $.ajax({
                         url: baseUrl + 'Products/GetProduct/' + key,
                         method: 'GET',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response && response.success && response.data) {
                                 const productData = response.data;
                                 productDetailCache[key] = productData;
@@ -2033,10 +2137,10 @@
 
                             resolve(null);
                         },
-                        error: function () {
+                        error: function() {
                             resolve(null);
                         },
-                        complete: function () {
+                        complete: function() {
                             delete productDetailPromiseCache[key];
                         }
                     });
@@ -2058,7 +2162,7 @@
                 nextVisited.add(key);
 
                 const ingredients = Array.isArray(currentProduct.ingredients) ? currentProduct.ingredients : [];
-                ingredients.forEach(function (ingredient) {
+                ingredients.forEach(function(ingredient) {
                     const quantityPerYield = parseNumericValue(ingredient.quantity ?? ingredient
                         .quantity_needed);
                     if (quantityPerYield <= 0) return;
@@ -2146,15 +2250,14 @@
 
                     const emptyDisplayState = getDisplayStateForSelectedGroup(targetDate, [], [], emptySummary);
                     updateSummaryCounts(emptyDisplayState.items, emptyDisplayState.summary, targetDate);
-                    updateForecastedSales([], emptySummary);
-                    renderOwnerDayMetrics(emptySummary);
+                    refreshDayTotalsDisplay(targetDate);
                     renderOwnerAnalytics(emptyDisplayState.groups, emptyDisplayState.summary);
                     return;
                 }
 
                 const requestToken = ++ownerRawUsageHydrationToken;
 
-                const usagePromises = decoratedItems.map(async function (item) {
+                const usagePromises = decoratedItems.map(async function(item) {
                     try {
                         const usage = await computeRawMaterialUsageForItem(item);
                         return Object.assign({}, item, {
@@ -2178,9 +2281,9 @@
                 }
 
                 const dayMaterialMap = {};
-                ownerDecoratedItems.forEach(function (item) {
+                ownerDecoratedItems.forEach(function(item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(dayMaterialMap, material);
                         });
                 });
@@ -2202,12 +2305,11 @@
                 const daySummary = getDayScopedSummary(ownerSummary);
 
                 updateSummaryCounts(displayState.items, displayState.summary, targetDate);
-                updateForecastedSales(ownerDecoratedItems, daySummary);
-                renderOwnerDayMetrics(daySummary);
+                refreshDayTotalsDisplay(targetDate);
                 renderOwnerAnalytics(displayState.groups, displayState.summary);
 
                 if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal').data(
-                    'selected-date') === targetDate) {
+                        'selected-date') === targetDate) {
                     $('#calendarDayModal').data('day-items', ownerDecoratedItems);
                     $('#calendarDayModal').data('day-summary', ownerSummary);
                     updateModalForecastedSales(ownerDecoratedItems, ownerSummary);
@@ -2265,7 +2367,7 @@
                         `<p class="text-xs text-gray-400">${isGroupScoped ? 'No raw material usage for this selected group.' : 'No raw material usage for this date.'}</p>`
                     );
                 } else {
-                    materialsContainer.html(dayMaterials.map(function (material) {
+                    materialsContainer.html(dayMaterials.map(function(material) {
                         return `
                             <div class="flex items-center justify-between text-xs text-gray-700 border-b border-gray-100 pb-1">
                                 <span class="truncate pr-2">${material.material_name}: ${formatMaterialAmount(material.amount)}${material.unit ? ' ' + material.unit : ''}</span>
@@ -2280,14 +2382,14 @@
                     return;
                 }
 
-                const html = normalizedGroups.map(function (group) {
+                const html = normalizedGroups.map(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupForecast = parseNumericValue(group.forecasted_sales);
                     const groupTotal = parseNumericValue(group.total_cost);
                     const groupOverhead = resolveGroupOverheadCost(group, groupItems);
                     const groupNote = (group.group_note || '').toString().trim();
 
-                    const itemsHtml = groupItems.map(function (item) {
+                    const itemsHtml = groupItems.map(function(item) {
                         const quantity = parseNumericValue(item.product_qnty);
                         const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                             parseNumericValue(item.forecasted_sales) :
@@ -2343,7 +2445,7 @@
 
             function groupDistributionsByDate(items) {
                 const grouped = {};
-                (items || []).forEach(function (item) {
+                (items || []).forEach(function(item) {
                     if (!grouped[item.distribution_date]) {
                         grouped[item.distribution_date] = [];
                     }
@@ -2371,10 +2473,10 @@
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const dates = Object.keys(allDistributionData).filter(function (dateStr) {
+                const dates = Object.keys(allDistributionData).filter(function(dateStr) {
                     const parsed = new Date(dateStr + 'T00:00:00');
                     return !isNaN(parsed.getTime()) && parsed >= today;
-                }).sort(function (a, b) {
+                }).sort(function(a, b) {
                     return new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00');
                 });
 
@@ -2387,16 +2489,16 @@
 
                 $('#allDistributionsEmptyState').addClass('hidden');
 
-                dates.forEach(function (dateStr) {
+                dates.forEach(function(dateStr) {
                     const dayItems = allDistributionData[dateStr] || [];
-                    const actualItems = dayItems.filter(function (item) {
+                    const actualItems = dayItems.filter(function(item) {
                         return !(item && item.__empty_group_placeholder);
                     });
-                    const batchQty = actualItems.reduce(function (sum, item) {
+                    const batchQty = actualItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
-                    const piecesQty = actualItems.reduce(function (sum, item) {
+                    const piecesQty = actualItems.reduce(function(sum, item) {
                         const productData = getProductAnalyticsData(item.product_id);
                         return sum + getDistributionPieces(item, productData);
                     }, 0);
@@ -2443,10 +2545,10 @@
                         date: date
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         const responseNote = extractDistributionNote([], response.distribution_note ||
                             response.overall_note || response.note || response
-                                .place_distributed_to || response.place_distributed || '');
+                            .place_distributed_to || response.place_distributed || '');
 
                         if (response.success) {
                             // Flatten nested groups into a single array of items
@@ -2454,9 +2556,9 @@
                             const flattenedItems = [];
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
 
-                            apiGroups.forEach(function (group) {
+                            apiGroups.forEach(function(group) {
                                 const groupItems = Array.isArray(group.items) ? group.items : [];
-                                groupItems.forEach(function (item) {
+                                groupItems.forEach(function(item) {
                                     // Attach group-level information to each item
                                     const itemWithGroup = Object.assign({}, item, {
                                         // Group metadata
@@ -2483,19 +2585,19 @@
                             const items = decorateDistributionItems(flattenedItems, date);
                             const groupedData = groupDistributionsByGroup(items, date);
                             const summary = Object.assign({
-                                date: date,
-                                total_items: items.length,
-                                total_groups: getDistinctGroupCount(items, date),
-                                total_batches: items.reduce((sum, item) => sum + (((item
-                                    .qty_mode || 'batch') !== 'pieces') ?
-                                    parseNumericValue(item.product_qnty) : 0), 0),
-                                total_pieces: calculateTotalDistributionPieces(items),
-                                forecasted_sales_total: calculateForecastedSalesTotal(items),
-                                total_cost_total: items.reduce((sum, item) => sum +
-                                    parseNumericValue(item.total_cost), 0),
-                                additional_cost_total: calculateAdditionalCostTotal(items),
-                                raw_material_usage_total: []
-                            },
+                                    date: date,
+                                    total_items: items.length,
+                                    total_groups: getDistinctGroupCount(items, date),
+                                    total_batches: items.reduce((sum, item) => sum + (((item
+                                            .qty_mode || 'batch') !== 'pieces') ?
+                                        parseNumericValue(item.product_qnty) : 0), 0),
+                                    total_pieces: calculateTotalDistributionPieces(items),
+                                    forecasted_sales_total: calculateForecastedSalesTotal(items),
+                                    total_cost_total: items.reduce((sum, item) => sum +
+                                        parseNumericValue(item.total_cost), 0),
+                                    additional_cost_total: calculateAdditionalCostTotal(items),
+                                    raw_material_usage_total: []
+                                },
                                 response.daily_summary || {}
                             );
 
@@ -2503,7 +2605,7 @@
                             summary.total_groups = getDistinctGroupCount(items, date);
                             summary.total_batches = items.reduce((sum, item) => sum + (((item
                                 .qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item
-                                    .product_qnty) : 0), 0);
+                                .product_qnty) : 0), 0);
                             summary.total_pieces = calculateTotalDistributionPieces(items);
                             summary.forecasted_sales_total = calculateForecastedSalesTotal(items);
                             summary.total_cost_total = items.reduce((sum, item) => sum +
@@ -2528,16 +2630,16 @@
                             const daySummary = getDayScopedSummary(summary);
 
                             updateSummaryCounts(displayState.items, displayState.summary, date);
-                            updateForecastedSales(items, daySummary);
-                            renderOwnerDayMetrics(daySummary);
+                            refreshDayTotalsDisplay(date);
                             renderOwnerAnalytics(displayState.groups, displayState.summary);
+
                             updateMainDistributionNotePanels(displayState.items, responseNote);
 
                             if (isOwnerView) {
                                 hydrateOwnerRawMaterialAnalytics(date, items, summary);
                             }
 
-                            setTimeout(function () {
+                            setTimeout(function() {
                                 console.log('[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...');
                                 const freshItems = decorateDistributionItems(currentDayDistributionItems, date);
                                 const freshGrouped = groupDistributionsByGroup(freshItems, date);
@@ -2550,8 +2652,8 @@
                                 currentDayGroupedData = freshGrouped;
                                 currentDaySummary = freshSummary;
                                 const freshState = getDisplayStateForSelectedGroup(date, freshItems, freshGrouped, freshSummary);
-                                renderOwnerDayMetrics(getDayScopedSummary(freshSummary));
-                                renderOwnerAnalytics(freshState.groups, freshState.summary);
+                                refreshDayTotalsDisplay(date);
+                                renderOwnerAnalytics(freshState.groups, freshState.summary)
                             }, 600);
 
                             if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal')
@@ -2574,7 +2676,7 @@
                             updateMainDistributionNotePanels([]);
                         }
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error('%c[DISTRIBUTION ERROR]', 'color: #FF0000; font-weight: bold', {
                             status: xhr.status,
                             statusText: xhr.statusText,
@@ -2609,7 +2711,7 @@
                         end_date: formatDate(endDate)
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             const flattenedItems = flattenGroupedDataIfNeeded(response.data, '');
                             const decoratedItems = decorateDistributionItems(flattenedItems);
@@ -2620,7 +2722,7 @@
                         }
                         renderCalendar();
                     },
-                    error: function () {
+                    error: function() {
                         calendarData = {};
                         renderCalendar();
                     }
@@ -2638,13 +2740,13 @@
                         end_date: '2100-12-31'
                     },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (response.success && response.data) {
                             const apiGroups = Array.isArray(response.data) ? response.data : [];
                             const flattenedItems = flattenGroupedDataIfNeeded(apiGroups, '');
                             const placeholderItems = [];
 
-                            apiGroups.forEach(function (group) {
+                            apiGroups.forEach(function(group) {
                                 const groupItems = Array.isArray(group.items) ? group.items : [];
                                 if (groupItems.length > 0) return;
 
@@ -2679,7 +2781,7 @@
                         }
                         renderAllDistributionsList();
                     },
-                    error: function () {
+                    error: function() {
                         allDistributionData = {};
                         renderAllDistributionsList();
                     }
@@ -2689,7 +2791,7 @@
             // OLD → Distribution/AddDistribution
             // NEW → Distribution/AddItem
             function addDistributionItemRequest(payload, rawQtyMode = null) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const requestId = `add-item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     const normalizedDistributionId = normalizeDistributionGroupIdForApi(payload
                         .distribution_id);
@@ -2715,26 +2817,26 @@
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(requestPayload),
-                        success: function (response) {
+                        success: function(response) {
                             logDistributionFlow('log',
                                 'Add distribution item request succeeded.', {
-                                request_id: requestId,
-                                endpoint: 'Distribution/AddItem',
-                                response: response || {},
-                            });
+                                    request_id: requestId,
+                                    endpoint: 'Distribution/AddItem',
+                                    response: response || {},
+                                });
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             logDistributionFlow('error',
                                 'Add distribution item request failed.', {
-                                request_id: requestId,
-                                endpoint: 'Distribution/AddItem',
-                                status: xhr.status,
-                                status_text: xhr.statusText,
-                                response: xhr.responseJSON,
-                                payload: requestPayload,
-                                raw_qty_mode: rawQtyMode
-                            });
+                                    request_id: requestId,
+                                    endpoint: 'Distribution/AddItem',
+                                    status: xhr.status,
+                                    status_text: xhr.statusText,
+                                    response: xhr.responseJSON,
+                                    payload: requestPayload,
+                                    raw_qty_mode: rawQtyMode
+                                });
                             reject(xhr);
                         }
                     });
@@ -2744,15 +2846,15 @@
             // OLD → Distribution/DeleteDistribution/:id
             // NEW → Distribution/DeleteItem/:id
             function deleteDistributionItemRequest(itemId) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to delete item:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2765,17 +2867,17 @@
             }
 
             function deleteDistributionGroupRequest(groupId) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
                         url: baseUrl + 'Distribution/DeleteGroup/' + normalizedGroupId,
                         method: 'POST',
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to delete group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2789,7 +2891,7 @@
             }
 
             function updateDistributionGroupRequest(groupId, payload) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function(resolve, reject) {
                     const normalizedGroupId = normalizeDistributionGroupIdForApi(groupId);
 
                     $.ajax({
@@ -2798,10 +2900,10 @@
                         contentType: 'application/json',
                         dataType: 'json',
                         data: JSON.stringify(payload || {}),
-                        success: function (response) {
+                        success: function(response) {
                             resolve(response || {});
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error('  ERROR - Failed to update group:', {
                                 status: xhr.status,
                                 error: xhr.responseJSON,
@@ -2816,7 +2918,7 @@
             }
 
             function fetchDistributionItemsByDateRequest(dateStr) {
-                return new Promise(function (resolve) {
+                return new Promise(function(resolve) {
                     $.ajax({
                         url: baseUrl + 'Distribution/GetDistributionByDate',
                         method: 'GET',
@@ -2824,7 +2926,7 @@
                             date: dateStr
                         },
                         dataType: 'json',
-                        success: function (response) {
+                        success: function(response) {
                             if (response && response.success) {
                                 // Flatten grouped data before decorating
                                 const flattenedData = flattenGroupedDataIfNeeded(response
@@ -2834,7 +2936,7 @@
                             }
                             resolve([]);
                         },
-                        error: function () {
+                        error: function() {
                             resolve([]);
                         }
                     });
@@ -2874,7 +2976,7 @@
                     url: baseUrl + 'Distribution/DeleteItem/' + itemId,
                     method: 'POST',
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         if (productId != null) {
                             removeLocalDistributionGroupMeta(dateValue || $('#selectedDate').val(),
                                 productId);
@@ -2884,7 +2986,7 @@
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         showToast('danger', 'Failed to delete item. Please try again.', 3000);
                         console.error('Error deleting item:', error);
                     }
@@ -2920,7 +3022,7 @@
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify(requestPayload),
-                    success: function (response) {
+                    success: function(response) {
                         logDistributionFlow('log', 'Update distribution item request succeeded.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2932,7 +3034,7 @@
                         loadMonthDistributions();
                         loadAllDistributions();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         logDistributionFlow('error', 'Update distribution item request failed.', {
                             request_id: requestId,
                             endpoint: 'Distribution/UpdateItem/:id',
@@ -2997,9 +3099,9 @@
                         // Determine if data is already grouped
                         let groupedData = [];
                         if (dayData.length > 0 && dayData[0] && typeof dayData[0] === 'object' && Array.isArray(
-                            dayData[0].items)) {
+                                dayData[0].items)) {
                             // Already grouped (from calendar API) - transform to expected format
-                            groupedData = dayData.map(function (apiGroup) {
+                            groupedData = dayData.map(function(apiGroup) {
                                 const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
                                 return {
                                     group_key: getDistributionDisplayGroupKey(apiGroup),
@@ -3053,7 +3155,7 @@
             }
 
             // Calendar navigation
-            $('#btnPrevMonth').on('click', function () {
+            $('#btnPrevMonth').on('click', function() {
                 currentCalendarMonth--;
                 if (currentCalendarMonth < 0) {
                     currentCalendarMonth = 11;
@@ -3062,7 +3164,7 @@
                 loadMonthDistributions();
             });
 
-            $('#btnNextMonth').on('click', function () {
+            $('#btnNextMonth').on('click', function() {
                 currentCalendarMonth++;
                 if (currentCalendarMonth > 11) {
                     currentCalendarMonth = 0;
@@ -3101,6 +3203,7 @@
                     .toString());
                 const groupNote = escapeHtml((group && group.group_note ? group.group_note : '').toString().trim());
                 const groupKey = escapeHtml((group && group.group_key ? group.group_key : '').toString());
+                const isStoreGroup = (group && group.group_key) === STORE_GROUP_KEY;
                 const totalForecast = parseNumericValue(groupSummary.forecasted_sales_total);
                 const totalCost = parseNumericValue(groupSummary.total_cost_total);
                 const totalOverhead = parseNumericValue(groupSummary.overhead_cost_total);
@@ -3108,7 +3211,7 @@
                 const totalPieces = parseNumericValue(groupSummary.total_pieces);
                 const isMaterialLoading = Boolean(options && options.materialLoading);
 
-                const materialUsageByItemHtml = groupItems.map(function (item) {
+                const materialUsageByItemHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
                     const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage : [];
                     const itemMaterialHtml = (isMaterialLoading && itemMaterials.length === 0) ?
@@ -3126,7 +3229,7 @@
                     `;
                 }).join('');
 
-                const itemsHtml = groupItems.map(function (item) {
+                const itemsHtml = groupItems.map(function(item) {
                     const quantity = parseNumericValue(item.product_qnty);
                     const itemForecast = hasPersistedNumericValue(item, 'forecasted_sales') ?
                         parseNumericValue(item.forecasted_sales) :
@@ -3160,17 +3263,17 @@
                         <div class="p-2.5 bg-white border border-gray-200 rounded-lg">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
+                                    <p class="text-sm font-semibold text-primary truncate">
+                                        <i class="fas ${isStoreGroup ? 'fa-store' : 'fa-layer-group'} mr-1"></i>${groupName}
+                                    </p>
                                     <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s) • ${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
                                 </div>
+                                ${isStoreGroup ? '' : `
                                 <div class="flex items-center gap-1 flex-shrink-0">
-                                    <button type="button" class="btn-modal-edit-group px-2 py-1 text-[10px] font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20" data-date="${dateStr}" data-group-key="${groupKey}">
-                                        Edit
-                                    </button>
-                                    <button type="button" class="btn-modal-delete-group px-2 py-1 text-[10px] font-medium rounded-md bg-red-100 text-red-600 hover:bg-red-200" data-date="${dateStr}" data-group-key="${groupKey}">
-                                        Delete
-                                    </button>
+                                    <button type="button" class="btn-modal-edit-group px-2 py-1 text-[10px] font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20" data-date="${dateStr}" data-group-key="${groupKey}">Edit</button>
+                                    <button type="button" class="btn-modal-delete-group px-2 py-1 text-[10px] font-medium rounded-md bg-red-100 text-red-600 hover:bg-red-200" data-date="${dateStr}" data-group-key="${groupKey}">Delete</button>
                                 </div>
+                                `}
                             </div>
                             ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
                         </div>
@@ -3202,7 +3305,7 @@
             async function hydrateGroupItemsRawMaterialUsageForModal(items) {
                 const normalizedItems = Array.isArray(items) ? items : [];
 
-                const hydratedItems = await Promise.all(normalizedItems.map(async function (item) {
+                const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
                     const existingUsage = Array.isArray(item && item.raw_material_usage) ?
                         item.raw_material_usage : [];
 
@@ -3225,9 +3328,9 @@
                 }));
 
                 const materialMap = {};
-                hydratedItems.forEach(function (item) {
+                hydratedItems.forEach(function(item) {
                     (Array.isArray(item.raw_material_usage) ? item.raw_material_usage : []).forEach(
-                        function (material) {
+                        function(material) {
                             mergeMaterialUsageEntry(materialMap, material);
                         });
                 });
@@ -3247,7 +3350,7 @@
                         normalizedDate] || []), normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function (group) {
+                const matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3267,7 +3370,7 @@
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
-                const needsHydration = groupItems.some(function (item) {
+                const needsHydration = groupItems.some(function(item) {
                     return !Array.isArray(item && item.raw_material_usage) || item.raw_material_usage
                         .length === 0;
                 });
@@ -3276,8 +3379,8 @@
 
                 $('#calendarDayGroupDetailContent').html(renderCalendarModalGroupDetail(normalizedDate,
                     matchedGroup, {
-                    materialLoading: needsHydration
-                }));
+                        materialLoading: needsHydration
+                    }));
                 $('#calendarDayModal').data('day-summary', groupSummary);
                 updateModalForecastedSales(groupItems, groupSummary);
                 setCalendarDaySelectButtonScope('group', normalizedGroupKey);
@@ -3329,7 +3432,7 @@
                         normalizedDate);
 
                 const groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                const matchedGroup = groupedData.find(function (group) {
+                const matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
@@ -3340,11 +3443,9 @@
 
                 const groupItems = Array.isArray(matchedGroup.items) ? matchedGroup.items : [];
                 const groupSummary = buildGroupScopedSummary(matchedGroup, groupItems, normalizedDate);
-                const daySummary = getDayScopedSummary(currentDaySummary);
 
                 updateSummaryCounts(groupItems, groupSummary, normalizedDate);
-                updateForecastedSales(currentDayDistributionItems, daySummary);
-                renderOwnerDayMetrics(daySummary);
+                refreshDayTotalsDisplay(normalizedDate);
                 renderOwnerAnalytics([matchedGroup], groupSummary);
 
                 showCalendarDayModal(normalizedDate, candidateItems, {
@@ -3356,20 +3457,19 @@
             }
 
             // Calendar date click - show all groups so user can choose one
-            $(document).on('click', '.calendar-day', function (e) {
-                if ($(e.target).closest('.calendar-group-chip').length) {
-                    return;
-                }
+            $(document).on('click', '.calendar-day', async function(e) {
+                if ($(e.target).closest('.calendar-group-chip').length) return;
 
                 const dateStr = ($(this).data('date') || '').toString();
-                const dayData = calendarData[dateStr] || [];
+                const storeGroup = await ensureStoreGroupForDate(dateStr);
+                const dayData = (calendarData[dateStr] || []).concat(storeGroup.items);
                 showCalendarDayModal(dateStr, dayData, {
                     groupPicker: true
                 });
             });
 
             // Calendar group chip click - open selected group directly
-            $(document).on('click', '.calendar-group-chip', function (e) {
+            $(document).on('click', '.calendar-group-chip', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -3379,7 +3479,7 @@
             });
 
             // Group picker inside modal - open selected group
-            $(document).on('click', '.modal-group-picker-btn', function () {
+            $(document).on('click', '.modal-group-picker-btn', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3388,7 +3488,7 @@
             });
 
             // Group list (non-picker mode) - open selected group detail pane
-            $(document).on('click', '.modal-group-detail-btn', function () {
+            $(document).on('click', '.modal-group-detail-btn', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3396,7 +3496,7 @@
                 openCalendarModalGroupDetail(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-edit-group', function () {
+            $(document).on('click', '.btn-modal-edit-group', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
@@ -3404,18 +3504,18 @@
                 openDistributionGroupEditModal(dateStr, groupKey, dayItems);
             });
 
-            $(document).on('click', '.btn-modal-delete-group', function () {
+            $(document).on('click', '.btn-modal-delete-group', function() {
                 const dateStr = ($(this).data('date') || $('#calendarDayModal').data('selected-date') || '')
                     .toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
                 const dayItems = $('#calendarDayModal').data('day-items') || calendarData[dateStr] || [];
 
-                Confirm.delete('Delete this distribution group and all its items?', async function () {
+                Confirm.delete('Delete this distribution group and all its items?', async function() {
                     await deleteDistributionGroupByKey(dateStr, groupKey, dayItems);
                 });
             });
 
-            $(document).on('click', '#btnCalendarDayBackToGroups', function () {
+            $(document).on('click', '#btnCalendarDayBackToGroups', function() {
                 const dayItems = $('#calendarDayModal').data('day-items') || [];
                 const baseSummary = $('#calendarDayModal').data('base-day-summary') || {};
                 const baseScope = ($('#calendarDayModal').data('base-selection-scope') || 'date')
@@ -3434,8 +3534,8 @@
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                        'Select Distribution Group' :
-                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                    'Select Distribution Group' :
+                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formattedDate} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3460,7 +3560,7 @@
                 if (data[0] && typeof data[0] === 'object' && Array.isArray(data[0].items)) {
 
                     const flatItems = [];
-                    data.forEach(function (group) {
+                    data.forEach(function(group) {
                         const groupDate = (group.distribution_date || dateStr || '').toString();
                         const groupItems = Array.isArray(group.items) ? group.items : [];
 
@@ -3468,7 +3568,7 @@
                         const groupKey = 'group-' + String(group.id);
                         const displayGroupKey = getDistributionDisplayGroupKey(group);
 
-                        groupItems.forEach(function (item) {
+                        groupItems.forEach(function(item) {
                             flatItems.push(Object.assign({}, item, {
                                 distribution_date: groupDate,
                                 distribution_id: group.id,
@@ -3507,9 +3607,9 @@
                     .isArray(items[0].items)) {
 
                     // Transform API groups to match expected format
-                    groupedData = items.map(function (apiGroup) {
+                    groupedData = items.map(function(apiGroup) {
                         const groupItems = Array.isArray(apiGroup.items) ? apiGroup.items : [];
-                        const totalBatches = groupItems.reduce(function (sum, item) {
+                        const totalBatches = groupItems.reduce(function(sum, item) {
                             return sum + (((item.qty_mode || 'batch') !== 'pieces') ?
                                 parseNumericValue(item.product_qnty) : 0);
                         }, 0);
@@ -3533,9 +3633,9 @@
 
                     // Extract all items for calculations (preserve original group key)
                     flatItems = [];
-                    groupedData.forEach(function (group) {
+                    groupedData.forEach(function(group) {
                         if (Array.isArray(group.items)) {
-                            group.items.forEach(function (item) {
+                            group.items.forEach(function(item) {
                                 flatItems.push(Object.assign({}, item, {
                                     distribution_date: group._apiDate || dateStr,
                                     distribution_id: group._apiId,
@@ -3559,11 +3659,11 @@
                     null;
                 const isGroupPickerMode = Boolean(modalOptions && modalOptions.groupPicker);
                 const requestedScope = (modalOptions && typeof modalOptions === 'object' && modalOptions.scope ===
-                    'group') ?
+                        'group') ?
                     'group' :
                     'date';
                 const providedGroupKey = (modalOptions && typeof modalOptions === 'object' && modalOptions
-                    .groupKey) ?
+                        .groupKey) ?
                     String(modalOptions.groupKey) :
                     '';
                 const shouldOpenSpecificGroup = requestedScope === 'group' && providedGroupKey !== '';
@@ -3583,8 +3683,8 @@
 
                 $('#calendarDayModalTitle').text(
                     isGroupPickerMode ?
-                        'Select Distribution Group' :
-                        (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
+                    'Select Distribution Group' :
+                    (groupCount > 1 ? 'Distribution Groups' : 'Distribution Group')
                 );
                 $('#calendarDayModalDate').text(groupCount > 0 ?
                     `${formatted} • ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` :
@@ -3632,11 +3732,12 @@
                     $('#calendarDayEmptyState').addClass('hidden');
 
                     if (isGroupPickerMode) {
-                        const pickerHtml = groupedData.map(function (group) {
+                        const pickerHtml = groupedData.map(function(group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
                             const groupKey = escapeHtml((group.group_key || '').toString());
+                            const isStoreGroup = groupKey === STORE_GROUP_KEY; // add this
                             const groupSummary = buildGroupScopedSummary(group, groupItems, dateStr);
 
                             return `
@@ -3671,13 +3772,13 @@
                             '<p class="text-xs text-gray-400">No groups available.</p>');
                     } else {
 
-                        groupedData.forEach(function (group) {
+                        groupedData.forEach(function(group) {
                             const groupItems = Array.isArray(group.items) ? group.items : [];
                             const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                             const groupNote = escapeHtml((group.group_note || '').toString().trim());
                             const groupKey = escapeHtml((group.group_key || '').toString());
 
-                            const rowsHtml = groupItems.map(function (item) {
+                            const rowsHtml = groupItems.map(function(item) {
                                 return `
                                     <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                                         <div class="flex items-center gap-2 min-w-0">
@@ -3728,12 +3829,12 @@
             }
 
             // Close calendar day modal
-            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function () {
+            $('#btnCloseCalendarDayModal, #btnCalendarDayClose').on('click', function() {
                 $('#calendarDayModal').addClass('hidden');
             });
 
             // Go to selected date from modal
-            $('#btnCalendarDaySelect').on('click', function () {
+            $('#btnCalendarDaySelect').on('click', function() {
                 const dateStr = $('#calendarDayModal').data('selected-date');
                 const selectionScope = ($('#calendarDayModal').data('selection-scope') || 'date')
                     .toString();
@@ -3757,17 +3858,41 @@
                 $('#calendarDayModal').addClass('hidden');
             });
 
-            $(document).on('click', '.all-distribution-entry', function () {
+            $(document).on('click', '.all-distribution-entry', function() {
                 const dateStr = $(this).data('date');
                 const dayData = allDistributionData[dateStr] || [];
                 showCalendarDayModal(dateStr, dayData);
             });
 
-            $(document).on('click', '.distribution-group-entry', function () {
+            $(document).on('click', '.distribution-group-entry', async function() {
                 const dateStr = ($(this).data('date') || $('#selectedDate').val() || '').toString();
                 const groupKey = ($(this).data('group-key') || '').toString();
+
+                if (groupKey === STORE_GROUP_KEY) {
+                    await openStoreGroupView(dateStr);
+                    return;
+                }
+
                 openSpecificGroupView(dateStr, groupKey, currentDayDistributionItems);
             });
+
+            async function openStoreGroupView(dateStr) {
+                const normalizedDate = (dateStr || '').toString();
+                setSelectedGroupFilter(normalizedDate, STORE_GROUP_KEY);
+
+                const storeGroup = await ensureStoreGroupForDate(normalizedDate);
+                const groupSummary = buildGroupScopedSummary(storeGroup, storeGroup.items, normalizedDate);
+
+                showCalendarDayModal(normalizedDate, storeGroup.items, {
+                    summary: groupSummary,
+                    groupPicker: false
+                });
+                await openCalendarModalGroupDetail(normalizedDate, STORE_GROUP_KEY, storeGroup.items);
+
+                updateSummaryCounts(storeGroup.items, groupSummary, normalizedDate);
+                refreshDayTotalsDisplay(normalizedDate);
+                renderOwnerAnalytics([storeGroup], groupSummary);
+            }
 
             // ===== RENDERING FUNCTIONS =====
 
@@ -3781,7 +3906,7 @@
                 if (groupEntries.length < 3) return;
 
                 let maxHeight = 0;
-                groupEntries.slice(0, 3).each(function () {
+                groupEntries.slice(0, 3).each(function() {
                     maxHeight += ($(this).outerHeight(true) || 0);
                 });
 
@@ -3795,7 +3920,12 @@
                 container.empty();
                 container.css('max-height', '');
 
-                if (items.length === 0) {
+                const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
+                const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
+                const storeGroup = storeGroupByDate[selectedDate] || buildStoreGroupObject([], selectedDate);
+                const hasStoreItems = storeGroup.items.length > 0;
+
+                if (items.length === 0 && !hasStoreItems) {
                     container.addClass('hidden');
                     $('#emptyState').removeClass('hidden');
                     return;
@@ -3804,116 +3934,219 @@
                 container.removeClass('hidden');
                 $('#emptyState').addClass('hidden');
 
-                const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
-                const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
-
-                normalizedGroups.forEach(function (group) {
-                    const groupItems = Array.isArray(group.items) ? group.items : [];
-                    const groupName = escapeHtml((group.group_name || 'Default Group').toString());
-                    const groupNoteRaw = (group.group_note || '').toString().trim();
-                    const groupNote = escapeHtml(groupNoteRaw);
-                    const groupKey = escapeHtml((group.group_key || '').toString());
-
-                    const totalBatches = groupItems.reduce(function (sum, item) {
-                        return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
-                            item.product_qnty) : 0);
-                    }, 0);
-
-                    const totalPieces = calculateTotalDistributionPieces(groupItems);
-
-                    const forecastTotal = resolveGroupForecastedSales(group, groupItems);
-                    const totalCost = resolveGroupTotalCost(group, groupItems);
-                    const totalOverhead = resolveGroupOverheadCost(group, groupItems);
-
-                    const row = `
-                        <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-layer-group mr-1"></i>${groupName}</p>
-                                    <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
-                                </div>
-                                <div class="text-right flex-shrink-0">
-                                    <p class="text-xs font-semibold text-primary">${formatPesoAmount(forecastTotal)}</p>
-                                    <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
-                                </div>
-                            </div>
-                            ${isOwnerView ? `
-                            <div class="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-200">
-                                <span class="text-[10px] text-gray-500">Total Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</span></span>
-                                <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</span></span>
-                            </div>
-                            ` : ''}
-                            ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
-                        </button>
-                    `;
-
-                    container.append(row);
+                container.append(renderDistributionGroupEntryHtml(storeGroup, selectedDate));
+                normalizedGroups.forEach(function(group) {
+                    container.append(renderDistributionGroupEntryHtml(group, selectedDate));
                 });
 
                 updateDistributionListScrollLimit();
             }
 
-            function renderStoreItemsList(items) {
-                const container = $('#storeListContainer');
-                container.empty();
+            function renderDistributionGroupEntryHtml(group, selectedDate) {
+                const groupItems = Array.isArray(group.items) ? group.items : [];
+                const isStoreGroup = (group.group_key || '') === STORE_GROUP_KEY;
+                const groupName = escapeHtml((group.group_name || 'Default Group').toString());
+                const groupNote = escapeHtml((group.group_note || '').toString().trim());
+                const groupKey = escapeHtml((group.group_key || '').toString());
+                const iconClass = isStoreGroup ? 'fa-store' : 'fa-layer-group';
 
-                const normalizedItems = Array.isArray(items) ? items : [];
+                const totalBatches = groupItems.reduce((sum, item) =>
+                    sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) : 0), 0);
+                const totalPieces = calculateTotalDistributionPieces(groupItems);
+                const forecastTotal = resolveGroupForecastedSales(group, groupItems);
+                const totalCost = resolveGroupTotalCost(group, groupItems);
+                const totalOverhead = resolveGroupOverheadCost(group, groupItems);
 
-                if (normalizedItems.length === 0) {
-                    container.addClass('hidden');
-                    $('#emptyStateStore').removeClass('hidden');
-                    return;
-                }
+                return `
+        <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-primary truncate"><i class="fas ${iconClass} mr-1"></i>${groupName}</p>
+                    <p class="text-[11px] text-gray-500 mt-0.5">${groupItems.length} item(s)</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="text-xs font-semibold text-primary">${formatPesoAmount(forecastTotal)}</p>
+                    <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
+                </div>
+            </div>
+            ${isOwnerView ? `
+            <div class="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-200">
+                <span class="text-[10px] text-gray-500">Total Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</span></span>
+                <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</span></span>
+            </div>
+            ` : ''}
+            ${groupNote ? `<p class="text-[11px] text-amber-700 mt-1.5 truncate"><i class="fas fa-sticky-note mr-1 text-amber-500"></i>${groupNote}</p>` : ''}
+        </button>
+    `;
+            }
 
-                container.removeClass('hidden');
-                $('#emptyStateStore').addClass('hidden');
+            //     function renderStoreItemsList(items) {
+            //         const container = $('#storeListContainer');
+            //         container.empty();
 
-                normalizedItems.forEach(function(item) {
+            //         const normalizedItems = Array.isArray(items) ? items : [];
+
+            //         if (normalizedItems.length === 0) {
+            //             container.addClass('hidden');
+            //             $('#emptyStateStore').removeClass('hidden');
+            //             return;
+            //         }
+
+            //         container.removeClass('hidden');
+            //         $('#emptyStateStore').addClass('hidden');
+
+            //         normalizedItems.forEach(function(item) {
+            //             const productName = escapeHtml(item.product_name || 'Unknown Product');
+            //             const category = escapeHtml((item.category || '').toString());
+            //             const addedQty = parseNumericValue(item.added_qty);
+            //             const price = parseNumericValue(
+            //                 (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price)
+            //             );
+            //             const estimatedValue = addedQty * price;
+
+            //             const row = `
+            //     <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            //         <div class="flex items-start justify-between gap-3">
+            //             <div class="min-w-0">
+            //                 <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
+            //                 <p class="text-[11px] text-gray-500 mt-0.5">${category}</p>
+            //             </div>
+            //             <div class="text-right flex-shrink-0">
+            //                 <p class="text-xs font-semibold text-primary">+${formatQuantityValue(addedQty)} added</p>
+            //                 <p class="text-[11px] text-gray-500 mt-0.5">${formatPesoAmount(estimatedValue)}</p>
+            //             </div>
+            //         </div>
+            //     </div>
+            // `;
+
+            //             container.append(row);
+            //         });
+            //     }
+
+            //     function loadStoreAddedItems() {
+            //         const date = ($('#selectedDate').val() || '').toString();
+            //         $.ajax({
+            //             url: baseUrl + 'Inventory/GetAddedStockItems',
+            //             method: 'GET',
+            //             data: {
+            //                 date: date
+            //             },
+            //             dataType: 'json',
+            //             success: function(response) {
+            //                 const items = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+            //                 renderStoreItemsList(items);
+            //             },
+            //             error: function() {
+            //                 renderStoreItemsList([]);
+            //             }
+            //         });
+            //     }
+
+
+            function computeStoreItemMetrics(item) {
+                const addedQty = parseNumericValue(item.added_qty);
+                const productData = getProductAnalyticsData(item.product_id);
+
+                // Store items are tracked in pieces, so build a synthetic
+                // distribution-shaped item to reuse the same cost helpers
+                // used for regular distribution items.
+                const syntheticItem = {
+                    product_id: item.product_id,
+                    product_qnty: addedQty,
+                    qty_mode: 'pieces'
+                };
+
+                const fallbackUnitPrice = firstPositiveValue([
+                    item.selling_price_per_piece,
+                    item.selling_price
+                ]);
+                const productUnitPrice = productData ? getForecastUnitPrice(productData, 'pieces') : 0;
+                const unitPrice = productUnitPrice > 0 ? productUnitPrice : fallbackUnitPrice;
+
+                const forecast = addedQty * unitPrice;
+                const totalCost = productData ? calculateItemTotalCost(syntheticItem, productData) : 0;
+                const overheadCost = productData ? calculateItemOverheadCost(syntheticItem, productData) : 0;
+
+                return {
+                    addedQty: addedQty,
+                    forecast: forecast,
+                    totalCost: totalCost,
+                    overheadCost: overheadCost
+                };
+            }
+
+            function buildStoreDistributionEntryHtml(storeItems) {
+                const normalizedItems = Array.isArray(storeItems) ? storeItems : [];
+
+                let totalAdded = 0;
+                let totalForecast = 0;
+                let totalCost = 0;
+                let totalOverhead = 0;
+
+                const rowsHtml = normalizedItems.map(function(item) {
                     const productName = escapeHtml(item.product_name || 'Unknown Product');
                     const category = escapeHtml((item.category || '').toString());
-                    const addedQty = parseNumericValue(item.added_qty);
-                    const price = parseNumericValue(
-                        (item.selling_price_per_piece > 0 ? item.selling_price_per_piece : item.selling_price)
-                    );
-                    const estimatedValue = addedQty * price;
+                    const metrics = computeStoreItemMetrics(item);
 
-                    const row = `
-            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <div class="flex items-start justify-between gap-3">
+                    totalAdded += metrics.addedQty;
+                    totalForecast += metrics.forecast;
+                    totalCost += metrics.totalCost;
+                    totalOverhead += metrics.overheadCost;
+
+                    return `
+            <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
+                <div class="flex items-center justify-between gap-2">
                     <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800 truncate">${productName}</p>
-                        <p class="text-[11px] text-gray-500 mt-0.5">${category}</p>
+                        <p class="text-xs font-semibold text-gray-800 truncate">${productName}</p>
+                        <p class="text-[11px] text-gray-500">${category} • ${formatQuantityValue(metrics.addedQty)} added</p>
                     </div>
                     <div class="text-right flex-shrink-0">
-                        <p class="text-xs font-semibold text-primary">+${formatQuantityValue(addedQty)} added</p>
-                        <p class="text-[11px] text-gray-500 mt-0.5">${formatPesoAmount(estimatedValue)}</p>
+                        <p class="text-[11px] text-primary font-semibold">${formatPesoAmount(metrics.forecast)}</p>
+                        ${isOwnerView ? `<p class="text-[11px] text-emerald-600 font-semibold">${formatPesoAmount(metrics.totalCost)}</p>` : ''}
                     </div>
                 </div>
             </div>
         `;
+                }).join('');
 
-                    container.append(row);
-                });
+                return `
+        <div class="border border-gray-100 rounded-lg overflow-hidden">
+            <button type="button" class="store-distribution-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-primary truncate"><i class="fas fa-store mr-1"></i>Store</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">${normalizedItems.length} item(s) added</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="text-xs font-semibold text-primary">${formatPesoAmount(totalForecast)}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalAdded)} pcs added</p>
+                    </div>
+                </div>
+                ${isOwnerView ? `
+                <div class="flex items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-200">
+                    <span class="text-[10px] text-gray-500">Total Cost: <span class="font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</span></span>
+                    <span class="text-[10px] text-gray-500">Overhead: <span class="font-semibold text-amber-600">${formatPesoAmount(totalOverhead)}</span></span>
+                </div>
+                ` : ''}
+            </button>
+            <div class="store-entry-detail hidden px-3 pb-3 pt-2 bg-white space-y-1.5 border-t border-gray-100">
+                ${rowsHtml || '<p class="text-xs text-gray-400 text-center py-2">No items added to the store for this date.</p>'}
+            </div>
+        </div>
+    `;
             }
 
             function loadStoreAddedItems() {
                 const date = ($('#selectedDate').val() || '').toString();
-                $.ajax({
-                    url: baseUrl + 'Inventory/GetAddedStockItems',
-                    method: 'GET',
-                    data: {
-                        date: date
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        const items = (response && response.success && Array.isArray(response.data)) ? response.data : [];
-                        renderStoreItemsList(items);
-                    },
-                    error: function() {
-                        renderStoreItemsList([]);
-                    }
+                ensureStoreGroupForDate(date, true).then(function() {
+                    renderDistributionList(currentDayDistributionItems, currentDayGroupedData, date);
+                    refreshDayTotalsDisplay(date); // keep the "entire day" cards in sync with Store
                 });
             }
+
+            $(document).on('click', '.store-distribution-entry', function() {
+                $(this).closest('.border').find('.store-entry-detail').toggleClass('hidden');
+            });
 
             function renderMobileCards(items, groupedData = null, fallbackDate = '') {
                 const container = $('#mobileCardsContainer');
@@ -3929,14 +4162,14 @@
                 const selectedDate = (fallbackDate || $('#selectedDate').val() || '').toString();
                 const normalizedGroups = normalizeGroupedData(items, groupedData, selectedDate);
 
-                normalizedGroups.forEach(function (group) {
+                normalizedGroups.forEach(function(group) {
                     const groupItems = Array.isArray(group.items) ? group.items : [];
                     const groupName = escapeHtml((group.group_name || 'Default Group').toString());
                     const groupNoteRaw = (group.group_note || '').toString().trim();
                     const groupNote = escapeHtml(groupNoteRaw);
                     const groupKey = escapeHtml((group.group_key || '').toString());
 
-                    const totalBatches = groupItems.reduce(function (sum, item) {
+                    const totalBatches = groupItems.reduce(function(sum, item) {
                         return sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(
                             item.product_qnty) : 0);
                     }, 0);
@@ -3971,13 +4204,13 @@
             }
 
 
-            $(window).on('resize', function () {
+            $(window).on('resize', function() {
                 updateDistributionListScrollLimit();
             });
 
             // ===== DATE NAVIGATION =====
 
-            $('#selectedDate').on('change', function () {
+            $('#selectedDate').on('change', function() {
                 const selectedDate = ($('#selectedDate').val() || '').toString();
                 if ((selectedGroupFilter.date || '') !== selectedDate) {
                     clearSelectedGroupFilter();
@@ -3986,24 +4219,20 @@
                 updateDateLabel();
                 loadDistributionByDate();
                 renderCalendar();
-
-                // NEW: keep Store tab in sync if it's currently active
-                if (!$('#tabPanelStore').hasClass('hidden')) {
-                    loadStoreAddedItems();
-                }
+                loadStoreAddedItems();
 
                 // Re-evaluate the Add Items button gate for the newly
                 // selected date (only today requires an open inventory).
                 checkOpenInventoryAndToggleAddItemsButtons();
             });
 
-            $('#btnPrevDay').on('click', function () {
+            $('#btnPrevDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() - 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
             });
 
-            $('#btnNextDay').on('click', function () {
+            $('#btnNextDay').on('click', function() {
                 const current = new Date($('#selectedDate').val());
                 current.setDate(current.getDate() + 1);
                 $('#selectedDate').val(formatDate(current)).trigger('change');
@@ -4033,8 +4262,8 @@
                 );
                 $('#btnSaveItems').html(
                     isDeletedCategoryEdit ?
-                        '<i class="fas fa-lock mr-2"></i>Save Group Changes' :
-                        saveButtonLabel
+                    '<i class="fas fa-lock mr-2"></i>Save Group Changes' :
+                    saveButtonLabel
                 );
                 $('#btnSaveItems').prop('disabled', isDeletedCategoryEdit)
                     .toggleClass('opacity-50 cursor-not-allowed', isDeletedCategoryEdit)
@@ -4067,6 +4296,7 @@
                 }
 
                 $('#scheduleDate').val(dateValue || $('#selectedDate').val());
+                lastValidScheduleDate = ($('#scheduleDate').val() || '').toString();
                 updateScheduleQuickBtns();
                 itemsToAddList = [];
                 renderAddedItemsList();
@@ -4106,17 +4336,17 @@
                         normalizedDate] || []), normalizedDate);
 
                 let groupedData = normalizeGroupedData(candidateItems, null, normalizedDate);
-                let matchedGroup = groupedData.find(function (group) {
+                let matchedGroup = groupedData.find(function(group) {
                     return String(group.group_key || '') === normalizedGroupKey;
                 });
 
                 if (!matchedGroup || (ensureIds && Array.isArray(matchedGroup.items) && matchedGroup.items.some(
-                    function (item) {
-                        return !getDistributionItemId(item);
-                    }))) {
+                        function(item) {
+                            return !getDistributionItemId(item);
+                        }))) {
                     const byDateItems = await fetchDistributionItemsByDateRequest(normalizedDate);
                     groupedData = normalizeGroupedData(byDateItems, null, normalizedDate);
-                    matchedGroup = groupedData.find(function (group) {
+                    matchedGroup = groupedData.find(function(group) {
                         return String(group.group_key || '') === normalizedGroupKey;
                     });
 
@@ -4154,7 +4384,7 @@
                 }
 
                 if (!groupCategoryId && Array.isArray(groupItems) && groupItems.length > 0) {
-                    const fallbackProductId = String((groupItems.find(function (item) {
+                    const fallbackProductId = String((groupItems.find(function(item) {
                         return item && item.product_id;
                     }) || {}).product_id || '').trim();
                     const fallbackMeta = fallbackProductId ? getLocalDistributionGroupMeta(normalizedDate, fallbackProductId) : null;
@@ -4168,7 +4398,7 @@
                     date: normalizedDate,
                     group_key: normalizedGroupKey,
                     group_ids: Array.isArray(group.source_group_ids) && group.source_group_ids.length > 0 ?
-                        group.source_group_ids.slice() : Array.from(new Set(groupItems.map(function (item) {
+                        group.source_group_ids.slice() : Array.from(new Set(groupItems.map(function(item) {
                             return getDistributionItemId(item);
                         }).filter(Boolean))),
                     dist_category_id: groupCategoryId > 0 ? groupCategoryId : parseInt(group.dist_category_id || 0, 10) || 0,
@@ -4176,7 +4406,7 @@
                     original_name: (group.group_name || '').toString().trim(),
                     original_note: (group.group_note || '').toString(),
                     is_deleted_category: false,
-                    existing_items: groupItems.map(function (item) {
+                    existing_items: groupItems.map(function(item) {
                         return {
                             item_id: getDistributionItemId(item),
                             item_ids: getMergedDistributionItemIds(item), // NEW
@@ -4194,14 +4424,14 @@
                 resetAddItemsModalForm(normalizedDate, true);
 
                 await loadStores(editingGroupContext.dist_category_id || '');
-                const hasActiveCategoryOption = Array.isArray(storesCache) && storesCache.some(function (category) {
+                const hasActiveCategoryOption = Array.isArray(storesCache) && storesCache.some(function(category) {
                     return String(category && (category.dist_cat_id ?? category.id ?? '')) === String(editingGroupContext.dist_category_id || '');
                 });
                 editingGroupContext.is_deleted_category = Boolean(editingGroupContext.dist_category_id > 0 && !hasActiveCategoryOption);
                 ensureCategoryOptionExists(editingGroupContext.dist_category_id, editingGroupContext.dist_category_name);
                 setAddItemsModalUiMode('edit');
 
-                itemsToAddList = editingGroupContext.existing_items.map(function (item) {
+                itemsToAddList = editingGroupContext.existing_items.map(function(item) {
                     return {
                         product_id: item.product_id,
                         product_name: item.product_name,
@@ -4243,22 +4473,22 @@
 
                 const resolvedGroupIds = Array.isArray(resolved.matchedGroup.source_group_ids) &&
                     resolved.matchedGroup.source_group_ids.length > 0 ?
-                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function (groupId) {
+                    Array.from(new Set(resolved.matchedGroup.source_group_ids.map(function(groupId) {
                         return normalizeDistributionGroupIdForApi(groupId);
                     }).filter(Boolean))) :
-                    Array.from(new Set(groupItems.map(function (item) {
+                    Array.from(new Set(groupItems.map(function(item) {
                         return normalizeDistributionGroupIdForApi(item && item.distribution_id);
                     }).filter(Boolean)));
 
                 if (resolvedGroupIds.length > 0) {
                     try {
                         const deleteGroupResults = await Promise.allSettled(
-                            resolvedGroupIds.map(function (groupId) {
+                            resolvedGroupIds.map(function(groupId) {
                                 return deleteDistributionGroupRequest(groupId);
                             })
                         );
 
-                        const hasFailedDelete = deleteGroupResults.some(function (result) {
+                        const hasFailedDelete = deleteGroupResults.some(function(result) {
                             return result.status === 'rejected' ||
                                 (result.status === 'fulfilled' && result.value && result.value.success === false);
                         });
@@ -4268,7 +4498,7 @@
                             return;
                         }
 
-                        groupItems.forEach(function (item) {
+                        groupItems.forEach(function(item) {
                             if (item && item.product_id != null) {
                                 removeLocalDistributionGroupMeta(resolved.date, item.product_id);
                             }
@@ -4297,13 +4527,13 @@
                 }
 
                 const deletableItems = groupItems
-                    .map(function (item) {
+                    .map(function(item) {
                         return {
                             item_id: getDistributionItemId(item),
                             product_id: item.product_id,
                         };
                     })
-                    .filter(function (item) {
+                    .filter(function(item) {
                         return item.item_id != null;
                     });
 
@@ -4312,16 +4542,16 @@
                     return;
                 }
 
-                const results = await Promise.allSettled(deletableItems.map(function (item) {
+                const results = await Promise.allSettled(deletableItems.map(function(item) {
                     return deleteDistributionItemRequest(item.item_id);
                 }));
 
                 let deletedCount = 0;
                 let failedCount = 0;
 
-                results.forEach(function (result, index) {
+                results.forEach(function(result, index) {
                     if (result.status === 'fulfilled' && !(result.value && result.value.success ===
-                        false)) {
+                            false)) {
                         deletedCount += 1;
                         removeLocalDistributionGroupMeta(resolved.date, deletableItems[index]
                             .product_id);
@@ -4348,14 +4578,18 @@
                 }
             }
 
-            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function () {
-                if (openInventoryStatus === 'checking') {
-                    showToast('warning', 'Still checking today\'s inventory status — try again in a moment.', 2500);
-                    return;
-                }
-                if (openInventoryStatus !== 'open') {
-                    showToast('warning', 'Open today\'s inventory before adding distribution items.', 3200);
-                    return;
+            $('#btnAddItems, #btnAddItemsMobile, #btnAddItemsEmpty').on('click', function() {
+                // The open-inventory gate only applies to today's distributions;
+                // advance/past dates don't depend on today's shift at all.
+                if (isSelectedDateToday()) {
+                    if (openInventoryStatus === 'checking') {
+                        showToast('warning', 'Still checking today\'s inventory status — try again in a moment.', 2500);
+                        return;
+                    }
+                    if (openInventoryStatus !== 'open') {
+                        showToast('warning', 'Open today\'s inventory before adding distribution items.', 3200);
+                        return;
+                    }
                 }
 
                 clearGroupEditContext();
@@ -4365,31 +4599,31 @@
                 $('#addItemsModal').removeClass('hidden');
             });
 
-            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function () {
+            $('#btnCloseAddItemsModal, #btnCancelAddItems').on('click', function() {
                 $('#addItemsModal').addClass('hidden');
                 clearGroupEditContext();
             });
 
             // Product search input events
-            $('#productSearch').on('focus', function () {
+            $('#productSearch').on('focus', function() {
                 showProductDropdown($(this).val());
             });
 
-            $('#productSearch').on('input', function () {
+            $('#productSearch').on('input', function() {
                 const searchTerm = $(this).val();
                 $('#selectedProductId').val('');
                 $('#btnClearProduct').addClass('hidden');
                 showProductDropdown(searchTerm);
             });
 
-            $('#addProductQty').on('keypress', function (e) {
+            $('#addProductQty').on('keypress', function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#btnAddProductToList').click();
                 }
             });
 
-            $(document).on('click', '.product-option', function () {
+            $(document).on('click', '.product-option', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 $('#selectedProductId').val(id);
@@ -4422,7 +4656,7 @@
                 $('#addProductQty').focus();
             });
 
-            $('#btnClearProduct').on('click', function () {
+            $('#btnClearProduct').on('click', function() {
                 $('#selectedProductId').val('');
                 $('#productSearch').val('');
                 $(this).addClass('hidden');
@@ -4433,7 +4667,7 @@
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', function (e) {
+            $(document).on('click', function(e) {
                 if (!$(e.target).closest('#productSearch, #productDropdown').length) {
                     hideProductDropdown();
                 }
@@ -4447,7 +4681,7 @@
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No products found</div>';
                 } else {
-                    filtered.forEach(function (product) {
+                    filtered.forEach(function(product) {
                         const alreadyAdded = itemsToAddList.some(i => i.product_id == product.product_id);
                         const disabledClass = alreadyAdded ? 'opacity-50 pointer-events-none' :
                             'hover:bg-primary/10 cursor-pointer';
@@ -4514,7 +4748,7 @@
                 $('#addQtyLabel').html('Quantity (per piece) <span class="text-red-500">*</span>');
             }
 
-            $('.qty-mode-btn').on('click', function () {
+            $('.qty-mode-btn').on('click', function() {
                 if ($(this).prop('disabled')) return;
                 const mode = $(this).data('mode');
                 $('#selectedQtyMode').val(mode);
@@ -4538,7 +4772,7 @@
             });
 
             // Update conversion hint when quantity changes
-            $('#addProductQty').on('input', function () {
+            $('#addProductQty').on('input', function() {
                 updateConversionHint();
             });
 
@@ -4603,7 +4837,7 @@
                 }
             }
 
-            $('#btnAddProductToList').on('click', function () {
+            $('#btnAddProductToList').on('click', function() {
                 const productId = $('#selectedProductId').val();
                 const productName = $('#productSearch').val();
                 const quantity = parseNumericValue($('#addProductQty').val());
@@ -4648,7 +4882,7 @@
                 $('#productSearch').focus();
             });
 
-            $(document).on('click', '.btn-remove-added-item', function () {
+            $(document).on('click', '.btn-remove-added-item', function() {
                 const idx = $(this).data('index');
                 itemsToAddList.splice(idx, 1);
                 renderAddedItemsList();
@@ -4666,7 +4900,7 @@
                     return;
                 }
 
-                itemsToAddList.forEach(function (item, index) {
+                itemsToAddList.forEach(function(item, index) {
                     const modeLabel = getQtyModeShortLabel(item.qty_mode);
                     const modeBadgeColor = item.qty_mode === 'pieces' ?
                         'bg-blue-100 text-blue-700' :
@@ -4700,30 +4934,61 @@
 
             // ===== EDIT QTY MODAL =====
 
-            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function () {
+            $('#btnCloseEditQtyModal, #btnCancelEditQty').on('click', function() {
                 $('#editQtyModal').addClass('hidden');
             });
 
-            $('.schedule-quick-btn').on('click', function () {
+            $('.schedule-quick-btn').on('click', function() {
                 const days = parseInt($(this).data('days'));
+                const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                    addItemsModalMode === 'edit' && !!editingGroupContext;
+
+                // Defense-in-depth: the button is already disabled in this
+                // state via updateScheduleQuickBtns(), but guard the handler
+                // too in case it's ever triggered programmatically.
+                if (!isEditMode && days === 0 && openInventoryStatus !== 'open') {
+                    showToast('warning', 'Open today\'s inventory before scheduling items for today.', 3200);
+                    return;
+                }
+
                 const newDate = new Date();
                 newDate.setDate(newDate.getDate() + days);
                 $('#scheduleDate').val(formatDate(newDate));
+                lastValidScheduleDate = formatDate(newDate);
                 updateScheduleQuickBtns();
             });
 
-            $('#btnEditQtyInc').on('click', function () {
+            // Guard the native date picker too: typing/selecting today's date
+            // directly (bypassing the quick-select buttons) should be blocked
+            // the same way while today's inventory isn't open.
+            $('#scheduleDate').on('change', function() {
+                const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                    addItemsModalMode === 'edit' && !!editingGroupContext;
+                const picked = ($(this).val() || '').toString();
+
+                if (!isEditMode && picked === formatDate(new Date()) && openInventoryStatus !== 'open') {
+                    showToast('warning', 'Open today\'s inventory before scheduling items for today.', 3200);
+                    // Revert to the previously selected (non-today) date.
+                    $(this).val(lastValidScheduleDate || formatDate(new Date(Date.now() + 86400000)));
+                } else {
+                    lastValidScheduleDate = picked;
+                }
+
+                updateScheduleQuickBtns();
+            });
+
+            $('#btnEditQtyInc').on('click', function() {
                 const input = $('#editQuantity');
                 input.val(parseInt(input.val() || 0) + 5);
             });
 
-            $('#btnEditQtyDec').on('click', function () {
+            $('#btnEditQtyDec').on('click', function() {
                 const input = $('#editQuantity');
                 const val = parseInt(input.val() || 0);
                 if (val > 5) input.val(val - 5);
             });
 
-            $(document).on('click', '.btn-edit-qty', function () {
+            $(document).on('click', '.btn-edit-qty', function() {
                 const row = $(this).closest('[data-id]');
                 const productName = row.find('span.font-medium, span.truncate').first().text();
                 const qty = row.find('.font-bold').first().text();
@@ -4734,15 +4999,15 @@
                 $('#editItemId').val(row.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                )
+                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                    )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-edit-qty-mobile', function () {
+            $(document).on('click', '.btn-edit-qty-mobile', function() {
                 const card = $(this).closest('[data-id]');
                 const productName = card.find('h4').text();
                 const qtyText = card.find('.text-xs.text-gray-500').first().text();
@@ -4754,39 +5019,39 @@
                 $('#editItemId').val(card.data('id'));
                 $('#editItemQtyMode').val(qtyMode);
                 $('#editQtyModeBadge').text(qtyMode).removeClass(
-                    'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
-                )
+                        'bg-primary/10 text-primary bg-blue-100 text-blue-700 bg-amber-100 text-amber-700 bg-gray-200 text-gray-600'
+                    )
                     .addClass(qtyMode === 'pieces' ? 'bg-blue-100 text-blue-700' : (qtyMode === 'box' ?
                         'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'));
                 $('#editQtyLabel').text('Quantity (per ' + getQtyModeLabel(qtyMode) + ')');
                 $('#editQtyModal').removeClass('hidden');
             });
 
-            $(document).on('click', '.btn-delete', function () {
+            $(document).on('click', '.btn-delete', function() {
                 const row = $(this).closest('[data-id]');
                 const itemId = row.data('id');
                 const productId = row.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function () {
+                Confirm.delete('Are you sure you want to remove this item?', function() {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
-            $(document).on('click', '.btn-delete-mobile', function () {
+            $(document).on('click', '.btn-delete-mobile', function() {
                 const card = $(this).closest('[data-id]');
                 const itemId = card.data('id');
                 const productId = card.data('product-id');
                 const dateValue = $('#selectedDate').val();
 
-                Confirm.delete('Are you sure you want to remove this item?', function () {
+                Confirm.delete('Are you sure you want to remove this item?', function() {
                     deleteDistributionItem(itemId, productId, dateValue);
                 });
             });
 
             // ===== FORM SUBMISSIONS =====
 
-            $('#addItemsForm').on('submit', async function (e) {
+            $('#addItemsForm').on('submit', async function(e) {
                 e.preventDefault();
 
                 const scheduleDate = ($('#scheduleDate').val() || '').toString();
@@ -4803,7 +5068,7 @@
                     selected_category_name: selectedCategoryName,
                     entered_group_note_length: distributionGroupNote.length,
                     list_item_count: itemsToAddList.length,
-                    list_items: itemsToAddList.map(function (item) {
+                    list_items: itemsToAddList.map(function(item) {
                         return {
                             product_id: item.product_id,
                             product_name: item.product_name,
@@ -4877,7 +5142,7 @@
                             payload: updateGroupPayload,
                         });
 
-                        await Promise.all(targetGroupIds.map(function (groupId) {
+                        await Promise.all(targetGroupIds.map(function(groupId) {
                             return updateDistributionGroupRequest(groupId, updateGroupPayload);
                         }));
 
@@ -4886,7 +5151,7 @@
                             group_ids: targetGroupIds,
                         });
 
-                        const normalizedItems = itemsToAddList.map(function (item) {
+                        const normalizedItems = itemsToAddList.map(function(item) {
                             return {
                                 product_id: String(item.product_id || '').trim(),
                                 quantity: parseNumericValue(item.quantity),
@@ -4896,37 +5161,37 @@
                                 item_ids: Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
                                     item.item_ids : (item.item_id != null ? [parseInt(item.item_id, 10)] : []),
                                 identity_key: (item.identity_key ||
-                                    `product-${String(item.product_id || '').trim()}`)
+                                        `product-${String(item.product_id || '').trim()}`)
                                     .toString(),
                             };
                         });
 
-                        const existingItemsNow = normalizedItems.filter(function (item) {
+                        const existingItemsNow = normalizedItems.filter(function(item) {
                             return item.existing;
                         });
-                        const existingIdentitySet = new Set(existingItemsNow.map(function (item) {
+                        const existingIdentitySet = new Set(existingItemsNow.map(function(item) {
                             return item.identity_key;
                         }));
                         const existingBefore = Array.isArray(context.existing_items) ? context
                             .existing_items : [];
 
-                        const removedExisting = existingBefore.filter(function (item) {
+                        const removedExisting = existingBefore.filter(function(item) {
                             return !existingIdentitySet.has(String(item.identity_key || ''));
                         });
 
                         const removableIdPairs = [];
-                        removedExisting.forEach(function (item) {
+                        removedExisting.forEach(function(item) {
                             const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
                                 item.item_ids :
                                 (item.item_id != null ? [item.item_id] : []);
-                            ids.forEach(function (id) {
+                            ids.forEach(function(id) {
                                 removableIdPairs.push({
                                     item_id: id,
                                     product_id: item.product_id
                                 });
                             });
                         });
-                        const removedMissingIdCount = removedExisting.filter(function (item) {
+                        const removedMissingIdCount = removedExisting.filter(function(item) {
                             const ids = Array.isArray(item.item_ids) && item.item_ids.length > 0 ?
                                 item.item_ids :
                                 (item.item_id != null ? [item.item_id] : []);
@@ -4942,7 +5207,7 @@
                             removed_missing_id_count: removedMissingIdCount,
                         });
 
-                        const deleteResults = await Promise.allSettled(removableIdPairs.map(function (
+                        const deleteResults = await Promise.allSettled(removableIdPairs.map(function(
                             pair) {
                             return deleteDistributionItemRequest(pair.item_id);
                         }));
@@ -4951,9 +5216,9 @@
                         let deleteFailedCount = 0;
                         const deletedProductIds = [];
 
-                        deleteResults.forEach(function (result, index) {
+                        deleteResults.forEach(function(result, index) {
                             if (result.status === 'fulfilled' && !(result.value && result.value
-                                .success === false)) {
+                                    .success === false)) {
                                 deletedCount += 1;
                                 deletedProductIds.push(removableIdPairs[index].product_id);
                             } else {
@@ -4968,11 +5233,11 @@
                             deleted_product_ids: deletedProductIds,
                         });
 
-                        const newItems = normalizedItems.filter(function (item) {
+                        const newItems = normalizedItems.filter(function(item) {
                             return !item.existing;
                         });
 
-                        const addPayloads = newItems.map(function (item) {
+                        const addPayloads = newItems.map(function(item) {
                             return {
                                 distribution_id: targetGroupIds[0],
                                 product_id: item.product_id,
@@ -4987,7 +5252,7 @@
                             add_payloads: addPayloads,
                         });
 
-                        const addResults = await Promise.allSettled(addPayloads.map(function (payload) {
+                        const addResults = await Promise.allSettled(addPayloads.map(function(payload) {
                             return addDistributionItemRequest(payload);
                         }));
 
@@ -4997,7 +5262,7 @@
                         let sawInsufficient = false;
                         let insufficientMaterials = [];
 
-                        addResults.forEach(function (result, index) {
+                        addResults.forEach(function(result, index) {
                             const currentPayload = addPayloads[index];
 
                             if (result.status === 'fulfilled') {
@@ -5031,7 +5296,7 @@
                                     // Convert object to array of strings
                                     insufficientMaterials = insufficientMaterials.concat(
                                         Object.values(responseJson.insufficient_materials)
-                                            .flat()
+                                        .flat()
                                     );
                                 }
                                 return;
@@ -5049,19 +5314,19 @@
                             insufficient_count: insufficientMaterials.length,
                         });
 
-                        deletedProductIds.forEach(function (productId) {
+                        deletedProductIds.forEach(function(productId) {
                             removeLocalDistributionGroupMeta(targetDate, productId);
                         });
 
-                        const remainingExistingProductIds = existingItemsNow.map(function (item) {
+                        const remainingExistingProductIds = existingItemsNow.map(function(item) {
                             return item.product_id;
                         });
-                        const succeededAddProductIds = succeededAdds.map(function (item) {
+                        const succeededAddProductIds = succeededAdds.map(function(item) {
                             return item.product_id;
                         });
                         const finalProductIds = Array.from(new Set(
                             remainingExistingProductIds.concat(succeededAddProductIds).map(
-                                function (productId) {
+                                function(productId) {
                                     return String(productId || '').trim();
                                 }).filter(Boolean)
                         ));
@@ -5099,8 +5364,8 @@
 
                         const attemptedAdds = addPayloads.length;
                         if (deletedCount > 0 || succeededAdds.length > 0 || (finalProductIds.length >
-                            0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
-                                distributionGroupNote !== context.original_note))) {
+                                0 && (distributionCategoryId !== (context.dist_category_id || 0) ||
+                                    distributionGroupNote !== context.original_note))) {
                             let message = `Distribution group "${savedGroupName}" updated.`;
                             if (deletedCount > 0) {
                                 message += ` Removed ${deletedCount} item(s).`;
@@ -5109,7 +5374,7 @@
                                 message += ` Added ${succeededAdds.length} item(s).`;
                             }
                             if (attemptedAdds > 0 && (duplicateCount > 0 || addFailedCount > 0 ||
-                                sawInsufficient)) {
+                                    sawInsufficient)) {
                                 message += ' Some items were not added.';
                             }
                             if (removedMissingIdCount > 0 || deleteFailedCount > 0) {
@@ -5118,34 +5383,34 @@
 
                             logDistributionFlow('log', 'Update group completed with changes.', {
                                 toast_type: (duplicateCount > 0 || addFailedCount > 0 ||
-                                    deleteFailedCount > 0 || removedMissingIdCount > 0) ?
+                                        deleteFailedCount > 0 || removedMissingIdCount > 0) ?
                                     'warning' : 'success',
                                 message: message,
                             });
 
                             showToast((duplicateCount > 0 || addFailedCount > 0 || deleteFailedCount >
-                                0 || removedMissingIdCount > 0) ? 'warning' : 'success',
+                                    0 || removedMissingIdCount > 0) ? 'warning' : 'success',
                                 message, 4500);
                         } else if (attemptedAdds > 0 && duplicateCount === attemptedAdds) {
                             logDistributionFlow('warn',
                                 'Update group completed with no new adds due to duplicates.', {
-                                attempted_adds: attemptedAdds,
-                                duplicate_count: duplicateCount,
-                            });
+                                    attempted_adds: attemptedAdds,
+                                    duplicate_count: duplicateCount,
+                                });
                             showToast('warning', 'All selected products already exist for that date.',
                                 4000);
                         } else if (finalProductIds.length === 0 && removedExisting.length > 0) {
                             logDistributionFlow('log',
                                 'Update group completed with empty group result.', {
-                                removed_existing_count: removedExisting.length,
-                            });
+                                    removed_existing_count: removedExisting.length,
+                                });
                             showToast('success', 'Distribution group is now empty.', 3200);
                         } else {
                             logDistributionFlow('warn',
                                 'Update group completed with no effective changes.', {
-                                attempted_adds: attemptedAdds,
-                                final_product_count: finalProductIds.length,
-                            });
+                                    attempted_adds: attemptedAdds,
+                                    final_product_count: finalProductIds.length,
+                                });
                             showToast('warning', 'No changes were made to this group.', 3200);
                         }
 
@@ -5162,7 +5427,7 @@
                         return;
                     }
 
-                    const itemsToAdd = itemsToAddList.map(function (item) {
+                    const itemsToAdd = itemsToAddList.map(function(item) {
                         return {
                             product_id: item.product_id,
                             quantity: parseNumericValue(item.quantity),
@@ -5215,7 +5480,7 @@
                         dist_category_name: selectedCategoryName,
                     };
 
-                    const payloads = itemsToAdd.map(function (item) {
+                    const payloads = itemsToAdd.map(function(item) {
                         return {
                             distribution_id: newGroupId,
                             product_id: item.product_id,
@@ -5231,7 +5496,7 @@
                         payloads: payloads,
                     });
 
-                    const results = await Promise.allSettled(payloads.map(function (payload) {
+                    const results = await Promise.allSettled(payloads.map(function(payload) {
                         return addDistributionItemRequest(payload, payload.raw_qty_mode);
                     }));
 
@@ -5241,7 +5506,7 @@
                     let sawInsufficient = false;
                     let insufficientMaterials = [];
 
-                    results.forEach(function (result, index) {
+                    results.forEach(function(result, index) {
                         const currentPayload = payloads[index];
 
                         if (result.status === 'fulfilled') {
@@ -5275,7 +5540,7 @@
                                 // Convert object to array of strings
                                 insufficientMaterials = insufficientMaterials.concat(
                                     Object.values(responseJson.insufficient_materials)
-                                        .flat()
+                                    .flat()
                                 );
                             }
                             return;
@@ -5295,7 +5560,7 @@
                     });
 
                     if (succeededPayloads.length > 0) {
-                        const productIds = succeededPayloads.map(function (payload) {
+                        const productIds = succeededPayloads.map(function(payload) {
                             return payload.product_id;
                         });
 
@@ -5350,12 +5615,12 @@
                         newGroupId);
                     logDistributionFlow('warn',
                         'Create group add-item phase fully failed; rollback started.', {
-                        group_id: newGroupId,
-                        attempted: totalAttempted,
-                        duplicate_count: duplicateCount,
-                        saw_insufficient: sawInsufficient,
-                        generic_error_count: genericErrorCount,
-                    });
+                            group_id: newGroupId,
+                            attempted: totalAttempted,
+                            duplicate_count: duplicateCount,
+                            saw_insufficient: sawInsufficient,
+                            generic_error_count: genericErrorCount,
+                        });
                     try {
                         await deleteDistributionGroupRequest(newGroupId);
                         logDistributionFlow('log', 'Create group rollback succeeded.', {
@@ -5411,7 +5676,7 @@
                 }
             });
 
-            $('#editQtyForm').on('submit', function (e) {
+            $('#editQtyForm').on('submit', function(e) {
                 e.preventDefault();
                 const itemId = $('#editItemId').val();
                 const quantity = $('#editQuantity').val();
@@ -5425,7 +5690,7 @@
         function getDistinctGroupCount(items, fallbackDate = '') {
             // Count distinct display group keys so same-category rows collapse into one group.
             const set = new Set();
-            (items || []).forEach(function (item) {
+            (items || []).forEach(function(item) {
                 const key = (item && (item.distribution_display_group_key || item.distribution_group_key)) || '';
                 if (key) {
                     set.add(key);
@@ -5483,11 +5748,32 @@
 
         function updateScheduleQuickBtns() {
             const selectedDate = $('#scheduleDate').val();
+            // Mirror the Add Items gate: the "Today" quick-select is only
+            // safe to use while today's inventory is actually open, since
+            // picking Today here is equivalent to clicking Add Items for
+            // today. Without this, a user could bypass the gate entirely by
+            // choosing another date first, opening the modal, then hitting
+            // "Today" to sneak a today-dated item in.
+            const isEditMode = (typeof addItemsModalMode !== 'undefined') &&
+                addItemsModalMode === 'edit' && !!editingGroupContext;
+            const todayGateBlocked = (typeof openInventoryStatus !== 'undefined') &&
+                openInventoryStatus !== 'open';
 
-            $('.schedule-quick-btn').each(function () {
+            $('.schedule-quick-btn').each(function() {
                 const days = parseInt($(this).data('days'));
                 const btnDate = new Date();
                 btnDate.setDate(btnDate.getDate() + days);
+                const isTodayBtn = days === 0;
+                // Edit mode disables every quick button (date can't change);
+                // outside edit mode, only the Today button is gated, and only
+                // while today's inventory isn't open.
+                const blockThisBtn = isEditMode || (isTodayBtn && todayGateBlocked);
+
+                $(this)
+                    .prop('disabled', blockThisBtn)
+                    .toggleClass('opacity-50 cursor-not-allowed', blockThisBtn)
+                    .attr('title', (!isEditMode && isTodayBtn && todayGateBlocked) ?
+                        'Open today\'s inventory before scheduling items for today.' : '');
 
                 if (formatDate(btnDate) === selectedDate) {
                     $(this).removeClass('border border-gray-300 text-gray-600').addClass('bg-primary text-white');
@@ -5502,12 +5788,12 @@
             const hasSummary = summary && typeof summary === 'object';
             const totalPiecesCalculator = (typeof window.calculateTotalDistributionPieces === 'function') ?
                 window.calculateTotalDistributionPieces :
-                function () {
+                function() {
                     return 0;
                 };
 
             const computedTotalItems = distributionItems.length;
-            const computedTotalBatches = distributionItems.reduce(function (sum, item) {
+            const computedTotalBatches = distributionItems.reduce(function(sum, item) {
                 return sum + (((item.qty_mode || 'batch') === 'pieces') ? 0 : parseNumericValue(item.product_qnty));
             }, 0);
             const computedTotalPieces = totalPiecesCalculator(distributionItems);
@@ -5618,7 +5904,7 @@
             const distributionItems = Array.isArray(items) ? items : [];
             let forecastedTotal = 0;
 
-            distributionItems.forEach(function (item) {
+            distributionItems.forEach(function(item) {
                 const quantity = parseNumericValue(item.product_qnty);
                 if (quantity <= 0) return;
 
@@ -5628,7 +5914,7 @@
                     return;
                 }
 
-                const matchedProduct = productsData.find(function (product) {
+                const matchedProduct = productsData.find(function(product) {
                     return String(product.product_id) === String(item.product_id);
                 }) || getProductAnalyticsData(item.product_id);
 
@@ -5642,7 +5928,7 @@
         function calculateAdditionalCostTotal(items) {
             const distributionItems = Array.isArray(items) ? items : [];
 
-            return distributionItems.reduce(function (sum, item) {
+            return distributionItems.reduce(function(sum, item) {
                 return sum + parseNumericValue(item.additional_cost);
             }, 0);
         }
@@ -5678,7 +5964,7 @@
             html += '</div>';
             html += '<p class="text-sm text-gray-600 mb-2">The following raw materials are short:</p>';
             html += '<ul class="list-disc list-inside text-sm text-gray-700 bg-red-50 rounded-lg p-3 space-y-1">';
-            materials.forEach(function (detail) {
+            materials.forEach(function(detail) {
                 html += '<li class="text-red-700">' + detail + '</li>';
             });
             html += '</ul>';
