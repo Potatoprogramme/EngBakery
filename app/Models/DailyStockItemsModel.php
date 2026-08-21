@@ -463,7 +463,7 @@ class DailyStockItemsModel extends Model
 
         $rows = $this->whereIn('daily_stock_id', $dailyStockIds)
             ->where('added_qty >', 0)
-            ->select('daily_stock_items.product_id, daily_stock_items.added_qty, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece')
+            ->select('daily_stock_items.product_id, daily_stock_items.added_qty, daily_stock_items.distributed_out_qty, products.product_name, products.category, product_costs.selling_price, product_costs.selling_price_per_piece')
             ->join('products', 'daily_stock_items.product_id = products.product_id', 'left')
             ->join('product_costs', 'products.product_id = product_costs.product_id', 'left')
             ->where('products.deleted_at IS NULL')
@@ -471,8 +471,10 @@ class DailyStockItemsModel extends Model
             ->orderBy('products.product_name', 'ASC')
             ->findAll();
 
-        // Aggregate added_qty per product across shifts (a product may have
-        // been added-to in more than one shift on the same day).
+        // Aggregate added_qty and distributed_out_qty per product across shifts
+        // (a product may have been added-to in more than one shift on the same day).
+        // remaining_qty reflects what's still available in the Store after
+        // accounting for pieces already sent out to distribution groups.
         $aggregated = [];
         foreach ($rows as $row) {
             $productId = intval($row['product_id']);
@@ -480,10 +482,17 @@ class DailyStockItemsModel extends Model
             if (!isset($aggregated[$productId])) {
                 $aggregated[$productId] = $row;
                 $aggregated[$productId]['added_qty'] = 0;
+                $aggregated[$productId]['distributed_out_qty'] = 0;
             }
 
             $aggregated[$productId]['added_qty'] += intval($row['added_qty']);
+            $aggregated[$productId]['distributed_out_qty'] += intval($row['distributed_out_qty']);
         }
+
+        foreach ($aggregated as &$item) {
+            $item['remaining_qty'] = max(0, intval($item['added_qty']) - intval($item['distributed_out_qty']));
+        }
+        unset($item);
 
         return array_values($aggregated);
     }
