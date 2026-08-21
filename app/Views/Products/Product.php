@@ -897,7 +897,7 @@
     </style>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const baseUrl = '<?= base_url() ?>';
             let dataTable = null;
 
@@ -976,7 +976,7 @@
                 return $menu;
             }
 
-            $(document).on('click', '.card-menu-btn', function(e) {
+            $(document).on('click', '.card-menu-btn', function (e) {
                 e.stopPropagation();
                 const $button = $(this);
                 const $menu = getActionMenuForButton($button);
@@ -988,7 +988,7 @@
                 const isDesktopRowMenu = $button.closest('tr').length > 0;
 
                 // Close all other menus first
-                $('.card-menu').not($menu).each(function() {
+                $('.card-menu').not($menu).each(function () {
                     const $otherMenu = $(this);
                     $otherMenu.addClass('hidden');
                     restoreActionMenu($otherMenu);
@@ -1031,7 +1031,7 @@
             function getActionMenuZIndex() {
                 let highestFixedTopZ = NaN;
 
-                $('nav.fixed.top-0, header.fixed.top-0, .fixed.top-0').each(function() {
+                $('nav.fixed.top-0, header.fixed.top-0, .fixed.top-0').each(function () {
                     const z = parseInt($(this).css('z-index'), 10);
                     if (!Number.isNaN(z)) {
                         highestFixedTopZ = Number.isNaN(highestFixedTopZ) ? z : Math.max(highestFixedTopZ, z);
@@ -1047,7 +1047,7 @@
 
             function closeAllActionMenus() {
                 $('.card-menu').addClass('hidden');
-                $('.card-menu').each(function() {
+                $('.card-menu').each(function () {
                     restoreActionMenu($(this));
                 });
                 activeCardMenu = null;
@@ -1141,7 +1141,7 @@
                 }
             }
 
-            $(window).on('resize', function() {
+            $(window).on('resize', function () {
                 if (activeCardMenu && activeCardMenuButton && !activeCardMenu.hasClass('hidden')) {
                     if (activeCardMenuButton.closest('tr').length > 0) {
                         positionDesktopActionMenu(activeCardMenuButton, activeCardMenu);
@@ -1151,7 +1151,7 @@
                 }
             });
 
-            $(window).on('scroll', function() {
+            $(window).on('scroll', function () {
                 if (activeCardMenu && activeCardMenuButton && !activeCardMenu.hasClass('hidden') &&
                     activeCardMenuButton.closest('tr').length > 0) {
                     positionDesktopActionMenu(activeCardMenuButton, activeCardMenu);
@@ -1159,14 +1159,14 @@
             });
 
             // Close card menus when clicking outside
-            $(document).on('click', function(e) {
+            $(document).on('click', function (e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
                     closeAllActionMenus();
                 }
             });
 
             // View button in card menu
-            $(document).on('click', '.card-view-btn', function(e) {
+            $(document).on('click', '.card-view-btn', function (e) {
                 e.stopPropagation();
                 const productId = $(this).data('id');
                 closeAllActionMenus();
@@ -1174,14 +1174,14 @@
             });
 
             // Duplicate button in card menu
-            $(document).on('click', '.card-duplicate-btn', function(e) {
+            $(document).on('click', '.card-duplicate-btn', function (e) {
                 e.stopPropagation();
                 closeAllActionMenus();
                 // Front-end only: duplicate stays visual-only in this view.
             });
 
             // Click on card to view (excluding menu area)
-            $(document).on('click', '.product-card', function(e) {
+            $(document).on('click', '.product-card', function (e) {
                 if (!$(e.target).closest('.card-menu-btn, .card-menu').length) {
                     const productId = $(this).data('product-id');
                     openViewModal(productId);
@@ -1189,13 +1189,13 @@
             });
 
             // Mobile search functionality
-            $('#mobileSearchInput').on('input', function() {
+            $('#mobileSearchInput').on('input', function () {
                 const searchTerm = $(this).val().toLowerCase().trim();
 
                 if (searchTerm === '') {
                     filteredProducts = [...allProducts];
                 } else {
-                    filteredProducts = allProducts.filter(function(product) {
+                    filteredProducts = allProducts.filter(function (product) {
                         const productName = (product.product_name || '').toLowerCase();
                         const category = (product.category || '').toLowerCase();
                         return productName.includes(searchTerm) || category.includes(searchTerm);
@@ -1207,7 +1207,7 @@
             });
 
             // Open Add Product Modal (Desktop & Mobile)
-            $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function() {
+            $('#btnAddMaterial, #btnAddMaterialMobile').on('click', function () {
                 $('#addMaterialModal').removeClass('hidden');
                 updateModalScrollLock();
                 loadIngredients();
@@ -1227,7 +1227,7 @@
             let addPreviousCategory = '';
 
             // Handle category change
-            $('#category_id').on('change', function() {
+            $('#category_id').on('change', function () {
                 const category = $(this).val();
                 const previousCategory = addPreviousCategory;
 
@@ -1433,7 +1433,7 @@
             }
 
             // Allow Enter key in quantity field to add ingredient
-            $('#ingredient_quantity').on('keypress', function(e) {
+            $('#ingredient_quantity').on('keypress', function (e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     $('#btnAddIngredient').click();
@@ -1441,7 +1441,7 @@
             });
 
             // Allow Enter key in combined recipe grams field to add recipe
-            $('#combinedRecipeGrams').on('keypress', function(e) {
+            $('#combinedRecipeGrams').on('keypress', function (e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     $('#btnAddCombinedRecipe').click();
@@ -1449,7 +1449,7 @@
             });
 
             // Close Product Modal
-            $('#btnCloseModal, #btnCancelAdd').on('click', function() {
+            $('#btnCloseModal, #btnCancelAdd').on('click', function () {
                 closeModal();
             });
 
@@ -1532,7 +1532,7 @@
                     return false;
                 }
 
-                return allProducts.some(function(product) {
+                return allProducts.some(function (product) {
                     const existingName = (product.product_name || '').trim().toLowerCase();
                     if (existingName !== normalizedName) {
                         return false;
@@ -1581,7 +1581,7 @@
                         step1Label.removeClass('text-gray-400').addClass('text-primary');
                     } else {
                         step1Indicator.removeClass(
-                                'border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
+                            'border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary')
                             .addClass('bg-primary text-white border-0');
                         step1Indicator.html('<i class="fas fa-check"></i>');
                         step1Label.removeClass('text-gray-400 text-primary').addClass('text-primary');
@@ -1597,7 +1597,7 @@
                         step3Label.removeClass('text-gray-400').addClass('text-primary');
                     } else {
                         step3Indicator.removeClass(
-                                'border-primary bg-primary/10 bg-primary text-white text-primary border-0')
+                            'border-primary bg-primary/10 bg-primary text-white text-primary border-0')
                             .addClass('border-2 border-gray-300 text-gray-400');
                         step3Indicator.html('2');
                         step3Label.removeClass('text-primary').addClass('text-gray-400');
@@ -1623,8 +1623,8 @@
                         if (i < currentAddStep) {
                             // Completed step - solid primary background with checkmark
                             indicator.removeClass(
-                                    'border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary'
-                                )
+                                'border-2 border-gray-300 border-primary bg-primary/10 text-gray-400 text-primary'
+                            )
                                 .addClass('bg-primary text-white border-0');
                             indicator.html('<i class="fas fa-check"></i>');
                             label.removeClass('text-gray-400 text-primary').addClass('text-primary');
@@ -1637,7 +1637,7 @@
                         } else {
                             // Future step - gray border and text
                             indicator.removeClass(
-                                    'border-primary bg-primary/10 bg-primary text-white text-primary border-0')
+                                'border-primary bg-primary/10 bg-primary text-white text-primary border-0')
                                 .addClass('border-2 border-gray-300 text-gray-400');
                             indicator.html(i);
                             label.removeClass('text-primary').addClass('text-gray-400');
@@ -1670,7 +1670,7 @@
             }
 
             // Next step button click
-            $('#btnNextStep').on('click', function() {
+            $('#btnNextStep').on('click', function () {
                 // Validate current step before proceeding
                 if (currentAddStep === 1) {
                     const productName = $('#material_name').val().trim();
@@ -1687,10 +1687,23 @@
                         return;
                     }
 
-                    if (productNameExistsInFetchedList(productName)) {
-                        Toast.error('Product name already exists.');
-                        $('#material_name').focus();
-                        return;
+                    const mode = $('#product_mode').val();
+
+                    // For duplicate mode, force a unique name (don't exclude source product)
+                    if (mode === 'duplicate') {
+                        if (productNameExistsInFetchedList(productName, null)) {
+                            Toast.error('Please provide a unique name for the duplicated product.');
+                            $('#material_name').focus();
+                            return;
+                        }
+                    } else {
+                        // For add/edit modes
+                        const excludeProductId = (mode === 'edit') ? $('#product_id').val() : null;
+                        if (productNameExistsInFetchedList(productName, excludeProductId)) {
+                            Toast.error('Product name already exists.');
+                            $('#material_name').focus();
+                            return;
+                        }
                     }
                 }
 
@@ -1713,7 +1726,7 @@
             });
 
             // Back step button click
-            $('#btnBackStep').on('click', function() {
+            $('#btnBackStep').on('click', function () {
                 if (currentAddStep > 1) {
                     currentAddStep--;
                     updateStepDisplay();
@@ -1744,7 +1757,7 @@
                     url: baseUrl + 'MaterialCosting/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Store all ingredients data for filtering
                             allIngredientsData = response.data;
@@ -1766,7 +1779,7 @@
             function getFilteredIngredients(searchTerm = '') {
                 const filtered = [];
 
-                allIngredientsData.forEach(function(mat) {
+                allIngredientsData.forEach(function (mat) {
                     // Filtering by category/label is disabled.
                     let shouldShow = true;
 
@@ -1792,7 +1805,7 @@
                 if (filtered.length === 0) {
                     html = '<div class="px-3 py-2 text-sm text-gray-500">No ingredients found</div>';
                 } else {
-                    filtered.forEach(function(mat) {
+                    filtered.forEach(function (mat) {
                         const label = (mat.label || 'general').toLowerCase();
                         html +=
                             '<div class="ingredient-option px-3 py-2 text-sm cursor-pointer hover:bg-primary/10 border-b border-gray-100 last:border-b-0" ' +
@@ -1816,16 +1829,16 @@
             }
 
             // Ingredient search input events (Add Modal)
-            $('#ingredient_search').on('focus', function() {
+            $('#ingredient_search').on('focus', function () {
                 showIngredientDropdown($(this).val());
             });
 
-            $('#ingredient_search').on('input', function() {
+            $('#ingredient_search').on('input', function () {
                 showIngredientDropdown($(this).val());
             });
 
             // Select ingredient from dropdown (Add Modal)
-            $(document).on('click', '.ingredient-option', function() {
+            $(document).on('click', '.ingredient-option', function () {
                 const $this = $(this);
                 const id = $this.data('id');
                 const name = $this.data('name');
@@ -1840,7 +1853,7 @@
             });
 
             // Clear ingredient selection
-            $('#btnClearIngredient').on('click', function() {
+            $('#btnClearIngredient').on('click', function () {
                 $('#ingredient_id').val('');
                 $('#ingredient_search').val('');
                 $(this).addClass('hidden');
@@ -1848,7 +1861,7 @@
             });
 
             // Show/hide clear button based on input
-            $('#ingredient_search').on('input', function() {
+            $('#ingredient_search').on('input', function () {
                 if ($(this).val().trim() !== '' && $('#ingredient_id').val() !== '') {
                     $('#btnClearIngredient').removeClass('hidden');
                 } else if ($('#ingredient_id').val() === '') {
@@ -1857,7 +1870,7 @@
             });
 
             // Hide dropdown when clicking outside (Add Modal)
-            $(document).on('click', function(e) {
+            $(document).on('click', function (e) {
                 if (!$(e.target).closest('#ingredient_search, #ingredient_dropdown').length) {
                     hideIngredientDropdown();
                 }
@@ -1866,7 +1879,7 @@
             // Auto-select unit is now handled in the ingredient-option click event above
 
             // Add Ingredient to List
-            $('#btnAddIngredient').on('click', function() {
+            $('#btnAddIngredient').on('click', function () {
                 const ingredientId = $('#ingredient_id').val();
                 const ingredientName = $('#ingredient_search').val();
 
@@ -1924,12 +1937,12 @@
             });
 
             // Remove Ingredient from List
-            $(document).on('click', '.btn-remove-ingredient', function() {
+            $(document).on('click', '.btn-remove-ingredient', function () {
                 const index = $(this).data('index');
                 const ingredientName = ingredientsList[index].name;
                 Confirm.delete('Are you sure you want to remove "' + ingredientName +
                     '" from the ingredients list?',
-                    function() {
+                    function () {
                         ingredientsList.splice(index, 1);
                         updateIngredientsListDisplay();
                         updateCostingDisplay();
@@ -1945,7 +1958,7 @@
                 }
 
                 let html = '';
-                ingredientsList.forEach(function(item, index) {
+                ingredientsList.forEach(function (item, index) {
                     const labelBadge = getLabelBadge(item.label);
                     const costPerUnit = parseFloat(item.costPerUnit) || 0;
                     const totalCost = parseFloat(item.totalCost) || 0;
@@ -2289,7 +2302,7 @@
                 // If no trays, pieces is total pieces
                 const totalPieces = traysPerYield > 0 ? traysPerYield * piecesPerYield : piecesPerYield;
 
-                combinedRecipesList.forEach(function(item) {
+                combinedRecipesList.forEach(function (item) {
                     // Recalculate total cost based on total pieces
                     const costPerProductPiece = item.costPerUnit * item.gramsPerPiece;
                     item.costPerProductPiece = costPerProductPiece;
@@ -2300,33 +2313,33 @@
             }
 
             // Recalculate on overhead/profit/yield change
-            $('#overheadCost, #profitMargin').on('input', function() {
+            $('#overheadCost, #profitMargin').on('input', function () {
                 updateCostingDisplay();
             });
 
             // Handle grocery direct cost input change
-            $('#groceryDirectCost').on('input', function() {
+            $('#groceryDirectCost').on('input', function () {
                 updateCostingDisplay();
             });
 
             // Handle yield field changes with specific field tracking
-            $('#piecesPerYield').on('input', function() {
+            $('#piecesPerYield').on('input', function () {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('piecesPerYield');
             });
 
-            $('#traysPerYield').on('input', function() {
+            $('#traysPerYield').on('input', function () {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('traysPerYield');
             });
 
             // Handle gramsPerPiece input for all product categories
-            $('#gramsPerPiece').on('input', function() {
+            $('#gramsPerPiece').on('input', function () {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('gramsPerPiece');
             });
 
-            $('#gramsPerTray').on('input', function() {
+            $('#gramsPerTray').on('input', function () {
                 recalculateCombinedRecipes();
                 updateCostingDisplay('gramsPerTray');
             });
@@ -2337,10 +2350,10 @@
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success && response.data) {
                             let options = '<option value="">Select a recipe...</option>';
-                            response.data.forEach(function(product) {
+                            response.data.forEach(function (product) {
                                 // Exclude drinks from combined recipes
                                 if (product.category === 'drinks') {
                                     return; // Skip drinks
@@ -2378,10 +2391,10 @@
                                     '" data-name="' + product.product_name + '" data-cost="' + (
                                         product.direct_cost || 0) + '" data-yield="' +
                                     yieldGrams + '" data-grams-per-piece="' + gramsPerPiece
-                                    .toFixed(2) + '" data-grams-per-tray="' + gramsPerTray
-                                    .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
+                                        .toFixed(2) + '" data-grams-per-tray="' + gramsPerTray
+                                            .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
                                     '" data-trays-per-yield="' + traysPerYield + '">' + product
-                                    .product_name + '</option>';
+                                        .product_name + '</option>';
                             });
                             $('#combinedRecipeSelect').html(options);
                         }
@@ -2390,7 +2403,7 @@
             }
 
             // Auto-populate quantity when a combined recipe is selected
-            $('#combinedRecipeSelect').on('change', function() {
+            $('#combinedRecipeSelect').on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const gramsPerPiece = parseFloat(selectedOption.data('grams-per-piece')) || 0;
                 const gramsPerTray = parseFloat(selectedOption.data('grams-per-tray')) || 0;
@@ -2409,7 +2422,7 @@
             });
 
             // Add Combined Recipe
-            $('#btnAddCombinedRecipe').on('click', function() {
+            $('#btnAddCombinedRecipe').on('click', function () {
                 const select = $('#combinedRecipeSelect');
                 const selectedOption = select.find('option:selected');
                 const recipeId = select.val();
@@ -2481,12 +2494,12 @@
             });
 
             // Remove Combined Recipe
-            $(document).on('click', '.btn-remove-combined-recipe', function() {
+            $(document).on('click', '.btn-remove-combined-recipe', function () {
                 const index = $(this).data('index');
                 const recipeName = combinedRecipesList[index].name;
                 Confirm.delete('Are you sure you want to remove "' + recipeName +
                     '" from combined recipes?',
-                    function() {
+                    function () {
                         combinedRecipesList.splice(index, 1);
                         updateCombinedRecipesListDisplay();
                         updateCostingDisplay();
@@ -2502,14 +2515,14 @@
                 }
 
                 let html = '';
-                combinedRecipesList.forEach(function(item, index) {
+                combinedRecipesList.forEach(function (item, index) {
                     html +=
                         '<div class="flex items-center justify-between p-2 border border-amber-200 rounded-md bg-white">';
                     html += '<div class="flex-1">';
                     html += '<div class="text-xs font-medium text-gray-800">' + item.name + '</div>';
                     html += '<div class="text-xs text-gray-500">' + item.gramsPerPiece + 'g/pc × ₱' + item
                         .costPerUnit.toFixed(5) + '/g = ₱' + (item.gramsPerPiece * item.costPerUnit)
-                        .toFixed(5) + '/product pc</div>';
+                            .toFixed(5) + '/product pc</div>';
                     html += '</div>';
                     html +=
                         '<button type="button" class="text-red-600 hover:text-red-800 btn-remove-combined-recipe" data-index="' +
@@ -2520,7 +2533,7 @@
             }
 
             // Calculate cost per unit
-            $('#initial_quantity, #total_cost').on('input', function() {
+            $('#initial_quantity, #total_cost').on('input', function () {
                 const qty = parseFloat($('#initial_quantity').val()) || 0;
                 const cost = parseFloat($('#total_cost').val()) || 0;
                 const perUnit = qty > 0 ? (cost / qty).toFixed(5) : '0.000';
@@ -2543,7 +2556,7 @@
                     url: baseUrl + 'Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
 
                         // Destroy existing DataTable first
                         if (dataTable) {
@@ -2560,7 +2573,7 @@
                             // Apply category filter if specified
                             let displayProducts = allProducts;
                             if (categoryFilter !== '') {
-                                displayProducts = allProducts.filter(function(product) {
+                                displayProducts = allProducts.filter(function (product) {
                                     return product.category && product.category
                                         .toLowerCase() === categoryFilter.toLowerCase();
                                 });
@@ -2570,13 +2583,13 @@
                             // is_disabled: 1 = disabled, 0 or undefined = enabled
                             if (showDisabledOnly) {
                                 // Show only disabled products
-                                displayProducts = displayProducts.filter(function(product) {
+                                displayProducts = displayProducts.filter(function (product) {
                                     return product.is_disabled == 1 || product.is_disabled ===
                                         '1';
                                 });
                             } else {
                                 // Show only enabled products (is_disabled is 0, null, or undefined)
-                                displayProducts = displayProducts.filter(function(product) {
+                                displayProducts = displayProducts.filter(function (product) {
                                     return !product.is_disabled || product.is_disabled == 0 ||
                                         product.is_disabled === '0';
                                 });
@@ -2590,7 +2603,7 @@
                             $('#disabledProductsCount').text(disabledCount);
                             $('#disabledProductsCountMobile').text(disabledCount);
 
-                            displayProducts.forEach(function(product) {
+                            displayProducts.forEach(function (product) {
                                 // Desktop table rows
                                 rows +=
                                     '<tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer product-row" data-product-id="' +
@@ -2609,28 +2622,28 @@
                                     '<span class="block font-semibold text-primary">\u20b1' +
                                     parseFloat(product.selling_price || 0).toLocaleString(
                                         'en-PH', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) +
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) +
                                     ' <span class="text-gray-400 font-normal text-xs">/ batch</span></span>';
                                 if (parseFloat(product.selling_price_per_tray || 0) > 0) {
                                     recPricesHtml +=
                                         '<span class="block text-purple-700 font-medium">\u20b1' +
                                         parseFloat(product.selling_price_per_tray)
-                                        .toLocaleString('en-PH', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) +
+                                            .toLocaleString('en-PH', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }) +
                                         ' <span class="text-gray-400 font-normal text-xs">/ tray</span></span>';
                                 }
                                 if (parseFloat(product.selling_price_per_piece || 0) > 0) {
                                     recPricesHtml +=
                                         '<span class="block text-blue-700 font-medium">\u20b1' +
                                         parseFloat(product.selling_price_per_piece)
-                                        .toLocaleString('en-PH', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) +
+                                            .toLocaleString('en-PH', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }) +
                                         ' <span class="text-gray-400 font-normal text-xs">/ pc</span></span>';
                                 }
                                 rows += '<td class="px-6 py-4 text-sm leading-relaxed">' +
@@ -2712,7 +2725,7 @@
                             });
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         allProducts = [];
                         filteredProducts = [];
 
@@ -2765,7 +2778,7 @@
                 }
 
                 let cards = '';
-                paginatedProducts.forEach(function(product) {
+                paginatedProducts.forEach(function (product) {
                     const categoryBadge = getCategoryBadge(product.category);
                     cards +=
                         '<div class="product-card bg-white rounded-lg shadow-md border border-gray-100 p-4 cursor-pointer" data-product-id="' +
@@ -2847,22 +2860,22 @@
                         '    <p class="text-[10px] text-primary uppercase tracking-wide font-semibold mb-1">Recommended Prices</p>';
                     cards += '    <p class="text-sm font-bold text-primary">₱' + parseFloat(product
                         .selling_price || 0).toLocaleString('en-PH', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }) + ' <span class="text-gray-400 font-normal text-xs">/ batch</span></p>';
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) + ' <span class="text-gray-400 font-normal text-xs">/ batch</span></p>';
                     if (hasTray) {
                         cards += '    <p class="text-sm font-semibold text-purple-700">₱' + parseFloat(
                             product.selling_price_per_tray).toLocaleString('en-PH', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) + ' <span class="text-gray-400 font-normal text-xs">/ tray</span></p>';
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + ' <span class="text-gray-400 font-normal text-xs">/ tray</span></p>';
                     }
                     if (hasPiece) {
                         cards += '    <p class="text-sm font-semibold text-blue-700">₱' + parseFloat(product
                             .selling_price_per_piece).toLocaleString('en-PH', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) + ' <span class="text-gray-400 font-normal text-xs">/ pc</span></p>';
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + ' <span class="text-gray-400 font-normal text-xs">/ pc</span></p>';
                     }
                     cards += '  </div>';
                     cards += '</div>';
@@ -2885,7 +2898,7 @@
 
                 // Previous button
                 pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (
-                        currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                    currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
                         'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === 1 ? 'disabled' : '') +
                     ' data-page="' + (currentPage - 1) + '">';
                 pagination += '<i class="fas fa-chevron-left"></i>';
@@ -2926,8 +2939,8 @@
                 // Next button
                 pagination += '<button class="pagination-btn px-3 py-2 text-sm font-medium rounded-lg border ' + (
                     currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                    'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === totalPages ?
-                    'disabled' : '') + ' data-page="' + (currentPage + 1) + '">';
+                        'bg-white text-gray-700 hover:bg-gray-50') + '" ' + (currentPage === totalPages ?
+                            'disabled' : '') + ' data-page="' + (currentPage + 1) + '">';
                 pagination += '<i class="fas fa-chevron-right"></i>';
                 pagination += '</button>';
 
@@ -2935,7 +2948,7 @@
             }
 
             // Handle Mobile Pagination Click
-            $(document).on('click', '#mobilePagination .pagination-btn:not([disabled])', function() {
+            $(document).on('click', '#mobilePagination .pagination-btn:not([disabled])', function () {
                 const page = parseInt($(this).data('page'));
                 if (page && page !== currentPage) {
                     currentPage = page;
@@ -2948,7 +2961,7 @@
             });
 
             // Submit Add Product Form via AJAX
-            $('#addMaterialForm').on('submit', function(e) {
+            $('#addMaterialForm').on('submit', function (e) {
                 e.preventDefault();
 
                 const category = $('#category_id').val();
@@ -2998,7 +3011,8 @@
                 // Determine mode (add, edit, or duplicate) before any mode-specific checks
                 const mode = $('#product_mode').val() || 'add';
 
-                if (mode === 'duplicate' && productNameExistsInFetchedList(productName)) {
+                const excludeProductId = (mode === 'edit' || mode === 'duplicate') ? $('#product_id').val() : null;
+                if (mode === 'duplicate' && productNameExistsInFetchedList(productName, excludeProductId)) {
                     Toast.error('Product name already exists.');
                     return;
                 }
@@ -3072,6 +3086,8 @@
                     formData.product_id = $('#product_id').val();
                 }
 
+                // For duplicate, don't send exclude_id - backend should reject same name as source
+
                 const ajaxUrl = mode === 'edit' ? baseUrl + 'Products/UpdateProduct' : mode === 'duplicate' ? baseUrl + 'Products/AddProduct' : baseUrl +
                     'Products/AddProduct';
                 const submitBtn = $('#btnSaveMaterial');
@@ -3091,7 +3107,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop(submitBtn);
                         }
@@ -3104,7 +3120,7 @@
                             Toast.error('Error: ' + response.message);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop(submitBtn);
                         }
@@ -3127,7 +3143,7 @@
             });
 
             // Delete button in table row / mobile card
-            $(document).on('click', '.btn-delete', function(e) {
+            $(document).on('click', '.btn-delete', function (e) {
                 e.stopPropagation();
                 closeAllActionMenus();
                 const btn = $(this);
@@ -3142,7 +3158,7 @@
                     return;
                 }
 
-                Confirm.delete('Are you sure you want to delete this product?', function() {
+                Confirm.delete('Are you sure you want to delete this product?', function () {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.start(btn, '');
                     }
@@ -3150,7 +3166,7 @@
                         url: baseUrl + 'Products/DeleteProduct/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (typeof ButtonLoader !== 'undefined') {
                                 ButtonLoader.stop(btn);
                             }
@@ -3161,7 +3177,7 @@
                                 Toast.error('Error: ' + response.message);
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             if (typeof ButtonLoader !== 'undefined') {
                                 ButtonLoader.stop(btn);
                             }
@@ -3171,7 +3187,7 @@
                 });
             });
 
-            $('#btnViewDelete').on('click', function() {
+            $('#btnViewDelete').on('click', function () {
                 const id = currentViewProductId;
                 const btn = $(this);
 
@@ -3185,7 +3201,7 @@
                     return;
                 }
 
-                Confirm.delete('Are you sure you want to delete this product?', function() {
+                Confirm.delete('Are you sure you want to delete this product?', function () {
                     if (typeof ButtonLoader !== 'undefined') {
                         ButtonLoader.start(btn, '');
                     }
@@ -3193,7 +3209,7 @@
                         url: baseUrl + 'Products/DeleteProduct/' + id,
                         type: 'POST',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (typeof ButtonLoader !== 'undefined') {
                                 ButtonLoader.stop(btn);
                             }
@@ -3205,7 +3221,7 @@
                                 Toast.error('Error: ' + response.message);
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             if (typeof ButtonLoader !== 'undefined') {
                                 ButtonLoader.stop(btn);
                             }
@@ -3217,7 +3233,7 @@
 
 
             // Toggle Enable/Disable Product (Frontend only - no backend)
-            $(document).on('click', '.btn-toggle', function(e) {
+            $(document).on('click', '.btn-toggle', function (e) {
                 e.stopPropagation(); // Prevent event bubbling to parent elements
                 closeAllActionMenus();
 
@@ -3249,7 +3265,7 @@
                     }),
                     contentType: 'application/json',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop(btn);
                         }
@@ -3306,7 +3322,7 @@
                                 'Failed to update product status'));
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         if (typeof ButtonLoader !== 'undefined') {
                             ButtonLoader.stop(btn);
                         }
@@ -3316,14 +3332,14 @@
             });
 
             // Apply Filter
-            $('#apply-filters').on('click', function() {
+            $('#apply-filters').on('click', function () {
                 const categoryId = $('#filter-category').val();
                 // Reload the table with the selected category filter, respecting disabled view state
                 loadMaterials(categoryId, showingDisabledOnly);
             });
 
             // Reset Filter
-            $('#reset-filters').on('click', function() {
+            $('#reset-filters').on('click', function () {
                 $('#filter-category').val('');
                 // Reload the table without any filter, respecting disabled view state
                 loadMaterials('', showingDisabledOnly);
@@ -3331,7 +3347,7 @@
             });
 
             // View Disabled Products Button Click (Desktop & Mobile)
-            $('#viewDisabledProducts, #viewDisabledProductsMobile').on('click', function() {
+            $('#viewDisabledProducts, #viewDisabledProductsMobile').on('click', function () {
                 showingDisabledOnly = !showingDisabledOnly;
                 const categoryFilter = $('#filter-category').val();
 
@@ -3404,7 +3420,7 @@
             // =====================================================
 
             // Open Edit Product Modal: reuse Add modal
-            $(document).on('click', '.btn-edit', function(e) {
+            $(document).on('click', '.btn-edit', function (e) {
                 e.stopPropagation();
                 closeAllActionMenus();
                 const productId = $(this).data('id');
@@ -3424,13 +3440,13 @@
                         type: 'GET',
                         dataType: 'json'
                     })
-                ).done(function(rawResp, prodResp) {
+                ).done(function (rawResp, prodResp) {
                     if (rawResp[0] && rawResp[0].success) allIngredientsData = rawResp[0].data;
 
                     // populate combined recipes dropdown (same logic as loadCombinedRecipesDropdown)
                     if (prodResp[0] && prodResp[0].success) {
                         let options = '<option value="">Select a recipe...</option>';
-                        prodResp[0].data.forEach(function(product) {
+                        prodResp[0].data.forEach(function (product) {
                             if (product.category === 'drinks') return;
                             const yieldGrams = parseFloat(product.yield_grams) || 0;
                             const piecesPerYield = parseInt(product.pieces_per_yield) || 0;
@@ -3450,9 +3466,9 @@
                                 product.product_name + '" data-cost="' + (product.direct_cost ||
                                     0) + '" data-yield="' + yieldGrams + '" data-grams-per-piece="' +
                                 gramsPerPiece.toFixed(2) + '" data-grams-per-tray="' + gramsPerTray
-                                .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
+                                    .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
                                 '" data-trays-per-yield="' + traysPerYield + '">' + product
-                                .product_name + '</option>';
+                                    .product_name + '</option>';
                         });
                         $('#combinedRecipeSelect').html(options);
                     }
@@ -3462,7 +3478,7 @@
                         url: baseUrl + 'Products/GetProduct/' + productId,
                         type: 'GET',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success && response.data) {
                                 const product = response.data;
 
@@ -3502,7 +3518,7 @@
                                 // Populate ingredientsList and combinedRecipesList (reuse add modal arrays)
                                 ingredientsList = [];
                                 if (product.ingredients && product.ingredients.length) {
-                                    product.ingredients.forEach(function(ing) {
+                                    product.ingredients.forEach(function (ing) {
                                         let ingredientLabel = ing.label || 'general';
                                         if ((!ing.label || ing.label === 'general') &&
                                             allIngredientsData.length) {
@@ -3529,7 +3545,7 @@
                                 combinedRecipesList = [];
                                 if (product.combined_recipes && product.combined_recipes
                                     .length) {
-                                    product.combined_recipes.forEach(function(r) {
+                                    product.combined_recipes.forEach(function (r) {
                                         combinedRecipesList.push({
                                             id: r.source_product_id,
                                             name: r.source_product_name,
@@ -3540,8 +3556,8 @@
                                                 .cost_per_gram) || 0,
                                             costPerProductPiece: (parseFloat(r
                                                 .cost_per_gram) || 0) * (
-                                                parseFloat(r
-                                                    .grams_per_piece) || 0),
+                                                    parseFloat(r
+                                                        .grams_per_piece) || 0),
                                             totalCost: parseFloat(r
                                                 .total_cost) || 0
                                         });
@@ -3565,11 +3581,11 @@
                                     .message || 'Unknown error'));
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             Toast.error('Error loading product: ' + error);
                         }
                     });
-                }).fail(function() {
+                }).fail(function () {
                     Toast.error('Error loading lookup data for editing product.');
                 });
             }
@@ -3583,7 +3599,7 @@
             // =====================================================
 
             // Open Duplicate Product Modal: reuse Add modal
-            $(document).on('click', '.btn-duplicate', function(e) {
+            $(document).on('click', '.btn-duplicate', function (e) {
                 e.stopPropagation();
                 closeAllActionMenus();
                 const productId = $(this).data('id');
@@ -3603,13 +3619,13 @@
                         type: 'GET',
                         dataType: 'json'
                     })
-                ).done(function(rawResp, prodResp) {
+                ).done(function (rawResp, prodResp) {
                     if (rawResp[0] && rawResp[0].success) allIngredientsData = rawResp[0].data;
 
                     // populate combined recipes dropdown (same logic as loadCombinedRecipesDropdown)
                     if (prodResp[0] && prodResp[0].success) {
                         let options = '<option value="">Select a recipe...</option>';
-                        prodResp[0].data.forEach(function(product) {
+                        prodResp[0].data.forEach(function (product) {
                             if (product.category === 'drinks') return;
                             const yieldGrams = parseFloat(product.yield_grams) || 0;
                             const piecesPerYield = parseInt(product.pieces_per_yield) || 0;
@@ -3629,9 +3645,9 @@
                                 product.product_name + '" data-cost="' + (product.direct_cost ||
                                     0) + '" data-yield="' + yieldGrams + '" data-grams-per-piece="' +
                                 gramsPerPiece.toFixed(2) + '" data-grams-per-tray="' + gramsPerTray
-                                .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
+                                    .toFixed(2) + '" data-pieces-per-yield="' + piecesPerYield +
                                 '" data-trays-per-yield="' + traysPerYield + '">' + product
-                                .product_name + '</option>';
+                                    .product_name + '</option>';
                         });
                         $('#combinedRecipeSelect').html(options);
                     }
@@ -3641,7 +3657,7 @@
                         url: baseUrl + 'Products/GetProduct/' + productId,
                         type: 'GET',
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success && response.data) {
                                 const product = response.data;
 
@@ -3682,7 +3698,7 @@
                                 // Populate ingredientsList and combinedRecipesList (reuse add modal arrays)
                                 ingredientsList = [];
                                 if (product.ingredients && product.ingredients.length) {
-                                    product.ingredients.forEach(function(ing) {
+                                    product.ingredients.forEach(function (ing) {
                                         let ingredientLabel = ing.label || 'general';
                                         if ((!ing.label || ing.label === 'general') &&
                                             allIngredientsData.length) {
@@ -3709,7 +3725,7 @@
                                 combinedRecipesList = [];
                                 if (product.combined_recipes && product.combined_recipes
                                     .length) {
-                                    product.combined_recipes.forEach(function(r) {
+                                    product.combined_recipes.forEach(function (r) {
                                         combinedRecipesList.push({
                                             id: r.source_product_id,
                                             name: r.source_product_name,
@@ -3720,8 +3736,8 @@
                                                 .cost_per_gram) || 0,
                                             costPerProductPiece: (parseFloat(r
                                                 .cost_per_gram) || 0) * (
-                                                parseFloat(r
-                                                    .grams_per_piece) || 0),
+                                                    parseFloat(r
+                                                        .grams_per_piece) || 0),
                                             totalCost: parseFloat(r
                                                 .total_cost) || 0
                                         });
@@ -3745,11 +3761,11 @@
                                     .message || 'Unknown error'));
                             }
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             Toast.error('Error loading product: ' + error);
                         }
                     });
-                }).fail(function() {
+                }).fail(function () {
                     Toast.error('Error loading lookup data for editing product.');
                 });
             }
@@ -3766,7 +3782,7 @@
             let currentViewProductId = null;
 
             // Open View Product Modal when clicking on a row (but not on action buttons)
-            $(document).on('click', '.product-row', function(e) {
+            $(document).on('click', '.product-row', function (e) {
 
                 // Don't open view modal if clicking on action buttons or their icons
                 if ($(e.target).closest('.btn-edit, .btn-delete, button').length > 0) {
@@ -3790,7 +3806,7 @@
                     url: baseUrl + 'Products/GetProduct/' + productId,
                     type: 'GET',
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success && response.data) {
                             const product = response.data;
 
@@ -3814,7 +3830,7 @@
                             // Populate ingredients list
                             let ingredientsHtml = '';
                             if (product.ingredients && product.ingredients.length > 0) {
-                                product.ingredients.forEach(function(ing) {
+                                product.ingredients.forEach(function (ing) {
                                     const totalCost = parseFloat(ing.total_cost) || 0;
                                     const costPerUnit = parseFloat(ing.cost_per_unit) || 0;
                                     ingredientsHtml += `
@@ -3838,7 +3854,7 @@
                                 $('#viewCombinedRecipesSection').removeClass('hidden');
                                 $('#viewCombinedCostRow').removeClass('hidden');
                                 let combinedHtml = '';
-                                product.combined_recipes.forEach(function(recipe) {
+                                product.combined_recipes.forEach(function (recipe) {
                                     const totalCost = parseFloat(recipe.total_cost) || 0;
                                     const costPerGram = parseFloat(recipe.cost_per_gram) || 0;
                                     const gramsPerPiece = parseFloat(recipe.grams_per_piece) ||
@@ -4058,7 +4074,7 @@
                                 .toFixed(2));
                             $('#viewSellingPriceOverall').text('₱ ' + parseFloat(product
                                 .selling_price_overall || product.selling_price || 0).toFixed(
-                                2));
+                                    2));
 
                             // Show per tray/per piece prices if applicable
                             const sellingPricePerTray = parseFloat(product.selling_price_per_tray || 0);
@@ -4089,14 +4105,14 @@
                                 'Unknown error'));
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         Toast.error('Error loading product: ' + error);
                     }
                 });
             }
 
             // Close View Modal
-            $('#btnCloseViewModal, #btnViewClose').on('click', function() {
+            $('#btnCloseViewModal, #btnViewClose').on('click', function () {
                 closeViewModal();
             });
 
@@ -4107,7 +4123,7 @@
             }
 
             // Edit button in view modal - close view modal and open edit modal
-            $('#btnViewEdit').off('click').on('click', function() {
+            $('#btnViewEdit').off('click').on('click', function () {
                 const productId = currentViewProductId;
                 if (productId) {
                     closeViewModal();

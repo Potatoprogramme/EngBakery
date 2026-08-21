@@ -802,9 +802,12 @@ class InventoryController extends BaseController
 
         $productId = intval($json->product_id ?? 0);
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
+        $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+        $preview = null;
+        $insufficientMaterials = [];
 
-        // Pre-check: block if raw materials are insufficient
+        // Pre-check: warn if raw materials are insufficient
         if ($beginningStock > 0 && $hasRawMaterialRecipe) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 $productId,
@@ -814,14 +817,17 @@ class InventoryController extends BaseController
 
             if (!empty($preview['has_insufficient'])) {
                 $shortMaterials = array_filter($preview['deductions'], fn($d) => $d['insufficient']);
-                $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
+                $insufficientMaterials = array_values(array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials));
 
-                return $this->response->setStatusCode(400)->setJSON([
-                    'success' => false,
-                    'message' => 'Cannot add product — insufficient raw material stock.',
-                    'insufficient_materials' => array_values($shortNames),
-                    'preview' => $preview,
-                ]);
+                if (!$allowInsufficient) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Cannot add product — insufficient raw material stock.',
+                        'insufficient_materials' => $insufficientMaterials,
+                        'preview' => $preview,
+                        'can_override' => true,
+                    ]);
+                }
             }
         }
 
@@ -837,7 +843,9 @@ class InventoryController extends BaseController
             if ($beginningStock > 0 && $hasRawMaterialRecipe) {
                 $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                     $productId,
-                    $beginningStock
+                    $beginningStock,
+                    false,
+                    $allowInsufficient
                 );
             }
 
@@ -845,7 +853,11 @@ class InventoryController extends BaseController
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
                 'item_id' => $result,
-                'deduction' => $deductionResult
+                'deduction' => $deductionResult,
+                'warning' => !empty($insufficientMaterials) ? [
+                    'message' => 'Product added with insufficient raw materials.',
+                    'insufficient_materials' => $insufficientMaterials,
+                ] : null,
             ]);
         } else {
             return $this->response->setStatusCode(400)->setJSON([
@@ -868,61 +880,77 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
-        if (!$dailyStock) {
-            return $this->response->setStatusCode(404)->setJSON([
-                'success' => false,
-                'message' => 'No inventory found for today.'
-            ]);
-        }
+        try {
+            $dailyStock = $this->dailyStockModel->where('inventory_date', $today)->orderBy('daily_stock_id', 'DESC')->first();
+            if (!$dailyStock) {
+                return $this->response->setStatusCode(404)->setJSON([
+                    'success' => false,
+                    'message' => 'No inventory found for today.'
+                ]);
+            }
 
-        $remittance = $this->remittanceDetailsModel
-            ->where('DATE(remittance_date)', $today)
-            ->where('daily_stock_id', $id)
-            ->get()
-            ->getRow();
+            $remittance = $this->remittanceDetailsModel
+                ->where('DATE(remittance_date)', $today)
+                ->where('daily_stock_id', $id)
+                ->get()
+                ->getRow();
 
-        if ($remittance) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Cannot delete inventory. A remittance has already been created for today.'
-            ]);
-        }
+            if ($remittance) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot delete inventory. A remittance has already been created for today.'
+                ]);
+            }
 
-        // Check if there are any active (non-deleted, non-voided) transactions for today
-        $hasTransactions = $this->transactionsModel
-            ->builder()
-            ->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id', 'inner')
-            ->join('orders', 'orders.order_id = transactions.order_id', 'left')
-            ->where('DATE(transactions.date_created)', $today)
-            ->where('dsi.daily_stock_id', $id)
-            ->where('transactions.deleted_at IS NULL')
-            ->where('orders.voided_at IS NULL')
-            ->get()
-            ->getNumRows() > 0;
+            // Check if there are any active (non-deleted, non-voided) transactions for today
+            $hasTransactions = $this->transactionsModel
+                ->builder()
+                ->join('daily_stock_items dsi', 'dsi.item_id = transactions.item_id', 'inner')
+                ->join('orders', 'orders.order_id = transactions.order_id', 'left')
+                ->where('DATE(transactions.date_created)', $today)
+                ->where('dsi.daily_stock_id', $id)
+                ->where('transactions.deleted_at IS NULL')
+                ->where('orders.voided_at IS NULL')
+                ->get()
+                ->getNumRows() > 0;
 
-        if ($hasTransactions) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'success' => false,
-                'message' => 'Cannot delete inventory. Sales transactions exist for today. Please delete transactions first.'
-            ]);
-        }
-        // NOTE: Raw materials are NOT restored here because deductions happen
-        // at distribution time. Deleting inventory only removes the inventory
-        // record — distribution deductions remain intact.
+            if ($hasTransactions) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot delete inventory. Sales transactions exist for today. Please delete transactions first.'
+                ]);
+            }
+            // NOTE: Raw materials are NOT restored here because deductions happen
+            // at distribution time. Deleting inventory only removes the inventory
+            // record — distribution deductions remain intact.
 
-        if ($this->dailyStockModel->deleteInventory($id)) {
-            // Immediate notification: inventory deleted
-            $this->notify('notifyInventoryDeleted', $today);
+            if ($this->dailyStockModel->deleteInventory($id)) {
+                // Immediate notification: inventory deleted
+                $this->notify('notifyInventoryDeleted', $today);
 
-            return $this->response->setStatusCode(200)->setJSON([
-                'success' => true,
-                'message' => 'Inventory deleted successfully. Product catalog and historical orders were not changed.'
-            ]);
-        } else {
+                return $this->response->setStatusCode(200)->setJSON([
+                    'success' => true,
+                    'message' => 'Inventory deleted successfully. Product catalog and historical orders were not changed.'
+                ]);
+            }
+
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
-                'message' => 'Failed to delete inventory.'
+                'message' => 'Failed to delete inventory.',
+                'error' => [
+                    'model' => $this->dailyStockModel->errors(),
+                    'database' => $this->db->error(),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to delete inventory.',
+                'error' => [
+                    'exception' => $e->getMessage(),
+                    'model' => $this->dailyStockModel->errors(),
+                    'database' => $this->db->error(),
+                ],
             ]);
         }
     }
@@ -953,9 +981,11 @@ class InventoryController extends BaseController
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
+        $storeQtyFromPayload = isset($json->product_group_qty) ? intval($json->product_group_qty) : 0;
+        $combinedWithAdjustment = ($storeQtyFromPayload > 0 && (isset($json->beginning_stock) || isset($json->pull_out_quantity) || isset($json->ending_stock)));
 
-        if ($action === 'store') {
-            $productGroupQty = intval($json->product_group_qty ?? 0);
+        if ($action === 'store' && !$combinedWithAdjustment) {
+            $productGroupQty = $storeQtyFromPayload;
             if ($productGroupQty <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
@@ -973,9 +1003,20 @@ class InventoryController extends BaseController
                 'ending_stock' => $newEnding,
             ]);
 
-            $dailyStockId = intval($item['daily_stock_id']);
-            $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
-            $this->deductRawMaterialsForProduct($productId, $productGroupQty);
+            try {
+                $dailyStockId = intval($item['daily_stock_id']);
+                $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
+                $this->deductRawMaterialsForProduct($productId, $productGroupQty);
+            } catch (\Throwable $e) {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add product to store distribution.',
+                    'error' => [
+                        'exception' => $e->getMessage(),
+                        'database' => $this->db->error(),
+                    ],
+                ]);
+            }
 
             return $this->response->setJSON([
                 'success' => true,
@@ -1018,21 +1059,30 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
-            $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
+            try {
+                $this->createOrUpdateDistributionEntryForDistribute($dailyStockId, $productId, $distributionGroupQty, $distCategoryId);
+                $this->deductRawMaterialsForProduct($productId, $distributionGroupQty);
 
-            $currentDistributedOutQty = intval($item['distributed_out_qty'] ?? 0);
-            $currentEnding = intval($item['ending_stock'] ?? 0);
-            $newEnding = max(0, $currentEnding - $distributionGroupQty);
+                $currentDistributedOutQty = intval($item['distributed_out_qty'] ?? 0);
+                $currentEnding = intval($item['ending_stock'] ?? 0);
+                $newEnding = max(0, $currentEnding - $distributionGroupQty);
 
-            $updateResult = $this->dailyStockItemsModel->update($item_id, [
-                'distributed_out_qty' => $currentDistributedOutQty + $distributionGroupQty,
-                'ending_stock' => $newEnding,
-            ]);
+                $updateResult = $this->dailyStockItemsModel->update($item_id, [
+                    'distributed_out_qty' => $currentDistributedOutQty + $distributionGroupQty,
+                    'ending_stock' => $newEnding,
+                ]);
 
-            if (!$updateResult) {
-                log_message('error', 'DISTRIBUTE: Failed to persist distributed_out_qty/ending_stock for item {itemId}', [
-                    'itemId' => $item_id,
+                if (!$updateResult) {
+                    throw new \RuntimeException('Failed to persist distributed_out_qty/ending_stock for item ' . $item_id);
+                }
+            } catch (\Throwable $e) {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to set distribution for inventory item.',
+                    'error' => [
+                        'exception' => $e->getMessage(),
+                        'database' => $this->db->error(),
+                    ],
                 ]);
             }
 
@@ -1070,6 +1120,69 @@ class InventoryController extends BaseController
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Ending stock is required in adjustment mode.'
+            ]);
+        }
+
+        if ($combinedWithAdjustment) {
+            $inputBeginning = intval($json->beginning_stock ?? 0);
+            $inputPullOut = intval($json->pull_out_quantity ?? 0);
+            $inputEnding = isset($json->ending_stock) ? intval($json->ending_stock) : 0;
+
+            $oldBeginning = intval($item['beginning_stock']);
+            $oldPullOut = intval($item['pull_out_quantity']);
+            $oldEnding = intval($item['ending_stock']);
+            $oldAddedQty = intval($item['added_qty'] ?? 0);
+
+            $newBeginning = $inputBeginning;
+            $newPullOut = $oldPullOut + $inputPullOut;
+            $newEndingStock = $inputEnding;
+            $newAddedQty = $oldAddedQty + $storeQtyFromPayload;
+
+            if ($inputPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Pull Out only accepts positive additions in adjustment mode.'
+                ]);
+            }
+
+            if ($newEndingStock < 0 || $newBeginning < 0 || $newPullOut < 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Adjustment results cannot go below zero.'
+                ]);
+            }
+
+            if ($newEndingStock > $newBeginning + $newAddedQty) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Ending stock cannot be greater than beginning stock plus added quantity.'
+                ]);
+            }
+
+            $updateResult = $this->dailyStockItemsModel->update($item_id, [
+                'beginning_stock' => $newBeginning,
+                'pull_out_quantity' => $newPullOut,
+                'ending_stock' => $newEndingStock,
+                'added_qty' => $newAddedQty,
+            ]);
+
+            if ($updateResult) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Inventory item updated successfully',
+                    'data' => [
+                        'beginning_stock' => $newBeginning,
+                        'pull_out_quantity' => $newPullOut,
+                        'ending_stock' => $newEndingStock,
+                        'added_qty' => $newAddedQty,
+                    ]
+                ]);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to update inventory item',
+                'errors' => $this->dailyStockItemsModel->errors()
             ]);
         }
 
@@ -1128,7 +1241,7 @@ class InventoryController extends BaseController
             // or pull-out delta is intentionally left as-is here — it flows
             // through downstream (fetchTodaysInventory/history) as quantity SOLD,
             // not as an implicit pull-out.
-            $newBeginning = $oldBeginning + $inputBeginning;
+            $newBeginning = $inputBeginning;
             $newPullOut = $oldPullOut + $inputPullOut;
             $newEndingStock = $inputEnding;
 
@@ -1139,17 +1252,19 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            if ($newBeginning <= 0) {
+            $effectiveBeginningBase = $newBeginning + $addedQty;
+
+            if ($effectiveBeginningBase <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'Beginning stock must be greater than zero. Delete the item if you want to remove it from inventory.'
                 ]);
             }
 
-            if ($newEndingStock > $newBeginning + $addedQty) {
+            if ($newEndingStock > $effectiveBeginningBase) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Ending stock cannot be greater than beginning stock.'
+                    'message' => 'Ending stock cannot be greater than the combined beginning and add-more stock.'
                 ]);
             }
         } else {
@@ -2284,6 +2399,7 @@ class InventoryController extends BaseController
             $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Store distribution entry: ' . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -2342,49 +2458,35 @@ class InventoryController extends BaseController
             $this->distributionGroupModel->recalculateTotals($groupId);
         } catch (\Throwable $e) {
             log_message('error', 'Failed to create Distribute distribution entry: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     /**
-     * NEW: Deduct raw materials for a product
-     * Handles both direct recipes and combined recipes
+     * Deduct raw materials for a product using the same per-piece production logic
+     * used by the recipe/ingredient system, including combined recipes.
      */
-    private function deductRawMaterialsForProduct(int $productId, int $quantity)
+    private function deductRawMaterialsForProduct(int $productId, int $quantity, bool $allowInsufficient = false)
     {
         try {
             if ($productId <= 0 || $quantity <= 0) {
                 return;
             }
 
-            $productRecipeModel = model('ProductRecipeModel');
-            $productCombinedRecipeModel = model('ProductCombinedRecipeModel');
-            $rawMaterialModel = model('RawMaterialModel');
+            $rawMaterialStockModel = model('RawMaterialStockModel');
+            $result = $rawMaterialStockModel->deductForProduction($productId, $quantity, false, $allowInsufficient);
 
-            // Check for direct recipes
-            $directRecipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
-            if (!empty($directRecipe)) {
-                foreach ($directRecipe as $material) {
-                    $materialId = intval($material['material_id'] ?? 0);
-                    $requiredQty = floatval($material['required_quantity'] ?? 0);
-                    if ($materialId > 0 && $requiredQty > 0) {
-                        $totalDeduction = $requiredQty * $quantity;
-                        $rawMaterialModel->deductMaterial($materialId, $totalDeduction);
-                    }
-                }
-            }
-
-            // Check for combined recipes
-            $combinedRecipes = $productCombinedRecipeModel->getCombinedRecipesByProductId($productId);
-            foreach ($combinedRecipes as $recipe) {
-                $componentProductId = intval($recipe['component_product_id'] ?? 0);
-                $componentQty = intval($recipe['component_quantity'] ?? 0);
-                if ($componentProductId > 0 && $componentQty > 0) {
-                    // Recursively deduct materials for component products
-                    $this->deductRawMaterialsForProduct($componentProductId, $componentQty * $quantity);
-                }
+            if (!$result['success'] && !empty($result['deductions'])) {
+                log_message('warning', 'Inventory material deduction failed for product {productId}: {message}', [
+                    'productId' => $productId,
+                    'message' => $result['message'] ?? 'Unknown error',
+                ]);
             }
         } catch (\Throwable $e) {
-            log_message('error', 'Failed to deduct raw materials: ' . $e->getMessage());
+            log_message('error', 'Failed to deduct raw materials for product {productId}: {message}', [
+                'productId' => $productId,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 

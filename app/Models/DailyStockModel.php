@@ -52,8 +52,43 @@ class DailyStockModel extends Model
     {
         return $this->insert($data);
     }
+
     public function deleteInventory(int $id)
     {
+        $inventory = $this->find($id);
+        if (!$inventory) {
+            return false;
+        }
+
+        $inventoryDate = $inventory['inventory_date'] ?? null;
+        $groupIds = [];
+
+        if ($inventoryDate) {
+            $groups = $this->db
+                ->table('distribution_group')
+                ->select('id')
+                ->where('distribution_date', $inventoryDate)
+                ->get()
+                ->getResultArray();
+
+            foreach ($groups as $group) {
+                $groupId = (int) ($group['id'] ?? 0);
+                if ($groupId > 0 && !in_array($groupId, $groupIds, true)) {
+                    $groupIds[] = $groupId;
+                }
+            }
+        }
+
+        if (!empty($groupIds)) {
+            $this->db->table('distribution_item')
+                ->whereIn('distribution_id', $groupIds)
+                ->delete();
+
+            $this->db->table('distribution_group')
+                ->whereIn('id', $groupIds)
+                ->delete();
+        }
+
         return $this->where('daily_stock_id', $id)->delete();
     }
 

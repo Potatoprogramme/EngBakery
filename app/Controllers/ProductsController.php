@@ -72,9 +72,13 @@ class ProductsController extends BaseController
             }
 
             // Check if product name already exists
-            if ($this->productModel->nameExists($productName)) {
+            // For duplicate: don't exclude anything (force unique name)
+            // For add: no exclusion (must be unique)
+            $excludeId = isset($data['exclude_id']) ? (int) $data['exclude_id'] : null;
+
+            if ($this->productModel->nameExists($productName, $excludeId)) {
                 log_message('debug', 'Product name already exists: ' . $productName);
-                
+
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
                     'message' => 'A product with this name already exists.',
@@ -260,7 +264,7 @@ class ProductsController extends BaseController
             return $this->response->setJSON(['exists' => false]);
         }
 
-        $exists = $this->productModel->nameExists($name, $excludeId ? (int)$excludeId : null);
+        $exists = $this->productModel->nameExists($name, $excludeId ? (int) $excludeId : null);
 
         return $this->response->setJSON(['exists' => $exists]);
     }
@@ -292,12 +296,17 @@ class ProductsController extends BaseController
             }
 
             // Check if new name conflicts with another product
-            if (!empty($data['product_name']) && $data['product_name'] !== $existingProduct['product_name']) {
-                if ($this->productModel->nameExists($data['product_name'], $productId)) {
-                    return $this->response->setStatusCode(400)->setJSON([
-                        'success' => false,
-                        'message' => 'A product with this name already exists.',
-                    ]);
+            if (!empty($data['product_name'])) {
+                $newName = trim($data['product_name']);
+                $currentName = trim((string) $existingProduct['product_name']);
+
+                if (strtolower($newName) !== strtolower($currentName)) {
+                    if ($this->productModel->nameExists($newName, $productId)) {
+                        return $this->response->setStatusCode(400)->setJSON([
+                            'success' => false,
+                            'message' => 'A product with this name already exists.',
+                        ]);
+                    }
                 }
             }
 
