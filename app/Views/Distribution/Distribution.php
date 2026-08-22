@@ -740,12 +740,23 @@
                 const productId = storeItem.product_id;
                 const productData = getProductAnalyticsData(productId);
                 const addedQty = parseNumericValue(storeItem.added_qty);
+                const distributedQty = parseNumericValue(storeItem.distributed_out_qty);
+                // remaining_qty is computed server-side (added - distributed, floored at 0);
+                // fall back to computing it here in case an older API response is cached.
+                const remainingQty = (storeItem.remaining_qty !== undefined && storeItem.remaining_qty !== null) ?
+                    parseNumericValue(storeItem.remaining_qty) :
+                    Math.max(0, addedQty - distributedQty);
 
                 const item = {
                     distribution_date: dateStr,
                     product_id: productId,
                     product_name: storeItem.product_name || (productData && productData.product_name) || 'Unknown Product',
-                    product_qnty: addedQty,
+                    // product_qnty reflects what's still remaining in the Store (not yet
+                    // sent to a distribution group), so totals/forecast stay accurate.
+                    product_qnty: remainingQty,
+                    added_qty: addedQty, // total added today, before deducting distribution
+                    distributed_qty: distributedQty, // already sent out to distribution groups
+                    remaining_qty: remainingQty,
                     qty_mode: 'pieces',
                     distribution_group_key: STORE_GROUP_KEY,
                     distribution_group_name: 'Store',
@@ -756,7 +767,7 @@
                 const fallbackUnitPrice = firstPositiveValue([storeItem.selling_price_per_piece, storeItem.selling_price]);
                 const unitPrice = (productData ? getForecastUnitPrice(productData, 'pieces') : 0) || fallbackUnitPrice;
 
-                item.forecasted_sales = addedQty * unitPrice;
+                item.forecasted_sales = remainingQty * unitPrice;
                 item.total_cost = productData ? calculateItemTotalCost(item, productData) : 0;
                 item.overhead_cost = productData ? calculateItemOverheadCost(item, productData) : 0;
                 item.additional_cost = productData ? calculateItemAdditionalCost(item, productData) : 0;
@@ -780,7 +791,9 @@
                     dist_category_id: 0,
                     total_items: items.length,
                     total_batches: 0, // store items are always tracked in pieces
-                    total_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.product_qnty), 0),
+                    total_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.product_qnty), 0), // remaining pieces
+                    total_added_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.added_qty), 0),
+                    total_distributed_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.distributed_qty), 0),
                     forecasted_sales: items.reduce((sum, i) => sum + parseNumericValue(i.forecasted_sales), 0),
                     total_cost: items.reduce((sum, i) => sum + parseNumericValue(i.total_cost), 0),
                     raw_material_usage_total: [],
@@ -3242,12 +3255,18 @@
                     const additionalPerPiece = parseNumericValue(item.additional_cost_per_piece);
                     const totalPerPiece = parseNumericValue(item.total_price_per_piece);
 
+                    // Store items show a full breakdown so it's clear how much of
+                    // what was added has already gone out to a distribution group.
+                    const quantityLineHtml = isStoreGroup ?
+                        `${formatQuantityValue(parseNumericValue(item.added_qty))} added • ${formatQuantityValue(parseNumericValue(item.distributed_qty))} distributed • ${formatQuantityValue(quantity)} remaining` :
+                        `${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}`;
+
                     return `
                         <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="min-w-0">
                                     <p class="text-xs font-semibold text-gray-800 truncate">${escapeHtml(item.product_name || '')}</p>
-                                    <p class="text-[11px] text-gray-500">${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}</p>
+                                    <p class="text-[11px] text-gray-500">${quantityLineHtml}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-[11px] text-primary font-semibold">Total Selling Price: ${formatPesoAmount(itemForecast)}</p>
@@ -3956,6 +3975,7 @@
                 const forecastTotal = resolveGroupForecastedSales(group, groupItems);
                 const totalCost = resolveGroupTotalCost(group, groupItems);
                 const totalOverhead = resolveGroupOverheadCost(group, groupItems);
+                const totalDistributedPieces = parseNumericValue(group.total_distributed_pieces);
 
                 return `
         <button type="button" class="distribution-group-entry w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 transition-colors" data-group-key="${groupKey}" data-date="${selectedDate}">
@@ -3966,7 +3986,8 @@
                 </div>
                 <div class="text-right flex-shrink-0">
                     <p class="text-xs font-semibold text-primary">${formatPesoAmount(forecastTotal)}</p>
-                    <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs</p>
+                    <p class="text-[11px] text-gray-500 mt-0.5">${formatQuantityValue(totalBatches)} batches • ${formatQuantityValue(totalPieces)} pcs${isStoreGroup ? ' remaining' : ''}</p>
+                    ${isStoreGroup ? `<p class="text-[11px] text-gray-400 mt-0.5">${formatQuantityValue(totalDistributedPieces)} pcs already distributed</p>` : ''}
                 </div>
             </div>
             ${isOwnerView ? `
