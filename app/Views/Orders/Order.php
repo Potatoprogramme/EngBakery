@@ -803,7 +803,7 @@
                     <h3 class="text-lg font-bold text-red-700">Insufficient Raw Materials</h3>
                 </div>
                 <button type="button"
-                    onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
+                    onclick="resolveInsufficientStock(false)"
                     class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
@@ -818,9 +818,12 @@
                 </div>
             </div>
             <div class="p-4 bg-gray-50 rounded-b-lg text-right">
-                <button type="button"
-                    onclick="document.getElementById('insufficientStockModal').classList.add('hidden')"
-                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Understood</button>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="resolveInsufficientStock(false)"
+                        class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors">Cancel</button>
+                    <button type="button" onclick="resolveInsufficientStock(true)"
+                        class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors">Proceed anyway</button>
+                </div>
             </div>
         </div>
     </div>

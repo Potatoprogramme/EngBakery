@@ -26,7 +26,7 @@ const CartManager = {
     },
     
     // Add item to cart - MERGE same products
-    addItem: function(productId, name, price, quantity = 1, category = 'bread') {
+    addItem: function(productId, name, price, quantity = 1, category = 'bread', allowInsufficient = false) {
         const cart = this.getCart();
         
         // Check if product already exists in cart - MERGE if found
@@ -34,6 +34,7 @@ const CartManager = {
         if (existingItem) {
             existingItem.quantity += parseInt(quantity);
             existingItem.total = existingItem.price * existingItem.quantity;
+            existingItem.allow_insufficient = existingItem.allow_insufficient || allowInsufficient;
         } else {
             // Add new item
             cart.push({
@@ -43,7 +44,8 @@ const CartManager = {
                 price: parseFloat(price),
                 quantity: parseInt(quantity),
                 total: parseFloat(price) * parseInt(quantity),
-                category: category
+                category: category,
+                allow_insufficient: allowInsufficient
             });
         }
         this.saveCart(cart);

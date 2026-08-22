@@ -19,6 +19,7 @@ let currentEditMaxQty = Infinity;
 let currentStep = 1;
 let checkoutTotalAmount = 0;
 let miniCartOpen = false;
+let insufficientStockResolver = null;
 
 // ==========================================
 // DOM Ready - Initialize Everything
@@ -412,6 +413,8 @@ function initProductModal() {
     }
 
     // For drinks & grocery — check raw material stock BEFORE adding to cart
+    let allowInsufficient = false;
+
     if (["drinks", "grocery"].includes(currentProductCategory)) {
       const btnAdd = productOrderForm.querySelector('button[type="submit"]');
       const originalText = btnAdd.innerHTML;
@@ -439,10 +442,13 @@ function initProductModal() {
         const result = await res.json();
 
         if (result.insufficient && result.insufficient_materials) {
-          showInsufficientStockModal(result.insufficient_materials);
-          btnAdd.disabled = false;
-          btnAdd.innerHTML = originalText;
-          return; // Don't add to cart
+          const proceed = await confirmInsufficientStock(result.insufficient_materials);
+          if (!proceed) {
+            btnAdd.disabled = false;
+            btnAdd.innerHTML = originalText;
+            return;
+          }
+          allowInsufficient = true;
         }
       } catch (err) {
         console.error("Stock check error:", err);
@@ -459,6 +465,7 @@ function initProductModal() {
       currentProductPrice,
       quantity,
       currentProductCategory,
+      allowInsufficient,
     );
 
     console.log("Order Cart:", CartManager.getCart());
@@ -1062,7 +1069,7 @@ function calculateChange() {
  * Complete the checkout process
  * Validates amount, sends order to server, and shows success
  */
-async function completeCheckout() {
+async function completeCheckout(allowInsufficient = false) {
   const tendered =
     parseFloat(document.getElementById("amountTendered").value) || 0;
 
@@ -1102,6 +1109,7 @@ async function completeCheckout() {
         product_id: item.product_id,
         quantity: item.quantity,
       })),
+      allow_insufficient: allowInsufficient || orderCart.some((item) => item.allow_insufficient),
     };
 
     const precheckResponse = await fetch(BASE_URL + "Order/ValidateCartStock", {
@@ -1116,10 +1124,26 @@ async function completeCheckout() {
         precheckResult.insufficient_materials &&
         precheckResult.insufficient_materials.length
       ) {
-        showInsufficientStockModal(precheckResult.insufficient_materials);
+        const proceed = await confirmInsufficientStock(precheckResult.insufficient_materials);
+        if (!proceed) {
+          return;
+        }
+        allowInsufficient = true;
+        precheckPayload.allow_insufficient = true;
+        const bypassedPrecheck = await fetch(BASE_URL + "Order/ValidateCartStock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(precheckPayload),
+        });
+        const bypassedResult = await bypassedPrecheck.json();
+        if (!bypassedResult.success) {
+          Toast.error(bypassedResult.message || "Order cannot be completed.");
+          return;
+        }
+      } else {
+        Toast.error(precheckResult.message || "Order cannot be completed.");
+        return;
       }
-      Toast.error(precheckResult.message || "Order cannot be completed.");
-      return;
     }
 
     const orderData = {
@@ -1137,6 +1161,7 @@ async function completeCheckout() {
         price: item.price,
         total: item.total,
       })),
+      allow_insufficient: allowInsufficient || orderCart.some((item) => item.allow_insufficient),
     };
 
     const response = await fetch(BASE_URL + "Order/ProcessPayment", {
@@ -1192,6 +1217,22 @@ function showExitConfirmation() {
  * Show a modal listing which products have insufficient raw materials.
  * Each entry is a string like "Spanish Latte: Fresh Milk (need 200 grams, have 50)"
  */
+function confirmInsufficientStock(items) {
+  return new Promise((resolve) => {
+    insufficientStockResolver = resolve;
+    showInsufficientStockModal(items);
+  });
+}
+
+function resolveInsufficientStock(proceed) {
+  document.getElementById("insufficientStockModal").classList.add("hidden");
+  if (insufficientStockResolver) {
+    const resolve = insufficientStockResolver;
+    insufficientStockResolver = null;
+    resolve(proceed);
+  }
+}
+
 function showInsufficientStockModal(items) {
   const listEl = document.getElementById("insufficientStockList");
   let html = "";
