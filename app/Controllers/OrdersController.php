@@ -96,7 +96,8 @@ class OrdersController extends BaseController
         }
 
         // Hard-stop validation before creating order or deducting stock
-        $stockValidation = $this->validateOrderStock($data['items'], $dailyStock);
+        $allowInsufficient = filter_var($data['allow_insufficient'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $stockValidation = $this->validateOrderStock($data['items'], $dailyStock, $allowInsufficient);
         if (!$stockValidation['success']) {
             return $this->response->setJSON([
                 'success' => false,
@@ -153,10 +154,15 @@ class OrdersController extends BaseController
 
                 // Drinks: deduct raw materials directly via recipe
                 if (in_array($category, ['drinks'])) {
-                    $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $quantity);
+                    $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                        $productId,
+                        $quantity,
+                        false,
+                        $allowInsufficient
+                    );
                     if (
                         !$deductResult['success'] ||
-                        !empty($deductResult['has_insufficient'])
+                        (!$allowInsufficient && !empty($deductResult['has_insufficient']))
                     ) {
                         $shortNames = [];
                         foreach (($deductResult['deductions'] ?? []) as $d) {
@@ -693,7 +699,8 @@ class OrdersController extends BaseController
             ]);
         }
 
-        $validation = $this->validateOrderStock($items, $dailyStock);
+        $allowInsufficient = filter_var($data['allow_insufficient'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validation = $this->validateOrderStock($items, $dailyStock, $allowInsufficient);
         return $this->response->setJSON($validation);
     }
 
@@ -702,7 +709,7 @@ class OrdersController extends BaseController
      * - Inventory-based categories (including grocery): quantity must not exceed daily inventory ending stock
      * - Drinks: aggregate required raw materials across all items
      */
-    private function validateOrderStock(array $items, ?array $dailyStock): array
+    private function validateOrderStock(array $items, ?array $dailyStock, bool $allowInsufficient = false): array
     {
         $normalizedItems = [];
 
@@ -846,7 +853,7 @@ class OrdersController extends BaseController
             }
         }
 
-        if (!empty($insufficientMaterials)) {
+        if (!empty($insufficientMaterials) && !$allowInsufficient) {
             $ingredientNames = array_values(array_unique(array_values($insufficientIngredients)));
 
             return [

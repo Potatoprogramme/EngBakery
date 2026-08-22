@@ -296,6 +296,7 @@ class DistributionController extends BaseController
         $productId = intval($data->product_id);
         $quantity = (float) $data->product_qnty;
         $qtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
+        $allowInsufficient = filter_var($data->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if ($quantity <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -333,7 +334,7 @@ class DistributionController extends BaseController
         if ($actualPieces > 0) {
             $preview = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, true);
 
-            if (!empty($preview['has_insufficient'])) {
+            if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
                 $shortages = $this->buildShortageMessages($preview['deductions']);
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
@@ -350,7 +351,12 @@ class DistributionController extends BaseController
             // Compute inventory_amount_used (raw-material units consumed)
             $inventoryAmountUsed = 0;
             if ($actualPieces > 0) {
-                $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $actualPieces, false);
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    $productId,
+                    $actualPieces,
+                    false,
+                    $allowInsufficient
+                );
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
@@ -414,6 +420,7 @@ class DistributionController extends BaseController
                 'success' => true,
                 'message' => 'Distribution item added successfully',
                 'item_id' => $itemId,
+                'allow_insufficient' => $allowInsufficient,
             ]);
         } catch (\Exception $e) {
             log_message('error', 'DISTRIBUTION ITEM ADD: {msg}', ['msg' => $e->getMessage()]);
@@ -443,6 +450,7 @@ class DistributionController extends BaseController
         $newQtyMode = DistributionQuantityCalculator::normalizeQtyMode($data->qty_mode ?? 'batch');
         $newQty = (float) $data->product_qnty;
         $groupId = intval($existing['distribution_id']);
+        $allowInsufficient = filter_var($data->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if ($newQty <= 0) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -481,7 +489,7 @@ class DistributionController extends BaseController
         // Pre-check new quantity
         if ($newPieces > 0) {
             $preview = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, true);
-            if (!empty($preview['has_insufficient'])) {
+            if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
                 // Rollback: re-deduct the old amount
                 if ($oldPieces > 0) {
                     $this->rawMaterialStockModel->deductForProduction(intval($existing['product_id']), $oldPieces, false);
@@ -498,7 +506,12 @@ class DistributionController extends BaseController
         try {
             $inventoryAmountUsed = 0;
             if ($newPieces > 0) {
-                $deductResult = $this->rawMaterialStockModel->deductForProduction($newProductId, $newPieces, false);
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    $newProductId,
+                    $newPieces,
+                    false,
+                    $allowInsufficient
+                );
                 $inventoryAmountUsed = $this->sumDeductedAmount($deductResult);
             }
 
