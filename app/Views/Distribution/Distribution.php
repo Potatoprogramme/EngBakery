@@ -715,7 +715,7 @@
     let currentDayGroupedData = []; // Grouped analytics for selected date
     let currentDaySummary = {}; // Day analytics summary for selected date
     let
-    storeItemsData = []; // Items added to Store for the selected date — rendered as the first entry in the distribution list
+        storeItemsData = []; // Items added to Store for the selected date — rendered as the first entry in the distribution list
     let selectedGroupFilter = {
         date: '',
         key: ''
@@ -734,7 +734,7 @@
 
         let storeItemsByDate = {}; // date -> raw items from Inventory/GetAddedStockItems
         let
-        storeGroupByDate = {}; // date -> decorated "group" object (same shape as groupDistributionsByGroup output)
+            storeGroupByDate = {}; // date -> decorated "group" object (same shape as groupDistributionsByGroup output)
         let storeRawUsageHydrationTokens = {};
         const STORE_GROUP_KEY = 'store';
 
@@ -776,14 +776,7 @@
                 fallbackUnitPrice;
 
             item.forecasted_sales = remainingQty * unitPrice;
-            item.total_cost = productData ? calculateItemTotalCost(item, productData) : 0;
-            item.overhead_cost = productData ? calculateItemOverheadCost(item, productData) : 0;
-            item.additional_cost = productData ? calculateItemAdditionalCost(item, productData) : 0;
-            item.unit_cost_per_piece = productData ? resolveProductTotalCostPerPiece(productData) : 0;
-            item.additional_cost_per_piece = productData ? resolveProductAdditionalCostPerPiece(productData) :
-            0;
-            item.total_price_per_piece = parseNumericValue(item.unit_cost_per_piece) + parseNumericValue(item
-                .additional_cost_per_piece);
+            applyItemCostTotals(item, productData);
 
             return item;
         }
@@ -802,12 +795,12 @@
                 total_items: items.length,
                 total_batches: 0, // store items are always tracked in pieces
                 total_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.product_qnty),
-                0), // remaining pieces
+                    0), // remaining pieces
                 total_added_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.added_qty), 0),
                 total_distributed_pieces: items.reduce((sum, i) => sum + parseNumericValue(i.distributed_qty),
                     0),
                 forecasted_sales: items.reduce((sum, i) => sum + parseNumericValue(i.forecasted_sales), 0),
-                total_cost: items.reduce((sum, i) => sum + parseNumericValue(i.total_cost), 0),
+                total_cost: sumCurrencyField(items, 'total_cost'),
                 raw_material_usage_total: [],
                 source_group_ids: [],
                 items: items,
@@ -1325,22 +1318,8 @@
             return quantity;
         }
 
-        function resolveProductTotalCostPerYield(product) {
-            if (!product) {
-                console.warn('⚠️  [resolveProductTotalCostPerYield] product is null/undefined');
-                return 0;
-            }
-            const productId = product.product_id;
-            const productName = product.product_name || 'unknown';
-            const totalCostPerYield = parseNumericValue(product && product.total_cost);
-            if (totalCostPerYield > 0) {
-                console.log('✓ [resolveProductTotalCostPerYield] Product', productId, productName,
-                    'has direct total_cost =', totalCostPerYield);
-                return totalCostPerYield;
-            }
-
+        function resolveProductOverheadCostPerYield(product) {
             const directCost = parseNumericValue(product && product.direct_cost);
-            const combinedRecipeCost = parseNumericValue(product && product.combined_recipe_cost);
             let overheadCostAmount = parseNumericValue(product && product.overhead_cost_amount);
 
             if (overheadCostAmount <= 0 && directCost > 0) {
@@ -1350,7 +1329,42 @@
                 }
             }
 
-            const resolvedFallbackTotal = directCost + combinedRecipeCost + overheadCostAmount;
+            return overheadCostAmount > 0 ? overheadCostAmount : 0;
+        }
+
+        function resolveProductTotalCostPerYield(product) {
+            if (!product) {
+                console.warn('⚠️  [resolveProductTotalCostPerYield] product is null/undefined');
+                return 0;
+            }
+            const productId = product.product_id;
+            const productName = product.product_name || 'unknown';
+            const storedTotal = parseNumericValue(product && product.total_cost);
+            const directCost = parseNumericValue(product && product.direct_cost);
+            const combinedRecipeCost = parseNumericValue(product && product.combined_recipe_cost);
+            const overheadCostAmount = resolveProductOverheadCostPerYield(product);
+            const directPlusCombined = directCost + combinedRecipeCost;
+            const composedWithOverhead = directPlusCombined + overheadCostAmount;
+            const costTolerance = 0.009;
+
+            // Stored product_costs.total_cost is inconsistent: some rows include
+            // combined recipes, some do not. Never skip combined cost when it is
+            // clearly missing, or group totals drift further with every extra item.
+            if (storedTotal > 0) {
+                const alreadyIncludesCombined = combinedRecipeCost <= 0 ||
+                    storedTotal + costTolerance >= directPlusCombined ||
+                    storedTotal + costTolerance >= composedWithOverhead;
+                const resolvedStoredTotal = alreadyIncludesCombined ?
+                    storedTotal :
+                    (storedTotal + combinedRecipeCost);
+
+                console.log('✓ [resolveProductTotalCostPerYield] Product', productId, productName,
+                    'stored total_cost =', storedTotal, '| combined:', combinedRecipeCost,
+                    '| resolved =', resolvedStoredTotal);
+                return resolvedStoredTotal;
+            }
+
+            const resolvedFallbackTotal = composedWithOverhead;
             console.log('⚠️  [resolveProductTotalCostPerYield] FALLBACK for Product', productId, productName,
                 '{direct:', directCost, '+ combined:', combinedRecipeCost, '+ overhead:',
                 overheadCostAmount, '} = TOTAL:', resolvedFallbackTotal);
@@ -1364,6 +1378,7 @@
             const qty = parseNumericValue(item && item.product_qnty);
             const qtyMode = (item && item.qty_mode) || 'batch';
             const yieldsNeeded = getDistributionYieldUnits(item, product);
+            // Multiply full-precision yield cost, then round once per item (see applyItemCostTotals).
             const itemTotal = yieldsNeeded > 0 ? (yieldsNeeded * totalCostPerYield) : 0;
             console.log('💰 [calculateItemTotalCost] id:', product && product.product_id, product && product
                 .product_name, '| qty:', qty, qtyMode, '| costPerYield:', totalCostPerYield, '| yields:',
@@ -1371,8 +1386,27 @@
             return itemTotal;
         }
 
+        function applyItemCostTotals(item, product) {
+            const decoratedItem = item || {};
+            const productData = product || getProductAnalyticsData(decoratedItem.product_id);
+
+            decoratedItem.total_cost = roundCurrency(calculateItemTotalCost(decoratedItem, productData));
+            decoratedItem.overhead_cost = roundCurrency(calculateItemOverheadCost(decoratedItem, productData));
+
+            const computedAdditionalCost = calculateItemAdditionalCost(decoratedItem, productData);
+            decoratedItem.additional_cost = roundCurrency(computedAdditionalCost);
+
+            const unitCostPerPiece = resolveProductTotalCostPerPiece(productData);
+            const additionalCostPerPiece = resolveProductAdditionalCostPerPiece(productData);
+            decoratedItem.unit_cost_per_piece = unitCostPerPiece;
+            decoratedItem.additional_cost_per_piece = additionalCostPerPiece;
+            decoratedItem.total_price_per_piece = unitCostPerPiece + additionalCostPerPiece;
+
+            return decoratedItem;
+        }
+
         function calculateItemOverheadCost(item, product) {
-            const overheadCostPerYield = parseNumericValue(product && product.overhead_cost_amount);
+            const overheadCostPerYield = resolveProductOverheadCostPerYield(product);
             if (overheadCostPerYield <= 0) return 0;
 
             const yieldsNeeded = getDistributionYieldUnits(item, product);
@@ -1386,13 +1420,13 @@
 
         function resolveProductTotalCostPerPiece(product) {
             const totalCostPerYield = resolveProductTotalCostPerYield(product);
-            const piecesPerYield = getProductPiecesPerYield(product);
+            const piecesPerYield = getProductBatchPiecesPerYield(product);
             return (totalCostPerYield > 0 && piecesPerYield > 0) ? (totalCostPerYield / piecesPerYield) : 0;
         }
 
         function resolveProductAdditionalCostPerPiece(product) {
             const additionalCostPerYield = resolveProductAdditionalCostPerYield(product);
-            const piecesPerYield = getProductPiecesPerYield(product);
+            const piecesPerYield = getProductBatchPiecesPerYield(product);
             return (additionalCostPerYield > 0 && piecesPerYield > 0) ? (additionalCostPerYield /
                 piecesPerYield) : 0;
         }
@@ -2103,6 +2137,12 @@
             });
         }
 
+        function computeTotalCostFromRawMaterialUsage(usage) {
+            return (Array.isArray(usage) ? usage : []).reduce(function(sum, material) {
+                return sum + parseNumericValue(material.line_cost);
+            }, 0);
+        }
+
         function mergeGroupItemsByProduct(items) {
             const mergedMap = {};
             const order = [];
@@ -2312,8 +2352,12 @@
             const usagePromises = decoratedItems.map(async function(item) {
                 try {
                     const usage = await computeRawMaterialUsageForItem(item);
+                    const recomputedTotalCost = usage.length > 0 ?
+                        computeTotalCostFromRawMaterialUsage(usage) :
+                        parseNumericValue(item.total_cost);
                     return Object.assign({}, item, {
-                        raw_material_usage: usage
+                        raw_material_usage: usage,
+                        total_cost: recomputedTotalCost,
                     });
                 } catch (error) {
                     return Object.assign({}, item, {
@@ -2342,11 +2386,21 @@
 
             const ownerSummary = Object.assign({}, summaryTemplate, {
                 raw_material_usage_total: materialUsageMapToArray(dayMaterialMap),
+                // Keep the day-level Total Cost card consistent with the same
+                // raw-material-derived costs now stored on each item.
+                total_cost_total: ownerDecoratedItems.reduce(function(sum, item) {
+                    return sum + parseNumericValue(item.total_cost);
+                }, 0),
             });
 
             currentDayDistributionItems = ownerDecoratedItems;
             currentDayGroupedData = groupDistributionsByGroup(ownerDecoratedItems, targetDate);
             currentDaySummary = ownerSummary;
+
+            // These were computed with cached costs on first render — refresh them now
+            // that item.total_cost reflects raw material usage.
+            renderDistributionList(currentDayDistributionItems, currentDayGroupedData, targetDate);
+            renderMobileCards(currentDayDistributionItems, currentDayGroupedData, targetDate);
 
             const displayState = getDisplayStateForSelectedGroup(
                 targetDate,
@@ -2452,7 +2506,7 @@
                     const itemTotal = parseNumericValue(item.total_cost);
                     const unitPerPiece = parseNumericValue(item.unit_cost_per_piece);
                     const additionalPerPiece = parseNumericValue(item
-                    .additional_cost_per_piece);
+                        .additional_cost_per_piece);
                     const totalPerPiece = parseNumericValue(item.total_price_per_piece);
 
                     return `
@@ -2681,12 +2735,42 @@
                         currentDayGroupedData = groupedData;
                         currentDaySummary = summary;
 
-                        renderDistributionList(items, groupedData, date);
-                        renderMobileCards(items, groupedData, date);
+                        // For owner view, per-item/group Total Cost is corrected asynchronously by
+                        // raw-material hydration. Show 0 on first paint instead of the stale cached
+                        // total, so the number only ever appears once — correct.
+                        let itemsForInitialRender = items;
+                        let groupedDataForInitialRender = groupedData;
+                        let summaryForInitialRender = summary;
 
-                        const displayState = getDisplayStateForSelectedGroup(date, items,
-                            groupedData, summary);
-                        const daySummary = getDayScopedSummary(summary);
+                        if (isOwnerView) {
+                            itemsForInitialRender = items.map(function(item) {
+                                return Object.assign({}, item, {
+                                    total_cost: 0,
+                                    overhead_cost: 0,
+                                    additional_cost: 0,
+                                });
+                            });
+                            groupedDataForInitialRender = groupDistributionsByGroup(
+                                itemsForInitialRender, date);
+                            summaryForInitialRender = Object.assign({}, summary, {
+                                total_cost_total: 0,
+                                overhead_cost_total: 0,
+                                additional_cost_total: 0,
+                            });
+
+                            currentDayDistributionItems = itemsForInitialRender;
+                            currentDayGroupedData = groupedDataForInitialRender;
+                            currentDaySummary = summaryForInitialRender;
+                        }
+
+                        renderDistributionList(itemsForInitialRender, groupedDataForInitialRender,
+                            date);
+                        renderMobileCards(itemsForInitialRender, groupedDataForInitialRender, date);
+
+                        const displayState = getDisplayStateForSelectedGroup(date,
+                            itemsForInitialRender,
+                            groupedDataForInitialRender, summaryForInitialRender);
+                        const daySummary = getDayScopedSummary(summaryForInitialRender);
 
                         updateSummaryCounts(displayState.items, displayState.summary, date);
                         refreshDayTotalsDisplay(date);
@@ -2695,33 +2779,40 @@
                         updateMainDistributionNotePanels(displayState.items, responseNote);
 
                         if (isOwnerView) {
+                            // Hydrate with the real (unzeroed) items — raw material usage is
+                            // computed from product_id/qty, not from item.total_cost, so the
+                            // zeroing above doesn't affect the hydration math.
                             hydrateOwnerRawMaterialAnalytics(date, items, summary);
                         }
 
-                        setTimeout(function() {
-                            console.log(
-                                '[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...'
+                        if (!isOwnerView) {
+                            setTimeout(function() {
+                                console.log(
+                                    '[Re-Decorate] Re-rendering with enriched product costs (combined_recipe_cost)...'
                                 );
-                            const freshItems = decorateDistributionItems(
-                                currentDayDistributionItems, date);
-                            const freshGrouped = groupDistributionsByGroup(freshItems,
-                            date);
-                            const freshSummary = Object.assign({}, currentDaySummary, {
-                                total_cost_total: freshItems.reduce((s, i) => s +
-                                    parseNumericValue(i.total_cost), 0),
-                                additional_cost_total: calculateAdditionalCostTotal(
-                                    freshItems),
-                                overhead_cost_total: freshItems.reduce((s, i) => s +
-                                    parseNumericValue(i.overhead_cost), 0)
-                            });
-                            currentDayDistributionItems = freshItems;
-                            currentDayGroupedData = freshGrouped;
-                            currentDaySummary = freshSummary;
-                            const freshState = getDisplayStateForSelectedGroup(date,
-                                freshItems, freshGrouped, freshSummary);
-                            refreshDayTotalsDisplay(date);
-                            renderOwnerAnalytics(freshState.groups, freshState.summary)
-                        }, 600);
+                                const freshItems = decorateDistributionItems(
+                                    currentDayDistributionItems, date);
+                                const freshGrouped = groupDistributionsByGroup(freshItems,
+                                    date);
+                                const freshSummary = Object.assign({}, currentDaySummary, {
+                                    total_cost_total: freshItems.reduce((s, i) =>
+                                        s +
+                                        parseNumericValue(i.total_cost), 0),
+                                    additional_cost_total: calculateAdditionalCostTotal(
+                                        freshItems),
+                                    overhead_cost_total: freshItems.reduce((s, i) =>
+                                        s +
+                                        parseNumericValue(i.overhead_cost), 0)
+                                });
+                                currentDayDistributionItems = freshItems;
+                                currentDayGroupedData = freshGrouped;
+                                currentDaySummary = freshSummary;
+                                const freshState = getDisplayStateForSelectedGroup(date,
+                                    freshItems, freshGrouped, freshSummary);
+                                refreshDayTotalsDisplay(date);
+                                renderOwnerAnalytics(freshState.groups, freshState.summary)
+                            }, 600);
+                        }
 
                         if (!$('#calendarDayModal').hasClass('hidden') && $('#calendarDayModal')
                             .data('selected-date') === date) {
@@ -2908,18 +2999,25 @@
                                 raw_qty_mode: rawQtyMode
                             });
                         const responseJson = xhr.responseJSON || {};
-                        if (!allowInsufficient && xhr.status === 400 && responseJson.insufficient_materials) {
-                            const shortageText = Array.isArray(responseJson.insufficient_materials) ?
+                        if (!allowInsufficient && xhr.status === 400 && responseJson
+                            .insufficient_materials) {
+                            const shortageText = Array.isArray(responseJson
+                                    .insufficient_materials) ?
                                 responseJson.insufficient_materials.join('\n') :
-                                Object.values(responseJson.insufficient_materials).flat().join('\n');
-                            confirmInsufficientMaterials([shortageText]).then(function(proceed) {
+                                Object.values(responseJson.insufficient_materials).flat()
+                                .join('\n');
+                            confirmInsufficientMaterials([shortageText]).then(function(
+                                proceed) {
                                 if (proceed) {
-                                    addDistributionItemRequest(payload, rawQtyMode, true)
+                                    addDistributionItemRequest(payload, rawQtyMode,
+                                            true)
                                         .then(resolve)
                                         .catch(reject);
                                     return;
                                 }
-                                reject({ bypass_cancelled: true });
+                                reject({
+                                    bypass_cancelled: true
+                                });
                             });
                             return;
                         }
@@ -3130,11 +3228,14 @@
                         response: xhr.responseJSON || null,
                     });
 
-                    if (!allowInsufficient && xhr.status === 400 && xhr.responseJSON && xhr.responseJSON
+                    if (!allowInsufficient && xhr.status === 400 && xhr.responseJSON && xhr
+                        .responseJSON
                         .insufficient_materials) {
-                        const shortageText = Array.isArray(xhr.responseJSON.insufficient_materials) ?
+                        const shortageText = Array.isArray(xhr.responseJSON
+                                .insufficient_materials) ?
                             xhr.responseJSON.insufficient_materials.join('\n') :
-                            Object.values(xhr.responseJSON.insufficient_materials).flat().join('\n');
+                            Object.values(xhr.responseJSON.insufficient_materials).flat().join(
+                                '\n');
                         confirmInsufficientMaterials([shortageText]).then(function(proceed) {
                             if (proceed) {
                                 updateDistributionItem(itemId, quantity, true);
@@ -3307,6 +3408,11 @@
             const totalPieces = parseNumericValue(groupSummary.total_pieces);
             const isMaterialLoading = Boolean(options && options.materialLoading);
 
+            // While raw material usage (the source of truth for cost) is still
+            // hydrating, don't show the stale cached total — show a placeholder
+            // instead of flashing an incorrect number.
+            const totalCostDisplay = isMaterialLoading ? '…' : formatPesoAmount(totalCost);
+
             const materialUsageByItemHtml = groupItems.map(function(item) {
                 const quantity = parseNumericValue(item.product_qnty);
                 const itemMaterials = Array.isArray(item.raw_material_usage) ? item.raw_material_usage :
@@ -3339,6 +3445,14 @@
                 const additionalPerPiece = parseNumericValue(item.additional_cost_per_piece);
                 const totalPerPiece = parseNumericValue(item.total_price_per_piece);
 
+                // While raw material usage is still hydrating for this item, show a
+                // placeholder instead of the stale cached total_cost.
+                const itemHasOwnUsage = Array.isArray(item.raw_material_usage) && item
+                    .raw_material_usage.length > 0;
+                const itemTotalDisplay = (isMaterialLoading && !itemHasOwnUsage) ?
+                    '…' :
+                    formatPesoAmount(itemTotal);
+
                 // Store items show a full breakdown so it's clear how much of
                 // what was added has already gone out to a distribution group.
                 const quantityLineHtml = isStoreGroup ?
@@ -3346,19 +3460,19 @@
                     `${formatQuantityValue(quantity)} ${getQtyModeShortLabel(item.qty_mode || 'batch')}`;
 
                 return `
-                        <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="min-w-0">
-                                    <p class="text-xs font-semibold text-gray-800 truncate">${escapeHtml(item.product_name || '')}</p>
-                                    <p class="text-[11px] text-gray-500">${quantityLineHtml}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[11px] text-primary font-semibold">Total Selling Price: ${formatPesoAmount(itemForecast)}</p>
-                                    <p class="text-[11px] text-emerald-600 font-semibold">Total Cost: ${formatPesoAmount(itemTotal)}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+        <div class="p-2 bg-gray-50 rounded-md border border-gray-100">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-xs font-semibold text-gray-800 truncate">${escapeHtml(item.product_name || '')}</p>
+                    <p class="text-[11px] text-gray-500">${quantityLineHtml}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[11px] text-primary font-semibold">Total Selling Price: ${formatPesoAmount(itemForecast)}</p>
+                    <p class="text-[11px] text-emerald-600 font-semibold">Total Cost: ${itemTotalDisplay}</p>
+                </div>
+            </div>
+        </div>
+    `;
             }).join('');
 
             return `
@@ -3388,7 +3502,7 @@
                             </div>
                             <div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
                                 <p class="text-[11px] text-gray-600">Group Total Cost</p>
-                                <p class="text-sm font-semibold text-emerald-600">${formatPesoAmount(totalCost)}</p>
+                                <p class="text-sm font-semibold text-emerald-600">${totalCostDisplay}</p>
                             </div>
                         </div>
 
@@ -3409,25 +3523,28 @@
             const normalizedItems = Array.isArray(items) ? items : [];
 
             const hydratedItems = await Promise.all(normalizedItems.map(async function(item) {
-                const existingUsage = Array.isArray(item && item.raw_material_usage) ?
-                    item.raw_material_usage : [];
+                let usage = Array.isArray(item && item.raw_material_usage) ? item
+                    .raw_material_usage : [];
 
-                if (existingUsage.length > 0) {
-                    return Object.assign({}, item, {
-                        raw_material_usage: existingUsage
-                    });
+                if (usage.length === 0) {
+                    try {
+                        usage = await computeRawMaterialUsageForItem(item);
+                    } catch (error) {
+                        usage = [];
+                    }
                 }
 
-                try {
-                    const usage = await computeRawMaterialUsageForItem(item);
-                    return Object.assign({}, item, {
-                        raw_material_usage: usage
-                    });
-                } catch (error) {
-                    return Object.assign({}, item, {
-                        raw_material_usage: []
-                    });
-                }
+                // Raw material usage is now the source of truth for an item's cost —
+                // whatever its ingredients actually cost is what "Total Cost" shows,
+                // instead of a possibly-stale cached product cost field.
+                const recomputedTotalCost = usage.length > 0 ?
+                    computeTotalCostFromRawMaterialUsage(usage) :
+                    parseNumericValue(item.total_cost);
+
+                return Object.assign({}, item, {
+                    raw_material_usage: usage,
+                    total_cost: recomputedTotalCost,
+                });
             }));
 
             const materialMap = {};
@@ -4056,7 +4173,7 @@
 
             const totalBatches = groupItems.reduce((sum, item) =>
                 sum + (((item.qty_mode || 'batch') !== 'pieces') ? parseNumericValue(item.product_qnty) :
-                0), 0);
+                    0), 0);
             const totalPieces = calculateTotalDistributionPieces(groupItems);
             const forecastTotal = resolveGroupForecastedSales(group, groupItems);
             const totalCost = resolveGroupTotalCost(group, groupItems);
@@ -5070,7 +5187,7 @@
             // too in case it's ever triggered programmatically.
             if (!isEditMode && days === 0 && openInventoryStatus !== 'open') {
                 showToast('warning', 'Open today\'s inventory before scheduling items for today.',
-                3200);
+                    3200);
                 return;
             }
 
@@ -5091,7 +5208,7 @@
 
             if (!isEditMode && picked === formatDate(new Date()) && openInventoryStatus !== 'open') {
                 showToast('warning', 'Open today\'s inventory before scheduling items for today.',
-                3200);
+                    3200);
                 // Revert to the previously selected (non-today) date.
                 $(this).val(lastValidScheduleDate || formatDate(new Date(Date.now() + 86400000)));
             } else {
@@ -5828,6 +5945,11 @@
 
     });
 
+    function sumCurrencyField(items, field) {
+        return (Array.isArray(items) ? items : []).reduce(function(sum, item) {
+            return sum + parseNumericValue(item && item[field]);
+        }, 0);
+    }
 
     function getDistinctGroupCount(items, fallbackDate = '') {
         // Count distinct display group keys so same-category rows collapse into one group.
