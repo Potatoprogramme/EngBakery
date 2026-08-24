@@ -3788,6 +3788,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 $('#editPostRemitWarning').addClass('hidden');
                 $('#editEndingGroup').addClass('hidden');
                 $('#editBeginningCurrent').text('Current beginning: ' + beginningStock);
+                $('#editBeginningCurrent').removeClass('hidden');
 
                 if (isDrinksMode) {
                     $('#editBeginningLabel').text('Qty Sold Adjustment');
@@ -3800,6 +3801,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     $('#editBeginningStock').val(0).removeAttr('min');
                     $('#editPullOutQuantity').val(0).attr('min', 0);
                     $('#editEndingStock').val(0).attr('min', 0);
+                    $('#editBeginningCurrent').addClass('hidden');
 
                     $('#editPullOutGroup').addClass('hidden');
                     if (itemIsRemitted) {
@@ -3840,7 +3842,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     $('#editEndingGroup').addClass('hidden');
                 }
 
-                if (isStaffView) {
+                if (isStaffView && !isDrinksMode) {
                     $('#editBeginningLabel').text('Adjust Beginning Quantity');
                     $('#editBeginningHint').text('');
                     $('#editBeginningCurrent').text('Current beginning: ' + beginningStock);
@@ -3883,7 +3885,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     $('#editDistributionCategorySelect').val('');
                 }
 
-                $('#editRemainingPreviewGroup').removeClass('hidden');
+                if (isDrinksMode) {
+                    $('#editAddMoreGroup').addClass('hidden');
+                    $('#editDistributionGroup').addClass('hidden');
+                    $('#editPullOutGroup').addClass('hidden');
+                    $('#editEndingGroup').addClass('hidden');
+                    $('#editRemainingPreviewGroup').addClass('hidden');
+                } else {
+                    $('#editRemainingPreviewGroup').removeClass('hidden');
+                }
 
                 // Populate distribution and carryover info
                 const distQtyFromDistribution = getTodayDistributionPiecesForProduct(item.product_id);
@@ -4433,6 +4443,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 const effectiveAvailableStock = Math.max(0, projectedBeginning + existingAddedQty + productGroupQty - projectedPullOut - distributedOutQty);
                 const maxAllowedEnding = effectiveAvailableStock;
                 const projectedInventoryQtySold = Math.max(0, projectedBeginning + existingAddedQty + productGroupQty - projectedPullOut - distributedOutQty - projectedEnding);
+
+                if (projectedBeginning + existingAddedQty + productGroupQty <= 0) {
+                    showToast('warning', 'Beginning stock or Add More must be at least 1.', 2500);
+                    restoreSubmitButton();
+                    return;
+                }
 
                 if (pullOutInput < 0) {
                     showToast('warning', 'Pull Out only accepts positive additions.',
