@@ -257,6 +257,20 @@ class InventoryController extends BaseController
             // Get remaining stock from the previous inventory ending stock (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
 
+            $drinkProductIds = $this->productModel
+                ->where('category', 'drinks')
+                ->where('is_disabled', 0)
+                ->where('deleted_at', null)
+                ->findColumn('product_id') ?? [];
+
+            if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds, $carryover)) {
+                $this->dailyStockModel->delete($lastInsertId);
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add drink items to inventory.',
+                ]);
+            }
+
             // Only include products that have a carryover quantity greater than 0
             $filteredProductIds = array_values(array_filter($productIds, fn($id) => !empty($carryover[$id]) && $carryover[$id] > 0));
             $filteredCarryover = array_filter($carryover, fn($qty) => $qty > 0);
@@ -2333,6 +2347,19 @@ class InventoryController extends BaseController
             ]);
         }
 
+        $drinkProductIds = $this->productModel
+            ->where('category', 'drinks')
+            ->where('is_disabled', 0)
+            ->where('deleted_at', null)
+            ->findColumn('product_id') ?? [];
+
+        if (!$this->dailyStockItemsModel->insertDrinkStockItems(intval($dailyStock['daily_stock_id']), $drinkProductIds)) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'Failed to add drink items to inventory.',
+            ]);
+        }
+
         $updateData = [
             'is_closed' => 0,
             'time_end' => $this->getOpenShiftTimeEndValue(),
@@ -2340,6 +2367,7 @@ class InventoryController extends BaseController
         ];
 
         $this->dailyStockModel->update($dailyStock['daily_stock_id'], $updateData);
+
         $new_data = $this->dailyStockModel->find($dailyStock['daily_stock_id']);
 
         // Immediate notification: inventory opened

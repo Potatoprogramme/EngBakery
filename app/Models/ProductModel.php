@@ -47,6 +47,7 @@ class ProductModel extends Model
                 SELECT ds1.daily_stock_id
                 FROM daily_stock ds1
                 WHERE ds1.inventory_date = CURDATE()
+                    AND ds1.is_closed = 0
                 ORDER BY ds1.daily_stock_id DESC
                 LIMIT 1
             ) latest_ds ON 1 = 1
@@ -60,11 +61,7 @@ class ProductModel extends Model
             WHERE p.is_disabled = 0
                 AND p.deleted_at IS NULL
                 AND (
-                    (
-                        p.category = 'drinks'
-                        AND latest_ds.daily_stock_id IS NOT NULL
-                        AND dsi.product_id IS NOT NULL
-                    )
+                    p.category = 'drinks'
                     OR (
                         p.category != 'drinks'
                         AND latest_ds.daily_stock_id IS NOT NULL
