@@ -88,7 +88,7 @@ class OrdersController extends BaseController
                 'success' => false,
                 'message' => 'No inventory created for today. Please create inventory first.'
             ]);
-        } else if ($dailyStock['is_closed'] == 1) {
+        } else if ($dailyStock && $dailyStock['is_closed'] == 1) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Oops, inventory is closed. Open it first to process orders!'

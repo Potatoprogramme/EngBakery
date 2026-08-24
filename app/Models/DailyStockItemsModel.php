@@ -114,6 +114,16 @@ class DailyStockItemsModel extends Model
             return true;
         }
 
+        $productIds = array_values(array_unique(array_map('intval', $productIds)));
+        $existingProductIds = $this->where('daily_stock_id', $dailyStockId)
+            ->whereIn('product_id', $productIds)
+            ->findColumn('product_id') ?? [];
+        $productIds = array_values(array_diff($productIds, array_map('intval', $existingProductIds)));
+
+        if (empty($productIds)) {
+            return true;
+        }
+
         $insertData = [];
         foreach ($productIds as $productId) {
             $productId = intval($productId);
