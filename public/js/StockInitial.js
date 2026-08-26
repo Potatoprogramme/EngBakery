@@ -839,16 +839,9 @@ $(document).ready(function () {
         barTrack = "bg-yellow-100";
       }
 
-      const remainingLayoutClass = isCompactRemaining
-        ? "flex flex-col gap-1.5"
-        : "flex items-center gap-2.5";
-      const remainingBarClass = isCompactRemaining
-        ? "w-full max-w-[7rem] h-1.5 rounded-full " +
-          barTrack +
-          " overflow-hidden"
-        : "flex-1 max-w-[4.5rem] h-1.5 rounded-full " +
-          barTrack +
-          " overflow-hidden";
+      const remainingLayoutClass = "flex flex-col gap-1.5";
+      const remainingBarClass =
+        "w-full max-w-[7rem] h-1.5 rounded-full " + barTrack + " overflow-hidden";
 
       const dateStr = entry.updated_at
         ? new Date(entry.updated_at).toLocaleDateString("en-PH", {
