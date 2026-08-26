@@ -304,6 +304,14 @@
                                     </div>
                                     <input type="checkbox" id="material_stock_logs_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
                                 </label>
+
+                                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">Send Beginning Quantity Adjustments</p>
+                                        <p class="text-xs text-gray-500">Receive an email when an inventory beginning quantity changes.</p>
+                                    </div>
+                                    <input type="checkbox" id="beginning_quantity_adjustments_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
+                                </label>
                             </div>
 
                             <div class="flex justify-end gap-3 mt-6">
@@ -332,7 +340,8 @@
             low_stock_enabled: 1,
             inventory_enabled: 1,
             remittance_enabled: 1,
-            material_stock_logs_enabled: 1
+            material_stock_logs_enabled: 1,
+            beginning_quantity_adjustments_enabled: 1
         };
 
         $(document).ready(function() {
@@ -431,7 +440,8 @@
                                     low_stock_enabled: parseInt(user.notification_settings.low_stock_enabled || 0, 10) === 1 ? 1 : 0,
                                     inventory_enabled: parseInt(user.notification_settings.inventory_enabled || 0, 10) === 1 ? 1 : 0,
                                     remittance_enabled: parseInt(user.notification_settings.remittance_enabled || 0, 10) === 1 ? 1 : 0,
-                                    material_stock_logs_enabled: parseInt(user.notification_settings.material_stock_logs_enabled || 0, 10) === 1 ? 1 : 0
+                                    material_stock_logs_enabled: parseInt(user.notification_settings.material_stock_logs_enabled || 0, 10) === 1 ? 1 : 0,
+                                    beginning_quantity_adjustments_enabled: parseInt(user.notification_settings.beginning_quantity_adjustments_enabled || 0, 10) === 1 ? 1 : 0
                                 };
                                 setNotificationToggleState(originalNotificationSettings);
                             } else {
@@ -462,7 +472,8 @@
                             low_stock_enabled: parseInt(response.data.low_stock_enabled || 0, 10) === 1 ? 1 : 0,
                             inventory_enabled: parseInt(response.data.inventory_enabled || 0, 10) === 1 ? 1 : 0,
                             remittance_enabled: parseInt(response.data.remittance_enabled || 0, 10) === 1 ? 1 : 0,
-                            material_stock_logs_enabled: parseInt(response.data.material_stock_logs_enabled || 0, 10) === 1 ? 1 : 0
+                            material_stock_logs_enabled: parseInt(response.data.material_stock_logs_enabled || 0, 10) === 1 ? 1 : 0,
+                            beginning_quantity_adjustments_enabled: parseInt(response.data.beginning_quantity_adjustments_enabled || 0, 10) === 1 ? 1 : 0
                         };
                         setNotificationToggleState(originalNotificationSettings);
                     }
@@ -475,6 +486,7 @@
             $('#inventory_enabled').prop('checked', parseInt(settings.inventory_enabled || 0, 10) === 1);
             $('#remittance_enabled').prop('checked', parseInt(settings.remittance_enabled || 0, 10) === 1);
             $('#material_stock_logs_enabled').prop('checked', parseInt(settings.material_stock_logs_enabled || 0, 10) === 1);
+            $('#beginning_quantity_adjustments_enabled').prop('checked', parseInt(settings.beginning_quantity_adjustments_enabled || 0, 10) === 1);
         }
 
         function updateNotificationSettings() {
@@ -484,7 +496,8 @@
                 low_stock_enabled: $('#low_stock_enabled').is(':checked') ? 1 : 0,
                 inventory_enabled: $('#inventory_enabled').is(':checked') ? 1 : 0,
                 remittance_enabled: $('#remittance_enabled').is(':checked') ? 1 : 0,
-                material_stock_logs_enabled: $('#material_stock_logs_enabled').is(':checked') ? 1 : 0
+                material_stock_logs_enabled: $('#material_stock_logs_enabled').is(':checked') ? 1 : 0,
+                beginning_quantity_adjustments_enabled: $('#beginning_quantity_adjustments_enabled').is(':checked') ? 1 : 0
             };
 
             if (typeof ButtonLoader !== 'undefined') {

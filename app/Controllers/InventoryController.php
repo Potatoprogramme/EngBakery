@@ -1194,6 +1194,16 @@ class InventoryController extends BaseController
             ]);
 
             if ($updateResult) {
+                if ($newBeginning !== $oldBeginning) {
+                    \App\Libraries\BeginningQuantityAdjustmentNotifier::send(
+                        (string) ($product['product_name'] ?? 'Unknown Product'),
+                        $oldBeginning,
+                        $newBeginning,
+                        $this->getSessionData(),
+                        date('Y-m-d')
+                    );
+                }
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Inventory item updated successfully',
@@ -1342,6 +1352,16 @@ class InventoryController extends BaseController
 
         if ($this->dailyStockItemsModel->update($item_id, $updateData)) {
             $restorationResult = null;
+
+            if ($isAdjustmentMode && $newBeginning !== $oldBeginning) {
+                \App\Libraries\BeginningQuantityAdjustmentNotifier::send(
+                    (string) ($product['product_name'] ?? 'Unknown Product'),
+                    $oldBeginning,
+                    $newBeginning,
+                    $this->getSessionData(),
+                    date('Y-m-d')
+                );
+            }
 
             // Beginning decrease → restore raw materials
             if ($netRawMaterialChange < 0 && $productId > 0 && $hasRawMaterialRecipe) {

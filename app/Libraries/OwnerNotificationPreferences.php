@@ -10,6 +10,7 @@ class OwnerNotificationPreferences
     public const TYPE_INVENTORY = 'inventory';
     public const TYPE_REMITTANCE = 'remittance';
     public const TYPE_MATERIAL_STOCK_LOGS = 'material_stock_logs';
+    public const TYPE_BEGINNING_QUANTITY_ADJUSTMENTS = 'beginning_quantity_adjustments';
 
     /**
      * @return array<string, int>
@@ -21,6 +22,7 @@ class OwnerNotificationPreferences
             'inventory_enabled' => 1,
             'remittance_enabled' => 1,
             'material_stock_logs_enabled' => 1,
+            'beginning_quantity_adjustments_enabled' => 1,
         ];
     }
 
@@ -42,6 +44,7 @@ class OwnerNotificationPreferences
             'inventory_enabled' => intval($record['inventory_enabled'] ?? $defaults['inventory_enabled']),
             'remittance_enabled' => intval($record['remittance_enabled'] ?? $defaults['remittance_enabled']),
             'material_stock_logs_enabled' => intval($record['material_stock_logs_enabled'] ?? $defaults['material_stock_logs_enabled']),
+            'beginning_quantity_adjustments_enabled' => intval($record['beginning_quantity_adjustments_enabled'] ?? $defaults['beginning_quantity_adjustments_enabled']),
         ];
     }
 
@@ -55,6 +58,7 @@ class OwnerNotificationPreferences
             'inventory_enabled' => self::normalizeToggle($settings['inventory_enabled'] ?? 1),
             'remittance_enabled' => self::normalizeToggle($settings['remittance_enabled'] ?? 1),
             'material_stock_logs_enabled' => self::normalizeToggle($settings['material_stock_logs_enabled'] ?? 1),
+            'beginning_quantity_adjustments_enabled' => self::normalizeToggle($settings['beginning_quantity_adjustments_enabled'] ?? 1),
         ];
 
         $model = new OwnerNotificationSettingsModel();
@@ -123,6 +127,10 @@ class OwnerNotificationPreferences
 
         if ($normalized === self::TYPE_MATERIAL_STOCK_LOGS) {
             return 'material_stock_logs_enabled';
+        }
+
+        if ($normalized === self::TYPE_BEGINNING_QUANTITY_ADJUSTMENTS) {
+            return 'beginning_quantity_adjustments_enabled';
         }
 
         return null;
