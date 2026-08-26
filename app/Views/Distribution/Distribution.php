@@ -6092,6 +6092,10 @@
         return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function roundCurrency(value) {
+        return Math.round((parseNumericValue(value) + Number.EPSILON) * 100) / 100;
+    }
+
     function firstPositiveValue(values) {
         for (let index = 0; index < values.length; index++) {
             const parsed = parseNumericValue(values[index]);

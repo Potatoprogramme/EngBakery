@@ -764,7 +764,11 @@ $(document).ready(function () {
       dataType: "json",
       success: function (res) {
         if (res.success) {
-          allEntries = res.data;
+          allEntries = res.data.slice().sort(function (a, b) {
+            const remA = parseFloat(a.initial_qty) - parseFloat(a.qty_used);
+            const remB = parseFloat(b.initial_qty) - parseFloat(b.qty_used);
+            return remA - remB;
+          });
           filteredEntries = [...allEntries];
           updateCostSummaryCards(filteredEntries);
           renderDesktopTable(allEntries);
@@ -1198,9 +1202,13 @@ $(document).ready(function () {
     if (!categoryId) {
       filteredEntries = [...allEntries];
     } else {
-      filteredEntries = allEntries.filter(
-        (e) => String(e.category_id) === String(categoryId),
-      );
+      filteredEntries = allEntries
+        .filter((e) => String(e.category_id) === String(categoryId))
+        .sort(function (a, b) {
+          const remA = parseFloat(a.initial_qty) - parseFloat(a.qty_used);
+          const remB = parseFloat(b.initial_qty) - parseFloat(b.qty_used);
+          return remA - remB;
+        });
     }
 
     updateCostSummaryCards(filteredEntries);

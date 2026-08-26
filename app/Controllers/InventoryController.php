@@ -275,35 +275,45 @@ class InventoryController extends BaseController
             $filteredProductIds = array_values(array_filter($productIds, fn($id) => !empty($carryover[$id]) && $carryover[$id] > 0));
             $filteredCarryover = array_filter($carryover, fn($qty) => $qty > 0);
 
-            if (empty($filteredProductIds)) {
-                return $this->response->setStatusCode(201)->setJSON([
-                    'success' => true,
-                    'message' => 'Today\'s inventory added successfully. No carryover stock to carry over.',
-                    'carryover_count' => 0
-                ]);
-            }
-
-            // insert only products with carryover stock into daily stock items
-            if ($this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $filteredProductIds, $filteredCarryover)) {
-                $carryoverCount = count($filteredProductIds);
-                $message = 'Today\'s inventory added successfully.';
-                $message .= " Carried over remaining stock for {$carryoverCount} product(s) from previous inventory.";
-
-                // Immediate notification: inventory created
-                $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
-
-                return $this->response->setStatusCode(201)->setJSON([
-                    'success' => true,
-                    'message' => $message,
-                    'carryover_count' => $carryoverCount
-                ]);
-            } else {
+            // Bakery and grocery rows are created only when they have carryover.
+            if (!empty($filteredProductIds) && !$this->dailyStockItemsModel->insertDailyStockItems($lastInsertId, $filteredProductIds, $filteredCarryover)) {
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to add daily stock items.',
                     'error' => $this->dailyStockItemsModel->errors(),
                 ]);
             }
+
+            // Drinks are always part of inventory, even when their beginning stock is zero.
+            $drinkProductIds = $this->productModel
+                ->where('category', 'drinks')
+                ->where('is_disabled', 0)
+                ->where('deleted_at', null)
+                ->findColumn('product_id') ?? [];
+
+            if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds, $carryover)) {
+                $this->dailyStockModel->delete($lastInsertId);
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add drink items to inventory.',
+                    'error' => $this->dailyStockItemsModel->errors(),
+                ]);
+            }
+
+            $carryoverCount = count($filteredProductIds);
+            $message = 'Today\'s inventory added successfully.';
+            if ($carryoverCount > 0) {
+                $message .= " Carried over remaining stock for {$carryoverCount} product(s).";
+            }
+
+            // Immediate notification: inventory created
+            $this->notify('notifyInventoryCreated', $today, count($productIds), $carryoverCount);
+
+            return $this->response->setStatusCode(201)->setJSON([
+                'success' => true,
+                'message' => $message,
+                'carryover_count' => $carryoverCount
+            ]);
         } else {
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
@@ -1176,6 +1186,13 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            if ($newBeginning + $newAddedQty <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => 'Beginning stock or Add More must be at least 1.'
+                ]);
+            }
+
             if ($newEndingStock > $newBeginning + $newAddedQty) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
@@ -1281,7 +1298,7 @@ class InventoryController extends BaseController
             if ($effectiveBeginningBase <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'success' => false,
-                    'message' => 'Beginning stock must be greater than zero. Delete the item if you want to remove it from inventory.'
+                    'message' => 'Beginning stock or Add More must be at least 1.'
                 ]);
             }
 
