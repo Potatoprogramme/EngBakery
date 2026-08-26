@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 class SalesController extends BaseController
 {
+    private const MANUAL_DRINK_ADJ_PREFIX = 'MANUAL_DRINK_ADJ|';
     public function index()
     {
         $data = $this->getSessionData();
@@ -197,6 +198,7 @@ class SalesController extends BaseController
             ]);
         }
 
+        // Base category rows (kept for any extra fields other than total_revenue)
         $breadSales = $this->transactionsModel->getSalesByCategoryForInventory('bakery', $dailyStockId);
         $drinksSales = $this->transactionsModel->getSalesByCategoryForInventory('drinks', $dailyStockId);
         $doughSales = $this->transactionsModel->getSalesByCategoryForInventory('dough', $dailyStockId);
@@ -208,61 +210,62 @@ class SalesController extends BaseController
         $debitCardSales = $this->orderModel->getSalesByPaymentMethodForInventory('debit card', $dailyStockId);
         $pandaSales = $this->orderModel->getSalesByPaymentMethodForInventory('panda', $dailyStockId);
         $todaysTotalOrders = $this->orderModel->getOrderCountForInventory($dailyStockId);
-        $todaysTotalItemsSold = $this->transactionsModel->getTotalItemsSoldForInventory($dailyStockId);
         $todaysTransactionIds = $this->transactionsModel->getTransactionIdsForInventory($dailyStockId);
 
-        // Compute inventory-vs-DB discrepancy and fold it into category sales.
+        // Recompute category totals the SAME way the Inventory page does, item by item,
+        // so remittance figures always match /Inventory exactly.
         $stockItems = $this->dailyStockItemsModel->fetchAllStockItems($dailyStockId);
         $salesByItem = $this->transactionsModel->getSalesDataByInventory($dailyStockId);
         $salesByItemMap = [];
         foreach ($salesByItem as $row) {
             $salesByItemMap[intval($row['item_id'])] = [
                 'quantity_sold' => intval($row['quantity_sold'] ?? 0),
-                'total_sales' => floatval($row['total_sales'] ?? 0),
             ];
         }
 
-        $discrepancyRevenueByCategory = [
-            'bakery' => 0.0,
-            'drinks' => 0.0,
-            'dough' => 0.0,
-            'grocery' => 0.0,
-        ];
-        $discrepancyItemsSold = 0;
+        $categoryRevenue = ['bakery' => 0.0, 'drinks' => 0.0, 'dough' => 0.0, 'grocery' => 0.0];
+        $todaysTotalItemsSold = 0;
 
         foreach ($stockItems as $item) {
             $category = strtolower(trim((string) ($item['category'] ?? '')));
-            if (!array_key_exists($category, $discrepancyRevenueByCategory)) {
+            if (!array_key_exists($category, $categoryRevenue)) {
                 continue;
             }
 
             $itemId = intval($item['item_id'] ?? 0);
-            $dbQtySold = intval($salesByItemMap[$itemId]['quantity_sold'] ?? 0);
             $beginningStock = intval($item['beginning_stock'] ?? 0);
+            $addedQty = intval($item['added_qty'] ?? 0);
+            $totalBeginningStock = $beginningStock + $addedQty;
             $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
             $endingStock = intval($item['ending_stock'] ?? 0);
-            $inventoryQtySold = max(0, $beginningStock - $pullOutQty - $endingStock);
-            $discrepancyQty = max(0, $inventoryQtySold - $dbQtySold);
+            $distributedOutQty = intval($item['distributed_out_qty'] ?? 0);
+            $dbQtySold = intval($salesByItemMap[$itemId]['quantity_sold'] ?? 0);
 
-            if ($discrepancyQty <= 0) {
-                continue;
+            $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $distributedOutQty - $endingStock);
+
+            if ($category === 'drinks') {
+                $baseline = $this->transactionsModel->getDrinksBaselineSalesForItem($itemId, self::MANUAL_DRINK_ADJ_PREFIX);
+                $dbQtySold = intval($baseline['quantity_sold'] ?? 0);
+                $effectiveQtySold = max($dbQtySold, intval($salesByItemMap[$itemId]['quantity_sold'] ?? 0));
+            } elseif (in_array($category, ['bakery', 'grocery'], true)) {
+                $effectiveQtySold = max($dbQtySold, $inventoryQtySold);
+            } else {
+                // dough: DB is the sole source of truth
+                $effectiveQtySold = $dbQtySold;
             }
-
-            $discrepancyItemsSold += $discrepancyQty;
 
             $price = floatval(($item['selling_price_per_piece'] ?? 0) > 0
                 ? ($item['selling_price_per_piece'] ?? 0)
                 : ($item['selling_price'] ?? 0));
 
-            $discrepancyRevenueByCategory[$category] += ($discrepancyQty * $price);
+            $categoryRevenue[$category] += round($effectiveQtySold * $price, 2);
+            $todaysTotalItemsSold += $effectiveQtySold;
         }
 
-        $todaysTotalItemsSold += $discrepancyItemsSold;
-
-        $breadSales['total_revenue'] = round(floatval($breadSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['bakery'], 2);
-        $drinksSales['total_revenue'] = round(floatval($drinksSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['drinks'], 2);
-        $doughSales['total_revenue'] = round(floatval($doughSales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['dough'], 2);
-        $grocerySales['total_revenue'] = round(floatval($grocerySales['total_revenue'] ?? 0) + $discrepancyRevenueByCategory['grocery'], 2);
+        $breadSales['total_revenue'] = round($categoryRevenue['bakery'], 2);
+        $drinksSales['total_revenue'] = round($categoryRevenue['drinks'], 2);
+        $doughSales['total_revenue'] = round($categoryRevenue['dough'], 2);
+        $grocerySales['total_revenue'] = round($categoryRevenue['grocery'], 2);
 
         return $this->response->setJSON([
             'success' => true,

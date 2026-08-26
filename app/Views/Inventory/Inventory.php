@@ -654,6 +654,29 @@ $isStaffView = (($employee_type ?? '') === 'staff');
     let inventoryReportSent = false;
     let closeAfterSendReport = false;
 
+    function syncModalScrollLock() {
+        const hasVisibleModal = $('[id$="Modal"]:not(.hidden)').length > 0;
+        $('body').toggleClass('modal-open', hasVisibleModal);
+    }
+
+    const modalScrollLockObserver = new MutationObserver(function() {
+        syncModalScrollLock();
+    });
+
+    modalScrollLockObserver.observe(document.body, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+    });
+
+    syncModalScrollLock();
+
+    // Track if inventory exists for today
+    let inventoryExistsToday = false;
+    let inventoryIsClosed = false;
+    let inventoryReportSent = false;
+    let closeAfterSendReport = false;
+
     function isInventoryInteractionBlocked() {
         return inventoryExistsToday && inventoryIsClosed;
     }
@@ -975,6 +998,15 @@ $isStaffView = (($employee_type ?? '') === 'staff');
     </div>
 
     <style>
+    .inventory-item-row {
+        transition: transform 220ms ease, opacity 220ms ease, background-color 220ms ease;
+        will-change: transform;
+    }
+
+    body.modal-open {
+        overflow: hidden;
+    }
+
     .inventory-item-row {
         transition: transform 220ms ease, opacity 220ms ease, background-color 220ms ease;
         will-change: transform;
