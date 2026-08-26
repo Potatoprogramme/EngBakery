@@ -251,8 +251,10 @@ class InventoryController extends BaseController
             // fetch ALL products for inventory tracking
             $productIds = $this->productModel
                 ->where('category !=', 'dough')
+                ->where('category !=', 'drinks')
                 ->where('is_disabled', 0)
-                ->findColumn("product_id");
+                ->where('deleted_at', null)
+                ->findColumn('product_id') ?? [];
 
             // Get remaining stock from the previous inventory ending stock (carryover)
             $carryover = $this->dailyStockItemsModel->getCarryoverStock($today);
@@ -263,11 +265,18 @@ class InventoryController extends BaseController
                 ->where('deleted_at', null)
                 ->findColumn('product_id') ?? [];
 
-            if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds, $carryover)) {
+            if (
+                !$this->dailyStockItemsModel->insertDrinkStockItems(
+                    $lastInsertId,
+                    $drinkProductIds
+                )
+            ) {
                 $this->dailyStockModel->delete($lastInsertId);
+
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to add drink items to inventory.',
+                    'error' => $this->dailyStockItemsModel->errors(),
                 ]);
             }
 
@@ -291,7 +300,7 @@ class InventoryController extends BaseController
                 ->where('deleted_at', null)
                 ->findColumn('product_id') ?? [];
 
-            if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds, $carryover)) {
+            if (!$this->dailyStockItemsModel->insertDrinkStockItems($lastInsertId, $drinkProductIds)) {
                 $this->dailyStockModel->delete($lastInsertId);
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,

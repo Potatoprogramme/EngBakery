@@ -108,36 +108,45 @@ class DailyStockItemsModel extends Model
      * Insert drink items that are not part of distribution inventory.
      * Drinks are enabled by default to ensure they appear in inventory.
      */
-    public function insertDrinkStockItems(int $dailyStockId, array $productIds, array $carryover = []): bool
+    public function insertDrinkStockItems(int $dailyStockId, array $productIds): bool
     {
         if (empty($productIds)) {
             return true;
         }
 
-        $productIds = array_values(array_unique(array_map('intval', $productIds)));
+        $productIds = array_values(
+            array_unique(
+                array_map('intval', $productIds)
+            )
+        );
+
         $existingProductIds = $this->where('daily_stock_id', $dailyStockId)
             ->whereIn('product_id', $productIds)
             ->findColumn('product_id') ?? [];
-        $productIds = array_values(array_diff($productIds, array_map('intval', $existingProductIds)));
+
+        $productIds = array_values(
+            array_diff(
+                $productIds,
+                array_map('intval', $existingProductIds)
+            )
+        );
 
         if (empty($productIds)) {
             return true;
         }
 
         $insertData = [];
-        foreach ($productIds as $productId) {
-            $productId = intval($productId);
-            $carryoverQty = intval($carryover[$productId] ?? 0);
 
+        foreach ($productIds as $productId) {
             $insertData[] = [
                 'daily_stock_id' => $dailyStockId,
                 'product_id' => $productId,
-                'beginning_stock' => $carryoverQty,
+                'beginning_stock' => 0,
                 'added_qty' => 0,
                 'pull_out_quantity' => 0,
-                'ending_stock' => $carryoverQty,
+                'ending_stock' => 0,
                 'distribution_qty' => 0,
-                'distributed_out_qty' => 0, // NEW
+                'distributed_out_qty' => 0,
                 'is_enabled' => 1,
             ];
         }
