@@ -2258,7 +2258,21 @@ class InventoryController extends BaseController
             ]);
         }
 
-        $duplicate_item = $this->dailyStockItemsModel->where('daily_stock_id', $inventoryId)->findAll(); // duplicate the items
+        $duplicate_item = $this->dailyStockItemsModel
+            ->select('daily_stock_items.*, products.category')
+            ->join(
+                'products',
+                'daily_stock_items.product_id = products.product_id',
+                'left'
+            )
+            ->where('daily_stock_items.daily_stock_id', $inventoryId)
+            ->where(
+                "(products.category NOT IN ('grocery', 'bakery') 
+          OR daily_stock_items.ending_stock > 0)",
+                null,
+                false
+            )
+            ->findAll();
         $insertData = [
             'inventory_date' => date('Y-m-d'),
             'time_start' => date('H:i:s'),
