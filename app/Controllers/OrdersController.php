@@ -95,9 +95,10 @@ class OrdersController extends BaseController
             ]);
         }
 
-        // Hard-stop validation before creating order or deducting stock
-        $allowInsufficient = filter_var($data['allow_insufficient'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $stockValidation = $this->validateOrderStock($data['items'], $dailyStock, $allowInsufficient);
+        // Validate inventory stock before creating the order. Ingredient availability
+        // is intentionally not a checkout gate.
+        $allowInsufficient = true;
+        $stockValidation = $this->validateOrderStock($data['items'], $dailyStock, true);
         if (!$stockValidation['success']) {
             return $this->response->setJSON([
                 'success' => false,
@@ -158,12 +159,9 @@ class OrdersController extends BaseController
                         $productId,
                         $quantity,
                         false,
-                        $allowInsufficient
+                        true
                     );
-                    if (
-                        !$deductResult['success'] ||
-                        (!$allowInsufficient && !empty($deductResult['has_insufficient']))
-                    ) {
+                        if (!$deductResult['success']) {
                         $shortNames = [];
                         foreach (($deductResult['deductions'] ?? []) as $d) {
                             if (!empty($d['insufficient']) && !empty($d['material_name'])) {
@@ -176,9 +174,7 @@ class OrdersController extends BaseController
                             ? ' (' . implode(', ', $shortNames) . ')'
                             : '';
 
-                        throw new \Exception(
-                            'Order cannot be completed: insufficient ingredients' . $suffix
-                        );
+                        log_message('warning', 'Order ingredient deduction failed for product ' . $productId . $suffix);
                     }
 
                     // Still record in daily inventory for sales tracking if inventory exists

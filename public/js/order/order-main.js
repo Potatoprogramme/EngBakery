@@ -412,10 +412,9 @@ function initProductModal() {
       }
     }
 
-    // For drinks & grocery — check raw material stock BEFORE adding to cart
     let allowInsufficient = false;
 
-    if (["drinks", "grocery"].includes(currentProductCategory)) {
+    if (currentProductCategory === "drinks") {
       const btnAdd = productOrderForm.querySelector('button[type="submit"]');
       const originalText = btnAdd.innerHTML;
       btnAdd.disabled = true;
@@ -1103,49 +1102,6 @@ async function completeCheckout(allowInsufficient = false) {
   try {
     const orderCart = CartManager.getCart();
 
-    // Frontend pre-check mirrors backend rules and shows detailed insufficiency modal.
-    const precheckPayload = {
-      items: orderCart.map((item) => ({
-        product_id: item.product_id,
-        quantity: item.quantity,
-      })),
-      allow_insufficient: allowInsufficient || orderCart.some((item) => item.allow_insufficient),
-    };
-
-    const precheckResponse = await fetch(BASE_URL + "Order/ValidateCartStock", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(precheckPayload),
-    });
-    const precheckResult = await precheckResponse.json();
-
-    if (!precheckResult.success) {
-      if (
-        precheckResult.insufficient_materials &&
-        precheckResult.insufficient_materials.length
-      ) {
-        const proceed = await confirmInsufficientStock(precheckResult.insufficient_materials);
-        if (!proceed) {
-          return;
-        }
-        allowInsufficient = true;
-        precheckPayload.allow_insufficient = true;
-        const bypassedPrecheck = await fetch(BASE_URL + "Order/ValidateCartStock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(precheckPayload),
-        });
-        const bypassedResult = await bypassedPrecheck.json();
-        if (!bypassedResult.success) {
-          Toast.error(bypassedResult.message || "Order cannot be completed.");
-          return;
-        }
-      } else {
-        Toast.error(precheckResult.message || "Order cannot be completed.");
-        return;
-      }
-    }
-
     const orderData = {
       total_payment_due: checkoutTotalAmount,
       amount_received: tendered,
@@ -1161,7 +1117,7 @@ async function completeCheckout(allowInsufficient = false) {
         price: item.price,
         total: item.total,
       })),
-      allow_insufficient: allowInsufficient || orderCart.some((item) => item.allow_insufficient),
+      allow_insufficient: true,
     };
 
     const response = await fetch(BASE_URL + "Order/ProcessPayment", {
@@ -1192,12 +1148,6 @@ async function completeCheckout(allowInsufficient = false) {
 
       Toast.success("Order saved successfully!");
     } else {
-      if (
-        result.insufficient_materials &&
-        result.insufficient_materials.length
-      ) {
-        showInsufficientStockModal(result.insufficient_materials);
-      }
       Toast.error(result.message || "Failed to process order");
     }
   } catch (error) {

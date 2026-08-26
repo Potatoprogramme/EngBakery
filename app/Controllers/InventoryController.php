@@ -1526,9 +1526,15 @@ class InventoryController extends BaseController
         }
 
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+        $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
         if ($adjustmentDelta !== 0 && $hasRawMaterialRecipe) {
             if ($adjustmentDelta > 0) {
-                $deductResult = $this->rawMaterialStockModel->deductForProduction($productId, $adjustmentDelta);
+                $deductResult = $this->rawMaterialStockModel->deductForProduction(
+                    $productId,
+                    $adjustmentDelta,
+                    false,
+                    $allowInsufficient
+                );
                 if (empty($deductResult['success'])) {
                     $shortMaterials = array_filter($deductResult['deductions'] ?? [], fn($d) => !empty($d['insufficient']));
                     $shortNames = array_map(fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')', $shortMaterials);
@@ -2186,6 +2192,20 @@ class InventoryController extends BaseController
             );
 
             if (empty($sendResult['success'])) {
+                if (!empty($sendResult['delivery_attempted'])) {
+                    $this->dailyStockModel->update($inventoryId, [
+                        'report_sent' => 1,
+                        'report_sent_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'delivery_attempted' => true,
+                        'inventory_id' => (int) $inventoryId,
+                        'message' => 'Report delivery was attempted. The inventory is marked as reported so the next shift can be created.',
+                    ]);
+                }
+
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => $sendResult['message'] ?? 'Failed to send inventory report.',
@@ -2235,13 +2255,6 @@ class InventoryController extends BaseController
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Close the current inventory first before creating a new shift.'
-            ]);
-        }
-
-        if ($sourceInventory['report_sent'] == 0) {
-            return $this->response->setStatusCode(200)->setJSON([
-                'success' => false,
-                'message' => 'Oops! please send the inventory report first before resetting.'
             ]);
         }
 

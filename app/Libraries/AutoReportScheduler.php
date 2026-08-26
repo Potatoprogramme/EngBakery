@@ -150,7 +150,7 @@ class AutoReportScheduler
         $shiftReports = self::buildShiftReports($allItems, $date, [
             [
                 'key' => 'inventory_' . $inventoryId,
-                'label' => $shiftLabel,
+                'label' => 'Shift',
                 'start' => $shiftStart,
                 'end' => $shiftEnd,
             ]
@@ -194,7 +194,7 @@ class AutoReportScheduler
         $slotMeta = [
             'title' => 'Inventory Shift Report',
             'subtitle' => 'Manual Shift Snapshot',
-            'header_color' => '#dbeafe',
+            'header_color' => '#fff200',
             'subject_label' => $shiftLabel,
             'cashier' => $cashierMeta,
         ];
@@ -228,6 +228,7 @@ class AutoReportScheduler
 
                 return [
                     'success' => false,
+                    'delivery_attempted' => true,
                     'message' => 'Email delivery failed. Please check email configuration.',
                     'recipients' => $ownerEmails,
                 ];
@@ -308,12 +309,10 @@ class AutoReportScheduler
 
         $totalProducts = 0;
         $totalSales = 0.0;
-        $totalRawMaterialsUsed = 0.0;
         $totalOverheadCostUsed = 0.0;
         foreach ($shiftReports as $report) {
             $totalProducts += intval($report['totals']['products'] ?? 0);
             $totalSales += floatval($report['totals']['sales'] ?? 0);
-            $totalRawMaterialsUsed += floatval($report['totals']['raw_materials_used'] ?? 0);
             $totalOverheadCostUsed += floatval($report['totals']['overhead_cost_used'] ?? 0);
         }
 
@@ -337,9 +336,9 @@ class AutoReportScheduler
         foreach ($shiftReports as $report) {
             $label = htmlspecialchars((string) ($report['label'] ?? 'Shift'));
             $timeRange = htmlspecialchars((string) ($report['time_range'] ?? ''));
-            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], true, $showOverheadColumn);
-            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], true, $showOverheadColumn);
-            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], false, $showOverheadColumn);
+            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], $showOverheadColumn);
+            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], $showOverheadColumn);
+            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], $showOverheadColumn);
 
             $shiftBlocks .= "
                 <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
@@ -349,13 +348,13 @@ class AutoReportScheduler
                     </div>
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
-                    " . self::buildCategoryTable($bakeryRows, true, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($bakeryRows, $showOverheadColumn) . "
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>GROCERY</div>
-                    " . self::buildCategoryTable($groceryRows, true, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($groceryRows, $showOverheadColumn) . "
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>DRINKS</div>
-                    " . self::buildCategoryTable($drinksRows, false, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($drinksRows, $showOverheadColumn) . "
                 </div>";
         }
 
@@ -386,7 +385,7 @@ class AutoReportScheduler
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937; margin: 0; padding: 0; background:#f1f5f9; }
                 .container { max-width: 780px; margin: 0 auto; padding: 20px; }
-                .header { background-color: {$headerColor}; color: #111827; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 3px solid #16a34a; }
+                .header { background-color: {$headerColor}; color: #991b1b; padding: 26px; text-align: left; border-radius: 14px 14px 0 0; border-bottom: 5px solid #10a94b; }
                 .content { background-color: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top:none; border-radius: 0 0 14px 14px; }
                 table { width: 100%; border-collapse: collapse; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
@@ -398,7 +397,7 @@ class AutoReportScheduler
                 <!-- Header -->
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;line-height:1.2;'>{$slotTitle}</h1>
-                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#111827;'>E n' G Bakery - Deca Sentrio &mdash; {$slotSubtitle}</p>
+                    <p style='margin:8px 0 0;font-size:14px;opacity:.92;color:#c1121f;'>E n' G Bakery - Deca Sentrio &mdash; {$slotSubtitle}</p>
                 </div>
 
                 <div class='content'>
@@ -412,8 +411,8 @@ class AutoReportScheduler
                             </td>
                             <td style='width:33.33%;padding:6px;'>
                                 <div style='background:#ecfeff;color:#0f766e;border:1px solid #99f6e4;border-radius:10px;padding:12px;'>
-                                    <div style='font-size:11px;'>TOTAL RAW MATERIALS USED</div>
-                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</div>
+                                    <div style='font-size:11px;'>TOTAL OVERHEAD USED</div>
+                                    <div style='font-size:18px;font-weight:700;margin-top:4px;'>₱" . number_format($totalOverheadCostUsed, 2) . "</div>
                                 </div>
                             </td>
                             <td style='width:33.33%;padding:6px;'>
@@ -424,10 +423,6 @@ class AutoReportScheduler
                             </td>
                         </tr>
                     </table>
-
-                    <div style='margin:4px 6px 10px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:12px;'>
-                        Total Overhead Cost Used: <strong>₱" . number_format($totalOverheadCostUsed, 2) . "</strong>
-                    </div>
 
                     <!-- Report Metadata -->
                     <table style='margin-bottom:20px;background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'>
@@ -459,10 +454,6 @@ class AutoReportScheduler
                             <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Overall Total Sales:</strong></td>
                             <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalSales, 2) . "</td>
                         </tr>
-                        <tr>
-                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Total Raw Materials Used:</strong></td>
-                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>₱" . number_format($totalRawMaterialsUsed, 2) . "</td>
-                        </tr>
                     </table>
 
                     <hr style='border:none;border-top:1px solid #dbeafe;margin:16px 0;'>
@@ -470,7 +461,7 @@ class AutoReportScheduler
                     <p style='font-size:14px;'>Dear Owner,</p>
                     <p style='font-size:14px;'>
                         Below is your <strong>{$slotSubtitle}</strong> inventory snapshot for <strong>{$reportDate}</strong>.
-                        Sales and raw materials used are computed per shift and per product using the required formulas.
+                        Sales and overhead are computed per shift and per product using the inventory quantities recorded for that shift.
                     </p>
 
                     {$resendBanner}
@@ -483,8 +474,7 @@ class AutoReportScheduler
                         Formula used:
                         <strong>Sales = QTY SOLD × SRP</strong>
                         and
-                        <strong>Raw Materials Used = Raw Material Cost per Piece × (PO + QTY SOLD)</strong>.
-                        and <strong>Overhead Cost Used = Overhead Cost per Piece × (PO + QTY SOLD)</strong>.
+                        <strong>Overhead = Overhead Cost per Piece × (Pull Out + QTY SOLD)</strong>.
                         For the full inventory management interface, visit the <strong>Inventory</strong> page in the system.
                     </div>
 
@@ -555,9 +545,8 @@ class AutoReportScheduler
             $drinks = [];
 
             foreach ($allItems as $item) {
-                $isEnabled = intval($item['is_enabled'] ?? 1) === 1;
                 $isProductDisabled = intval($item['is_disabled'] ?? 0) === 1;
-                if (!$isEnabled || $isProductDisabled) {
+                if ($isProductDisabled) {
                     continue;
                 }
 
@@ -568,10 +557,18 @@ class AutoReportScheduler
 
                 $productId = intval($item['product_id'] ?? 0);
                 $qtySoldFromOrders = intval($soldByProduct[$productId] ?? 0);
-                $beg = intval($item['beginning_stock'] ?? 0);
+                $beginningStock = intval($item['beginning_stock'] ?? 0);
+                $addedQty = intval($item['added_qty'] ?? 0);
+                $beg = $beginningStock + $addedQty;
+
+                if (in_array($category, ['bakery', 'grocery'], true) && $beg <= 0) {
+                    continue;
+                }
+
                 $po = intval($item['pull_out_quantity'] ?? 0);
+                $distQty = intval($item['distributed_out_qty'] ?? 0);
                 $end = intval($item['ending_stock'] ?? 0);
-                $inventoryQtySold = max(0, $beg - $po - $end);
+                $inventoryQtySold = max(0, $beg - $po - $distQty - $end);
 
                 // Keep report qty sold consistent with the inventory screen for bakery/grocery.
                 $qtySold = $qtySoldFromOrders;
@@ -581,8 +578,6 @@ class AutoReportScheduler
 
                 $srp = self::resolveSrp($item);
                 $sales = $qtySold * $srp;
-                $directCostPerPiece = self::resolveDirectCostPerPiece($item);
-                $rawMaterialsUsed = $directCostPerPiece * ($po + $qtySold);
                 $overheadCostPerPiece = self::resolveOverheadCostPerPiece($item);
                 $overheadCostUsed = $overheadCostPerPiece * ($po + $qtySold);
 
@@ -591,10 +586,10 @@ class AutoReportScheduler
                     'srp' => $srp,
                     'beg' => $beg,
                     'po' => $po,
+                    'dist_qty' => $distQty,
                     'end' => $end,
                     'qty_sold' => $qtySold,
                     'sales' => $sales,
-                    'raw_materials_used' => $rawMaterialsUsed,
                     'overhead_cost_used' => $overheadCostUsed,
                 ];
 
@@ -616,7 +611,6 @@ class AutoReportScheduler
                 'totals' => [
                     'products' => count($bakery) + count($grocery) + count($drinks),
                     'sales' => self::sumRows($bakery, 'sales') + self::sumRows($grocery, 'sales') + self::sumRows($drinks, 'sales'),
-                    'raw_materials_used' => self::sumRows($bakery, 'raw_materials_used') + self::sumRows($grocery, 'raw_materials_used') + self::sumRows($drinks, 'raw_materials_used'),
                     'overhead_cost_used' => self::sumRows($bakery, 'overhead_cost_used') + self::sumRows($grocery, 'overhead_cost_used') + self::sumRows($drinks, 'overhead_cost_used'),
                 ],
             ];
@@ -724,11 +718,10 @@ class AutoReportScheduler
         return $sum;
     }
 
-    private static function buildCategoryRows(array $rows, bool $showBegPoEnd, bool $showOverheadColumn): array
+    private static function buildCategoryRows(array $rows, bool $showOverheadColumn): array
     {
         $htmlRows = '';
         $totalSales = 0.0;
-        $totalRawUsed = 0.0;
         $totalOverheadUsed = 0.0;
 
         foreach ($rows as $row) {
@@ -736,34 +729,28 @@ class AutoReportScheduler
             $srp = floatval($row['srp'] ?? 0);
             $beg = intval($row['beg'] ?? 0);
             $po = intval($row['po'] ?? 0);
+            $distQty = intval($row['dist_qty'] ?? 0);
             $end = intval($row['end'] ?? 0);
             $qtySold = intval($row['qty_sold'] ?? 0);
             $sales = floatval($row['sales'] ?? 0);
-            $rawUsed = floatval($row['raw_materials_used'] ?? 0);
             $overheadUsed = floatval($row['overhead_cost_used'] ?? 0);
 
             $totalSales += $sales;
-            $totalRawUsed += $rawUsed;
             $totalOverheadUsed += $overheadUsed;
 
             $htmlRows .= "<tr>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;'>{$name}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($srp, 2) . "</td>";
 
-            if ($showBegPoEnd) {
-                $htmlRows .= "
+            $htmlRows .= "
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>";
-            } else {
-                $htmlRows .= "
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$distQty}</td>
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
-            }
 
             $htmlRows .= "
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
+                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>";
 
             if ($showOverheadColumn) {
                 $htmlRows .= "
@@ -777,52 +764,41 @@ class AutoReportScheduler
         return [
             'rows' => $htmlRows,
             'total_sales' => $totalSales,
-            'total_raw_used' => $totalRawUsed,
             'total_overhead_used' => $totalOverheadUsed,
         ];
     }
 
-    private static function buildCategoryTable(array $categoryData, bool $showBegPoEnd, bool $showOverheadColumn): string
+    private static function buildCategoryTable(array $categoryData, bool $showOverheadColumn): string
     {
         $rowsHtml = (string) ($categoryData['rows'] ?? '');
         $totalSales = floatval($categoryData['total_sales'] ?? 0);
-        $totalRawUsed = floatval($categoryData['total_raw_used'] ?? 0);
         $totalOverheadUsed = floatval($categoryData['total_overhead_used'] ?? 0);
 
         $headers = "
-            <th style='padding:8px;text-align:left;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>ITEMS</th>
+            <th style='padding:8px;text-align:left;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Items/Particulars</th>
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SRP</th>";
 
-        if ($showBegPoEnd) {
-            $headers .= "
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>BEG</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>PO</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>END</th>";
-        } else {
-            $headers .= "
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>QTY SOLD</th>";
-        }
+        $headers .= "
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Beginning</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Pull Out</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Dist Qty</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Ending</th>
+            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Qty Sold</th>";
 
         $headers .= "
-            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SALES</th>
-            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>RAW MATERIALS USED</th>";
-
+            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Sales</th>";
         if ($showOverheadColumn) {
-            $headers .= "
-            <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>OVERHEAD COST USED</th>";
+            $headers .= "<th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Overhead</th>";
         }
 
         if (trim($rowsHtml) === '') {
-            $baseColspan = $showBegPoEnd ? 8 : 5;
-            $colspan = $showOverheadColumn ? $baseColspan + 1 : $baseColspan;
+            $colspan = $showOverheadColumn ? 9 : 8;
             $rowsHtml = "<tr><td colspan='{$colspan}' style='padding:10px;font-size:12px;color:#6b7280;text-align:center;border-bottom:1px solid #e5e7eb;'>No items</td></tr>";
         }
 
-        $colspanForTotalLabel = $showBegPoEnd ? 6 : 3;
+        $colspanForTotalLabel = 7;
         $totalCells = "
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalRawUsed, 2) . "</td>";
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>";
 
         if ($showOverheadColumn) {
             $totalCells .= "
@@ -889,7 +865,7 @@ class AutoReportScheduler
             return [
                 'title' => 'Morning Shift Inventory Report',
                 'subtitle' => 'Morning Shift Snapshot',
-                'header_color' => '#dbeafe',
+                'header_color' => '#fff200',
                 'subject_label' => 'Morning Shift',
             ];
         }
@@ -898,7 +874,7 @@ class AutoReportScheduler
             return [
                 'title' => 'Afternoon Shift Inventory Report',
                 'subtitle' => 'Afternoon Shift Snapshot',
-                'header_color' => '#dbeafe',
+                'header_color' => '#fff200',
                 'subject_label' => 'Afternoon Shift',
             ];
         }
@@ -921,7 +897,7 @@ class AutoReportScheduler
         return [
             'title' => $label . ' Inventory Report',
             'subtitle' => $label . ' Snapshot',
-            'header_color' => '#dbeafe',
+            'header_color' => '#fff200',
             'subject_label' => $label,
         ];
     }

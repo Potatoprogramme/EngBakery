@@ -671,12 +671,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
     syncModalScrollLock();
 
-    // Track if inventory exists for today
-    let inventoryExistsToday = false;
-    let inventoryIsClosed = false;
-    let inventoryReportSent = false;
-    let closeAfterSendReport = false;
-
     function isInventoryInteractionBlocked() {
         return inventoryExistsToday && inventoryIsClosed;
     }
@@ -1056,6 +1050,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
     let todayDistributionGroupedData = [];
     let inventoryId = null;
     let pendingInsufficientInventoryAdd = false;
+    let pendingInsufficientDrinksEdit = false;
 
     function getTodayDateForApi() {
         const now = new Date();
@@ -2205,7 +2200,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
             const sendReportRequest = function() {
                 $.ajax({
-                    url: baseUrl + '/Inventory/SendReport',
+                    url: baseUrl + 'Inventory/SendReport',
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json',
@@ -2218,7 +2213,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             inventoryReportSent = true;
                             const redirectUrl = (response && response.redirect_url) ?
                                 response.redirect_url :
-                                (baseUrl + '/Sales?daily_stock_id=' +
+                                (baseUrl + 'Sales?daily_stock_id=' +
                                     encodeURIComponent(inventoryId));
 
                             if (shouldCloseInventory) {
@@ -4488,7 +4483,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             }
 
             payload = {
-                quantity_sold_target: targetQtySold
+                quantity_sold_target: targetQtySold,
+                allow_insufficient: pendingInsufficientDrinksEdit
             };
         } else if (isAdjustmentMode) {
             const oldBeginning = parseInt($('#editOldBeginningStock').val()) || 0;
@@ -4627,7 +4623,12 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                 if (xhr.responseJSON && xhr.responseJSON.exceeds_available_stock) {
                     showToast('warning', xhr.responseJSON.message, 3500);
                 } else if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
-                    showInsufficientStockModal(xhr.responseJSON);
+                    if (!payload.allow_insufficient) {
+                        pendingInsufficientDrinksEdit = true;
+                        showInsufficientStockModal(xhr.responseJSON);
+                    } else {
+                        showToast('warning', xhr.responseJSON.message || 'Insufficient raw materials.', 3500);
+                    }
                 } else {
                     showToast('danger', 'Error updating inventory: ' + (xhr.responseJSON?.message ||
                         error), 2000);
@@ -5076,6 +5077,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
     });
 
     $(document).on('click', '#btnProceedDeductionWarning', function() {
+        if (pendingInsufficientDrinksEdit) {
+            $('#deductionWarningModal').addClass('hidden');
+            $('#editInventoryForm').trigger('submit');
+            pendingInsufficientDrinksEdit = false;
+            return;
+        }
+
         if (!pendingInsufficientInventoryAdd) {
             return;
         }
@@ -5083,6 +5091,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         pendingInsufficientInventoryAdd = false;
         $('#deductionWarningModal').addClass('hidden');
         submitAddProductRequest(true);
+    });
+
+    $(document).on('click', '#deductionWarningModalCancel', function() {
+        pendingInsufficientDrinksEdit = false;
     });
 
     // Tab Switching Function
@@ -5327,7 +5339,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
                 </h3>
                 <button id="deductionWarningModalClose"
-                    onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
+                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
                     class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -5337,7 +5349,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             </div>
             <div class="px-6 py-3 border-t border-gray-200 flex justify-end" id="deductionWarningFooter">
                 <button type="button" id="deductionWarningModalCloseBtn"
-                    onclick="pendingInsufficientInventoryAdd = false; $('#deductionWarningModal').addClass('hidden')"
+                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
                     class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
                     Got it
                 </button>
