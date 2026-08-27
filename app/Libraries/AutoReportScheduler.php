@@ -336,9 +336,9 @@ class AutoReportScheduler
         foreach ($shiftReports as $report) {
             $label = htmlspecialchars((string) ($report['label'] ?? 'Shift'));
             $timeRange = htmlspecialchars((string) ($report['time_range'] ?? ''));
-            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], $showOverheadColumn);
-            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], $showOverheadColumn);
-            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], $showOverheadColumn);
+            $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], 'bakery', $showOverheadColumn);
+            $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], 'grocery', $showOverheadColumn);
+            $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], 'drinks', $showOverheadColumn);
 
             $shiftBlocks .= "
                 <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
@@ -348,13 +348,13 @@ class AutoReportScheduler
                     </div>
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
-                    " . self::buildCategoryTable($bakeryRows, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($bakeryRows, 'bakery', $showOverheadColumn) . "
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>GROCERY</div>
-                    " . self::buildCategoryTable($groceryRows, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($groceryRows, 'grocery', $showOverheadColumn) . "
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin:14px 0 6px;'>DRINKS</div>
-                    " . self::buildCategoryTable($drinksRows, $showOverheadColumn) . "
+                    " . self::buildCategoryTable($drinksRows, 'drinks', $showOverheadColumn) . "
                 </div>";
         }
 
@@ -578,8 +578,11 @@ class AutoReportScheduler
 
                 $srp = self::resolveSrp($item);
                 $sales = $qtySold * $srp;
+                $directCostPerPiece = self::resolveDirectCostPerPiece($item);
+                $rawMaterialsUsed = $directCostPerPiece * ($po + $qtySold);
                 $overheadCostPerPiece = self::resolveOverheadCostPerPiece($item);
-                $overheadCostUsed = $overheadCostPerPiece * ($po + $qtySold);
+                $overheadUnits = $category === 'drinks' ? $qtySold : ($po + $qtySold);
+                $overheadCostUsed = $overheadCostPerPiece * $overheadUnits;
 
                 $row = [
                     'product_name' => (string) ($item['product_name'] ?? 'Unknown'),
@@ -590,6 +593,7 @@ class AutoReportScheduler
                     'end' => $end,
                     'qty_sold' => $qtySold,
                     'sales' => $sales,
+                    'raw_materials_used' => $rawMaterialsUsed,
                     'overhead_cost_used' => $overheadCostUsed,
                 ];
 
@@ -611,6 +615,7 @@ class AutoReportScheduler
                 'totals' => [
                     'products' => count($bakery) + count($grocery) + count($drinks),
                     'sales' => self::sumRows($bakery, 'sales') + self::sumRows($grocery, 'sales') + self::sumRows($drinks, 'sales'),
+                    'raw_materials_used' => self::sumRows($bakery, 'raw_materials_used') + self::sumRows($grocery, 'raw_materials_used') + self::sumRows($drinks, 'raw_materials_used'),
                     'overhead_cost_used' => self::sumRows($bakery, 'overhead_cost_used') + self::sumRows($grocery, 'overhead_cost_used') + self::sumRows($drinks, 'overhead_cost_used'),
                 ],
             ];
@@ -718,10 +723,11 @@ class AutoReportScheduler
         return $sum;
     }
 
-    private static function buildCategoryRows(array $rows, bool $showOverheadColumn): array
+    private static function buildCategoryRows(array $rows, string $category, bool $showOwnerColumns): array
     {
         $htmlRows = '';
         $totalSales = 0.0;
+        $totalRawUsed = 0.0;
         $totalOverheadUsed = 0.0;
 
         foreach ($rows as $row) {
@@ -733,28 +739,42 @@ class AutoReportScheduler
             $end = intval($row['end'] ?? 0);
             $qtySold = intval($row['qty_sold'] ?? 0);
             $sales = floatval($row['sales'] ?? 0);
+            $rawUsed = floatval($row['raw_materials_used'] ?? 0);
             $overheadUsed = floatval($row['overhead_cost_used'] ?? 0);
 
             $totalSales += $sales;
+            $totalRawUsed += $rawUsed;
             $totalOverheadUsed += $overheadUsed;
 
             $htmlRows .= "<tr>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;'>{$name}</td>
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($srp, 2) . "</td>";
 
-            $htmlRows .= "
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$distQty}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
+            if ($category === 'bakery') {
+                $htmlRows .= "
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$distQty}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
+            } elseif ($category === 'grocery') {
+                $htmlRows .= "
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
+            } else {
+                $htmlRows .= "
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
+            }
 
             $htmlRows .= "
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>";
 
-            if ($showOverheadColumn) {
+                if ($showOwnerColumns) {
                 $htmlRows .= "
-                <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>";
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
             }
 
             $htmlRows .= "
@@ -764,45 +784,62 @@ class AutoReportScheduler
         return [
             'rows' => $htmlRows,
             'total_sales' => $totalSales,
+            'total_raw_used' => $totalRawUsed,
             'total_overhead_used' => $totalOverheadUsed,
         ];
     }
 
-    private static function buildCategoryTable(array $categoryData, bool $showOverheadColumn): string
+    private static function buildCategoryTable(array $categoryData, string $category, bool $showOwnerColumns): string
     {
         $rowsHtml = (string) ($categoryData['rows'] ?? '');
         $totalSales = floatval($categoryData['total_sales'] ?? 0);
+        $totalRawUsed = floatval($categoryData['total_raw_used'] ?? 0);
         $totalOverheadUsed = floatval($categoryData['total_overhead_used'] ?? 0);
 
         $headers = "
             <th style='padding:8px;text-align:left;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Items/Particulars</th>
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>SRP</th>";
 
-        $headers .= "
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Beginning</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Pull Out</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Dist Qty</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Ending</th>
-            <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Qty Sold</th>";
+        if ($category === 'bakery') {
+            $headers .= "
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Beginning</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Pull Out</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Dist Qty</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Ending</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Qty Sold</th>";
+        } elseif ($category === 'grocery') {
+            $headers .= "
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Beginning</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Pull Out</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Ending</th>
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Qty Sold</th>";
+        } else {
+            $headers .= "
+                <th style='padding:8px;text-align:center;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Qty Sold</th>";
+        }
 
         $headers .= "
             <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Sales</th>";
-        if ($showOverheadColumn) {
-            $headers .= "<th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Overhead</th>";
+        if ($showOwnerColumns) {
+            $headers .= "
+                <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>Overhead</th>
+                <th style='padding:8px;text-align:right;font-size:11px;border-bottom:1px solid #d1d5db;background:#fef9c3;'>" . ($category === 'drinks' ? 'Materials Used' : 'Raw Materials') . "</th>";
         }
 
         if (trim($rowsHtml) === '') {
-            $colspan = $showOverheadColumn ? 9 : 8;
+            $baseColumns = $category === 'bakery' ? 8 : ($category === 'grocery' ? 7 : 4);
+            $colspan = $showOwnerColumns ? $baseColumns + 2 : $baseColumns;
             $rowsHtml = "<tr><td colspan='{$colspan}' style='padding:10px;font-size:12px;color:#6b7280;text-align:center;border-bottom:1px solid #e5e7eb;'>No items</td></tr>";
         }
 
-        $colspanForTotalLabel = 7;
+        $colspanForTotalLabel = $category === 'bakery' ? 7 : ($category === 'grocery' ? 6 : 3);
         $totalCells = "
                             <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalSales, 2) . "</td>";
 
-        if ($showOverheadColumn) {
+        if ($showOwnerColumns) {
             $totalCells .= "
-                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalOverheadUsed, 2) . "</td>";
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalOverheadUsed, 2) . "</td>
+                            <td style='padding:8px;font-size:12px;font-weight:700;text-align:right;background:#fef9c3;border-top:1px solid #e5e7eb;'>₱" . number_format($totalRawUsed, 2) . "</td>";
         }
 
         return "
