@@ -19,87 +19,58 @@
                 </ol>
             </nav>
 
-            <!-- Summary Cards -->
-            <div class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- Total Records Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-calendar-alt text-gray-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Records</p>
-                            <p id="totalRecords" class="text-xl font-semibold text-gray-800">0</p>
-                        </div>
+            <!-- Header / Actions Card — matches Current Inventory's header card layout -->
+            <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+                    <!-- LEFT: Navigation -->
+                    <div class="flex flex-wrap gap-2">
+                        <a href="<?= base_url('Inventory') ?>"
+                            class="inline-flex h-10 items-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition">
+                            <i class="fas fa-arrow-left mr-2 text-gray-500"></i>
+                            Back to Today
+                        </a>
                     </div>
                 </div>
-                
-                <!-- Avg Items Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-box text-gray-600"></i>
+
+                <!-- Divider line -->
+                <div class="border-t border-gray-200 my-4"></div>
+
+                <!-- Filters section -->
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
+                            <label for="filterDateFrom" class="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
+                            <input type="date" id="filterDateFrom" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900 bg-gray-50 focus:ring-1 focus:ring-primary">
                         </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Avg Items</p>
-                            <p id="avgItems" class="text-xl font-semibold text-gray-800">0</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Total Sold Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-shopping-cart text-gray-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Total Sold</p>
-                            <p id="totalSold" class="text-xl font-semibold text-gray-800">0</p>
+                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
+                            <label for="filterDateTo" class="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
+                            <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900 bg-gray-50 focus:ring-1 focus:ring-primary">
                         </div>
                     </div>
-                </div>
-                
-                <!-- Total Pull Out Card -->
-                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg">
-                            <i class="fas fa-undo text-gray-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wide">Total Pull Out</p>
-                            <p id="totalPullOut" class="text-xl font-semibold text-gray-800">0</p>
-                        </div>
+                    <div class="flex gap-2 sm:justify-end">
+                        <button id="btnApplyFilter" type="button" class="flex-1 sm:flex-none inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
+                        <button id="btnResetFilter" type="button" class="flex-1 sm:flex-none inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300">Reset</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter Card -->
-            <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
-                <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <h2 class="text-2xl font-bold text-gray-800 sm:text-xl sm:font-semibold">Inventory History</h2>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="<?= base_url('Inventory') ?>" class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">
-                            <i class="fas fa-arrow-left mr-2"></i>Back to Today
-                        </a>
-                    </div>
+            <!-- Summary Cards — same colored-card pattern as the Bakery/Drinks/Grocery sales cards on Current Inventory -->
+            <div class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-600">Records</p>
+                    <p id="totalRecords" class="text-lg font-semibold text-gray-800">0</p>
                 </div>
-                <div class="border-t border-gray-200 my-4"></div>
-                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
-                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateFrom" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">From:</label>
-                            <input type="date" id="filterDateFrom" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                        </div>
-                        <div class="flex items-center gap-2 flex-1 sm:flex-none">
-                            <label for="filterDateTo" class="text-sm text-gray-600 whitespace-nowrap w-12 sm:w-auto">To:</label>
-                            <input type="date" id="filterDateTo" class="flex-1 sm:w-40 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:ring-1 focus:ring-primary">
-                        </div>
-                    </div>
-                    <div class="flex gap-2 sm:justify-end">
-                        <button id="btnApplyFilter" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/40">Apply</button>
-                        <button id="btnResetFilter" type="button" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">Reset</button>
-                    </div>
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Total Sold</p>
+                    <p id="totalSold" class="text-lg font-semibold text-emerald-800">0</p>
+                </div>
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Total Pull Out</p>
+                    <p id="totalPullOut" class="text-lg font-semibold text-amber-800">0</p>
+                </div>
+                <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Total Sales</p>
+                    <p id="totalSales" class="text-lg font-semibold text-blue-800">₱0.00</p>
                 </div>
             </div>
 
@@ -116,18 +87,19 @@
                             <tr>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap bg-white border-r border-gray-200 sticky left-0 z-20" style="min-width:120px;">Date</th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap bg-white border-r border-gray-200 sticky left-[120px] z-20" style="min-width:120px;">Time</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Products</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap">Contents</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Beginning</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Sold</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Pull Out</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Ending</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-right">Sales</th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center">Status</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Products</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600">Contents</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Beginning</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Pull Out</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Dist Qty</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Ending</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Sold</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-right">Sales</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-gray-600 text-center">Status</th>
                             </tr>
                         </thead>
                     <tbody id="historyTableBody">
-                        <tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
+                        <tr><td colspan="11" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>
                     </tbody>
                     </table>
                 </div>
@@ -150,7 +122,7 @@
 
     <!-- Inventory Contents Modal -->
     <div id="contentsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-        <div class="relative w-full max-w-3xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="relative w-full max-w-4xl mx-auto border shadow-lg rounded-lg bg-white max-h-[90vh] overflow-hidden flex flex-col">
             <div class="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
                     <h3 class="text-lg font-bold text-gray-800">Inventory Contents</h3>
@@ -166,14 +138,17 @@
                         <thead class="hidden">
                             <tr>
                                 <th class="px-4 py-2">Product</th>
+                                <th class="px-4 py-2 text-center">SRP</th>
                                 <th class="px-4 py-2 text-center">Begin</th>
                                 <th class="px-4 py-2 text-center">Pull Out</th>
+                                <th class="px-4 py-2 text-center">Dist Qty</th>
                                 <th class="px-4 py-2 text-center">Qty Sold</th>
                                 <th class="px-4 py-2 text-center">Ending</th>
+                                <th class="px-4 py-2 text-right">Sales</th>
                             </tr>
                         </thead>
                         <tbody id="contentsModalBody">
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>
+                            <tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -271,7 +246,7 @@
             const dateTo = $('#filterDateTo').val();
             
             // Show loading
-            $('#historyTableBody').html('<tr><td colspan="10" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
+            $('#historyTableBody').html('<tr><td colspan="11" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Loading history...</p></td></tr>');
             
             $.ajax({
                 url: BASE_URL + 'Inventory/FetchHistory',
@@ -296,20 +271,20 @@
 
         function updateSummary() {
             const totalRecords = historyData.length;
-            let totalItems = 0;
             let totalSold = 0;
             let totalPullOut = 0;
+            let totalSales = 0;
             
             historyData.forEach((inv, index) => {
-                totalItems += parseInt(inv.total_items) || 0;
                 totalSold += parseInt(inv.total_sold) || 0;
                 totalPullOut += parseInt(inv.total_pull_out) || 0;
+                totalSales += parseFloat(inv.total_sales) || 0;
             });
             
             $('#totalRecords').text(totalRecords);
-            $('#avgItems').text(totalRecords > 0 ? Math.round(totalItems / totalRecords) : 0);
             $('#totalSold').text(totalSold);
             $('#totalPullOut').text(totalPullOut);
+            $('#totalSales').text('₱' + totalSales.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         }
 
         function renderHistory() {
@@ -327,25 +302,26 @@
                 const totalSales = parseFloat(inv.total_sales) || 0;
                 
                 tableHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 bg-white border-r border-gray-200 sticky left-0 z-10" style="min-width:120px;">
-                            <span class="font-medium text-gray-900">${formatDisplayDate(inv.inventory_date)}</span>
+                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                            <td class="px-6 py-2.5 bg-white border-r border-gray-200 sticky left-0 z-10" style="min-width:120px;">
+                            <span class="text-sm font-medium text-gray-900">${formatDisplayDate(inv.inventory_date)}</span>
                             ${isToday ? '<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">Today</span>' : ''}
                         </td>
-                            <td class="px-6 py-4 text-gray-600 bg-white border-r border-gray-200 sticky left-[120px] z-10" style="min-width:120px;">${formatTime(inv.time_start)} - ${formatTime(inv.time_end)}</td>
-                        <td class="px-6 py-4 text-center font-medium text-gray-700">${inv.total_items}</td>
-                        <td class="px-6 py-4 text-gray-700">
+                            <td class="px-6 py-2.5 text-sm text-gray-600 bg-white border-r border-gray-200 sticky left-[120px] z-10" style="min-width:120px;">${formatTime(inv.time_start)} - ${formatTime(inv.time_end)}</td>
+                        <td class="px-6 py-2.5 text-sm text-center font-medium text-gray-700">${inv.total_items}</td>
+                        <td class="px-6 py-2.5 text-sm text-gray-700">
                             <div class="max-w-[260px]">
                                 <p class="text-sm truncate" title="${(inv.products_preview || '').replace(/"/g, '&quot;')}">${inv.products_preview || '-'}</p>
                                 <button type="button" class="btn-view-contents mt-1 text-xs text-primary hover:underline" data-index="${index}">View items</button>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-center text-blue-600 font-medium">${inv.total_beginning}</td>
-                        <td class="px-6 py-4 text-center text-green-600 font-medium">${inv.total_sold > 0 ? inv.total_sold : '-'}</td>
-                        <td class="px-6 py-4 text-center text-amber-600 font-medium">${inv.total_pull_out > 0 ? inv.total_pull_out : '-'}</td>
-                        <td class="px-6 py-4 text-center font-medium text-gray-700">${inv.total_ending}</td>
-                        <td class="px-6 py-4 text-right font-semibold text-primary">₱${totalSales.toFixed(2)}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-6 py-2.5 text-sm text-center text-blue-600 font-medium">${inv.total_beginning}</td>
+                        <td class="px-6 py-2.5 text-sm text-center text-amber-600 font-medium">${inv.total_pull_out > 0 ? inv.total_pull_out : '-'}</td>
+                        <td class="px-6 py-2.5 text-sm text-center text-indigo-600 font-medium">${inv.total_dist_qty > 0 ? inv.total_dist_qty : '-'}</td>
+                        <td class="px-6 py-2.5 text-sm text-center font-medium text-gray-700">${inv.total_ending}</td>
+                        <td class="px-6 py-2.5 text-sm text-center text-emerald-600 font-medium">${inv.total_sold > 0 ? inv.total_sold : '-'}</td>
+                        <td class="px-6 py-2.5 text-sm text-right font-semibold text-primary">₱${totalSales.toFixed(2)}</td>
+                        <td class="px-6 py-2.5 text-center">
                             <div class="flex flex-wrap justify-center gap-1.5">
                                 ${buildStatusBadges(inv)}
                             </div>
@@ -400,18 +376,24 @@
                         <!-- Card Body -->
                         <div class="p-4">
                             <!-- Stats Grid -->
-                            <div class="grid grid-cols-4 gap-2 mb-3">
+                            <div class="grid grid-cols-3 gap-2 mb-2">
                                 <div class="text-center p-2 bg-blue-50 rounded-lg">
                                     <p class="text-xs text-gray-500">Begin</p>
                                     <p class="font-bold text-blue-600">${inv.total_beginning || 0}</p>
                                 </div>
-                                <div class="text-center p-2 bg-green-50 rounded-lg">
-                                    <p class="text-xs text-gray-500">Sold</p>
-                                    <p class="font-bold text-green-600">${inv.total_sold || 0}</p>
-                                </div>
                                 <div class="text-center p-2 bg-amber-50 rounded-lg">
                                     <p class="text-xs text-gray-500">Pull Out</p>
                                     <p class="font-bold text-amber-600">${inv.total_pull_out || 0}</p>
+                                </div>
+                                <div class="text-center p-2 bg-indigo-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Dist Qty</p>
+                                    <p class="font-bold text-indigo-600">${inv.total_dist_qty || 0}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div class="text-center p-2 bg-emerald-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">Sold</p>
+                                    <p class="font-bold text-emerald-600">${inv.total_sold || 0}</p>
                                 </div>
                                 <div class="text-center p-2 bg-gray-50 rounded-lg">
                                     <p class="text-xs text-gray-500">Ending</p>
@@ -459,18 +441,26 @@
             $('#contentsModalSubtitle').text(`${displayDate} • ${details.length} products`);
 
             if (details.length === 0) {
-                $('#contentsModalBody').html('<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>');
+                $('#contentsModalBody').html('<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No items found</td></tr>');
                 $('#contentsModal').removeClass('hidden');
                 $('body').addClass('overflow-hidden');
                 return;
             }
 
-            const categoryOrder = ['bakery', 'grocery', 'drinks', 'others'];
+            // Category grouping/labels/colors mirror the Bakery / Drinks / Grocery
+            // tabs & sales cards on the Current Inventory page.
+            const categoryOrder = ['bakery', 'drinks', 'grocery', 'others'];
             const categoryLabels = {
-                bakery: 'Bread',
+                bakery: 'Bakery',
                 grocery: 'Grocery',
                 drinks: 'Drinks',
                 others: 'Others'
+            };
+            const categoryHeaderClass = {
+                bakery: 'bg-amber-50 text-amber-800 border-amber-200',
+                drinks: 'bg-blue-50 text-blue-800 border-blue-200',
+                grocery: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                others: 'bg-gray-100 text-gray-700 border-gray-200'
             };
 
             const normalizeCategory = function(rawCategory) {
@@ -498,10 +488,11 @@
                 if (items.length === 0) return;
 
                 const isDrinksCategory = categoryKey === 'drinks';
+                const headerClass = categoryHeaderClass[categoryKey] || categoryHeaderClass.others;
 
                 rows += `
-                    <tr class="bg-gray-100 border-y border-gray-200">
-                        <td colspan="5" class="px-4 py-2 font-semibold uppercase tracking-wide text-gray-700">${categoryLabels[categoryKey]}</td>
+                    <tr class="border-y ${headerClass}">
+                        <td colspan="8" class="px-4 py-2 font-semibold uppercase tracking-wide">${categoryLabels[categoryKey]}</td>
                     </tr>
                 `;
 
@@ -509,42 +500,55 @@
                     rows += `
                         <tr class="bg-gray-50 border-b border-gray-200">
                             <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
-                            <td colspan="4" class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">SRP</td>
+                            <td colspan="5" class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500">Sales</td>
                         </tr>
                     `;
                 } else {
                     rows += `
                         <tr class="bg-gray-50 border-b border-gray-200">
                             <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">SRP</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Begin</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pull Out</td>
-                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Dist Qty</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Ending</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Qty Sold</td>
+                            <td class="px-4 py-1.5 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500">Sales</td>
                         </tr>
                     `;
                 }
 
                 items.forEach(item => {
+                    const srp = parseFloat(item.srp) || 0;
                     const beginning = parseInt(item.beginning_stock) || 0;
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
+                    const distQty = parseInt(item.distributed_out_qty) || 0;
                     const sold = parseInt(item.quantity_sold) || 0;
                     const ending = parseInt(item.ending_stock) || 0;
+                    const sales = parseFloat(item.sales) || 0;
 
                     if (isDrinksCategory) {
                         rows += `
                             <tr class="border-b">
                                 <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
-                                <td colspan="4" class="px-4 py-2 text-center text-green-600">${sold}</td>
+                                <td class="px-4 py-2 text-center text-gray-600">₱${srp.toFixed(2)}</td>
+                                <td colspan="5" class="px-4 py-2 text-center text-emerald-600">${sold}</td>
+                                <td class="px-4 py-2 text-right font-medium text-primary">₱${sales.toFixed(2)}</td>
                             </tr>
                         `;
                     } else {
                         rows += `
                             <tr class="border-b">
                                 <td class="px-4 py-2 font-medium text-gray-800">${item.product_name}</td>
+                                <td class="px-4 py-2 text-center text-gray-600">₱${srp.toFixed(2)}</td>
                                 <td class="px-4 py-2 text-center text-blue-600">${beginning}</td>
                                 <td class="px-4 py-2 text-center text-amber-600">${pullOut}</td>
-                                <td class="px-4 py-2 text-center text-green-600">${sold}</td>
+                                <td class="px-4 py-2 text-center text-indigo-600">${distQty}</td>
                                 <td class="px-4 py-2 text-center text-gray-700">${ending}</td>
+                                <td class="px-4 py-2 text-center text-emerald-600">${sold}</td>
+                                <td class="px-4 py-2 text-right font-medium text-primary">₱${sales.toFixed(2)}</td>
                             </tr>
                         `;
                     }
@@ -580,7 +584,7 @@
         function showEmptyState(message = 'No inventory records found') {
             $('#historyTableBody').html(`
                 <tr>
-                    <td colspan="10" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="11" class="px-6 py-12 text-center text-gray-500">
                         <i class="fas fa-inbox text-4xl mb-3"></i>
                         <p>${message}</p>
                     </td>

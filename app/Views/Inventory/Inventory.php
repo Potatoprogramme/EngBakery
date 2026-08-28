@@ -7,6 +7,18 @@ $isStaffView = (($employee_type ?? '') === 'staff');
     <!-- Main Content -->
     <div class="p-4 sm:ml-60">
         <div class="mt-16">
+            <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
+                <ol class="flex flex-wrap items-center gap-1 text-sm text-gray-500 justify-left sm:justify-start">
+                    <li><a href="<?= base_url('Dashboard') ?>" class="hover:text-primary">Dashboard</a></li>
+                    <li>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </li>
+                    <li><a href="<?= base_url('Inventory') ?>" class="hover:text-primary">Inventory</a></li>
+                </ol>
+            </nav>
+
             <div class="mb-4 p-4 bg-white rounded-lg shadow-md">
 
                 <div class="flex flex-wrap items-center justify-between gap-3 w-full">
