@@ -25,7 +25,7 @@ use App\Libraries\OwnerNotificationPreferences;
  * Schedule
  * ────────────────────────────────────────────────────────────────────────────
  *  AM slot : 15:00 – 15:59  →  afternoon inventory snapshot
- *  PM slot : 20:00 – 20:59  →  end-of-business-day  inventory snapshot
+ *  PM slot : 22:00 – 22:59  →  end-of-business-day inventory snapshot
  */
 class AutoReportScheduler
 {
@@ -37,7 +37,7 @@ class AutoReportScheduler
      */
     private const SLOTS = [
         'am' => ['start_h' => 15, 'end_h' => 16],  // 15:00 – 15:59
-        'pm' => ['start_h' => 20, 'end_h' => 21],  // 20:00 – 20:59
+        'pm' => ['start_h' => 22, 'end_h' => 23],  // 22:00 – 22:59
     ];
 
     // =========================================================================
@@ -165,7 +165,7 @@ class AutoReportScheduler
 
         $usersModel = new UsersModel();
         $owners = $usersModel
-            ->where('employee_type', 'owner')
+            ->whereIn('employee_type', ['owner', 'admin'])
             ->where('approved', 1)
             ->findAll();
 
