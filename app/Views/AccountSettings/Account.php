@@ -28,7 +28,7 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Change Password</span>
                             </button>
-                            <?php if (($employee_type ?? '') === 'owner'): ?>
+                            <?php if (($employee_type ?? '') === 'owner' || ($employee_type ?? '') === 'admin'): ?>
                                 <button id="notificationTab"
                                     class="settings-tab w-full text-left px-4 py-3 rounded-lg mt-1 flex items-center gap-3 text-gray-700 hover:bg-gray-100 transition-colors">
                                     <i class="fas fa-bell"></i>
@@ -263,7 +263,7 @@
                     </div>
                 </div>
 
-                <?php if (($employee_type ?? '') === 'owner'): ?>
+                <?php if (($employee_type ?? '') === 'owner' || ($employee_type ?? '') === 'admin'): ?>
                 <div id="notificationSection" class="lg:col-span-2 settings-content hidden">
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         <div class="p-4 bg-primary text-white">
@@ -334,7 +334,7 @@
 
     <script>
         const BASE_URL = '<?= base_url() ?>';
-        const IS_OWNER = <?= (($employee_type ?? '') === 'owner') ? 'true' : 'false' ?>;
+        const IS_OWNER_OR_ADMIN = <?= (($employee_type ?? '') === 'owner' || ($employee_type ?? '') === 'admin') ? 'true' : 'false' ?>;
         let originalProfileData = {};
         let originalNotificationSettings = {
             low_stock_enabled: 1,
@@ -383,7 +383,7 @@
                 $('#passwordForm')[0].reset();
             });
 
-            if (IS_OWNER) {
+            if (IS_OWNER_OR_ADMIN) {
                 $('#cancelNotificationBtn').on('click', function() {
                     setNotificationToggleState(originalNotificationSettings);
                 });
@@ -434,7 +434,7 @@
                         $('#approved_display').text(user.approved == 1 ? 'Approved' : 'Pending');
                         $('#created_at_display').text(formatDate(user.created_at) || '-');
 
-                        if (IS_OWNER) {
+                        if (IS_OWNER_OR_ADMIN) {
                             if (user.notification_settings) {
                                 originalNotificationSettings = {
                                     low_stock_enabled: parseInt(user.notification_settings.low_stock_enabled || 0, 10) === 1 ? 1 : 0,
@@ -460,7 +460,7 @@
         }
 
         function loadNotificationSettings() {
-            if (!IS_OWNER) return;
+            if (!IS_OWNER_OR_ADMIN) return;
 
             $.ajax({
                 url: BASE_URL + 'User/GetNotificationSettings',
@@ -490,7 +490,7 @@
         }
 
         function updateNotificationSettings() {
-            if (!IS_OWNER) return;
+            if (!IS_OWNER_OR_ADMIN) return;
 
             const payload = {
                 low_stock_enabled: $('#low_stock_enabled').is(':checked') ? 1 : 0,

@@ -174,6 +174,15 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * Check if user is owner or admin
+     * @return bool
+     */
+    protected function isOwnerOrAdmin(): bool
+    {
+        return $this->isAdmin() || $this->isOwner();
+    }
+
+    /**
      * Redirect if user is not logged in
      * @param string $message Optional error message
      * @return \CodeIgniter\HTTP\RedirectResponse|bool Returns redirect response if not logged in, false otherwise
