@@ -54,7 +54,7 @@ class DailyRemittanceReport
 
         // Get owner emails
         $usersModel = new UsersModel();
-        $owners = $usersModel->where('employee_type', 'owner')
+        $owners = $usersModel->whereIn('employee_type', ['owner', 'admin'])
             ->where('approved', 1)
             ->findAll();
 

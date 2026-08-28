@@ -165,7 +165,7 @@ class AutoReportScheduler
 
         $usersModel = new UsersModel();
         $owners = $usersModel
-            ->where('employee_type', 'owner')
+            ->whereIn('employee_type', ['owner', 'admin'])
             ->where('approved', 1)
             ->findAll();
 

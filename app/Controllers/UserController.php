@@ -44,7 +44,7 @@ class UserController extends BaseController
         // Remove sensitive password field
         unset($currentUserData['password']);
 
-        if (($currentUserData['employee_type'] ?? '') === 'owner') {
+        if (in_array(($currentUserData['employee_type'] ?? ''), ['owner', 'admin'], true)) {
             $currentUserData['notification_settings'] = OwnerNotificationPreferences::getForUser((int) $user['user_id']);
         }
 
@@ -65,10 +65,10 @@ class UserController extends BaseController
             ]);
         }
 
-        if (!$this->isOwner()) {
+        if (!$this->isOwnerOrAdmin()) {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
-                'message' => 'Only owner accounts can manage email notification settings.'
+                'message' => 'Only owner and admin accounts can manage email notification settings.'
             ]);
         }
 
@@ -91,10 +91,10 @@ class UserController extends BaseController
             ]);
         }
 
-        if (!$this->isOwner()) {
+        if (!$this->isOwnerOrAdmin()) {
             return $this->response->setStatusCode(403)->setJSON([
                 'success' => false,
-                'message' => 'Only owner accounts can manage email notification settings.'
+                'message' => 'Only owner and admin accounts can manage email notification settings.'
             ]);
         }
 
