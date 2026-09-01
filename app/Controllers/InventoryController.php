@@ -1853,19 +1853,30 @@ class InventoryController extends BaseController
             $totalBeginning = 0;
             $totalEnding = 0;
             $totalPullOut = 0;
+            $totalDistQty = 0;
             $totalSold = 0;
             $totalSales = 0;
             $productNames = [];
             $productsDetail = [];
 
+            // Category sales breakdown — mirrors the Bakery/Drinks/Grocery
+            // sales cards shown on the Current Inventory page.
+            $categorySales = [
+                'bakery' => 0.0,
+                'drinks' => 0.0,
+                'grocery' => 0.0,
+            ];
+
             foreach ($stockItems as $item) {
                 $productName = trim((string) ($item['product_name'] ?? 'Unknown Product'));
                 $dbQtySold = intval($salesDataMap[$item['item_id']]['quantity_sold'] ?? 0);
-                $category = strtolower(trim((string) ($item['category'] ?? '')));
+                $rawCategory = strtolower(trim((string) ($item['category'] ?? '')));
+                $category = $rawCategory === 'bread' ? 'bakery' : $rawCategory;
                 $beginningStock = intval($item['beginning_stock'] ?? 0);
                 $addedQty = intval($item['added_qty'] ?? 0);                 // NEW
                 $totalBeginningStock = $beginningStock + $addedQty;           // NEW
                 $pullOutQty = intval($item['pull_out_quantity'] ?? 0);
+                $distQty = intval($item['distributed_out_qty'] ?? 0);        // NEW — matches Inventory's "Dist Qty" column
                 $endingStock = intval($item['ending_stock'] ?? 0);
                 $inventoryQtySold = max(0, $totalBeginningStock - $pullOutQty - $endingStock);
                 $quantitySold = in_array($category, ['bakery', 'grocery'], true)
@@ -1881,17 +1892,25 @@ class InventoryController extends BaseController
                 $productsDetail[] = [
                     'product_name' => $productName,
                     'category' => $item['category'] ?? 'uncategorized',
+                    'srp' => $price,
                     'beginning_stock' => $beginningStock,
                     'quantity_sold' => $quantitySold,
                     'pull_out_quantity' => $pullOutQty,
+                    'distributed_out_qty' => $distQty,
                     'ending_stock' => $endingStock,
+                    'sales' => $itemTotalSales,
                 ];
 
                 $totalBeginning += $beginningStock + $addedQty;
                 $totalEnding += $endingStock;
                 $totalPullOut += $pullOutQty;
+                $totalDistQty += $distQty;
                 $totalSold += $quantitySold;
                 $totalSales += $itemTotalSales;
+
+                if (array_key_exists($category, $categorySales)) {
+                    $categorySales[$category] += $itemTotalSales;
+                }
             }
 
             $previewNames = array_slice($productNames, 0, 3);
@@ -1905,8 +1924,12 @@ class InventoryController extends BaseController
             $inventory['total_beginning'] = $totalBeginning;
             $inventory['total_ending'] = $totalEnding;
             $inventory['total_pull_out'] = $totalPullOut;
+            $inventory['total_dist_qty'] = $totalDistQty;
             $inventory['total_sold'] = $totalSold;
             $inventory['total_sales'] = $totalSales;
+            $inventory['bakery_sales'] = $categorySales['bakery'];
+            $inventory['drinks_sales'] = $categorySales['drinks'];
+            $inventory['grocery_sales'] = $categorySales['grocery'];
             $inventory['products_preview'] = $productsPreview;
             $inventory['products_detail'] = $productsDetail;
         }
