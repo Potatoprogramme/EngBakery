@@ -17,12 +17,23 @@ class OwnerNotificationPreferences
      */
     public static function defaultSettings(): array
     {
+        return self::roleDefaultsForRole('owner');
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public static function roleDefaultsForRole(string $role): array
+    {
+        $normalizedRole = strtolower(trim((string) $role));
+        $isOwnerOrAdmin = in_array($normalizedRole, ['owner', 'admin'], true);
+
         return [
-            'low_stock_enabled' => 1,
-            'inventory_enabled' => 1,
-            'remittance_enabled' => 1,
-            'material_stock_logs_enabled' => 1,
-            'beginning_quantity_adjustments_enabled' => 1,
+            'low_stock_enabled' => 0,
+            'inventory_enabled' => $isOwnerOrAdmin ? 1 : 0,
+            'remittance_enabled' => $isOwnerOrAdmin ? 1 : 0,
+            'material_stock_logs_enabled' => 0,
+            'beginning_quantity_adjustments_enabled' => 0,
         ];
     }
 
@@ -69,6 +80,11 @@ class OwnerNotificationPreferences
         }
 
         return (bool) $model->insert(array_merge(['user_id' => $userId], $normalized));
+    }
+
+    public static function syncRoleDefaultsForUser(int $userId, string $role): bool
+    {
+        return self::upsertForUser($userId, self::roleDefaultsForRole($role));
     }
 
     /**

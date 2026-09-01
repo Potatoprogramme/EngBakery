@@ -201,8 +201,8 @@ class ManageEmployeeController extends BaseController
     {
         $data = $this->request->getJSON(true);
         $sessionData = $this->getSessionData();
-        $user_id = $data['user_id'];
-        $new_role = $data['new_role'];
+        $user_id = isset($data['user_id']) ? (int) $data['user_id'] : 0;
+        $new_role = strtolower(trim((string) ($data['new_role'] ?? '')));
 
         $privilege_level = $sessionData['employee_type'];
 
@@ -213,11 +213,31 @@ class ManageEmployeeController extends BaseController
             ]);
         }
 
+        if ($user_id <= 0 || $new_role === '') {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'Invalid user or role selection.',
+            ]);
+        }
+
+        $targetUser = $this->usersModel->find($user_id);
+        if (!$targetUser) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'User not found.',
+            ]);
+        }
+
         $updateData = [
             'employee_type' => $new_role,
         ];
 
         $this->usersModel->update($user_id, $updateData);
+
+        $notificationSync = \App\Libraries\OwnerNotificationPreferences::syncRoleDefaultsForUser($user_id, $new_role);
+        if (!$notificationSync) {
+            log_message('warning', 'ManageEmployeeController: failed to sync notification defaults for user_id=' . $user_id . ' role=' . $new_role);
+        }
 
         return $this->response->setStatusCode(200)->setJSON([
             'success' => true,
