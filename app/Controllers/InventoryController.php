@@ -1894,6 +1894,7 @@ class InventoryController extends BaseController
                     'category' => $item['category'] ?? 'uncategorized',
                     'srp' => $price,
                     'beginning_stock' => $beginningStock,
+                    'added_qty' => $addedQty,
                     'quantity_sold' => $quantitySold,
                     'pull_out_quantity' => $pullOutQty,
                     'distributed_out_qty' => $distQty,

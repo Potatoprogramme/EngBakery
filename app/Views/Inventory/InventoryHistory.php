@@ -219,6 +219,13 @@
             return value === 1 || value === '1' || value === true || value === 'true';
         }
 
+        function formatBeginningWithAdded(beginningStock, addedQty) {
+            const beginning = parseInt(beginningStock) || 0;
+            const added = parseInt(addedQty) || 0;
+
+            return added > 0 ? beginning + ' + ' + added : String(beginning);
+        }
+
         function buildStatusBadges(inv) {
             const badges = [];
 
@@ -510,7 +517,7 @@
                         <tr class="bg-gray-50 border-b border-gray-200">
                             <td class="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Product</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">SRP</td>
-                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Begin</td>
+                            <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Begin + Added</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pull Out</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Dist Qty</td>
                             <td class="px-4 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">Ending</td>
@@ -522,7 +529,7 @@
 
                 items.forEach(item => {
                     const srp = parseFloat(item.srp) || 0;
-                    const beginning = parseInt(item.beginning_stock) || 0;
+                    const beginning = formatBeginningWithAdded(item.beginning_stock, item.added_qty);
                     const pullOut = parseInt(item.pull_out_quantity) || 0;
                     const distQty = parseInt(item.distributed_out_qty) || 0;
                     const sold = parseInt(item.quantity_sold) || 0;
