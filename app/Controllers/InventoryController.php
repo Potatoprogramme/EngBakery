@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\DistributionQuantityCalculator;
+use App\Libraries\EndOfDayStockReport;
 
 class InventoryController extends BaseController
 {
@@ -2162,6 +2163,59 @@ class InventoryController extends BaseController
         return $this->response->setStatusCode(500)->setJSON([
             'success' => false,
             'message' => 'Failed to update item status.',
+        ]);
+    }
+
+    /**
+     * Returns whether the manual end-of-day stock report is currently available today.
+     */
+    public function checkEndOfDayStockReportAvailability()
+    {
+        $today = date('Y-m-d');
+
+        $result = EndOfDayStockReport::getAvailabilityForDate($today);
+        $backlogDates = $this->dailyStockModel->getInventoryDatesWithData();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'has_manual_changes' => !empty($result['data']['has_manual_changes']),
+            'has_backlog_dates' => !empty($backlogDates),
+            'backlog_dates' => $backlogDates,
+            'report_date' => $today,
+            'first_change_at' => $result['data']['first_change_at'] ?? null,
+            'total_changes' => (int) ($result['data']['total_changes'] ?? 0),
+            'message' => !empty($backlogDates)
+                ? 'End-of-Day Stock Report backlog dates are available.'
+                : 'No manual stock changes have been recorded yet today.',
+        ]);
+    }
+
+    /**
+     * Manually generate and send the consolidated End-of-Day Stock Report.
+     * POST /Inventory/GenerateEndOfDayStockReport
+     */
+    public function generateEndOfDayStockReport()
+    {
+        $data = $this->request->getJSON(true);
+        $reportDate = trim((string) ($data['report_date'] ?? date('Y-m-d')));
+        $until = trim((string) ($data['until'] ?? date('Y-m-d H:i:s')));
+
+        $result = EndOfDayStockReport::sendReportForDate($reportDate, $until);
+
+        if (!empty($result['success'])) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $result['message'] ?? 'End-of-Day Stock Report sent successfully.',
+                'recipients' => $result['recipients'] ?? [],
+                'report_date' => $result['report_date'] ?? $reportDate,
+                'first_change_at' => $result['first_change_at'] ?? null,
+                'end_at' => $result['end_at'] ?? $until,
+            ]);
+        }
+
+        return $this->response->setStatusCode(200)->setJSON([
+            'success' => false,
+            'message' => $result['message'] ?? 'Unable to generate End-of-Day Stock Report.',
         ]);
     }
 

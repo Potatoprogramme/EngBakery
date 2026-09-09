@@ -101,6 +101,8 @@ $routes->group('Inventory', function (RouteCollection $routes) {
     $routes->get('GetYesterdayRemaining', 'InventoryController::getYesterdayRemaining');
     $routes->post('ToggleStockItem/(:num)', 'InventoryController::toggleStockItem/$1');
     $routes->get('GetProductRecipe/(:num)', 'InventoryController::getProductRecipe/$1');
+    $routes->get('CheckEndOfDayStockReportAvailability', 'InventoryController::checkEndOfDayStockReportAvailability');
+    $routes->post('GenerateEndOfDayStockReport', 'InventoryController::generateEndOfDayStockReport');
     $routes->post('SendReport', 'InventoryController::sendReport');
     $routes->post('CloseInventory', 'InventoryController::closeInventory');
     $routes->post('OpenInventory', 'InventoryController::openInventory');

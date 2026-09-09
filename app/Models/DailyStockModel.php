@@ -134,6 +134,28 @@ class DailyStockModel extends Model
     }
 
     /**
+     * Get inventory dates that currently have data, ordered newest first.
+     */
+    public function getInventoryDatesWithData(): array
+    {
+        $rows = $this
+            ->select('inventory_date')
+            ->groupBy('inventory_date')
+            ->orderBy('inventory_date', 'DESC')
+            ->findAll();
+
+        $dates = [];
+        foreach ($rows as $row) {
+            $inventoryDate = trim((string) ($row['inventory_date'] ?? ''));
+            if ($inventoryDate !== '' && !in_array($inventoryDate, $dates, true)) {
+                $dates[] = $inventoryDate;
+            }
+        }
+
+        return $dates;
+    }
+
+    /**
      * Get inventory by ID
      */
     public function getInventoryById(int $id): ?array
