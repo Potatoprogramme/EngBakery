@@ -277,13 +277,13 @@ class EndOfDayStockReport
                         <table style='background:#fff;border-collapse:collapse;width:100%;'>
                             <thead>
                                 <tr>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;'>Product</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Beginning</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Added</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Pull Out</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Distributed Out</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Ending</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Sold Qty</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;'>Product</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Beginning</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Added</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Pull Out</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Distributed Out</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Ending</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Sold Qty</th>
                                 </tr>
                             </thead>
                             <tbody>{$categoryRows}</tbody>
@@ -327,13 +327,13 @@ class EndOfDayStockReport
                         <table style='background:#fff;border-collapse:collapse;width:100%;'>
                             <thead>
                                 <tr>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;'>Product</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Beginning</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Added</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Pull Out</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Distributed Out</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Ending</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Sold Qty</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;'>Product</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Beginning</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Added</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Pull Out</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Distributed Out</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Ending</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Sold Qty</th>
                                 </tr>
                             </thead>
                             <tbody>{$categoryRows}</tbody>
@@ -372,11 +372,11 @@ class EndOfDayStockReport
                         <table style='background:#fff;border-collapse:collapse;width:100%;'>
                             <thead>
                                 <tr>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;'>Material</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Used Qty</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Remaining Qty</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Unit</th>
-                                    <th style='background:#E9F1F9;color:#1f2937;padding:10px;text-align:center;'>Estimated Cost</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;'>Material</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Used Qty</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Remaining Qty</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Unit</th>
+                                    <th style='background:#005A36;color:#ffffff;padding:10px;text-align:center;'>Estimated Cost</th>
                                 </tr>
                             </thead>
                             <tbody>{$materialsRows}</tbody>
@@ -493,6 +493,7 @@ class EndOfDayStockReport
     {
         $recipeModel = new ProductRecipeModel();
         $materialModel = new RawMaterialsModel();
+        $stockModel = new \App\Models\RawMaterialStockModel();
 
         $materials = [];
         $categories = [];
@@ -531,7 +532,8 @@ class EndOfDayStockReport
                 $usedQty = $quantityNeeded * $estimatedSold;
                 $unit = trim((string) ($materialMeta['unit'] ?? $recipeRow['unit'] ?? ''));
                 $materialName = trim((string) ($materialMeta['material_name'] ?? $recipeRow['material_name'] ?? 'Unknown Material'));
-                $remainingQty = floatval($materialMeta['material_quantity'] ?? 0);
+                $stockEntry = $stockModel->getByMaterialId($materialId);
+                $remainingQty = floatval($stockEntry['current_quantity'] ?? $materialMeta['material_quantity'] ?? 0);
                 $costPerUnit = floatval($materialMeta['cost_per_unit'] ?? $recipeRow['cost_per_unit'] ?? 0);
                 $usedCost = $usedQty * $costPerUnit;
 

@@ -2185,7 +2185,7 @@ class InventoryController extends BaseController
             'first_change_at' => $result['data']['first_change_at'] ?? null,
             'total_changes' => (int) ($result['data']['total_changes'] ?? 0),
             'message' => !empty($backlogDates)
-                ? 'End-of-Day Stock Report backlog dates are available.'
+                ? 'All-Day Stock Report backlog dates are available.'
                 : 'No manual stock changes have been recorded yet today.',
         ]);
     }
@@ -2205,7 +2205,7 @@ class InventoryController extends BaseController
         if (!empty($result['success'])) {
             return $this->response->setJSON([
                 'success' => true,
-                'message' => $result['message'] ?? 'End-of-Day Stock Report sent successfully.',
+                'message' => $result['message'] ?? 'All-Day Stock Report sent successfully.',
                 'recipients' => $result['recipients'] ?? [],
                 'report_date' => $result['report_date'] ?? $reportDate,
                 'first_change_at' => $result['first_change_at'] ?? null,
@@ -2215,7 +2215,7 @@ class InventoryController extends BaseController
 
         return $this->response->setStatusCode(200)->setJSON([
             'success' => false,
-            'message' => $result['message'] ?? 'Unable to generate End-of-Day Stock Report.',
+            'message' => $result['message'] ?? 'Unable to generate All-Day Stock Report.',
         ]);
     }
 
