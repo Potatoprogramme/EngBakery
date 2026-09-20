@@ -2272,6 +2272,14 @@ class InventoryController extends BaseController
         try {
             $sessionData = $this->getSessionData();
             $cashierUserId = intval($sessionData['user_id'] ?? 0);
+            $closedAt = trim((string) ($state['time_end'] ?? ''));
+            if ($closedAt === '' || $closedAt === '00:00:00') {
+                $closedAt = date('H:i:s');
+                $this->dailyStockModel->update($inventoryId, [
+                    'time_end' => $closedAt,
+                ]);
+            }
+
             $sendResult = \App\Libraries\AutoReportScheduler::sendManualReportForInventory(
                 (int) $inventoryId,
                 $resendReason,
@@ -2300,7 +2308,7 @@ class InventoryController extends BaseController
             }
 
             $updateData = [
-                'time_end' => date('H:i:s'),
+                'time_end' => $closedAt,
                 'report_sent' => 1,
                 'report_sent_at' => date('Y-m-d H:i:s'),
             ];

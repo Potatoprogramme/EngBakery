@@ -197,6 +197,8 @@ class AutoReportScheduler
             'header_color' => '#fff200',
             'subject_label' => $shiftLabel,
             'cashier' => $cashierMeta,
+            'time_started' => $shiftStart,
+            'time_ended' => $shiftEnd,
         ];
 
         $subject = 'Inventory Report - ' . date('F d, Y', strtotime($date)) . ' - ' . self::formatShiftTimeRange($shiftStart, $shiftEnd);
@@ -317,13 +319,29 @@ class AutoReportScheduler
         }
 
         $shiftCoverageParts = [];
+        $shiftStartedParts = [];
+        $shiftEndedParts = [];
+        $authoritativeStart = trim((string) ($slotMeta['time_started'] ?? ''));
+        $authoritativeEnd = trim((string) ($slotMeta['time_ended'] ?? ''));
         foreach ($shiftReports as $report) {
             $coverageLabel = trim((string) ($report['label'] ?? 'Shift'));
             $coverageTime = trim((string) ($report['time_range'] ?? ''));
             $shiftCoverageParts[] = trim($coverageLabel . ($coverageTime !== '' ? (' (' . $coverageTime . ')') : ''));
+
+            $reportStarted = $authoritativeStart !== ''
+                ? self::formatShiftTime($authoritativeStart)
+                : (string) ($report['time_started'] ?? '—');
+            $reportEnded = $authoritativeEnd !== ''
+                ? self::formatShiftTime($authoritativeEnd)
+                : (string) ($report['time_ended'] ?? '—');
+
+            $shiftStartedParts[] = trim($coverageLabel . ': ' . $reportStarted);
+            $shiftEndedParts[] = trim($coverageLabel . ': ' . $reportEnded);
         }
         $shiftCoverage = implode(' • ', array_filter($shiftCoverageParts));
         $shiftCoverageEscaped = htmlspecialchars($shiftCoverage !== '' ? $shiftCoverage : '—');
+        $shiftStartedEscaped = htmlspecialchars(implode(' • ', array_filter($shiftStartedParts)) ?: '—');
+        $shiftEndedEscaped = htmlspecialchars(implode(' • ', array_filter($shiftEndedParts)) ?: '—');
 
         $cashierMeta = is_array($slotMeta['cashier'] ?? null) ? $slotMeta['cashier'] : [];
         $cashierName = trim((string) ($cashierMeta['name'] ?? ''));
@@ -335,7 +353,12 @@ class AutoReportScheduler
         $shiftBlocks = '';
         foreach ($shiftReports as $report) {
             $label = htmlspecialchars((string) ($report['label'] ?? 'Shift'));
-            $timeRange = htmlspecialchars((string) ($report['time_range'] ?? ''));
+            $timeStarted = htmlspecialchars($authoritativeStart !== ''
+                ? self::formatShiftTime($authoritativeStart)
+                : (string) ($report['time_started'] ?? '—'));
+            $timeEnded = htmlspecialchars($authoritativeEnd !== ''
+                ? self::formatShiftTime($authoritativeEnd)
+                : (string) ($report['time_ended'] ?? '—'));
             $bakeryRows = self::buildCategoryRows($report['bakery'] ?? [], 'bakery', $showOverheadColumn);
             $groceryRows = self::buildCategoryRows($report['grocery'] ?? [], 'grocery', $showOverheadColumn);
             $drinksRows = self::buildCategoryRows($report['drinks'] ?? [], 'drinks', $showOverheadColumn);
@@ -344,7 +367,7 @@ class AutoReportScheduler
                 <div style='margin-top:20px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,0.04);'>
                     <div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;'>
                         <div style='font-size:16px;font-weight:700;color:#0f172a;'>{$label}</div>
-                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>Shift Time: {$timeRange}</span>
+                        <span style='font-size:11px;font-weight:600;color:#334155;background:#e2e8f0;padding:4px 8px;border-radius:999px;'>Started: {$timeStarted} | Ended: {$timeEnded}</span>
                     </div>
 
                     <div style='font-size:12px;font-weight:800;letter-spacing:.04em;color:#334155;margin-bottom:6px;'>BREAD</div>
@@ -439,8 +462,12 @@ class AutoReportScheduler
                             <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$reportTime}</td>
                         </tr>
                         <tr>
-                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Shift Time:</strong></td>
-                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$shiftCoverageEscaped}</td>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Time Started:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$shiftStartedEscaped}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Time Ended:</strong></td>
+                            <td style='padding:8px 12px;font-size:13px;color:#0f172a;'>{$shiftEndedEscaped}</td>
                         </tr>
                         <tr>
                             <td style='padding:8px 12px;font-size:13px;color:#64748b;'><strong>Cashier:</strong></td>
@@ -611,6 +638,8 @@ class AutoReportScheduler
             $reports[] = [
                 'label' => $label,
                 'time_range' => self::formatShiftTimeRange($start, $end),
+                'time_started' => self::formatShiftTime($start),
+                'time_ended' => self::formatShiftTime($end),
                 'bakery' => $bakery,
                 'grocery' => $grocery,
                 'drinks' => $drinks,
@@ -705,14 +734,25 @@ class AutoReportScheduler
 
     private static function formatShiftTimeRange(string $start, string $end): string
     {
-        $startTs = strtotime($start);
-        $endTs = strtotime($end);
+        return self::formatShiftTime($start) . ' - ' . self::formatShiftTime($end);
+    }
 
-        if ($startTs === false || $endTs === false) {
-            return $start . ' - ' . $end;
+    private static function formatShiftTime(string $time): string
+    {
+        $normalizedTime = trim($time);
+        if (preg_match('/^\d{1,2}$/', $normalizedTime) === 1) {
+            $normalizedTime .= ':00:00';
+        } elseif (preg_match('/^\d{1,2}:\d{2}$/', $normalizedTime) === 1) {
+            $normalizedTime .= ':00';
         }
 
-        return date('h:i A', $startTs) . ' - ' . date('h:i A', $endTs);
+        $timeTs = strtotime($normalizedTime);
+
+        if ($timeTs === false) {
+            return $normalizedTime;
+        }
+
+        return date('h:i A', $timeTs);
     }
 
     private static function sumRows(array $rows, string $key): float
@@ -776,7 +816,7 @@ class AutoReportScheduler
             $htmlRows .= "
                 <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($sales, 2) . "</td>";
 
-                if ($showOwnerColumns) {
+            if ($showOwnerColumns) {
                 $htmlRows .= "
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($overheadUsed, 2) . "</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:right;'>₱" . number_format($rawUsed, 2) . "</td>";
