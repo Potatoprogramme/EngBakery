@@ -3,7 +3,6 @@
 namespace Config;
 
 use App\Libraries\AutoReportScheduler;
-use App\Libraries\MaterialStockEditReportScheduler;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
 use CodeIgniter\HotReloader\HotReloader;
@@ -58,6 +57,5 @@ Events::on('pre_system', static function (): void {
     // Opportunistic scheduler: run inventory auto-report checks on each web request.
     if (! is_cli()) {
         AutoReportScheduler::runDueJobs();
-        MaterialStockEditReportScheduler::runDueJobs();
     }
 });

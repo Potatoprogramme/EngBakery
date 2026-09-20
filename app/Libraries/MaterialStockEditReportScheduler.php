@@ -11,6 +11,55 @@ class MaterialStockEditReportScheduler
     private const SLOT_START_HOUR = 19; // 7:00 PM
     private const SLOT_END_HOUR = 20;   // exclusive — fires during 19:00–19:59
 
+    /**
+     * Send an immediate alert for one successful manual stock change.
+     *
+     * @param array<string, mixed> $edit
+     */
+    public static function sendImmediateAlert(array $edit): bool
+    {
+        $usersModel = new UsersModel();
+        $owners = $usersModel
+            ->whereIn('employee_type', ['owner', 'admin'])
+            ->where('approved', 1)
+            ->findAll();
+
+        $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType(
+            $owners,
+            OwnerNotificationPreferences::TYPE_MATERIAL_STOCK_CHANGES
+        );
+
+        if (empty($ownerEmails)) {
+            log_message('info', 'MaterialStockEditReportScheduler: No recipients enabled for material stock change alerts.');
+            return false;
+        }
+
+        $materialName = (string) ($edit['material_name'] ?? 'Unknown');
+        $action = strtoupper((string) ($edit['action'] ?? 'CHANGED'));
+        $subject = 'Material Stock Change Alert - ' . $materialName . ' (' . $action . ')';
+        $body = self::buildEmailBody([$edit], date('Y-m-d', strtotime((string) ($edit['created_at'] ?? 'now'))));
+
+        try {
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
+            $emailService->setTo($ownerEmails);
+            $emailService->setSubject($subject);
+            $emailService->setMessage($body);
+            $emailService->setMailType('html');
+
+            if (!$emailService->send()) {
+                log_message('error', 'MaterialStockEditReportScheduler: immediate alert failed: ' . $emailService->printDebugger(['headers']));
+                return false;
+            }
+
+            log_message('info', 'MaterialStockEditReportScheduler: immediate alert sent for material=' . $materialName);
+            return true;
+        } catch (\Throwable $e) {
+            log_message('error', 'MaterialStockEditReportScheduler: immediate alert exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function runDueJobs(): void
     {
         $nowH = (int) date('G');
@@ -93,7 +142,7 @@ class MaterialStockEditReportScheduler
         }
 
         $usersModel = new UsersModel();
-        $owners = $usersModel->where('employee_type', 'owner')->where('approved', 1)->findAll();
+        $owners = $usersModel->whereIn('employee_type', ['owner', 'admin'])->where('approved', 1)->findAll();
         if (empty($owners)) {
             log_message('warning', 'MaterialStockEditReportScheduler: No owner accounts found.');
             return;
@@ -101,7 +150,7 @@ class MaterialStockEditReportScheduler
 
         $ownerEmails = OwnerNotificationPreferences::resolveEmailsForType(
             $owners,
-            OwnerNotificationPreferences::TYPE_MATERIAL_STOCK_LOGS
+            OwnerNotificationPreferences::TYPE_MATERIAL_STOCK_CHANGES
         );
         if (empty($ownerEmails)) {
             log_message('info', 'MaterialStockEditReportScheduler: All owners have this notification turned off.');
@@ -138,6 +187,8 @@ class MaterialStockEditReportScheduler
             $name = htmlspecialchars((string) ($edit['material_name'] ?? 'Unknown'));
             $action = strtoupper((string) ($edit['action'] ?? ''));
             $amount = round(floatval($edit['amount'] ?? 0), 4);
+            $amountPrefix = $action === 'ADDED' ? '+' : '-';
+            $amountDisplay = $amountPrefix . $amount;
             $unit = htmlspecialchars((string) ($edit['unit'] ?? ''));
             $before = round(floatval($edit['before_qty'] ?? 0), 4);
             $after = round(floatval($edit['after_qty'] ?? 0), 4);
@@ -154,7 +205,7 @@ class MaterialStockEditReportScheduler
                     <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center;'>
                         <span style='padding:3px 8px;border-radius:999px;font-weight:700;{$badgeStyle}'>{$action}</span>
                     </td>
-                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;text-align:center;'>{$amount} {$unit}</td>
+                    <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px;text-align:center;'>{$amountDisplay} {$unit}</td>
                     <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$before} → {$after}</td>
                     <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:12px;'>{$who}</td>
                     <td style='padding:10px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$time}</td>
@@ -173,12 +224,12 @@ class MaterialStockEditReportScheduler
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1 style='margin:0;font-size:22px;'>Material Stock — Manual Edits Report</h1>
+                    <h1 style='margin:0;font-size:22px;'>Material Stock Change Alert</h1>
                     <p style='margin:6px 0 0;font-size:13px;opacity:.9;'>E n' G Bakery - Deca Sentrio — {$reportDate}</p>
                 </div>
                 <div class='content'>
                     <p style='font-size:14px;'>Dear Owner,</p>
-                    <p style='font-size:14px;'>Below are all manual additions/subtractions made to Material Stock today (" . count($edits) . " total).</p>
+                    <p style='font-size:14px;'>A material stock quantity was changed. Details are shown below.</p>
                     <div style='overflow-x:auto;'>
                         <table style='background:#fff;border:1px solid #e5e7eb;'>
                             <thead><tr>

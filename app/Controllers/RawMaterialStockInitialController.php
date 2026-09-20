@@ -115,12 +115,22 @@ class RawMaterialStockInitialController extends BaseController
                     'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
                     'source'          => 'stock_initial_add',
                 ]);
+                $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
+                \App\Libraries\MaterialStockEditReportScheduler::sendImmediateAlert([
+                    'material_name' => $matInfo['material_name'] ?? 'Unknown',
+                    'action' => 'added',
+                    'amount' => $addedQty,
+                    'before_qty' => 0,
+                    'after_qty' => $addedQty,
+                    'unit' => $data['unit'] ?? '',
+                    'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
                 // Check for low stock and notify owners
                 \App\Libraries\LowStockNotifier::checkAndNotify();
 
                 // Immediate notification: stock entry added
                 $material = $this->rawMaterialStockModel->find($entryId);
-                $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
                 $matName = $matInfo['material_name'] ?? 'Unknown';
                 $matUnit = $data['unit'] ?? '';
                 $this->notify('notifyStockEntryAdded', $matName, floatval($data['initial_qty']), $matUnit);
@@ -212,6 +222,17 @@ class RawMaterialStockInitialController extends BaseController
                         'changed_by'      => $sessionData['user_id'] ?? null,
                         'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
                         'source'          => 'stock_initial_update',
+                    ]);
+                    $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
+                    \App\Libraries\MaterialStockEditReportScheduler::sendImmediateAlert([
+                        'material_name' => $matInfo['material_name'] ?? 'Unknown',
+                        'action' => $delta > 0 ? 'added' : 'subtracted',
+                        'amount' => abs($delta),
+                        'before_qty' => $beforeCurrentQty,
+                        'after_qty' => $afterCurrentQty,
+                        'unit' => $data['unit'] ?? '',
+                        'changed_by_name' => trim((string) (($sessionData ?? [])['name'] ?? '')) ?: 'Unknown',
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
 

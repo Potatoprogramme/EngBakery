@@ -59,14 +59,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                             </span>
                         </button>
 
-                        <?php if ($isOwnerView): ?>
-                            <button id="btnEndOfDayStockReport"
-                                class="hidden inline-flex h-10 items-center rounded-lg border border-violet-200 bg-violet-50 px-4 text-sm font-medium text-violet-700 hover:bg-violet-100 focus:ring-2 focus:ring-violet-300 transition">
-                                <i class="fas fa-file-export sm:mr-2 text-violet-500"></i>
-                                <span class="hidden sm:inline">All-Day Stock Report</span>
-                            </button>
-                        <?php endif; ?>
-
                         <!-- <button id="btnSendInventoryReport"
                             class="hidden inline-flex h-10 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 focus:ring-2 focus:ring-indigo-300 transition">
                             <i class="fas fa-paper-plane sm:mr-2 text-indigo-500"></i>
@@ -667,37 +659,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         </div>
     </div>
 
-    <div id="endOfDayStockReportBacklogModal"
-        class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50">
-        <div class="relative bg-white rounded-lg shadow-lg max-w-lg w-full p-6 z-10">
-            <button type="button" id="endOfDayStockReportBacklogClose"
-                class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                <i class="fas fa-xmark"></i>
-            </button>
-            <div class="mb-4">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Choose a backlog date</h3>
-                <p class="text-sm text-gray-600">Select a date to resend the All-Day Stock Report.</p>
-            </div>
-            <div class="mb-4">
-                <label for="endOfDayStockReportDateSelect" class="block text-sm font-medium text-gray-700 mb-2">Backlog Date</label>
-                <select id="endOfDayStockReportDateSelect"
-                    class="w-full rounded-lg border border-violet-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200">
-                    <option value="">Select a date</option>
-                </select>
-            </div>
-            <div class="mt-5 flex justify-end gap-3">
-                <button type="button" id="endOfDayStockReportSendBtn"
-                    class="inline-flex items-center justify-center px-4 py-2 text-white bg-violet-600 hover:bg-violet-700 focus:ring-4 focus:ring-violet-300 font-medium rounded-lg text-sm">
-                    Send Report
-                </button>
-                <button type="button" id="endOfDayStockReportBacklogCancel"
-                    class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm border border-gray-300">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
     // Track if inventory exists for today
     let inventoryExistsToday = false;
@@ -766,128 +727,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         syncNewShiftButtonState();
     }
 
-    function toggleEndOfDayStockReportButton(hasManualChanges, backlogDates = []) {
-        const $btn = $('#btnEndOfDayStockReport');
-        if (!$btn.length) {
-            return;
-        }
-
-        const hasBacklogDates = Array.isArray(backlogDates) && backlogDates.length > 0;
-
-        if (hasManualChanges || hasBacklogDates) {
-            $btn.removeClass('hidden').addClass('sm:inline-flex');
-        } else {
-            $btn.addClass('hidden').removeClass('sm:inline-flex');
-        }
-    }
-
-    function checkEndOfDayStockReportAvailability() {
-        const baseUrl = '<?= base_url() ?>';
-        $.ajax({
-            url: baseUrl + 'Inventory/CheckEndOfDayStockReportAvailability',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                const hasManualChanges = !!(response && response.has_manual_changes);
-                const backlogDates = Array.isArray(response && response.backlog_dates) ? response.backlog_dates : [];
-
-                window.endOfDayReportBacklogDates = backlogDates;
-                toggleEndOfDayStockReportButton(hasManualChanges, backlogDates);
-            },
-            error: function() {
-                window.endOfDayReportBacklogDates = [];
-                toggleEndOfDayStockReportButton(false, []);
-            }
-        });
-    }
-
     $(document).ready(function() {
         syncInventoryInteractionLock();
-        checkEndOfDayStockReportAvailability();
-
-        $('#btnEndOfDayStockReport').on('click', function() {
-            if (!window.endOfDayReportBacklogDates || !window.endOfDayReportBacklogDates.length) {
-                showToast('warning', 'No backlog dates are available right now.', 2400);
-                return;
-            }
-
-            const backlogDates = window.endOfDayReportBacklogDates;
-            const $select = $('#endOfDayStockReportDateSelect');
-            $select.empty();
-            $select.append('<option value="">Select a date</option>');
-
-            backlogDates.forEach(function(dateString) {
-                const date = new Date(dateString + 'T00:00:00');
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                $select.append(
-                    '<option value="' + dateString + '">' + formattedDate + '</option>'
-                );
-            });
-
-            $('#endOfDayStockReportBacklogModal').removeClass('hidden');
-            $select.focus();
-        });
-
-        $('#endOfDayStockReportBacklogClose, #endOfDayStockReportBacklogCancel').on('click', function() {
-            $('#endOfDayStockReportBacklogModal').addClass('hidden');
-            $('#endOfDayStockReportDateSelect').val('');
-            $('#endOfDayStockReportSendBtn').prop('disabled', false).removeClass('opacity-70 cursor-not-allowed');
-            $('#endOfDayStockReportSendBtn').html('Send Report');
-        });
-
-        $('#endOfDayStockReportSendBtn').on('click', function() {
-            const $btn = $(this);
-            const reportDate = $('#endOfDayStockReportDateSelect').val();
-
-            if (!reportDate) {
-                showToast('warning', 'Please select a backlog date first.', 2400);
-                return;
-            }
-
-            const reportUntil = reportDate + ' 23:59:59';
-
-            setButtonLoading($btn, true, 'Sending...');
-            $('#endOfDayStockReportDateSelect').prop('disabled', true);
-
-            $.ajax({
-                url: '<?= base_url() ?>' + 'Inventory/GenerateEndOfDayStockReport',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    report_date: reportDate,
-                    until: reportUntil
-                }),
-                success: function(response) {
-                    $('#endOfDayStockReportBacklogModal').addClass('hidden');
-                    $('#endOfDayStockReportDateSelect').val('');
-                    $('#endOfDayStockReportDateSelect').prop('disabled', false);
-                    setButtonLoading($btn, false);
-
-                    if (response && response.success) {
-                        showToast('success', response.message || 'All-Day Stock Report sent successfully.', 3000);
-                        checkEndOfDayStockReportAvailability();
-                        return;
-                    }
-
-                    showToast('warning', response && response.message ? response.message : 'No manual stock changes were recorded for the selected date yet.', 3600);
-                },
-                error: function(xhr) {
-                    $('#endOfDayStockReportDateSelect').prop('disabled', false);
-                    setButtonLoading($btn, false);
-                    const message = xhr && xhr.responseJSON && xhr.responseJSON.message ?
-                        xhr.responseJSON.message :
-                        'Failed to generate All-Day Stock Report.';
-                    showToast('danger', message, 3600);
-                }
-            });
-        });
-
         // Delete Modal Script
         $('#btnDeleteTodaysInventory').on('click', function() {
             if (!inventoryExistsToday) {
@@ -2723,7 +2564,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').removeClass('hidden').addClass('sm:inline-flex');
                     }
-                    checkEndOfDayStockReportAvailability();
                     // Show delete buttons and add product button when inventory exists
                     $('#btnDeleteTodaysInventory').removeClass('hidden').addClass('sm:inline-flex');
                     $('#btnAddProductToInventoryMobile').removeClass('hidden').addClass('inline-flex');
@@ -2744,7 +2584,6 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     syncInventoryInteractionLock();
                     showToast('warning', response.message, 2000);
                     loadInventory([]);
-                    toggleEndOfDayStockReportButton(false);
                     $('#btnCloseInventory').addClass('hidden');
                     if ($('#btnSendInventoryReport').length) {
                         $('#btnSendInventoryReport').addClass('hidden').removeClass('sm:inline-flex');

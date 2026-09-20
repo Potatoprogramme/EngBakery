@@ -299,8 +299,8 @@
 
                                 <label class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                                     <div>
-                                        <p class="text-sm font-semibold text-gray-800">Send Material Stock Log Reports</p>
-                                        <p class="text-xs text-gray-500">Receive end-of-day emails for manual Material Stock edits.</p>
+                                        <p class="text-sm font-semibold text-gray-800">Send Material Stock Change Alerts</p>
+                                        <p class="text-xs text-gray-500">Receive an email whenever material stock is added or changed.</p>
                                     </div>
                                     <input type="checkbox" id="material_stock_logs_enabled" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" checked>
                                 </label>

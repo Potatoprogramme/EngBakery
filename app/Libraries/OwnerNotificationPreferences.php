@@ -10,6 +10,7 @@ class OwnerNotificationPreferences
     public const TYPE_INVENTORY = 'inventory';
     public const TYPE_REMITTANCE = 'remittance';
     public const TYPE_MATERIAL_STOCK_LOGS = 'material_stock_logs';
+    public const TYPE_MATERIAL_STOCK_CHANGES = self::TYPE_MATERIAL_STOCK_LOGS;
     public const TYPE_BEGINNING_QUANTITY_ADJUSTMENTS = 'beginning_quantity_adjustments';
 
     /**
