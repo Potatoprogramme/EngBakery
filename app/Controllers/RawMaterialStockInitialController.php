@@ -11,7 +11,7 @@ class RawMaterialStockInitialController extends BaseController
     {
         $data = $this->getSessionData();
 
-        return  view('Template/Header', $data) .
+        return view('Template/Header', $data) .
             view('Template/SideNav', $data) .
             view('Template/Notification', $data) .
             view('StockInitial/StockInitial', $data) .
@@ -80,9 +80,9 @@ class RawMaterialStockInitialController extends BaseController
 
         // Validate required fields
         if (
-            !isset($data['material_id']) || (string)$data['material_id'] === '' ||
-            !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
-            !isset($data['unit']) || trim((string)$data['unit']) === ''
+            !isset($data['material_id']) || (string) $data['material_id'] === '' ||
+            !array_key_exists('initial_qty', $data) || (string) $data['initial_qty'] === '' ||
+            !isset($data['unit']) || trim((string) $data['unit']) === ''
         ) {
             return $this->response->setJSON([
                 'success' => false,
@@ -105,15 +105,15 @@ class RawMaterialStockInitialController extends BaseController
                 $addedQty = floatval($data['initial_qty']);
 
                 (new \App\Models\RawMaterialStockLogModel())->logChange([
-                    'material_id'     => intval($data['material_id']),
-                    'action'          => 'added',
-                    'amount'          => $addedQty,
-                    'before_qty'      => 0,
-                    'after_qty'       => $addedQty,
-                    'unit'            => $data['unit'] ?? '',
-                    'changed_by'      => $sessionData['user_id'] ?? null,
+                    'material_id' => intval($data['material_id']),
+                    'action' => 'added',
+                    'amount' => $addedQty,
+                    'before_qty' => 0,
+                    'after_qty' => $addedQty,
+                    'unit' => $data['unit'] ?? '',
+                    'changed_by' => $sessionData['user_id'] ?? null,
                     'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
-                    'source'          => 'stock_initial_add',
+                    'source' => 'stock_initial_add',
                 ]);
                 $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
                 \App\Libraries\MaterialStockEditReportScheduler::sendImmediateAlert([
@@ -163,10 +163,10 @@ class RawMaterialStockInitialController extends BaseController
 
         // Validate required fields
         if (
-            !isset($data['stock_id']) || (string)$data['stock_id'] === '' ||
-            !isset($data['material_id']) || (string)$data['material_id'] === '' ||
-            !array_key_exists('initial_qty', $data) || (string)$data['initial_qty'] === '' ||
-            !isset($data['unit']) || trim((string)$data['unit']) === ''
+            !isset($data['stock_id']) || (string) $data['stock_id'] === '' ||
+            !isset($data['material_id']) || (string) $data['material_id'] === '' ||
+            !array_key_exists('initial_qty', $data) || (string) $data['initial_qty'] === '' ||
+            !isset($data['unit']) || trim((string) $data['unit']) === ''
         ) {
             return $this->response->setJSON([
                 'success' => false,
@@ -213,15 +213,15 @@ class RawMaterialStockInitialController extends BaseController
                 if ($delta != 0) {
                     $sessionData = $this->getSessionData();
                     (new \App\Models\RawMaterialStockLogModel())->logChange([
-                        'material_id'     => intval($data['material_id']),
-                        'action'          => $delta > 0 ? 'added' : 'subtracted',
-                        'amount'          => $delta,
-                        'before_qty'      => $beforeCurrentQty,
-                        'after_qty'       => $afterCurrentQty,
-                        'unit'            => $data['unit'] ?? '',
-                        'changed_by'      => $sessionData['user_id'] ?? null,
+                        'material_id' => intval($data['material_id']),
+                        'action' => $delta > 0 ? 'added' : 'subtracted',
+                        'amount' => $delta,
+                        'before_qty' => $beforeCurrentQty,
+                        'after_qty' => $afterCurrentQty,
+                        'unit' => $data['unit'] ?? '',
+                        'changed_by' => $sessionData['user_id'] ?? null,
                         'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
-                        'source'          => 'stock_initial_update',
+                        'source' => 'stock_initial_update',
                     ]);
                     $matInfo = (new \App\Models\RawMaterialsModel())->find($data['material_id']);
                     \App\Libraries\MaterialStockEditReportScheduler::sendImmediateAlert([
@@ -285,15 +285,15 @@ class RawMaterialStockInitialController extends BaseController
             if ($remaining > 0) {
                 $sessionData = $this->getSessionData();
                 (new \App\Models\RawMaterialStockLogModel())->logChange([
-                    'material_id'     => intval($entry['material_id'] ?? 0),
-                    'action'          => 'subtracted',
-                    'amount'          => $remaining,
-                    'before_qty'      => $remaining,
-                    'after_qty'       => 0,
-                    'unit'            => $entry['unit'] ?? '',
-                    'changed_by'      => $sessionData['user_id'] ?? null,
+                    'material_id' => intval($entry['material_id'] ?? 0),
+                    'action' => 'subtracted',
+                    'amount' => $remaining,
+                    'before_qty' => $remaining,
+                    'after_qty' => 0,
+                    'unit' => $entry['unit'] ?? '',
+                    'changed_by' => $sessionData['user_id'] ?? null,
                     'changed_by_name' => trim((string) ($sessionData['name'] ?? '')) ?: 'Unknown',
-                    'source'          => 'stock_initial_delete',
+                    'source' => 'stock_initial_delete',
                 ]);
             }
 
