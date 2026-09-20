@@ -587,6 +587,8 @@ class AutoReportScheduler
                 $row = [
                     'product_name' => (string) ($item['product_name'] ?? 'Unknown'),
                     'srp' => $srp,
+                    'beginning_stock' => $beginningStock,
+                    'added_qty' => $addedQty,
                     'beg' => $beg,
                     'po' => $po,
                     'dist_qty' => $distQty,
@@ -733,6 +735,8 @@ class AutoReportScheduler
         foreach ($rows as $row) {
             $name = htmlspecialchars((string) ($row['product_name'] ?? 'Unknown'));
             $srp = floatval($row['srp'] ?? 0);
+            $beginningStock = intval($row['beginning_stock'] ?? 0);
+            $addedQty = intval($row['added_qty'] ?? 0);
             $beg = intval($row['beg'] ?? 0);
             $po = intval($row['po'] ?? 0);
             $distQty = intval($row['dist_qty'] ?? 0);
@@ -741,6 +745,7 @@ class AutoReportScheduler
             $sales = floatval($row['sales'] ?? 0);
             $rawUsed = floatval($row['raw_materials_used'] ?? 0);
             $overheadUsed = floatval($row['overhead_cost_used'] ?? 0);
+            $beginningDisplay = self::formatBeginningWithAddedDisplay($beginningStock, $addedQty);
 
             $totalSales += $sales;
             $totalRawUsed += $rawUsed;
@@ -752,14 +757,14 @@ class AutoReportScheduler
 
             if ($category === 'bakery') {
                 $htmlRows .= "
-                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beginningDisplay}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$distQty}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
             } elseif ($category === 'grocery') {
                 $htmlRows .= "
-                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beg}</td>
+                    <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$beginningDisplay}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$po}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$end}</td>
                     <td style='padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;text-align:center;'>{$qtySold}</td>";
@@ -787,6 +792,15 @@ class AutoReportScheduler
             'total_raw_used' => $totalRawUsed,
             'total_overhead_used' => $totalOverheadUsed,
         ];
+    }
+
+    private static function formatBeginningWithAddedDisplay(int $beginningStock, int $addedQty): string
+    {
+        if ($addedQty > 0) {
+            return $beginningStock . ' + ' . $addedQty;
+        }
+
+        return $beginningStock > 0 ? (string) $beginningStock : '0';
     }
 
     private static function buildCategoryTable(array $categoryData, string $category, bool $showOwnerColumns): string
