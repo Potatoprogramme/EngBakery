@@ -837,13 +837,16 @@ class InventoryController extends BaseController
         $productId = intval($json->product_id ?? 0);
         $beginningStock = isset($json->beginning_stock) ? intval($json->beginning_stock) : 0; // unchanged — still reads the same key
         $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
+        $product = $productId > 0 ? $this->productModel->find($productId) : null;
+        $productCategory = strtolower(trim((string) ($product['category'] ?? '')));
+        $deductStockForAddedProduct = in_array($productCategory, ['bakery', 'grocery'], true);
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
         $preview = null;
         $insufficientMaterials = [];
         $deductionResult = null;
 
         // Pre-check: warn if raw materials are insufficient
-        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+        if ($deductStockForAddedProduct && $beginningStock > 0 && $hasRawMaterialRecipe) {
             $preview = $this->rawMaterialStockModel->deductForProduction(
                 $productId,
                 $beginningStock,
@@ -866,7 +869,7 @@ class InventoryController extends BaseController
             }
         }
 
-        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+        if ($deductStockForAddedProduct && $beginningStock > 0 && $hasRawMaterialRecipe) {
             $deductionResult = $this->rawMaterialStockModel->deductForProduction(
                 $productId,
                 $beginningStock,
@@ -901,7 +904,7 @@ class InventoryController extends BaseController
                 ] : null,
             ]);
         } else {
-            if (!empty($deductionResult['success']) && $beginningStock > 0 && $hasRawMaterialRecipe) {
+            if (!empty($deductionResult['success']) && $deductStockForAddedProduct && $beginningStock > 0 && $hasRawMaterialRecipe) {
                 $this->rawMaterialStockModel->restoreForProduction($productId, $beginningStock);
             }
 
@@ -1024,6 +1027,7 @@ class InventoryController extends BaseController
         $product = $productId > 0 ? $this->productModel->find($productId) : null;
         $productCategory = strtolower(trim((string) ($product['category'] ?? '')));
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
+        $deductStockForAddMore = in_array($productCategory, ['bakery', 'grocery'], true);
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
@@ -1046,7 +1050,7 @@ class InventoryController extends BaseController
 
             $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
             $deductionResult = null;
-            if ($hasRawMaterialRecipe) {
+            if ($deductStockForAddMore && $hasRawMaterialRecipe) {
                 $preview = $this->rawMaterialStockModel->deductForProduction($productId, $productGroupQty, true);
                 if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
                     return $this->response->setStatusCode(400)->setJSON([
@@ -1081,7 +1085,7 @@ class InventoryController extends BaseController
             ]);
 
             if (!$storeUpdateSucceeded) {
-                if (!empty($deductionResult['success']) && $hasRawMaterialRecipe) {
+                if (!empty($deductionResult['success']) && $deductStockForAddMore && $hasRawMaterialRecipe) {
                     $this->rawMaterialStockModel->restoreForProduction($productId, $productGroupQty);
                 }
 
@@ -1101,7 +1105,7 @@ class InventoryController extends BaseController
                     'added_qty' => $oldAddedQty,
                     'ending_stock' => intval($item['ending_stock']),
                 ]);
-                if (!empty($deductionResult['success']) && $hasRawMaterialRecipe) {
+                if (!empty($deductionResult['success']) && $deductStockForAddMore && $hasRawMaterialRecipe) {
                     $this->rawMaterialStockModel->restoreForProduction($productId, $productGroupQty);
                 }
 
@@ -1276,7 +1280,7 @@ class InventoryController extends BaseController
 
             $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
             $deductionResult = null;
-            if ($storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
+            if ($deductStockForAddMore && $storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
                 $preview = $this->rawMaterialStockModel->deductForProduction($productId, $storeQtyFromPayload, true);
                 if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
                     return $this->response->setStatusCode(400)->setJSON([
@@ -1336,7 +1340,7 @@ class InventoryController extends BaseController
                 ]);
             }
 
-            if (!empty($deductionResult['success']) && $storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
+            if (!empty($deductionResult['success']) && $deductStockForAddMore && $storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
                 $this->rawMaterialStockModel->restoreForProduction($productId, $storeQtyFromPayload);
             }
 
