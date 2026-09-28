@@ -4,6 +4,23 @@ namespace App\Controllers;
 
 class RawMaterialStockInitialController extends BaseController
 {
+    private function normalizeQuantity($value): float
+    {
+        return round((float) $value, 4);
+    }
+
+    private function normalizeStockEntry(array $entry): array
+    {
+        $initialQty = $this->normalizeQuantity($entry['initial_qty'] ?? 0);
+        $qtyUsed = $this->normalizeQuantity($entry['qty_used'] ?? 0);
+
+        $entry['initial_qty'] = $initialQty;
+        $entry['qty_used'] = $qtyUsed;
+        $entry['remaining'] = $this->normalizeQuantity($initialQty - $qtyUsed);
+
+        return $entry;
+    }
+
     /**
      * Render the Stock Initial page
      */
@@ -23,7 +40,10 @@ class RawMaterialStockInitialController extends BaseController
      */
     public function getAll()
     {
-        $entries = $this->rawMaterialStockModel->getAllWithDetails();
+        $entries = array_map(
+            fn(array $entry): array => $this->normalizeStockEntry($entry),
+            $this->rawMaterialStockModel->getAllWithDetails()
+        );
 
         return $this->response->setJSON([
             'success' => true,
@@ -54,7 +74,7 @@ class RawMaterialStockInitialController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'data' => $entry
+            'data' => $this->normalizeStockEntry($entry)
         ]);
     }
 
@@ -97,12 +117,14 @@ class RawMaterialStockInitialController extends BaseController
             ]);
         }
 
+        $data['initial_qty'] = $this->normalizeQuantity($data['initial_qty']);
+
         try {
             $entryId = $this->rawMaterialStockModel->addEntry($data);
 
             if ($entryId) {
                 $sessionData = $this->getSessionData();
-                $addedQty = floatval($data['initial_qty']);
+                $addedQty = $this->normalizeQuantity($data['initial_qty']);
 
                 (new \App\Models\RawMaterialStockLogModel())->logChange([
                     'material_id' => intval($data['material_id']),
@@ -185,20 +207,23 @@ class RawMaterialStockInitialController extends BaseController
         $stockId = intval($data['stock_id']);
         $existingBefore = $this->rawMaterialStockModel->find($stockId);
         $beforeCurrentQty = $existingBefore
-            ? floatval($existingBefore['initial_qty'] ?? 0) - floatval($existingBefore['qty_used'] ?? 0)
+            ? $this->normalizeQuantity($existingBefore['initial_qty'] ?? 0) - $this->normalizeQuantity($existingBefore['qty_used'] ?? 0)
             : 0;
+        $beforeCurrentQty = $this->normalizeQuantity($beforeCurrentQty);
+
+        $data['initial_qty'] = $this->normalizeQuantity($data['initial_qty']);
 
         // Remaining is sent from the form; compute qty_used = initial - remaining.
         // Remaining can be negative (overused stock) but cannot exceed stock on hand.
         if (array_key_exists('remaining', $data) && is_numeric($data['remaining'])) {
-            $remaining = floatval($data['remaining']);
-            $initial = floatval($data['initial_qty']);
+            $remaining = $this->normalizeQuantity($data['remaining']);
+            $initial = $this->normalizeQuantity($data['initial_qty']);
             if ($remaining > $initial) {
                 $remaining = $initial;
             }
-            $data['qty_used'] = $initial - $remaining;
+            $data['qty_used'] = $this->normalizeQuantity($initial - $remaining);
         } else {
-            $data['qty_used'] = $existingBefore['qty_used'] ?? 0;
+            $data['qty_used'] = $this->normalizeQuantity($existingBefore['qty_used'] ?? 0);
         }
         unset($data['remaining']);
 
@@ -207,8 +232,9 @@ class RawMaterialStockInitialController extends BaseController
 
             if ($success) {
                 // NEW: log the net change as an "added" or "subtracted" entry
-                $afterCurrentQty = floatval($data['initial_qty']) - floatval($data['qty_used']);
-                $delta = round($afterCurrentQty - $beforeCurrentQty, 4);
+                $afterCurrentQty = $this->normalizeQuantity($data['initial_qty']) - $this->normalizeQuantity($data['qty_used']);
+                $afterCurrentQty = $this->normalizeQuantity($afterCurrentQty);
+                $delta = $this->normalizeQuantity($afterCurrentQty - $beforeCurrentQty);
 
                 if ($delta != 0) {
                     $sessionData = $this->getSessionData();

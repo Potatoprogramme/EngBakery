@@ -31,23 +31,28 @@
                         <?php endif; ?>
                     </div>
                 </div>
-                
+
                 <!-- Divider -->
                 <div class="border-t border-gray-200 my-4"></div>
 
                 <?php if (!$isStaffView): ?>
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
                         <div class="bg-white rounded-lg shadow-md border border-green-100 p-4">
-                            <p class="text-xs uppercase tracking-wide text-green-700 font-semibold">Grand Total Initial Cost</p>
-                            <p id="totalInitialCostCard" class="mt-1 text-2xl font-bold text-green-700 tabular-nums">₱0.00</p>
+                            <p class="text-xs uppercase tracking-wide text-green-700 font-semibold">Grand Total Initial Cost
+                            </p>
+                            <p id="totalInitialCostCard" class="mt-1 text-2xl font-bold text-green-700 tabular-nums">₱0.00
+                            </p>
                         </div>
                         <div class="bg-white rounded-lg shadow-md border border-orange-100 p-4">
-                            <p class="text-xs uppercase tracking-wide text-orange-700 font-semibold">Grand Total Used Cost</p>
+                            <p class="text-xs uppercase tracking-wide text-orange-700 font-semibold">Grand Total Used Cost
+                            </p>
                             <p id="totalUsedCostCard" class="mt-1 text-2xl font-bold text-orange-700 tabular-nums">₱0.00</p>
                         </div>
                         <div class="bg-white rounded-lg shadow-md border border-blue-100 p-4 sm:col-span-2 xl:col-span-1">
-                            <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Grand Total Remaining Cost</p>
-                            <p id="totalRemainingCostCard" class="mt-1 text-2xl font-bold text-blue-700 tabular-nums">₱0.00</p>
+                            <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Grand Total Remaining
+                                Cost</p>
+                            <p id="totalRemainingCostCard" class="mt-1 text-2xl font-bold text-blue-700 tabular-nums">₱0.00
+                            </p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -237,7 +242,7 @@
                     </label>
                     <input type="number" name="remaining_qty" id="remaining_qty"
                         class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
-                        placeholder="0" step="0.00001" value="0">
+                        placeholder="0.0000" step="0.0001" value="0.0000">
                     <span id="remaining_error" class="text-red-500 text-xs mt-1 hidden">Remaining cannot exceed Stock On
                         Hand.</span>
                 </div>
@@ -310,7 +315,8 @@
                     <i class="fas fa-exclamation-triangle text-amber-600"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Used Exceeds Stock On Hand</h3>
-                <p id="editStockWarningMessage" class="text-sm text-gray-600 mb-6">This update will make remaining stock negative.</p>
+                <p id="editStockWarningMessage" class="text-sm text-gray-600 mb-6">This update will make remaining stock
+                    negative.</p>
                 <div class="flex gap-3 justify-center">
                     <button type="button" id="btnCancelEditWarning"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>

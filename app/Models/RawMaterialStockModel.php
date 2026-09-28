@@ -7,19 +7,19 @@ use CodeIgniter\Model;
 
 class RawMaterialStockModel extends Model
 {
-    protected $table            = 'raw_material_stock';
-    protected $primaryKey       = 'stock_id';
+    protected $table = 'raw_material_stock';
+    protected $primaryKey = 'stock_id';
     protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
-    protected $protectFields    = true;
-    protected $allowedFields    = ['material_id', 'initial_qty', 'qty_used', 'unit'];
+    protected $returnType = 'array';
+    protected $useSoftDeletes = false;
+    protected $protectFields = true;
+    protected $allowedFields = ['material_id', 'initial_qty', 'qty_used', 'unit'];
 
     // Dates
     protected $useTimestamps = true;
-    protected $dateFormat    = 'datetime';
-    protected $createdField  = 'updated_at';  // Will set updated_at on INSERT
-    protected $updatedField  = 'updated_at';   // Will update updated_at on UPDATE
+    protected $dateFormat = 'datetime';
+    protected $createdField = 'updated_at';  // Will set updated_at on INSERT
+    protected $updatedField = 'updated_at';   // Will update updated_at on UPDATE
 
     // ═══════════════════════════════════════════
     //  STOCK PAGE CRUD
@@ -89,8 +89,8 @@ class RawMaterialStockModel extends Model
         $success = $this->insert([
             'material_id' => $materialId,
             'initial_qty' => $initialQty,
-            'qty_used'    => 0,
-            'unit'        => $data['unit'],
+            'qty_used' => 0,
+            'unit' => $data['unit'],
         ]);
 
         if ($success) {
@@ -111,8 +111,8 @@ class RawMaterialStockModel extends Model
         $success = $this->update($stockId, [
             'material_id' => $materialId,
             'initial_qty' => $initialQty,
-            'qty_used'    => floatval($data['qty_used']),
-            'unit'        => $data['unit'],
+            'qty_used' => floatval($data['qty_used']),
+            'unit' => $data['unit'],
         ]);
 
         // No sync to raw_materials.material_quantity — costing is independent
@@ -169,13 +169,13 @@ class RawMaterialStockModel extends Model
         if ($existing && isset($existing['stock_id'])) {
             $success = $this->update($existing['stock_id'], [
                 'initial_qty' => $quantity,
-                'qty_used'    => 0,
+                'qty_used' => 0,
             ]);
         } else {
             $success = $this->insert([
                 'material_id' => $materialId,
                 'initial_qty' => $quantity,
-                'qty_used'    => 0,
+                'qty_used' => 0,
             ]) !== false;
         }
 
@@ -207,13 +207,13 @@ class RawMaterialStockModel extends Model
             return ['success' => false, 'message' => 'Pieces must be greater than 0'];
         }
 
-        $productRecipeModel  = model('ProductRecipeModel');
-        $productCostModel    = model('ProductCostModel');
+        $productRecipeModel = model('ProductRecipeModel');
+        $productCostModel = model('ProductCostModel');
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
-        $productModel        = model('ProductModel');
+        $productModel = model('ProductModel');
 
-        $product      = $productModel->find($productId);
-        $costData     = $productCostModel->getCostByProductId($productId);
+        $product = $productModel->find($productId);
+        $costData = $productCostModel->getCostByProductId($productId);
         $pieceMetrics = DistributionQuantityCalculator::calculatePieceMetrics($pieces, $product, $costData);
         $yieldsNeeded = (float) $pieceMetrics['yield_units'];
         $recipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
@@ -229,7 +229,8 @@ class RawMaterialStockModel extends Model
         foreach ($recipe as $ingredient) {
             $materialId = intval($ingredient['material_id']);
             $deductAmount = floatval($ingredient['quantity_needed']) * $yieldsNeeded;
-            if (!isset($materialNeeds[$materialId])) $materialNeeds[$materialId] = 0;
+            if (!isset($materialNeeds[$materialId]))
+                $materialNeeds[$materialId] = 0;
             $materialNeeds[$materialId] += $deductAmount;
         }
 
@@ -245,7 +246,8 @@ class RawMaterialStockModel extends Model
                 foreach ($sourceRecipe as $ingredient) {
                     $materialId = intval($ingredient['material_id']);
                     $deductAmount = floatval($ingredient['quantity_needed']) * $sourceYieldsNeeded;
-                    if (!isset($materialNeeds[$materialId])) $materialNeeds[$materialId] = 0;
+                    if (!isset($materialNeeds[$materialId]))
+                        $materialNeeds[$materialId] = 0;
                     $materialNeeds[$materialId] += $deductAmount;
                 }
             }
@@ -292,8 +294,8 @@ class RawMaterialStockModel extends Model
             $inserted = $this->insert([
                 'material_id' => $materialId,
                 'initial_qty' => $amount,
-                'qty_used'    => 0,
-                'unit'        => $unit,
+                'qty_used' => 0,
+                'unit' => $unit,
             ]) !== false;
 
             return $inserted;
@@ -384,8 +386,8 @@ class RawMaterialStockModel extends Model
 
         return [
             'critical' => intval($result['critical_count'] ?? 0),
-            'warning'  => intval($result['warning_count'] ?? 0),
-            'total'    => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0),
+            'warning' => intval($result['warning_count'] ?? 0),
+            'total' => intval($result['critical_count'] ?? 0) + intval($result['warning_count'] ?? 0),
         ];
     }
 
@@ -410,8 +412,8 @@ class RawMaterialStockModel extends Model
         $totalDeductions = 0;
 
         foreach ($items as $item) {
-            $productId   = intval($item['product_id']);
-            $quantity    = intval($item['quantity'] ?? $item['product_qnty'] ?? 0);
+            $productId = intval($item['product_id']);
+            $quantity = intval($item['quantity'] ?? $item['product_qnty'] ?? 0);
             $productName = $item['product_name'] ?? "Product #{$productId}";
 
             if ($quantity <= 0) {
@@ -420,14 +422,16 @@ class RawMaterialStockModel extends Model
 
             $result = $this->deductForProduction($productId, $quantity, $preview);
 
-            $result['product_id']   = $productId;
+            $result['product_id'] = $productId;
             $result['product_name'] = $productName;
-            $result['pieces']       = $quantity;
+            $result['pieces'] = $quantity;
 
-            if (!$result['success'] && (
-                str_contains($result['message'], 'No recipe found') ||
-                str_contains($result['message'], 'No yield data found')
-            )) {
+            if (
+                !$result['success'] && (
+                    str_contains($result['message'], 'No recipe found') ||
+                    str_contains($result['message'], 'No yield data found')
+                )
+            ) {
                 $noRecipeProducts[] = $productName;
             }
 
@@ -444,15 +448,15 @@ class RawMaterialStockModel extends Model
         }
 
         return [
-            'success'                => true,
-            'preview'                => $preview,
-            'total_products'         => count($items),
-            'products_deducted'      => $successCount,
-            'total_deductions'       => $totalDeductions,
-            'no_recipe_products'     => $noRecipeProducts,
-            'insufficient_products'  => $insufficientProducts,
-            'product_results'        => $results,
-            'has_warnings'           => !empty($noRecipeProducts) || !empty($insufficientProducts),
+            'success' => true,
+            'preview' => $preview,
+            'total_products' => count($items),
+            'products_deducted' => $successCount,
+            'total_deductions' => $totalDeductions,
+            'no_recipe_products' => $noRecipeProducts,
+            'insufficient_products' => $insufficientProducts,
+            'product_results' => $results,
+            'has_warnings' => !empty($noRecipeProducts) || !empty($insufficientProducts),
         ];
     }
 
@@ -481,15 +485,15 @@ class RawMaterialStockModel extends Model
             return ['success' => false, 'message' => 'Pieces must be greater than 0', 'deductions' => []];
         }
 
-        $productRecipeModel  = model('ProductRecipeModel');
-        $productCostModel    = model('ProductCostModel');
+        $productRecipeModel = model('ProductRecipeModel');
+        $productCostModel = model('ProductCostModel');
         $combinedRecipeModel = model('ProductCombinedRecipeModel');
 
-        $productModel        = model('ProductModel');
-        $product             = $productModel->find($productId);
-        $costData            = $productCostModel->getCostByProductId($productId);
-        $pieceMetrics        = DistributionQuantityCalculator::calculatePieceMetrics($pieces, $product, $costData);
-        $yieldsNeeded        = (float) $pieceMetrics['yield_units'];
+        $productModel = model('ProductModel');
+        $product = $productModel->find($productId);
+        $costData = $productCostModel->getCostByProductId($productId);
+        $pieceMetrics = DistributionQuantityCalculator::calculatePieceMetrics($pieces, $product, $costData);
+        $yieldsNeeded = (float) $pieceMetrics['yield_units'];
 
         // Get the direct recipe (raw materials)
         $recipe = $productRecipeModel->getRecipeWithMaterialDetails($productId);
@@ -507,37 +511,37 @@ class RawMaterialStockModel extends Model
 
         // Process direct raw material ingredients
         foreach ($recipe as $ingredient) {
-            $materialId     = intval($ingredient['material_id']);
+            $materialId = intval($ingredient['material_id']);
             $quantityNeeded = floatval($ingredient['quantity_needed']);
-            $deductAmount   = $quantityNeeded * $yieldsNeeded;
-            $materialName   = $ingredient['material_name'] ?? 'Unknown';
-            $unit           = $ingredient['unit'] ?? '';
+            $deductAmount = $quantityNeeded * $yieldsNeeded;
+            $materialName = $ingredient['material_name'] ?? 'Unknown';
+            $unit = $ingredient['unit'] ?? '';
 
             if (!isset($materialNeeds[$materialId])) {
                 $materialNeeds[$materialId] = ['total_deduct' => 0, 'entries' => []];
             }
             $materialNeeds[$materialId]['total_deduct'] += $deductAmount;
             $materialNeeds[$materialId]['entries'][] = [
-                'material_id'              => $materialId,
-                'material_name'            => $materialName,
-                'unit'                     => $unit,
+                'material_id' => $materialId,
+                'material_name' => $materialName,
+                'unit' => $unit,
                 'quantity_needed_per_yield' => $quantityNeeded,
-                'yields_needed'            => round($yieldsNeeded, 2),
-                'deduct_amount'            => round($deductAmount, 4),
+                'yields_needed' => round($yieldsNeeded, 2),
+                'deduct_amount' => round($deductAmount, 4),
             ];
         }
 
         // Process combined recipes — collect raw materials of the source product
         foreach ($combinedRecipes as $combined) {
             $sourceProductId = intval($combined['source_product_id']);
-            $gramsPerPiece   = floatval($combined['grams_per_piece']);
-            $sourceName      = $combined['source_product_name'] ?? 'Unknown';
+            $gramsPerPiece = floatval($combined['grams_per_piece']);
+            $sourceName = $combined['source_product_name'] ?? 'Unknown';
 
             // Total grams needed from the source product
             $totalGramsNeeded = $gramsPerPiece * $pieces;
 
             // Get the source product's yield info to convert grams → yields
-            $sourceCost       = $productCostModel->getCostByProductId($sourceProductId);
+            $sourceCost = $productCostModel->getCostByProductId($sourceProductId);
             $sourceYieldGrams = floatval($sourceCost['yield_grams'] ?? 0);
 
             if ($sourceYieldGrams > 0) {
@@ -547,24 +551,24 @@ class RawMaterialStockModel extends Model
                 $sourceRecipe = $productRecipeModel->getRecipeWithMaterialDetails($sourceProductId);
 
                 foreach ($sourceRecipe as $ingredient) {
-                    $materialId     = intval($ingredient['material_id']);
+                    $materialId = intval($ingredient['material_id']);
                     $quantityNeeded = floatval($ingredient['quantity_needed']);
-                    $deductAmount   = $quantityNeeded * $sourceYieldsNeeded;
-                    $materialName   = $ingredient['material_name'] ?? 'Unknown';
-                    $unit           = $ingredient['unit'] ?? '';
+                    $deductAmount = $quantityNeeded * $sourceYieldsNeeded;
+                    $materialName = $ingredient['material_name'] ?? 'Unknown';
+                    $unit = $ingredient['unit'] ?? '';
 
                     if (!isset($materialNeeds[$materialId])) {
                         $materialNeeds[$materialId] = ['total_deduct' => 0, 'entries' => []];
                     }
                     $materialNeeds[$materialId]['total_deduct'] += $deductAmount;
                     $materialNeeds[$materialId]['entries'][] = [
-                        'material_id'              => $materialId,
-                        'material_name'            => $materialName,
-                        'unit'                     => $unit,
+                        'material_id' => $materialId,
+                        'material_name' => $materialName,
+                        'unit' => $unit,
                         'quantity_needed_per_yield' => $quantityNeeded,
-                        'yields_needed'            => round($sourceYieldsNeeded, 2),
-                        'deduct_amount'            => round($deductAmount, 4),
-                        'from_combined'            => $sourceName,
+                        'yields_needed' => round($sourceYieldsNeeded, 2),
+                        'deduct_amount' => round($deductAmount, 4),
+                        'from_combined' => $sourceName,
                     ];
                 }
             }
@@ -583,17 +587,17 @@ class RawMaterialStockModel extends Model
                     continue;
                 }
 
-                $stock      = $this->getByMaterialId($materialId);
+                $stock = $this->getByMaterialId($materialId);
                 $currentQty = floatval($stock['current_quantity'] ?? 0);
                 $totalDeductForMaterial = round($need['total_deduct'], 4);
-                $afterQty   = $currentQty - $totalDeductForMaterial;
+                $afterQty = $currentQty - $totalDeductForMaterial;
                 $isInsufficient = $currentQty < $totalDeductForMaterial;
 
                 // Build one deduction entry per source (direct / each combined)
                 foreach ($need['entries'] as $entry) {
                     $deductions[] = array_merge($entry, [
-                        'before'       => round($currentQty, 4),
-                        'after'        => round($afterQty, 4),
+                        'before' => round($currentQty, 4),
+                        'after' => round($afterQty, 4),
                         'insufficient' => $isInsufficient,
                         'total_needed' => $totalDeductForMaterial,
                     ]);
@@ -655,15 +659,15 @@ class RawMaterialStockModel extends Model
         $hasInsufficient = !empty(array_filter($deductions, fn($d) => $d['insufficient']));
 
         return [
-            'success'          => empty($errors),
-            'preview'          => $preview,
-            'message'          => $preview
+            'success' => empty($errors),
+            'preview' => $preview,
+            'message' => $preview
                 ? 'Preview calculated'
                 : (empty($errors) ? 'Raw materials deducted successfully' : implode('; ', $errors)),
-            'pieces'           => $pieces,
+            'pieces' => $pieces,
             'pieces_per_yield' => $pieceMetrics['batch_pieces'] ?? 1,
-            'yields_needed'    => round($yieldsNeeded, 2),
-            'deductions'       => $deductions,
+            'yields_needed' => round($yieldsNeeded, 2),
+            'deductions' => $deductions,
             'has_insufficient' => $hasInsufficient,
         ];
     }

@@ -12,8 +12,16 @@ class RawMaterialStockLogModel extends Model
     protected $useTimestamps = false;
 
     protected $allowedFields = [
-        'material_id', 'action', 'amount', 'before_qty', 'after_qty',
-        'unit', 'changed_by', 'changed_by_name', 'source', 'created_at',
+        'material_id',
+        'action',
+        'amount',
+        'before_qty',
+        'after_qty',
+        'unit',
+        'changed_by',
+        'changed_by_name',
+        'source',
+        'created_at',
     ];
 
     /**

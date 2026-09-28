@@ -292,7 +292,7 @@ $(document).ready(function () {
   });
 
   // Validate remaining on every keystroke — show inline error & disable Update if exceeded
-  $("#remaining_qty").on("input change", function () {
+  $("#remaining_qty").on("input change", function (event) {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     let remaining = parseFloat($(this).val()) || 0;
 
@@ -315,10 +315,10 @@ $(document).ready(function () {
         .prop("disabled", false)
         .removeClass("opacity-50 cursor-not-allowed");
     }
-    recalcModal("remaining");
+    recalcModal("remaining", event.type !== "input");
   });
 
-  function recalcModal(source) {
+  function recalcModal(source, normalizeRemainingInput = true) {
     const initial = parseFloat($("#initial_qty").val()) || 0;
     const costPerUnit = parseFloat($("#edit_cost_per_unit").val()) || 0;
     const isEdit = $("#edit_stock_id").val() !== "";
@@ -331,17 +331,19 @@ $(document).ready(function () {
     if (isEdit && fixedEditUsed !== null && source !== "remaining") {
       // Keep used fixed unless user explicitly edits remaining
       used = Math.max(0, fixedEditUsed);
-      $("#remaining_qty").val(initial - used);
+      $("#remaining_qty").val((initial - used).toFixed(4));
     } else {
       // Recompute used from stock on hand and remaining
       used = Math.max(0, initial - remaining);
-      $("#remaining_qty").val(remaining);
+      if (normalizeRemainingInput || source !== "remaining") {
+        $("#remaining_qty").val(remaining.toFixed(4));
+      }
 
       // In edit mode, once remaining is user-driven, keep future edits consistent
       if (isEdit) fixedEditUsed = used;
     }
 
-    $("#qty_used_display").val(formatNumber(used));
+    $("#qty_used_display").val(used.toFixed(4));
 
     const initialCost = initial * costPerUnit;
     const usedCost = used * costPerUnit;
@@ -398,7 +400,7 @@ $(document).ready(function () {
 
     if (isEdit) {
       payload.stock_id = entryId;
-      payload.remaining = Math.min(remaining, initial); // Send remaining, server computes used
+      payload.remaining = Math.min(remaining, initial).toFixed(4); // Send remaining, server computes used
     } else {
       payload.qty_used = 0;
     }
@@ -538,7 +540,7 @@ $(document).ready(function () {
             fixedEditUsed = Math.max(0, qtyUsed);
             const initialQty = parseFloat(d.initial_qty) || 0;
             const remaining = initialQty - fixedEditUsed;
-            $("#remaining_qty").val(remaining);
+            $("#remaining_qty").val(remaining.toFixed(4));
 
             // Show edit-only fields
             $("#add_stock_wrapper").removeClass("hidden");
@@ -841,7 +843,9 @@ $(document).ready(function () {
 
       const remainingLayoutClass = "flex flex-col gap-1.5";
       const remainingBarClass =
-        "w-full max-w-[7rem] h-1.5 rounded-full " + barTrack + " overflow-hidden";
+        "w-full max-w-[7rem] h-1.5 rounded-full " +
+        barTrack +
+        " overflow-hidden";
 
       const dateStr = entry.updated_at
         ? new Date(entry.updated_at).toLocaleDateString("en-PH", {
@@ -1408,7 +1412,7 @@ $(document).ready(function () {
                 fixedEditUsed = Math.max(0, qtyUsed);
                 const initialQty = parseFloat(d.initial_qty) || 0;
                 const remaining = initialQty - fixedEditUsed;
-                $("#remaining_qty").val(remaining);
+                $("#remaining_qty").val(remaining.toFixed(4));
 
                 $("#add_stock_wrapper").removeClass("hidden");
                 $("#qty_used_wrapper").removeClass("hidden");
