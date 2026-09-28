@@ -4634,7 +4634,10 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     if (xhr.responseJSON && xhr.responseJSON.exceeds_available_stock) {
                         showToast('warning', xhr.responseJSON.message, 3500);
                     } else if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
-                        if (!payload.allow_insufficient) {
+                        if (productGroupQty > 0) {
+                            showToast('warning', xhr.responseJSON.message ||
+                                'Add More was not saved because raw materials are insufficient.', 4000);
+                        } else if (!payload.allow_insufficient) {
                             pendingInsufficientDrinksEdit = true;
                             showInsufficientStockModal(xhr.responseJSON);
                         } else {

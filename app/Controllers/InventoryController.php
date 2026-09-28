@@ -840,6 +840,7 @@ class InventoryController extends BaseController
         $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
         $preview = null;
         $insufficientMaterials = [];
+        $deductionResult = null;
 
         // Pre-check: warn if raw materials are insufficient
         if ($beginningStock > 0 && $hasRawMaterialRecipe) {
@@ -865,6 +866,23 @@ class InventoryController extends BaseController
             }
         }
 
+        if ($beginningStock > 0 && $hasRawMaterialRecipe) {
+            $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                $productId,
+                $beginningStock,
+                false,
+                $allowInsufficient
+            );
+
+            if (empty($deductionResult['success'])) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => $deductionResult['message'] ?? 'Failed to deduct raw materials.',
+                    'deduction' => $deductionResult,
+                ]);
+            }
+        }
+
         $result = $this->dailyStockItemsModel->addProductToInventory(
             $dailyStock['daily_stock_id'],
             $productId,
@@ -872,17 +890,6 @@ class InventoryController extends BaseController
         );
 
         if ($result) {
-            $deductionResult = null;
-
-            if ($beginningStock > 0 && $hasRawMaterialRecipe) {
-                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
-                    $productId,
-                    $beginningStock,
-                    false,
-                    $allowInsufficient
-                );
-            }
-
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to inventory successfully',
@@ -894,6 +901,10 @@ class InventoryController extends BaseController
                 ] : null,
             ]);
         } else {
+            if (!empty($deductionResult['success']) && $beginningStock > 0 && $hasRawMaterialRecipe) {
+                $this->rawMaterialStockModel->restoreForProduction($productId, $beginningStock);
+            }
+
             return $this->response->setStatusCode(400)->setJSON([
                 'success' => false,
                 'message' => 'Product already exists in inventory or failed to add'
@@ -1012,6 +1023,7 @@ class InventoryController extends BaseController
         $productId = intval($item['product_id'] ?? 0);
         $product = $productId > 0 ? $this->productModel->find($productId) : null;
         $productCategory = strtolower(trim((string) ($product['category'] ?? '')));
+        $hasRawMaterialRecipe = $this->productHasRawMaterialRecipe($productId);
 
         // NEW: Handle Store vs Distribute actions
         $action = $json->action ?? null;
@@ -1032,16 +1044,67 @@ class InventoryController extends BaseController
             $newAddedQty = $oldAddedQty + $productGroupQty;
             $newEnding = intval($item['ending_stock']) + $productGroupQty;
 
-            $this->dailyStockItemsModel->update($item_id, [
+            $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
+            $deductionResult = null;
+            if ($hasRawMaterialRecipe) {
+                $preview = $this->rawMaterialStockModel->deductForProduction($productId, $productGroupQty, true);
+                if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Cannot add product — insufficient raw material stock.',
+                        'insufficient_materials' => array_values(array_map(
+                            fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
+                            array_filter($preview['deductions'] ?? [], fn($d) => !empty($d['insufficient']))
+                        )),
+                        'preview' => $preview,
+                    ]);
+                }
+
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    $productId,
+                    $productGroupQty,
+                    false,
+                    $allowInsufficient
+                );
+                if (empty($deductionResult['success'])) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => $deductionResult['message'] ?? 'Failed to deduct raw materials.',
+                        'deduction' => $deductionResult,
+                    ]);
+                }
+            }
+
+            $storeUpdateSucceeded = $this->dailyStockItemsModel->update($item_id, [
                 'added_qty' => $newAddedQty,
                 'ending_stock' => $newEnding,
             ]);
 
+            if (!$storeUpdateSucceeded) {
+                if (!empty($deductionResult['success']) && $hasRawMaterialRecipe) {
+                    $this->rawMaterialStockModel->restoreForProduction($productId, $productGroupQty);
+                }
+
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to update inventory item after deducting raw materials.',
+                    'errors' => $this->dailyStockItemsModel->errors(),
+                ]);
+            }
+
             try {
                 $dailyStockId = intval($item['daily_stock_id']);
                 $this->createOrUpdateDistributionEntryForStore($dailyStockId, $productId, $productGroupQty);
-                $this->deductRawMaterialsForProduct($productId, $productGroupQty);
+                // Raw materials were deducted before the inventory update.
             } catch (\Throwable $e) {
+                $this->dailyStockItemsModel->update($item_id, [
+                    'added_qty' => $oldAddedQty,
+                    'ending_stock' => intval($item['ending_stock']),
+                ]);
+                if (!empty($deductionResult['success']) && $hasRawMaterialRecipe) {
+                    $this->rawMaterialStockModel->restoreForProduction($productId, $productGroupQty);
+                }
+
                 return $this->response->setStatusCode(500)->setJSON([
                     'success' => false,
                     'message' => 'Failed to add product to store distribution.',
@@ -1055,7 +1118,8 @@ class InventoryController extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Product added to store inventory and distribution',
-                'data' => ['item_id' => $item_id]
+                'data' => ['item_id' => $item_id],
+                'deduction' => $deductionResult,
             ]);
         } else if ($action === 'distribute') {
             $distributionGroupQty = intval($json->distribution_group_qty ?? 0);
@@ -1210,6 +1274,37 @@ class InventoryController extends BaseController
                 ]);
             }
 
+            $allowInsufficient = filter_var($json->allow_insufficient ?? false, FILTER_VALIDATE_BOOLEAN);
+            $deductionResult = null;
+            if ($storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
+                $preview = $this->rawMaterialStockModel->deductForProduction($productId, $storeQtyFromPayload, true);
+                if (!empty($preview['has_insufficient']) && !$allowInsufficient) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => 'Cannot add product — insufficient raw material stock.',
+                        'insufficient_materials' => array_values(array_map(
+                            fn($d) => $d['material_name'] . ' (need ' . $d['deduct_amount'] . ' ' . $d['unit'] . ', have ' . $d['before'] . ')',
+                            array_filter($preview['deductions'] ?? [], fn($d) => !empty($d['insufficient']))
+                        )),
+                        'preview' => $preview,
+                    ]);
+                }
+
+                $deductionResult = $this->rawMaterialStockModel->deductForProduction(
+                    $productId,
+                    $storeQtyFromPayload,
+                    false,
+                    $allowInsufficient
+                );
+                if (empty($deductionResult['success'])) {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'success' => false,
+                        'message' => $deductionResult['message'] ?? 'Failed to deduct raw materials.',
+                        'deduction' => $deductionResult,
+                    ]);
+                }
+            }
+
             $updateResult = $this->dailyStockItemsModel->update($item_id, [
                 'beginning_stock' => $newBeginning,
                 'pull_out_quantity' => $newPullOut,
@@ -1236,8 +1331,13 @@ class InventoryController extends BaseController
                         'pull_out_quantity' => $newPullOut,
                         'ending_stock' => $newEndingStock,
                         'added_qty' => $newAddedQty,
-                    ]
+                    ],
+                    'deduction' => $deductionResult,
                 ]);
+            }
+
+            if (!empty($deductionResult['success']) && $storeQtyFromPayload > 0 && $hasRawMaterialRecipe) {
+                $this->rawMaterialStockModel->restoreForProduction($productId, $storeQtyFromPayload);
             }
 
             return $this->response->setStatusCode(500)->setJSON([
