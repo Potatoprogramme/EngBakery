@@ -1061,6 +1061,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         let todayDistributionGroupedData = [];
         let inventoryId = null;
         let pendingInsufficientInventoryAdd = false;
+        let pendingInsufficientAddMoreEdit = false;
         let pendingInsufficientDrinksEdit = false;
 
         function getTodayDateForApi() {
@@ -4407,7 +4408,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             if (productGroupQty > 0 && !hasAdjustmentFields) {
                 payload = {
                     action: 'store',
-                    product_group_qty: productGroupQty
+                    product_group_qty: productGroupQty,
+                    allow_insufficient: pendingInsufficientAddMoreEdit
                 };
             }
             // NEW: Handle Distribute action
@@ -4562,6 +4564,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
 
                 if (productGroupQty > 0) {
                     payload.product_group_qty = productGroupQty;
+                    payload.allow_insufficient = pendingInsufficientAddMoreEdit;
                 }
             } else {
                 if (beginningInput < 0 || pullOutInput < 0) {
@@ -4635,8 +4638,8 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                         showToast('warning', xhr.responseJSON.message, 3500);
                     } else if (xhr.responseJSON && xhr.responseJSON.insufficient_materials) {
                         if (productGroupQty > 0) {
-                            showToast('warning', xhr.responseJSON.message ||
-                                'Add More was not saved because raw materials are insufficient.', 4000);
+                            pendingInsufficientAddMoreEdit = true;
+                            showInsufficientStockModal(xhr.responseJSON);
                         } else if (!payload.allow_insufficient) {
                             pendingInsufficientDrinksEdit = true;
                             showInsufficientStockModal(xhr.responseJSON);
@@ -5091,6 +5094,13 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         });
 
         $(document).on('click', '#btnProceedDeductionWarning', function () {
+            if (pendingInsufficientAddMoreEdit) {
+                $('#deductionWarningModal').addClass('hidden');
+                $('#editInventoryForm').trigger('submit');
+                pendingInsufficientAddMoreEdit = false;
+                return;
+            }
+
             if (pendingInsufficientDrinksEdit) {
                 $('#deductionWarningModal').addClass('hidden');
                 $('#editInventoryForm').trigger('submit');
@@ -5108,6 +5118,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
         });
 
         $(document).on('click', '#deductionWarningModalCancel', function () {
+            pendingInsufficientAddMoreEdit = false;
             pendingInsufficientDrinksEdit = false;
         });
 
@@ -5187,7 +5198,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             $('#deductionWarningContent').html(html);
             $('#deductionWarningFooter').html(
                 '<button type="button" id="btnProceedDeductionWarning" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium mr-3">Proceed</button>' +
-                '<button type="button" id="deductionWarningModalCancel" onclick="pendingInsufficientInventoryAdd = false; $(\'#deductionWarningModal\').addClass(\'hidden\')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">Cancel</button>'
+                '<button type="button" id="deductionWarningModalCancel" onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientAddMoreEdit = false; pendingInsufficientDrinksEdit = false; $(\'#deductionWarningModal\').addClass(\'hidden\')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">Cancel</button>'
             );
             $('#deductionWarningModal').removeClass('hidden');
         }
@@ -5353,7 +5364,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
                     <i class="fas fa-clipboard-check mr-2 text-primary"></i>Raw Material Deduction Report
                 </h3>
                 <button id="deductionWarningModalClose"
-                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
+                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientAddMoreEdit = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
                     class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -5363,7 +5374,7 @@ $isStaffView = (($employee_type ?? '') === 'staff');
             </div>
             <div class="px-6 py-3 border-t border-gray-200 flex justify-end" id="deductionWarningFooter">
                 <button type="button" id="deductionWarningModalCloseBtn"
-                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
+                    onclick="pendingInsufficientInventoryAdd = false; pendingInsufficientAddMoreEdit = false; pendingInsufficientDrinksEdit = false; $('#deductionWarningModal').addClass('hidden')"
                     class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors text-sm font-medium">
                     Got it
                 </button>
