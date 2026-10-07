@@ -23,7 +23,7 @@ $currentSegment2 = strtolower(service('uri')->getSegment(2) ?? '');
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>"
                         class="h-6 me-1 sm:me-2 shrink-0" alt="En'G Bakery Logo" />
                     <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap text-primary truncate min-w-0">
-                        E n' G Bakery - Deca Sentrio
+                        E n' G Bakery - Karangahan
                     </span>
                 </a>
             </div>

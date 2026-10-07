@@ -40,7 +40,7 @@
                 <div class="text-center mb-6">
                     <img src="<?= base_url('assets/pictures/En\'G Bakery Logo.png') ?>" alt="E n' G Bakery"
                         class="mx-auto w-20 sm:w-24 mb-4" />
-                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery - Deca Sentrio</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-primary">E n' G Bakery - Karangahan</h1>
                     <p class="text-sm text-gray-500 mt-1">Create your account</p>
                 </div>
 

@@ -61,7 +61,7 @@ class BeginningQuantityAdjustmentNotifier
 
         try {
             $email = \Config\Services::email();
-            $email->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
+            $email->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $email->setTo($ownerEmails);
             $email->setSubject('Beginning Quantity Adjusted - ' . $productName);
             $email->setMessage($body);

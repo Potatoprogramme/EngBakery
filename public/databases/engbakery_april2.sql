@@ -1666,7 +1666,7 @@ CREATE TABLE `remittance_details` (
 --
 
 INSERT INTO `remittance_details` (`remittance_id`, `daily_stock_id`, `cashier`, `outlet_name`, `remittance_date`, `shift_start`, `shift_end`, `amount_enclosed`, `total_online_revenue`, `foodpanda_revenue`, `cash_out`, `cashout_reason`, `bakery_sales`, `coffee_sales`, `grocery_sales`, `total_sales`, `variance_amount`, `is_short`) VALUES
-(1, NULL, 2, 'Deca Sentrio', '2026-03-08 20:08:24', '05:00:00', '13:00:00', 0, 0, 12.51, 0, '', 87.57, 0, 0, 87.57, 75.06, 1);
+(1, NULL, 2, 'Karangahan', '2026-03-08 20:08:24', '05:00:00', '13:00:00', 0, 0, 12.51, 0, '', 87.57, 0, 0, 87.57, 75.06, 1);
 
 -- --------------------------------------------------------
 

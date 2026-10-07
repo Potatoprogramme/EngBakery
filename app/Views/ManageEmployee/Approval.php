@@ -124,7 +124,7 @@
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Outlet</label>
-                            <p class="text-sm font-medium text-gray-900" id="modalOutlet">Deca Sentrio</p>
+                            <p class="text-sm font-medium text-gray-900" id="modalOutlet">Karangahan</p>
                         </div>
                         <div>
                             <label class="block mb-1 text-xs font-medium text-gray-500 uppercase">Shift</label>

@@ -181,7 +181,7 @@ class EndOfDayStockReport
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($subject);
             $emailService->setMessage($body);
@@ -413,7 +413,7 @@ class EndOfDayStockReport
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin:0;font-size:24px;'>All-Day Stock Report</h1>
-                    <p style='margin:6px 0 0;font-size:13px;opacity:.9;'>E n' G Bakery - Deca Sentrio — {$reportDisplayDate}</p>
+                    <p style='margin:6px 0 0;font-size:13px;opacity:.9;'>E n' G Bakery - Karangahan — {$reportDisplayDate}</p>
                 </div>
                 <div class='content'>
                     <p class='meta'>This report aggregates the full inventory movement across all inventory shifts recorded on {$reportDisplayDate}.</p>

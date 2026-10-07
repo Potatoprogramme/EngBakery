@@ -252,7 +252,7 @@ class PasswordResetController extends BaseController
             <body>
                 <div class='container'>
                     <div class='header'>
-                        <h1>E n' G Bakery - Deca Sentrio</h1>
+                        <h1>E n' G Bakery - Karangahan</h1>
                         <p>Password Reset Request</p>
                     </div>
                     <div class='content'>
@@ -273,7 +273,7 @@ class PasswordResetController extends BaseController
                         </div>
                     </div>
                     <div class='footer'>
-                        <p>&copy; " . date('Y') . " E n' G Bakery - Deca Sentrio. All rights reserved.</p>
+                        <p>&copy; " . date('Y') . " E n' G Bakery - Karangahan. All rights reserved.</p>
                         <p>This is an automated message, please do not reply to this email.</p>
                     </div>
                 </div>

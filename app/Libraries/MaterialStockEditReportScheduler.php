@@ -41,7 +41,7 @@ class MaterialStockEditReportScheduler
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($subject);
             $emailService->setMessage($body);
@@ -162,7 +162,7 @@ class MaterialStockEditReportScheduler
 
         try {
             $emailService = \Config\Services::email();
-            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Deca Sentrio");
+            $emailService->setFrom('noreply@engbakery.com', "E n' G Bakery - Karangahan");
             $emailService->setTo($ownerEmails);
             $emailService->setSubject($subject);
             $emailService->setMessage($body);
@@ -225,7 +225,7 @@ class MaterialStockEditReportScheduler
             <div class='container'>
                 <div class='header'>
                     <h1 style='margin:0;font-size:22px;'>Material Stock Change Alert</h1>
-                    <p style='margin:6px 0 0;font-size:13px;opacity:.9;'>E n' G Bakery - Deca Sentrio — {$reportDate}</p>
+                    <p style='margin:6px 0 0;font-size:13px;opacity:.9;'>E n' G Bakery - Karangahan — {$reportDate}</p>
                 </div>
                 <div class='content'>
                     <p style='font-size:14px;'>Dear Owner,</p>
